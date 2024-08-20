@@ -27,7 +27,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://dpl-cms.docker"
+        summary: "https://dpl-cms.inlead.dev"
       }
     }
   },
@@ -67,7 +67,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next/graphql"
+        summary: "https://fbi-api.dbc.dk/opac/graphql"
       }
     }
   },
