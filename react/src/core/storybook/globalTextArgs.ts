@@ -304,6 +304,18 @@ export const argTypes = {
       defaultValue: { summary: "Length of 4 characters" }
     },
     control: { type: "text" }
+  },
+  wayfinderModalDescriptionText: {
+    table: {
+      defaultValue: { summary: "Description about EW" }
+    },
+    control: { type: "text" }
+  },
+  wayfinderCloseModalLabelText: {
+    table: {
+      defaultValue: { summary: "Close modal EW" }
+    },
+    control: { type: "text" }
   }
 };
 

@@ -54,6 +54,12 @@ const FindOnShelfManifestationList: FC<FindOnShelfManifestationListProps> = ({
               branchHolding.holding.materials
             )}
             key={branchHolding.holding.branch.branchId}
+            holdingData={{
+              branchId: branchHolding.holding.branch.branchId,
+              departmentId: branchHolding.holding.department?.departmentId,
+              locationId: branchHolding.holding.location?.locationId,
+              subLocationId: branchHolding.holding.sublocation?.sublocationId
+            }}
           />
         );
       })}
