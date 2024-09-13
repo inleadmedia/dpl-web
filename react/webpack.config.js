@@ -26,6 +26,9 @@ module.exports = (_env, argv) => {
     new ESLintPlugin({
       files: ["*.js", "*.jsx", "*.ts", "*.tsx"],
       context: path.resolve(__dirname, "./src")
+    }),
+    new MiniCssExtractPlugin({
+      filename: "[name].css"
     })
   ];
 
@@ -86,7 +89,19 @@ module.exports = (_env, argv) => {
         // We consume css and svg files from dpl-design-system package
         {
           test: /\.css$/,
-          use: ["style-loader", "css-loader"]
+          use: [
+            production ? MiniCssExtractPlugin.loader : "style-loader",
+            "css-loader"
+          ]
+        },
+        // Support for SCSS
+        {
+          test: /\.scss$/,
+          use: [
+            production ? MiniCssExtractPlugin.loader : "style-loader",
+            "css-loader",
+            "sass-loader"
+          ]
         },
         {
           test: /\.svg$/,
