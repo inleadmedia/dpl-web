@@ -45,7 +45,7 @@ export function fetcher<TData, TVariables>(
 
       if (res.status !== 200) {
         const { message } = json
-        if (res.status === 403) {
+        if (res.status === 403 || res.status === 401) {
           throw new AccessForbiddenError(message)
         } else {
           throw new Error(message)
