@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6b85ee0ce922a1d1f081b7f89ece69bb",
+    "content-hash": "ef31223b77da24a62976fe1a10df7b0d",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -1050,7 +1050,7 @@
             "version": "0.0.0",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip"
+                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-campaign-v2/dist-design-system.zip"
             },
             "type": "drupal-library"
         },
@@ -1059,7 +1059,7 @@
             "version": "0.0.0",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-react.zip"
+                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-campaign-v2/dist-react.zip"
             },
             "require": {
                 "composer/installers": "^1.2.0"
