@@ -68,7 +68,7 @@ dependencies:
     - view_unpublished
     - webform
 id: local_administrator
-label: 'Local Administrator'
+label: 'Lokal administrator'
 weight: 3
 is_admin: null
 permissions:

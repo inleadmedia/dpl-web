@@ -42,7 +42,7 @@ dependencies:
     - toolbar
     - view_unpublished
 id: mediator
-label: Mediator
+label: Formidler
 weight: 5
 is_admin: null
 permissions:

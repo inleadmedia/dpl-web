@@ -2,6 +2,7 @@
 
 namespace Drupal\dpl_campaign\Plugin\rest\resource;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\dpl_campaign\Input\Facet;
 use Drupal\dpl_campaign\Input\Rule;
@@ -16,9 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
-// Descriptions quickly become long and Doctrine annotations have no good way
-// of handling multiline strings.
-// phpcs:disable Drupal.Files.LineLength.TooLong
 /**
  * A resource for retrieving a campaign matching the facets in a search result.
  *
@@ -26,105 +24,111 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
  *   id = "campaign:match",
  *   label = @Translation("Get campaign matching search result facets"),
  *   serialization_class = "",
- *
  *   uri_paths = {
  *     "create" = "/dpl_campaign/match",
  *   },
- *
- *   payload = {
- *     "name" = "facets",
- *     "description" = "A facet to match against",
- *     "in" = "body",
- *     "required" = TRUE,
- *     "schema" = {
- *       "type" = "array",
- *       "items" = {
- *         "type" = "object",
- *         "properties" = {
- *           "name" = {
- *             "type" = "string",
- *           },
- *           "values" = {
- *             "type" = "array",
- *             "items" = {
- *               "type" = "object",
- *               "properties" = {
- *                 "key" = {
- *                   "type" = "string",
- *                 },
- *                 "term" = {
- *                   "type" = "string",
- *                 },
- *                 "score" = {
- *                   "type" = "integer",
- *                 },
- *               },
- *             },
- *           },
- *         },
- *       },
- *     },
- *   },
- *
- *   responses = {
- *     200 = {
- *       "description" = "OK",
- *       "schema" = {
- *         "type" = "object",
- *         "properties" = {
- *           "data" = {
- *             "type" = "object",
- *             "description" = "The matching campaign",
- *             "properties" = {
- *                "id" = {
- *                 "type" = "string",
- *                 "description" = "The campaign id",
- *               },
- *                "title" = {
- *                 "type" = "string",
- *                 "description" = "The title of the campaign",
- *               },
- *               "text" = {
- *                 "type" = "string",
- *                 "description" = "The text to be shown for the campaign",
- *               },
- *               "image" = {
- *                 "type" = "object",
- *                 "description" = "The image to be shown for the campaign",
- *                 "properties" = {
- *                   "url" = {
- *                     "type" = "string",
- *                     "description" = "The url to the image",
- *                   },
- *                   "alt" = {
- *                     "type" = "string",
- *                     "description" = "The alt text for the image",
- *                   },
- *                 },
- *               },
- *               "url" = {
- *                 "type" = "string",
- *                 "description" = "The url the campaign should link to",
- *               },
- *             },
- *           },
- *         },
- *       },
- *     },
- *     400 = {
- *      "descriptions" = "Invalid input"
- *     },
- *     404 = {
- *       "description" = "No matching campaign found"
- *     },
- *     500 = {
- *       "description" = "Internal server error"
- *     },
- *   }
  * )
  */
 class MatchResource extends ResourceBase {
-// phpcs:enable Drupal.Files.LineLength.TooLong
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getPluginDefinition(): array {
+    return NestedArray::mergeDeep(
+      parent::getPluginDefinition(),
+      [
+        'payload' => [
+          'name' => 'facets',
+          'description' => 'A facet to match against',
+          'in' => 'body',
+          'required' => TRUE,
+          'schema' => [
+            'type' => 'array',
+            'items' => [
+              'type' => 'object',
+              'properties' => [
+                'name' => [
+                  'type' => 'string',
+                ],
+                'values' => [
+                  'type' => 'array',
+                  'items' => [
+                    'type' => 'object',
+                    'properties' => [
+                      'key' => [
+                        'type' => 'string',
+                      ],
+                      'term' => [
+                        'type' => 'string',
+                      ],
+                      'score' => [
+                        'type' => 'integer',
+                      ],
+                    ],
+                  ],
+                ],
+              ],
+            ],
+          ],
+        ],
+        'responses' => [
+          200 => [
+            'description' => 'OK',
+            'schema' => [
+              'type' => 'object',
+              'properties' => [
+                'data' => [
+                  'type' => 'object',
+                  'description' => 'The matching campaign',
+                  'properties' => [
+                    'id' => [
+                      'type' => 'string',
+                      'description' => 'The campaign id',
+                    ],
+                    'title' => [
+                      'type' => 'string',
+                      'description' => 'The title of the campaign',
+                    ],
+                    'text' => [
+                      'type' => 'string',
+                      'description' => 'The text to be shown for the campaign',
+                    ],
+                    'image' => [
+                      'type' => 'object',
+                      'description' => 'The image to be shown for the campaign',
+                      'properties' => [
+                        'url' => [
+                          'type' => 'string',
+                          'description' => 'The url to the image',
+                        ],
+                        'alt' => [
+                          'type' => 'string',
+                          'description' => 'The alt text for the image',
+                        ],
+                      ],
+                    ],
+                    'url' => [
+                      'type' => 'string',
+                      'description' => 'The url the campaign should link to',
+                    ],
+                  ],
+                ],
+              ],
+            ],
+          ],
+          400 => [
+            'description' => 'Invalid input',
+          ],
+          404 => [
+            'description' => 'No matching campaign found',
+          ],
+          500 => [
+            'description' => 'Internal server error',
+          ],
+        ],
+      ]);
+  }
 
   /**
    * Config Manager.
@@ -278,10 +282,15 @@ class MatchResource extends ResourceBase {
   protected function findCampaign(array $rules, string $rules_logic): ?NodeInterface {
     $storage = $this->entityTypeManager->getStorage('node');
     $query = $storage->getQuery();
-    $entity_ids = $query->accessCheck(FALSE)
+    $entity_ids = $query
+      // We do not want access check, as campaigns may be 'hidden' in the
+      // frontend, even if they're published, as they're not meant to be shown
+      // stand-alone.
+      ->accessCheck(FALSE)
       ->condition('type', 'campaign')
       ->condition('status', 1)
       ->condition('field_campaign_rules_logic', $rules_logic)
+      ->sort('field_campaign_weight', 'DESC')
       ->execute();
 
     if (!is_array($entity_ids)) {

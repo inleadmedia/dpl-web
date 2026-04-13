@@ -55,7 +55,7 @@ dependencies:
     - view_unpublished
     - webform
 id: editor
-label: Editor
+label: Redaktør
 weight: 4
 is_admin: null
 permissions:

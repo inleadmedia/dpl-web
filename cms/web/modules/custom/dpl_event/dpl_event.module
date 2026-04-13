@@ -12,6 +12,7 @@ use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\dpl_campaign\CampaignWeight;
 use Drupal\dpl_event\Entity\EventInstance;
 use Drupal\dpl_event\EventState;
 use Drupal\dpl_event\Form\SettingsForm;
@@ -21,6 +22,34 @@ use Drupal\dpl_event\Workflows\UnpublishSchedule;
 use Drupal\dpl_event\Workflows\UnpublishSeriesSchedule;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\recurring_events\Entity\EventSeries;
+
+function dpl_event_field_widget_single_element_form_alter(array &$element, FormStateInterface $form_state, array $context) {
+  $field_name = $context['items']->getFieldDefinition()->getName();
+
+  if ($field_name !== 'field_campaign_weight') {
+    return;
+  }
+
+  $show_bnfs = FALSE;
+  $bnf_enums = CampaignWeight::getBnfEnums();
+  $bnf_options = [];
+
+  foreach ($bnf_enums as $bnf_enum) {
+    $key = $bnf_enum->value;
+    $option = $element['#options'][$key] ?? NULL;
+
+    if ($option) {
+      $bnf_options[$key] = $option;
+    }
+  }
+
+  if ($show_bnfs) {
+    $element['#options'] = $bnf_options;
+  }
+  else {
+    $element['#options'] = array_diff($element['#options'], $bnf_options);
+  }
+}
 
 /**
  * Implements hook_entity_presave().
