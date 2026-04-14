@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ae3786f70abd83e2df455bbc4aa8cd36",
+    "content-hash": "f45494431903c6cd38f20de8083f7360",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -1050,7 +1050,7 @@
             "version": "0.0.0-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-design-system.zip"
+                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip"
             },
             "type": "drupal-library"
         },
@@ -1059,7 +1059,7 @@
             "version": "0.0.0-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-react.zip"
+                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-188-duplicate-emneord/dist-react.zip"
             },
             "require": {
                 "composer/installers": "^1.2.0"

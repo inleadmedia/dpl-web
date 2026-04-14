@@ -59,7 +59,7 @@
                 "version": "0.0.0-dev",
                 "type": "drupal-library",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-react.zip",
+                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-188-duplicate-emneord/dist-react.zip",
                     "type": "zip"
                 },
                 "require": {
@@ -74,7 +74,7 @@
                 "type": "drupal-library",
                 "version": "0.0.0-dev",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-design-system.zip",
+                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip",
                     "type": "zip"
                 }
             }
@@ -86,7 +86,7 @@
                 "version": "0.0.0-dev",
                 "type": "drupal-library",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-react.zip",
+                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-188-duplicate-emneord/dist-react.zip",
                     "type": "zip"
                 },
                 "require": {
@@ -101,7 +101,7 @@
                 "type": "drupal-library",
                 "version": "0.0.0-dev",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-94-tilpasning-af-vaerkvisningsside-efter-aendringer-til-arrangementsside/dist-design-system.zip",
+                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip",
                     "type": "zip"
                 }
             }
