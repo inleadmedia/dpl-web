@@ -31,7 +31,7 @@
     "watch:lint:js": "chokidar \"./src/**/*.{js,jsx,ts,tsx}\" -c \"yarn lint:js\"",
     "build:storybook": "storybook build -c .storybook -o dev",
     "start:storybook:test": "NODE_ENV=test storybook dev --port 57021 --quiet --ci",
-    "start:storybook:dev": "NODE_ENV=development storybook dev --port 6006 --host 0.0.0.0 --no-open --ci",
+    "start:storybook:dev": "NODE_ENV=development  storybook dev --port 7020 --no-open --disable-telemetry",
     "dev": "npx concurrently --raw \"yarn start:storybook:dev\" \"yarn watch\"",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest",
@@ -164,6 +164,7 @@
     "@headlessui/react": "^2.2.10",
     "@reduxjs/toolkit": "^2.11.2",
     "@types/lodash": "^4.17.5",
+    "async-es": "^3.2.6",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
     "downshift": "^9.0.8",
@@ -175,6 +176,7 @@
     "nuqs": "^2.8.9",
     "proj4": "^2.20.8",
     "prop-types": "^15.8.1",
+    "querystring": "^0.2.1",
     "react": "^19.2.5",
     "react-device-detect": "^2.2.3",
     "react-dom": "^19.2.5",
@@ -185,7 +187,7 @@
     "react-use": "^17.6.0",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
-    "unfetch": "^5.0.0"
+    "unfetch": "^5.0.0",
   },
   "peerDependencies": {
     "postcss": "^8.5.9"

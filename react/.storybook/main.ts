@@ -1,4 +1,21 @@
 const config = {
+  env: (config) => {
+    let _env = { ...config };
+    [
+      "CMS_BASEURL",
+      "WAYFINDER_BASEURL",
+      "PUBLIZON_BASEURL",
+      "FBS_BASEURL",
+      "GRAPHQL_API_BASEURL",
+      "COVERS_BASEURL",
+      "USE_DEVELOPMENT_OPTIONS"
+    ].forEach(key => {
+      if (process.env[key] != null)
+        _env[key] = process.env[key];
+    });
+
+    return _env;
+  },
   stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
 
   addons: [
@@ -26,7 +43,9 @@ const config = {
 
   docs: {
     autodocs: "tag"
-  }
+  },
+
+  staticDirs: [{ from: "../public", to: "/modules/custom/eonext_translation/assets" }]
 };
 
 export default config;
