@@ -24,6 +24,9 @@ export interface SearchBarProps {
   searchNoValidCharactersErrorText?: string;
   searchHeaderDropdownText?: string;
   searchHeaderInputLabelText?: string;
+  onBlur?: () => void;
+  initialBranchId?: string;
+  onBranchChange?: (branchId: string) => void;
   advancedSearchUrl: URL;
 }
 
@@ -37,12 +40,35 @@ const SearchBar: React.FC<SearchBarProps> = ({
   isHeaderDropdownOpen,
   setIsHeaderDropdownOpen,
   redirectUrl,
+  onBlur,
+  initialBranchId,
+  onBranchChange,
   advancedSearchUrl
 }) => {
   const t = useText();
   const handleDropdownMenu = () => {
     setIsHeaderDropdownOpen((prev) => !prev);
   };
+
+  const branches = React.useMemo(() => {
+    let branchSelectorEnabled = (document.querySelector("[data-show-search-branch-selection]")?.getAttribute("data-show-search-branch-selection") || "") === "true";
+    if (branchSelectorEnabled === false)
+      return [];
+
+    let branchesForSelect = JSON.parse(document.querySelector("[data-branches-config]")?.getAttribute("data-branches-config") || "[]");
+    let excludedBranches = (document.querySelector("[data-blacklisted-search-branches-config]")?.getAttribute("data-blacklisted-search-branches-config") || "")
+      .split(",")
+      .map((branch: string) => branch.trim())
+      .filter(Boolean);
+
+    if (excludedBranches.length !== 0) {
+      branchesForSelect = branchesForSelect.filter((branch: any) => {
+        return excludedBranches.includes(branch.branchId) === false;
+      });
+    }
+
+    return branchesForSelect;
+  }, [document.querySelector("[data-branches-config]")]);
 
   return (
     <>
@@ -74,11 +100,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
           // TODO: Explicitly define prop types for better clarity
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...getInputProps({
+            onBlur: onBlur,
             onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
               setQWithoutQuery(e.target.value);
             }
           })}
         />
+        {/* eslint-enable react/jsx-props-no-spreading */}
+        {
+          branches.length > 0
+            ?
+              <select
+                className="header__menu-search-branch-select"
+                defaultValue={ initialBranchId || "" }
+                onChange={ (event) => {
+                  if (onBranchChange)
+                    onBranchChange(event?.target?.value || "");
+                }}
+              >
+                <option value="">{ t("searchInAllBranchesText") }</option>
+                { branches.map((branch: any) => {
+                  return <option key={ branch.branchId } value={ branch.branchId }>{ branch.title }</option>
+                }) }
+              </select>
+            : null
+        }
         <input
           type="image"
           src={searchIcon}

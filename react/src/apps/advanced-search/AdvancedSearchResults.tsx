@@ -30,6 +30,7 @@ interface AdvancedSearchResultProps {
   showContentOnly: boolean;
   onShelf: boolean;
   locationFilter: LocationFilter;
+  branchId?: string;
   firstAccessionDateFilter: string | null;
   firstAccessionOperatorFilter: FirstAccessionOperatorFilter;
   sort: AdvancedSortMapStrings;
@@ -50,6 +51,7 @@ const AdvancedSearchResult: React.FC<AdvancedSearchResultProps> = ({
   showContentOnly,
   onShelf,
   locationFilter,
+  branchId,
   firstAccessionDateFilter,
   firstAccessionOperatorFilter,
   sort,
@@ -85,7 +87,7 @@ const AdvancedSearchResult: React.FC<AdvancedSearchResultProps> = ({
 
   useEffect(() => {
     setCql(q);
-  }, [q]);
+  }, [q, branchId]);
 
   // On every render we take the url parameter and set it as sql search query.
   useEffect(() => {
@@ -101,7 +103,7 @@ const AdvancedSearchResult: React.FC<AdvancedSearchResultProps> = ({
   // then make sure that we reset the entire result set.
   useEffect(() => {
     setResultItems([]);
-  }, [q, pageSize]);
+  }, [q, branchId, pageSize]);
 
   const { data, isLoading } = useComplexSearchWithPaginationQuery({
     cql,
@@ -175,16 +177,17 @@ const AdvancedSearchResult: React.FC<AdvancedSearchResultProps> = ({
   return (
     <>
       {!showContentOnly && <div className="advanced-search__divider" />}
+
       <ContentListPage
         title={
           <>
-            {isLoading && <>{t("loadingResultsText")}</>}
+            {isLoading && <span>{t("loadingResultsText")}</span>}
             {shouldShowResultHeadline && (
-              <>
+              <span>
                 {t("searchShowingMaterialsText", {
                   placeholders: { "@hitcount": hitcount }
                 })}
-              </>
+              </span>
             )}
           </>
         }
@@ -205,12 +208,12 @@ const AdvancedSearchResult: React.FC<AdvancedSearchResultProps> = ({
                 setCopiedLinkToSearch(true);
               }}
             >
-              {!copiedLinkToSearch && t("advancedSearchLinkToThisSearchText")}
+              <span>{!copiedLinkToSearch && t("advancedSearchLinkToThisSearchText")}</span>
               {copiedLinkToSearch && (
-                <>
+                <span>
                   {t("copiedLinkToThisSearchText")}
                   <img className="inline-icon" src={CheckIcon} alt="" />{" "}
-                </>
+                </span>
               )}
             </button>
           </div>

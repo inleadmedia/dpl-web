@@ -48,6 +48,8 @@ const MaterialInfo: FC<MaterialInfoProps> = ({
           size="small"
           animate={false}
           alt={description || ""}
+          // @ts-ignore-next-line
+          bestRepresentation={material}
         />
       </div>
       <div className="list-reservation__information">

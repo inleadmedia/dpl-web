@@ -2,7 +2,8 @@ import React, { memo } from "react";
 import useFilterHandler from "../../apps/search-result/useFilterHandler";
 import {
   FacetFieldEnum,
-  FacetValue
+  FacetValue,
+  SearchSortingOption
 } from "../../core/dbc-gateway/generated/graphql";
 import { useText } from "../../core/utils/text";
 import ButtonTag from "../Buttons/ButtonTag";
@@ -15,13 +16,38 @@ import {
 
 type FacetLineFiltersProps = {
   facets: Facets;
+  sorting: SearchSortingOption[] | null;
 };
 
+const formatValuesToDropdown = (facet: string, values: FacetValue[]) => {
+  const dropdownValues = values.map((value) => {
+    return {
+      label: value.term,
+      value: value.key
+    };
+  });
+  if (facet.toUpperCase() === FacetFieldEnum.Year.toUpperCase()) {
+    dropdownValues.sort((a, b) => Number(b.label) - Number(a.label));
+  }
+  return dropdownValues;
+};
+
+const formatSortingOptionsToDropdown = (sortingOptions: SearchSortingOption[] | null) => {
+  return (sortingOptions || []).map(option => {
+    return {
+      label: option.name.toString(),
+      value: option.value.toString()
+    };
+  });
+}
+
 const FacetLineFilters: React.FunctionComponent<FacetLineFiltersProps> = ({
-  facets = []
+  facets = [],
+  sorting = null
 }) => {
   const t = useText();
-  const { filters, addToFilter } = useFilterHandler();
+  const { filters, addToFilter, setSorting } = useFilterHandler();
+
   // TODO: Since the huge refactoring of the FBI API,
   // summer 2024, a lot of changes has been introduced
   // which implies refactoring of facet types/functionality.
@@ -29,20 +55,6 @@ const FacetLineFilters: React.FunctionComponent<FacetLineFiltersProps> = ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const facetMap = createFacetsMap(facets);
-
-  const formatValuesToDropdown = (facet: string, values: FacetValue[]) => {
-    const dropdownValues = values.map((value) => {
-      return {
-        label: value.term,
-        value: value.key
-      };
-    });
-    if (facet.toUpperCase() === FacetFieldEnum.Year.toUpperCase()) {
-      dropdownValues.sort((a, b) => Number(b.label) - Number(a.label));
-    }
-    return dropdownValues;
-  };
-
   const handleDropdownOnchange = (
     e: React.ChangeEvent<HTMLSelectElement>,
     facet: string
@@ -58,12 +70,39 @@ const FacetLineFilters: React.FunctionComponent<FacetLineFiltersProps> = ({
     });
   };
 
+  const onSortingChange = function(event: React.ChangeEvent<HTMLSelectElement>) {
+    // @ts-ignore-next-line
+    setSorting((sorting || []).find(option => option.value === event.target.value));
+  };
+
   return (
     <section>
       <h2 className="hide-visually">
         {t("intelligentFiltersAccessibleHeadlineText")}
       </h2>
       <ul className="facet-line mt-48">
+        {
+          sorting && sorting.length !== 0
+            ? <li className="facet-line__item">
+              <Dropdown
+                cyData={`sorting-line-dropdown`}
+                placeholder={{
+                  label: t("searchSortingOptionText"),
+                  value: ""
+                }}
+                options={formatSortingOptionsToDropdown(sorting)}
+                ariaLabel={t("searchSortingOptionText")}
+                arrowIcon="chevron"
+                classNames="dropdown--grey-borders"
+                innerClassNames={{
+                  select: "dropdown__select--inline",
+                  arrowWrapper: "dropdown__arrows--inline "
+                }}
+                handleOnChange={onSortingChange}
+              />
+            </li>
+            : null
+        }
         {facets &&
           facets.map(({ name, values }, index) => {
             if (values.length > 1) {

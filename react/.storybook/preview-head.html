@@ -1,0 +1,21 @@
+<script>
+  window.dayjs = {
+    default: {
+      locale: function(locale) {
+        window.DPL_dayjsCustomLocale = locale;
+      }
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/en-gb.js"></script>
+
+<script>
+  window.FullCalendar = {
+    globalLocales: {
+      push: function(locale) {
+        window.DPL_fullCalendarCustomLocale = locale;
+      }
+    }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/en-gb.global.min.js"></script>

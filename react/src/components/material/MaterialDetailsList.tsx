@@ -17,7 +17,7 @@ interface IListDataItem {
 
 export type ListData = IListDataItem[];
 
-const ListItem = ({ value }: { value: string[] }) => {
+const ListItem = ({ value }: { value: string[] | any[] }) => {
   if (value.length === 0) {
     return null;
   }
@@ -25,14 +25,14 @@ const ListItem = ({ value }: { value: string[] }) => {
   return (
     <ul className="list-description__value--list">
       {value.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={ item.key || item }>{ item.node || item }</li>
       ))}
     </ul>
   );
 };
 
 interface MaterialDetailsListRowProps {
-  value: string | string[];
+  value: string | string[] | any;
   type?: ListItemType;
 }
 
@@ -42,11 +42,19 @@ const MaterialDetailsListRow: FC<MaterialDetailsListRowProps> = ({
 }) => {
   switch (type) {
     case ListItemType.Link:
-      return <span className="link-tag pr-4">{value}</span>;
+      return Array.isArray(value)
+        ? value.map(item => {
+          return <span className="link-tag pr-4" key={ item.key || item }>{ item.node || item }</span>;
+        })
+        : <span className="link-tag pr-4">{ value.node || value }</span>;
     case ListItemType.List:
       return Array.isArray(value) ? <ListItem value={value} /> : null;
     default:
-      return <span>{value}</span>;
+      return Array.isArray(value)
+        ? value.map(item => {
+          return <span key={ item.key || item }>{ item.node || item }</span>;
+        })
+        : <span>{ value.node || value }</span>;
   }
 };
 

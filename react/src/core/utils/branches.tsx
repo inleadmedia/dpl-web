@@ -1,4 +1,5 @@
 import { useConfig } from "./config";
+import { getUrlQueryParam } from "./helpers/url";
 
 export type TBranch = {
   branchId: string;
@@ -48,10 +49,18 @@ export const useGetBranches = (
   blacklistKey: string,
   preferEmptyResult: boolean = false
 ): TBranch[] => {
+  const selectedBranchId = getUrlQueryParam("branchId");
   const config = useConfig();
-  const branches = config<TBranch[]>("branchesConfig", {
+  let branches = config<TBranch[]>("branchesConfig", {
     transformer: "jsonParse"
   });
+
+  if (selectedBranchId) {
+    branches = branches.filter(branch => {
+      return branch.branchId === selectedBranchId
+    });
+  }
+
   const blacklistBranches = config(blacklistKey, {
     transformer: "stringToArray"
   });
@@ -73,7 +82,7 @@ export const useGetBranches = (
 };
 
 const useGetSearchBranches = () => {
-  const branches = useGetBranches("blacklistedSearchBranchesConfig", true);
+  const branches = useGetBranches("blacklistedSearchBranchesConfig", false);
   const cleanBranches = cleanBranchesId(branches);
   return cleanBranches;
 };

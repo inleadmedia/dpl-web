@@ -1,0 +1,38 @@
+.header__menu-search-branch-select {
+  font-family: "Noto Sans", sans-serif;
+  position: absolute;
+  top: 0;
+  right: 108px; // 24px dropdown icon size + 24 dropdown left position + 12px gap between dropdown and search icons + 24px search icon size + 24px gap between search icon and select
+  height: 100%;
+  background: none;
+  border: none;
+  border-left: 1px solid #dbdbdb;
+  border-right: 1px solid #dbdbdb;
+  outline: none;
+  box-sizing: border-box;
+  padding: 0 12px;
+
+  // Hide default select arrow
+  /* for Firefox */
+  -moz-appearance: none;
+  /* for Chrome */
+  -webkit-appearance: none;
+
+  &::-ms-expand {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    right: auto;
+    left: 0;
+    width: 100%;
+    top: 100%;
+    border-bottom: 1px solid #dbdbdb;
+  }
+}
+
+[data-show-search-branch-selection="true"] .header {
+  @media (max-width: 768px) {
+    margin-bottom: 56px;
+  }
+}

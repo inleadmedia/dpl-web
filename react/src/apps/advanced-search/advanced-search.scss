@@ -1,0 +1,16 @@
+.advanced-search__filters .dpl-cms__branch-select {
+  padding-right: 36px;
+  box-sizing: border-box;
+
+  @media (max-width: 1023px) {
+    padding-right: 40px;
+  }
+
+  @media (max-width: 767px) {
+    padding-right: 50px;
+  }
+
+  .dropdown {
+    width: 100%;
+  }
+}

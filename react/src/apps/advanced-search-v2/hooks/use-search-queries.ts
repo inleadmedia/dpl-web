@@ -9,6 +9,7 @@ import {
 import { FilterState, FacetState, SortOption } from "../types";
 import { buildCQLQuery, isWildcardQuery } from "../lib/query-builder";
 import { isValidFilterState, isValidFacetState } from "../lib/validation";
+import { Branch, useCMSBranches } from "../../advanced-search/AdvancedSearchBranchSelect";
 
 interface UseSearchQueriesReturn {
   cql: string;
@@ -18,6 +19,7 @@ interface UseSearchQueriesReturn {
   sort: SortOption;
   setSort: (sort: SortOption) => void;
   urlState: {
+    branch: Branch,
     filters: FilterState[];
     preSearchFacets: FacetState[];
     facets: FacetState[];
@@ -28,6 +30,8 @@ interface UseSearchQueriesReturn {
  * Hook to read search parameters from URL and build queries
  */
 export const useSearchQueries = (): UseSearchQueriesReturn => {
+  const branches = useCMSBranches();
+
   // Read all search state from URL
   const [filters] = useQueryState(
     "filters",
@@ -36,6 +40,17 @@ export const useSearchQueries = (): UseSearchQueriesReturn => {
       return [];
     }).withDefault([])
   );
+
+  const [branchId] = useQueryState("branchId", parseAsString.withDefault(""));
+  let branch = { branchId: branchId, title: "" };
+  if (branch.branchId) {
+    let knownBranch = branches.find((_branch: Branch) => {
+      return _branch.branchId === branch.branchId;
+    });
+
+    if (knownBranch)
+      branch = knownBranch;
+  }
 
   const [preSearchFacets] = useQueryState(
     "preSearchFacets",
@@ -107,6 +122,7 @@ export const useSearchQueries = (): UseSearchQueriesReturn => {
     setSort,
     urlState: {
       filters,
+      branch,
       preSearchFacets,
       facets
     }

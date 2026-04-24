@@ -11,20 +11,26 @@ type FacetLineProps = {
   q: string;
 };
 
+const withSorting = document.querySelector("[data-show-search-sorting]")?.getAttribute("data-show-search-sorting") === "true";
 const FacetLine: React.FunctionComponent<FacetLineProps> = ({ q }) => {
-  const { filters } = useFilterHandler();
+  const { filters, sorting } = useFilterHandler();
+
   const cleanBranches = useGetSearchBranches();
   const { data, isLoading } = useIntelligentFacetsQuery({
     q: { all: q },
     facetsLimit: 5,
     valuesLimit: 50,
-    filters: createFilters(filters, cleanBranches)
+    filters: createFilters(filters, cleanBranches),
+    sorting: sorting?.key
+  }, {
+    // @ts-ignore-next-line
+    withSorting: withSorting
   });
 
   return (
     <>
       {isLoading && <FacetLineFiltersSkeleton />}
-      {data && <FacetLineFilters facets={data.search.intelligentFacets} />}
+      {data && <FacetLineFilters facets={data.search.intelligentFacets} sorting={data.search?.sorting || null} />}
       <FacetLineSelected />
     </>
   );

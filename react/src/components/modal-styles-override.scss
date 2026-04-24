@@ -1,0 +1,11 @@
+.dpl-modal--full-screen {
+  height: 100vh !important;
+  width: 100% !important;
+  margin: 0 !important;
+
+  .modal-btn-close.modal-btn-close--offset {
+    top: 0;
+    right: 0;
+    padding: 25px;
+  }
+}

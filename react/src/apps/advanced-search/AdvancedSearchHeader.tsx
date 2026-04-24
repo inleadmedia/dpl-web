@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import AdvancedSearchBranchSelect from "./AdvancedSearchBranchSelect";
 import AdvancedSearchRow from "./AdvancedSearchRow";
 import {
   AdvancedSearchQuery,
@@ -15,10 +16,12 @@ import {
 import { Button } from "../../components/Buttons/Button";
 import CheckBox from "../../components/checkbox/Checkbox";
 import { LocationFilter } from "./LocationFilter";
+import { removeQueryParametersFromUrl } from "../../core/utils/helpers/url";
 import {
   useCollectPageStatistics,
   usePageStatistics
 } from "../../core/statistics/useStatistics";
+
 import { statistics } from "../../core/statistics/statistics";
 import Link from "../../components/atoms/links/Link";
 
@@ -80,6 +83,10 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
     setOnShelf(checked);
   };
 
+  const setSelectedBranch = (branchId: string) => {
+    setInternalSearchObject(Object.assign(structuredClone(internalSearchObject), { branchId: branchId }));
+  };
+
   // If a new search object is passed in, override the internal state to reflect
   // the updated values in the state.
   useEffect(() => {
@@ -91,6 +98,13 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
     const cql = translateSearchObjectToCql(internalSearchObject);
     setPreviewCql(cql);
   }, [internalSearchObject]);
+
+  useEffect(() => {
+    if (isFormMode === false) {
+      setSelectedBranch("");
+      removeQueryParametersFromUrl("branchId");
+    }
+  }, [isFormMode]);
 
   const reset = () => {
     setSearchObject(structuredClone(initialAdvancedSearchQuery));
@@ -116,6 +130,7 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
       }, 500);
       return;
     }
+
     // Advanced search (form mode)
     resetAndCollectPageStatistics({
       ...statistics.advancedSearchTerm,
@@ -172,8 +187,11 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
           <h1 className="text-header-h2 advanced-search__title capitalize-first">
             {t("advancedSearchTitleText")}
           </h1>
+
+
           <div className="input-and-preview">
             <div className="input-and-preview__input">
+              <AdvancedSearchBranchSelect branchId={internalSearchObject?.branchId} onChange={setSelectedBranch} />
               {internalSearchObject.rows.map((row, index) => {
                 return (
                   <AdvancedSearchRow

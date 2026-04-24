@@ -21,7 +21,7 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({
   const t = useText();
   const operatorLabelsMap = getOperatorLabelsMap(t);
   const { urlState } = useSearchQueries();
-  const { filters, preSearchFacets } = urlState;
+  const { filters, branch, preSearchFacets } = urlState;
 
   const renderOperator = (operator: Operator) => (
     <div className="search-summary__operator">
@@ -35,6 +35,9 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({
       <span className="search-summary__value">{value}</span>
     </div>
   );
+
+  const hasFilters = filters.some((s) => s.query.trim().length > 0);
+
   return (
     <div className="search-summary">
       <div className="search-summary__items">
@@ -62,6 +65,15 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({
           );
         })}
 
+        {
+          branch?.branchId
+            ? <React.Fragment key="filter-branch">
+              {hasFilters && renderOperator("and")}
+              {renderItem(t("Branch"), branch.title || branch.branchId)}
+            </React.Fragment>
+            : null
+        }
+
         {preSearchFacets.map((preSearchFacet, facetIndex) => {
           const config = INITIAL_PRE_SEARCH_FACETS_STATE.find(
             (c) => c.facetField === preSearchFacet.facetField
@@ -75,7 +87,6 @@ const SearchSummary: React.FC<SearchSummaryProps> = ({
             return null;
           }
 
-          const hasFilters = filters.some((s) => s.query.trim().length > 0);
           const isFirstFacet = facetIndex === 0;
           const showOperator = hasFilters || !isFirstFacet;
 

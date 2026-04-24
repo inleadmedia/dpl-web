@@ -13,6 +13,7 @@ export type UseTextFunction = (
   options?: {
     placeholders?: Placeholders;
     count?: number;
+    default?: string;
   }
 ) => string;
 
@@ -104,17 +105,32 @@ const processTexts = (texts: string[], placeholders: Placeholders) =>
     })
   );
 
+interface MissingPhrases {
+  [index: string]: boolean;
+}
+
+const missingPhrases: MissingPhrases = {};
 export const useText = (): UseTextFunction => {
   const { data } = useSelector<{ data: Record<string, string> }>(
     (state: RootState) => state.text
   );
 
-  return (key: string, { placeholders, count } = { count: 0 }) => {
+  return (
+    key: string,
+    { placeholders, count, default: _defaultValue } = { count: 0 }
+  ) => {
     if (!data) {
       throw new Error(`The translation store is broken.`);
     }
     if (data[key] === undefined) {
-      throw new Error(`The translation for ${key} is not defined.`);
+      if (missingPhrases[key] == null) {
+        // eslint-disable-next-line no-console
+        console.warn(`The translation for ${key} is not defined.`);
+
+        missingPhrases[key] = true;
+      }
+
+      return _defaultValue || key;
     }
     const textDefinition = constructTextDefinitionFromRawTextTextEntry(
       data[key]

@@ -16,7 +16,7 @@ import type {
   UseQueryResult
 } from "react-query";
 import type { Cover, GetCoverCollectionParams } from "./model";
-import { fetcher } from "./mutator/fetcher";
+import { fetcher, getCoversBaseUrl } from "./mutator/fetcher";
 import type { ErrorType } from "./mutator/fetcher";
 
 /**
@@ -27,6 +27,9 @@ export const getCoverCollection = (
   params: GetCoverCollectionParams,
   signal?: AbortSignal
 ) => {
+  if (!getCoversBaseUrl())
+    return [];
+
   return fetcher<Cover[]>({
     url: `/api/v2/covers`,
     method: "GET",

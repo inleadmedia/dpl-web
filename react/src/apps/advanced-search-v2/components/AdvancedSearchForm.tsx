@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AdvancedSearchBranchSelect from "../../advanced-search/AdvancedSearchBranchSelect";
 import AdvancedSearchFilterRow from "./AdvancedSearchFilterRow";
 import PlusButtonIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/PlusButton.svg";
 import { useText } from "../../../core/utils/text";
@@ -12,6 +13,8 @@ import { Button } from "../../../components/Buttons/Button";
 import { FacetState, FilterState } from "../types";
 
 type AdvancedSearchFormProps = {
+  branchId?: string;
+  onBranchChange?: (branchId: string) => void;
   filters: FilterState[];
   preSearchFacets: FacetState[];
   updateFilter: (index: number, updates: Partial<FilterState>) => void;
@@ -23,6 +26,8 @@ type AdvancedSearchFormProps = {
 };
 
 const AdvancedSearchForm: React.FC<AdvancedSearchFormProps> = ({
+  branchId,
+  onBranchChange,
   filters,
   preSearchFacets,
   updateFilter,
@@ -61,6 +66,7 @@ const AdvancedSearchForm: React.FC<AdvancedSearchFormProps> = ({
 
   return (
     <section className="search__form">
+      <AdvancedSearchBranchSelect branchId={ branchId } onChange={ onBranchChange } />
       {/* Filter inputs */}
       <div className="search__filters">
         {filters.map((filter, index) => {
