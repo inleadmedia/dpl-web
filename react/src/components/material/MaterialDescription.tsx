@@ -26,9 +26,10 @@ import ButtonShare from "../button-share/button-share";
 export interface MaterialDescriptionProps {
   pid: Pid;
   work: Work;
+  customFields: any;
 }
 
-const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
+const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customFields }) => {
   const t = useText();
   const u = useUrls();
   const config = useConfig();
@@ -50,6 +51,33 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
       transformer: "jsonParse"
     }
   );
+
+  let descriptionTermFields = React.useMemo(() => {
+    return Object.values(customFields || {}).map((fieldData: any) => {
+      if (fieldData.label === "body")
+        return;
+
+      let values = fieldData.getter(work);
+
+      return {
+        ...fieldData,
+        tags: values.filter(Boolean).map((tag: string) => {
+          return {
+            term: tag,
+            url: new URL((fieldData.url || "#").replace(/\$\{\s*tag\s*\}/ig, tag), window.location.href)
+          }
+        })
+      }
+    }).filter(Boolean);
+  }, [customFields, work]);
+
+  let descriptionOverride = React.useMemo(() => {
+    let overrideData: any = Object.values(customFields || {}).find((fieldData: any) => fieldData.label === "body");
+    if (!overrideData)
+      return null;
+
+    return (overrideData.getter(work) || []).filter(Boolean).join("\n");
+  }, [customFields, work]);
 
   const localSubjectsAgencyIds = config("localSubjectsAgencyIdsConfig", {
     transformer: "stringToArray"
@@ -106,6 +134,56 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
       ]
     : [];
 
+  let knownFileds: any = {
+    [t("inSameSeriesText")]: {
+      label: t("inSameSeriesText"),
+      tags: seriesMembersList,
+      cy: "material-description-series-members"
+    },
+    [t("identifierText")]: {
+      label: t("identifierText"),
+      tags: subjectsList,
+      cy: "material-description-identifier"
+    },
+    [t("fictionNonfictionText")]: {
+      label: t("fictionNonfictionText"),
+      tags: fictionNonfictionList,
+      cy: "material-description-fiction-nonfiction"
+    },
+    [t("filmAdaptationsText")]: {
+      label: t("filmAdaptationsText"),
+      tags: filmAdaptationsList,
+      cy: "material-description-film-adaptations"
+    },
+    [t("subjectNumberText")]: {
+      label: t("subjectNumberText"),
+      tags: shouldShowDk5 && dk5MainEntry ? [{
+        url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
+        term: dk5MainEntry.display
+      }] : []
+    }
+  };
+
+  descriptionTermFields = descriptionTermFields.filter((fieldData: any) => {
+    let matchedLabel = fieldData.findLabel(Object.keys(knownFileds));
+
+    if (fieldData.hidden === true) {
+      fieldData.tags = [];
+
+      if (matchedLabel && knownFileds[matchedLabel] != null)
+        knownFileds[fieldData.label].tags = [];
+    }
+
+    if (matchedLabel && knownFileds[matchedLabel] != null) {
+      knownFileds[matchedLabel].tags = fieldData.merge(knownFileds[matchedLabel].tags || [], fieldData.tags || [], { outputType: "list" });
+
+      return false;
+    }
+
+    return true;
+  });
+
+  descriptionTermFields = Object.values(knownFileds).concat(descriptionTermFields).filter(Boolean);
   const bestRepresentationContents =
     work.manifestations.bestRepresentation?.contents;
 
@@ -117,24 +195,15 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
             <h2 className="material-description__heading">
               {t("descriptionHeadlineText")}
             </h2>
-            <p className="material-description__content">{work.abstract[0]}</p>
+            <p className="material-description__content">
+              { descriptionOverride === null ? work.abstract[0] : descriptionOverride }
+            </p>
           </>
         )}
         {bestRepresentationContents && (
           <MaterialContents contents={bestRepresentationContents} />
         )}
-        <div className="material-description__links">
-          {shouldShowDk5 && dk5MainEntry && (
-            <HorizontalTermLine
-              title={t("subjectNumberText")}
-              linkList={[
-                {
-                  url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
-                  term: dk5MainEntry.display
-                }
-              ]}
-            />
-          )}
+        <div className="material-description__links mt-32">
           <SeriesList
             series={series}
             searchUrl={searchUrl}
@@ -142,26 +211,17 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
             workId={work.workId}
             dataCy="material-description-series"
           />
-          <HorizontalTermLine
-            title={t("inSameSeriesText")}
-            linkList={seriesMembersList}
-            dataCy="material-description-series-members"
-          />
-          <HorizontalTermLine
-            title={t("identifierText")}
-            linkList={subjectsList}
-            dataCy="material-description-identifier"
-          />
-          <HorizontalTermLine
-            title={t("fictionNonfictionText")}
-            linkList={fictionNonfictionList}
-            dataCy="material-description-fiction-nonfiction"
-          />
-          <HorizontalTermLine
-            title={t("filmAdaptationsText")}
-            linkList={filmAdaptationsList}
-            dataCy="material-description-film-adaptations"
-          />
+
+          {
+            descriptionTermFields.map((customField: any) => {
+              return <HorizontalTermLine
+                key={ customField.label }
+                title={ customField.label }
+                linkList={ customField.tags }
+                dataCy={ customField.cy || "material-description-custom" }
+              />
+            })
+          }
         </div>
         {showShareButtons && <ButtonShare className="mt-64" />}
       </>

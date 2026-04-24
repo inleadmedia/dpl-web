@@ -145,7 +145,7 @@ const MaterialMainfestationItem: FC<MaterialMainfestationItemProps> = ({
         />
       </div>
       <div className="material-manifestation-item__cover">
-        <Cover ids={[pid]} size="small" animate={false} />
+        <Cover ids={[pid]} bestRepresentation={ manifestation } size="small" animate={false} />
       </div>
       <div className="material-manifestation-item__text">
         <h3
