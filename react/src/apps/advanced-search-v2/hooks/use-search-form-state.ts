@@ -3,6 +3,7 @@ import {
   useQueryStates,
   parseAsJson,
   parseAsBoolean,
+  parseAsString,
   parseAsStringEnum
 } from "nuqs";
 import { FilterState, FacetState, SortOption } from "../types";
@@ -11,6 +12,8 @@ import { INITIAL_FILTER_STATE } from "../lib/initial-state";
 import { isValidFilterState, isValidFacetState } from "../lib/validation";
 
 export interface UseSearchFormStateReturn {
+  branchId: string;
+  updateBranchId: (branchId: string) => void;
   filters: FilterState[];
   preSearchFacets: FacetState[];
   updateFilter: (index: number, updates: Partial<FilterState>) => void;
@@ -30,6 +33,7 @@ export interface UseSearchFormStateReturn {
 export const useSearchFormState = (): UseSearchFormStateReturn => {
   // URL state management with nuqs
   const [urlState, setUrlState] = useQueryStates({
+    branchId: parseAsString.withDefault(""),
     filters: parseAsJson((value) => {
       if (isValidFilterState(value)) return value;
       return INITIAL_FILTER_STATE;
@@ -168,7 +172,13 @@ export const useSearchFormState = (): UseSearchFormStateReturn => {
     );
   };
 
+  const updateBranchId = (branchId: String) => {
+    return setUrlState(Object.assign({}, urlState, { branchId: branchId }));
+  };
+
   return {
+    branchId: urlState.branchId as string,
+    updateBranchId,
     filters,
     preSearchFacets,
     updateFilter,

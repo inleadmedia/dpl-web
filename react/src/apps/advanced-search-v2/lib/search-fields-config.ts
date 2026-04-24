@@ -8,6 +8,26 @@ export type SearchTermItem = {
   disableSuggest?: boolean;
 };
 
+let extendedComplexSearchOptions: any = document.querySelector("[data-eonext-ext-complex-search]")?.getAttribute("data-eonext-ext-complex-search") || ""
+if (extendedComplexSearchOptions) {
+  try {
+    extendedComplexSearchOptions = JSON.parse(extendedComplexSearchOptions)
+  } catch (error) {
+    extendedComplexSearchOptions = {};
+    console.warn("Cannot parse [data-eonext-ext-complex-search] options!", error);
+  }
+
+  extendedComplexSearchOptions = extendedComplexSearchOptions?.terms || [];
+  extendedComplexSearchOptions = extendedComplexSearchOptions.map((customOption: any) => {
+    return Object.assign({
+      value: customOption.term,
+      labelKey: customOption.label,
+      type: ComplexSuggestionTypeEnum.Default,
+      placeholderKey: customOption.placeholder
+    }, customOption);
+  });
+}
+
 export const SEARCH_TERM_OPTIONS: SearchTermItem[] = [
   {
     value: "term.default",
@@ -59,4 +79,4 @@ export const SEARCH_TERM_OPTIONS: SearchTermItem[] = [
     placeholderKey: "advancedSearchPlaceholderIsbnText",
     disableSuggest: true
   }
-];
+].concat(extendedComplexSearchOptions || []);

@@ -16,6 +16,8 @@ const AdvancedSearchV2: React.FC<AdvancedSearchV2Props> = ({ pageSize }) => {
   const { customCqlUrl } = useCqlSearchUrl();
   const { showResults, setView } = useFormVisibility();
   const {
+    branchId,
+    updateBranchId,
     filters,
     preSearchFacets,
     updateFilter,
@@ -38,6 +40,8 @@ const AdvancedSearchV2: React.FC<AdvancedSearchV2Props> = ({ pageSize }) => {
 
       {!showResults && (
         <AdvancedSearchForm
+          branchId={branchId}
+          onBranchChange={updateBranchId}
           filters={filters}
           preSearchFacets={preSearchFacets}
           updateFilter={updateFilter}
