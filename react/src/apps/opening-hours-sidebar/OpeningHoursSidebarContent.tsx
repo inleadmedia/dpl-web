@@ -7,6 +7,9 @@ import { LibraryType } from "./helper";
 import { useText } from "../../core/utils/text";
 import { toDayString } from "../../core/utils/helpers/date";
 
+const expandedLibraries = (document.querySelector("[data-opening-hours-sidebar-expanded]")
+  ?.getAttribute("data-opening-hours-sidebar-expanded") || "").split(",").filter(Boolean).map(value => value.trim());
+
 const OpeningHoursSidebarContent: FC<{ libraries: LibraryType[] }> = ({
   libraries
 }) => {
@@ -23,22 +26,25 @@ const OpeningHoursSidebarContent: FC<{ libraries: LibraryType[] }> = ({
         </div>
       </header>
 
-      {libraries.map(({ branch_id, name, openingHoursData, link }, i) => (
-        <DisclosureControllable
-          showContent={i === 0}
-          key={branch_id}
-          id={branch_id}
-          detailsClassName="opening-hours-sidebar-details"
-          summaryClassName="opening-hours-sidebar-summary"
-          summary={<OpeningHoursSidebarSummary name={name} />}
-        >
-          <OpeningHoursSidebarDetails
-            openingHoursData={openingHoursData}
-            link={link}
-            name={name}
-          />
-        </DisclosureControllable>
-      ))}
+      {
+        libraries.map(({ branch_id, name, openingHoursData, link }, i) => {
+          const expanded = expandedLibraries.length === 0 ? i === 0 : expandedLibraries.some(expandedBranchId => expandedBranchId == branch_id);
+          return <DisclosureControllable
+            showContent={ expanded }
+            key={branch_id}
+            id={branch_id}
+            detailsClassName="opening-hours-sidebar-details"
+            summaryClassName="opening-hours-sidebar-summary"
+            summary={<OpeningHoursSidebarSummary name={name} />}
+          >
+            <OpeningHoursSidebarDetails
+              openingHoursData={openingHoursData}
+              link={link}
+              name={name}
+            />
+          </DisclosureControllable>;
+        })
+      }
     </section>
   );
 };
