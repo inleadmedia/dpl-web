@@ -1,4 +1,4 @@
-import React, { useCallback, useId } from "react";
+import React, { useCallback, useId, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { useText } from "../../../core/utils/text";
 import { WorkId } from "../../../core/utils/types/ids";
@@ -152,6 +152,8 @@ const CardListItem: React.FC<CardListItemProps> = ({
               addToListRequest={addToListRequest}
             />
           )}
+
+          { item && item.isLazyLoading ? <span className="text-loading" /> : null }
           <SeriesList
             series={series}
             searchUrl={searchUrl}
