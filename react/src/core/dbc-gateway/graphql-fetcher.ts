@@ -4,10 +4,12 @@ import { getToken, TOKEN_LIBRARY_KEY, TOKEN_USER_KEY } from "../token";
 import DbcGateWayHttpError from "./DbcGateWayHttpError";
 import { getQueryUrlFromContext } from "./helper";
 
+const forceLibraryToken = document.querySelector("[data-lms-user-api-enabled]")?.getAttribute("data-lms-user-api-enabled") === "true";
 export const fetcher = <TData, TVariables>(
   query: string,
   variables?: TVariables,
-  urlOverride?: string
+  urlOverride?: string,
+  abortController?: AbortController
 ) => {
   return (context?: QueryFunctionContext): Promise<TData> => {
     // Resolve the url based on the query name if present.
@@ -15,22 +17,18 @@ export const fetcher = <TData, TVariables>(
 
     // The whole concept of agency id, profile and and bearer token needs to be refined.
     // First version is with a library token.
-    const token = getToken(TOKEN_USER_KEY) || getToken(TOKEN_LIBRARY_KEY);
+    let token = getToken(TOKEN_LIBRARY_KEY);
+    if (forceLibraryToken !== true)
+      token = getToken(TOKEN_USER_KEY) || token;
 
-    const headers = {
-      "Content-Type": "application/json"
-    };
-    const authHeaders = token
-      ? ({ Authorization: `Bearer ${token}` } as object)
-      : {};
+    const authHeaders = token ? ({ Authorization: `Bearer ${token}` } as object) : {};
 
     return fetch(url, {
       method: "POST",
-      ...{
-        headers: {
-          ...headers,
-          ...authHeaders
-        }
+      signal: abortController?.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders
       },
       body: JSON.stringify({ query, variables })
     })

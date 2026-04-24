@@ -4,6 +4,9 @@ import {
   UseQueryOptions,
   UseMutationOptions
 } from "react-query";
+// @ts-ignore-next-line
+import * as async from "async-es";
+import { useState, useEffect, useRef } from "react";
 import { fetcher } from "../graphql-fetcher";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -675,6 +678,15 @@ export type FacetValue = {
   traceId: Scalars["String"]["output"];
 };
 
+/** A sorting value. */
+export type SearchSortingOption = {
+  __typename?: "SearchSortingOption";
+  /** A name of a sorting field */
+  name: Scalars["String"];
+  /** Use the value when applying sorting */
+  value: Scalars["String"];
+};
+
 export type FictionNonfiction = {
   __typename?: "FictionNonfiction";
   /** Binary code fiction/nonfiction used for filtering */
@@ -975,6 +987,8 @@ export type Manifestation = {
   latestPrinting?: Maybe<Printing>;
   /** Identification of the local id of this manifestation */
   localId?: Maybe<Scalars["String"]["output"]>;
+  /** Field for presenting bibliographic records in MARC format */
+  marc?: Maybe<MarcRecord>;
   /** The type of material of the manifestation based on bibliotek.dk types */
   materialTypes: Array<MaterialType>;
   /** Notes about the manifestation */
@@ -1081,6 +1095,22 @@ export type Manifestations = {
    * Only one manifestation per unit is returned.
    */
   searchHits?: Maybe<Array<SearchHit>>;
+};
+
+export type MarcRecord = {
+  __typename?: "MarcRecord";
+  /** The library agency */
+  agencyId: Scalars["String"]["output"];
+  /** The bibliographic record identifier */
+  bibliographicRecordId: Scalars["String"]["output"];
+  /** The MARC record collection content as marcXchange XML string */
+  content: Scalars["String"]["output"];
+  /** The serialization format of the MARC record content. Defaults to 'marcXchange' */
+  contentSerializationFormat: Scalars["String"]["output"];
+  /** Flag indicating whether or not the record is deleted */
+  deleted: Scalars["Boolean"]["output"];
+  /** The marc record identifier */
+  id: Scalars["String"]["output"];
 };
 
 export type MaterialType = {
@@ -1747,6 +1777,8 @@ export type SearchResponse = {
   __typename?: "SearchResponse";
   /** A list of alternative search queries */
   didYouMean: Array<DidYouMean>;
+  /** Alailable sorting options  */
+  sorting?: Array<SearchSortingOption> | null;
   /**
    * Make sure only to fetch this when needed
    * This may take seconds to complete
@@ -2223,6 +2255,8 @@ export type Work = {
   mainLanguages: Array<Language>;
   /** Details about the manifestations of this work */
   manifestations: Manifestations;
+  /** Field for presenting bibliographic records in MARC format */
+  marc?: Maybe<MarcRecord>;
   /** The type of material of the manifestation based on bibliotek.dk types */
   materialTypes: Array<MaterialType>;
   /** Relations to other manifestations */
@@ -2957,6 +2991,9 @@ export type ManifestationBasicDetailsFragment = {
       iso639Set1: string;
     }> | null;
   } | null;
+  cover: {
+    detail: string
+  };
 };
 
 export type GetManifestationViaMaterialByFaustQueryVariables = Exact<{
@@ -3006,6 +3043,9 @@ export type GetManifestationViaMaterialByFaustQuery = {
         iso639Set1: string;
       }> | null;
     } | null;
+    cover: {
+      detail: string
+    };
   } | null;
 };
 
@@ -3062,6 +3102,9 @@ export type GetManifestationViaBestRepresentationByFaustQuery = {
               iso639Set1: string;
             }> | null;
           } | null;
+          cover: {
+            detail: string
+          };
         };
       };
     };
@@ -5105,10 +5148,13 @@ export type SearchWithPaginationQueryVariables = Exact<{
   offset: Scalars["Int"]["input"];
   limit: Scalars["PaginationLimitScalar"]["input"];
   filters?: InputMaybe<SearchFiltersInput>;
+  sorting?: string;
 }>;
 
 export type SearchWithPaginationQuery = {
   __typename?: "Query";
+  withSearch?: boolean;
+  lazyTypesLoading?: boolean;
   search: {
     __typename?: "SearchResponse";
     hitcount: number;
@@ -6375,6 +6421,9 @@ export type SuggestionsFromQueryStringQuery = {
           bestRepresentation: {
             __typename?: "Manifestation";
             pid: string;
+            cover: {
+              detail: string
+            };
             languages?: {
               __typename?: "Languages";
               main?: Array<{
@@ -6451,17 +6500,47 @@ export type GetBestRepresentationPidByIsbnQuery = {
   };
 };
 
+export type SearchFacetQueryVariables = Exact<{
+  q: SearchQueryInput;
+  facets: Array<FacetFieldEnum> | FacetFieldEnum;
+  facetLimit: Scalars["Int"]["input"];
+  filters?: InputMaybe<SearchFiltersInput>;
+}>;
+
+export type SearchFacetQuery = {
+  __typename?: "Query";
+  search: {
+    __typename?: "SearchResponse";
+    sorting?: Array<SearchSortingOption> | null;
+    facets: Array<{
+      __typename?: "FacetResult";
+      name: string;
+      type: FacetFieldEnum;
+      values: Array<{
+        __typename?: "FacetValue";
+        key: string;
+        term: string;
+        score?: number | null;
+        traceId: string;
+      }>;
+    }>;
+  };
+};
+
 export type IntelligentFacetsQueryVariables = Exact<{
   q: SearchQueryInput;
   facetsLimit: Scalars["Int"]["input"];
   valuesLimit: Scalars["Int"]["input"];
   filters: SearchFiltersInput;
+  sorting?: string;
 }>;
 
 export type IntelligentFacetsQuery = {
   __typename?: "Query";
+  withSearch?: boolean;
   search: {
     __typename?: "SearchResponse";
+    sorting?: Array<SearchSortingOption> | null;
     intelligentFacets: Array<{
       __typename?: "FacetResult";
       name: string;
@@ -7085,6 +7164,7 @@ export type ManifestationsSimpleFieldsFragment = {
   genreAndForm: Array<string>;
   source: Array<string>;
   publisher: Array<string>;
+  classifications?: Array<Classification>;
   subjects: {
     __typename?: "SubjectContainer";
     all: Array<
@@ -7119,6 +7199,9 @@ export type ManifestationsSimpleFieldsFragment = {
     | { __typename: "Corporation"; display: string }
     | { __typename: "Person"; display: string }
   >;
+  cover?: {
+    detail: string;
+  };
   identifiers: Array<{
     __typename?: "Identifier";
     type: IdentifierTypeEnum;
@@ -8620,6 +8703,9 @@ export const ManifestationBasicDetailsFragmentDoc = `
       display
     }
   }
+  cover {
+    detail
+  }
   creators {
     display
   }
@@ -8795,6 +8881,20 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
       }
     }
   }
+  abstract
+  subjects {
+    all {
+      display
+      type
+    }
+    dbcVerified {
+      display
+      type
+    }
+  }
+  classifications {
+    code
+  }
   contents {
     heading
     type
@@ -8855,6 +8955,7 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   notes {
     display
+    type
   }
   languages {
     notes
@@ -8903,6 +9004,12 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
     nationalBibliography
     otherCatalogues
   }
+  cover {
+    detail
+  }
+  marc {
+    content
+  }
 }
     ${WithLanguagesFragmentDoc}`;
 export const ManifestationsSimpleFragmentDoc = `
@@ -8943,9 +9050,40 @@ export const WorkSmallFragmentDoc = `
 }
     ${SeriesSimpleFragmentDoc}
 ${ManifestationsSimpleFragmentDoc}`;
+
+export const WorkSmallSearchFragmentDoc = `
+    fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+    tvSeries {
+      title
+      season {
+        display
+      }
+    }
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+}
+`;
+
+
+
 export const WorkMediumFragmentDoc = `
     fragment WorkMedium on Work {
   ...WorkSmall
+  marc {
+    content
+  }
   materialTypes {
     materialTypeGeneral {
       code
@@ -9311,47 +9449,39 @@ export const useRecommendFromFaustQuery = <
   );
 };
 
-export const SearchFacetDocument = `
-    query searchFacet($q: SearchQueryInput!, $facets: [FacetFieldEnum!]!, $facetLimit: Int!, $filters: SearchFiltersInput) {
-  search(q: $q, filters: $filters) {
-    facets(facets: $facets) {
-      name
-      type
-      values(limit: $facetLimit) {
-        key
-        term
-        score
-        traceId
-      }
-    }
-  }
-}
-    `;
-
-export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
-  variables: SearchFacetQueryVariables,
-  options?: UseQueryOptions<SearchFacetQuery, TError, TData>
-) => {
-  return useQuery<SearchFacetQuery, TError, TData>(
-    ["searchFacet", variables],
-    fetcher<SearchFacetQuery, SearchFacetQueryVariables>(
-      SearchFacetDocument,
-      variables
-    ),
-    options
-  );
-};
-
-export const SearchWithPaginationDocument = `
-    query searchWithPagination($q: SearchQueryInput!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: SearchFiltersInput) {
-  search(q: $q, filters: $filters) {
+function getSearchWithPaginationQuery(options: any) {
+  var withSorting = options?.withSorting;
+  return `
+    query searchWithPagination($q: SearchQueryInput!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: SearchFiltersInput ${ withSorting ? ", $sorting: String" : "" }) {
+  search(q: $q, filters: $filters${ withSorting ? ", sorting: $sorting" : "" }) {
     hitcount
     works(offset: $offset, limit: $limit) {
       ...WorkSmall
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    ${ options?.lazyTypesLoading ? WorkSmallSearchFragmentDoc : WorkSmallFragmentDoc }`;
+}
+
+export const SearchLazyWorkQuery = `
+query getSearchLazyWork($id: String!) {
+  work(id: $id) {
+    ...WorkSmall
+  }
+}
+
+fragment WorkSmall on Work {
+  workId
+  series {
+    ...SeriesSimple
+  }
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+
+${SeriesSimpleFragmentDoc}
+${ManifestationsSimpleFragmentDoc}`;
 
 export const useSearchWithPaginationQuery = <
   TData = SearchWithPaginationQuery,
@@ -9360,14 +9490,75 @@ export const useSearchWithPaginationQuery = <
   variables: SearchWithPaginationQueryVariables,
   options?: UseQueryOptions<SearchWithPaginationQuery, TError, TData>
 ) => {
-  return useQuery<SearchWithPaginationQuery, TError, TData>(
-    ["searchWithPagination", variables],
-    fetcher<SearchWithPaginationQuery, SearchWithPaginationQueryVariables>(
-      SearchWithPaginationDocument,
-      variables
-    ),
-    options
-  );
+  const [searchResult, setSearchResult] = useState({ data: null as any, error: null, status: "waiting", isLoading: true });
+  const abortController: any = useRef(null);
+
+  useEffect(() => {
+    if (options?.enabled === false)
+      return setSearchResult({ data: null, error: null, isLoading: false, status: "stopped" });
+
+    let _abortController = abortController.current;
+    if (_abortController && _abortController.abort)
+      _abortController.abort();
+
+    _abortController = abortController.current = new AbortController();
+    setSearchResult({ data: null, error: null, isLoading: true, status: "loading" });
+
+    fetcher(getSearchWithPaginationQuery(options), variables, _abortController)().then((searchResult: any) => {
+      if (options?.onSuccess)
+        options?.onSuccess(searchResult);
+
+      if ((options as any)?.lazyTypesLoading) {
+        (searchResult?.search?.works || []).forEach((materialData: any) => {
+          materialData.series = [];
+          materialData.isLazyLoading = true;
+
+          materialData.manifestations = materialData.manifestations || {
+            all: [],
+            bestRepresentation: {},
+            latest: {}
+          };
+        });
+
+        async.eachLimit((searchResult?.search?.works || []), 5, async function(work: any) {
+          try {
+            const materialData: any = await fetcher(SearchLazyWorkQuery, { id: work.workId }, _abortController)();
+            if (_abortController.signal.aborted)
+              return;
+
+            setSearchResult((_searchResult) => {
+              let targetMaterial = (_searchResult?.data?.search?.works || []).find((target: any) => {
+                return target.workId === work.workId;
+              });
+
+              if (targetMaterial) {
+                Object.assign(targetMaterial, materialData.work, { isLazyLoading: false });
+
+                return Object.assign({}, _searchResult, {
+                  data: {
+                    search: {
+                      hitcount: _searchResult?.data?.search?.hitcount,
+                      works: (_searchResult?.data?.search?.works || []).slice()
+                    }
+                  }
+                });
+              }
+
+              return _searchResult;
+            });
+          } catch (error) {
+            console.error("Can't fetch material manifestations!", work, error);
+          }
+        });
+      }
+
+      setSearchResult({ data: searchResult, error: null, isLoading: false, status: "success" });
+    }).catch((error: any) => {
+      setSearchResult({ data: null, error: error, isLoading: false, status: "error" });
+    });
+  }, [JSON.stringify(variables), JSON.stringify(options)]);
+
+  return searchResult;
 };
 
 export const ComplexSearchWithPaginationWorkAccessDocument = `
@@ -9450,6 +9641,9 @@ export const SuggestionsFromQueryStringDocument = `
           }
           bestRepresentation {
             pid
+            cover {
+              detail
+            }
             ...WithLanguages
           }
         }
@@ -9555,13 +9749,13 @@ export const useGetBestRepresentationPidByIsbnQuery = <
   );
 };
 
-export const IntelligentFacetsDocument = `
-    query intelligentFacets($q: SearchQueryInput!, $facetsLimit: Int!, $valuesLimit: Int!, $filters: SearchFiltersInput!) {
+export const SearchFacetDocument = `
+    query searchFacet($q: SearchQueryInput!, $facets: [FacetFieldEnum!]!, $facetLimit: Int!, $filters: SearchFiltersInput) {
   search(q: $q, filters: $filters) {
-    intelligentFacets(limit: $facetsLimit) {
+    facets(facets: $facets) {
       name
       type
-      values(limit: $valuesLimit) {
+      values(limit: $facetLimit) {
         key
         term
         score
@@ -9571,6 +9765,45 @@ export const IntelligentFacetsDocument = `
   }
 }
     `;
+
+export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
+  variables: SearchFacetQueryVariables,
+  options?: UseQueryOptions<SearchFacetQuery, TError, TData>
+) => {
+  return useQuery<SearchFacetQuery, TError, TData>(
+    ["searchFacet", variables],
+    fetcher<SearchFacetQuery, SearchFacetQueryVariables>(
+      SearchFacetDocument,
+      variables
+    ),
+    options
+  );
+};
+
+function getIntelligentFacetsQuery(options: any) {
+  var withSorting = options?.withSorting;
+  return `
+      query intelligentFacets($q: SearchQueryInput!, $facetsLimit: Int!, $valuesLimit: Int!, $filters: SearchFiltersInput! ${ withSorting ? ", $sorting: String" : "" }) {
+    search(q: $q, filters: $filters ${ withSorting ? ", sorting: $sorting" : "" }) {
+      ${
+        withSorting ? `sorting {
+          name
+          value
+        }` : ""
+      }
+      intelligentFacets(limit: $facetsLimit) {
+        name
+        type
+        values(limit: $valuesLimit) {
+          key
+          term
+          score
+        }
+      }
+    }
+  }
+      `;
+}
 
 export const useIntelligentFacetsQuery = <
   TData = IntelligentFacetsQuery,
@@ -9582,7 +9815,7 @@ export const useIntelligentFacetsQuery = <
   return useQuery<IntelligentFacetsQuery, TError, TData>(
     ["intelligentFacets", variables],
     fetcher<IntelligentFacetsQuery, IntelligentFacetsQueryVariables>(
-      IntelligentFacetsDocument,
+      getIntelligentFacetsQuery(options),
       variables
     ),
     options
@@ -9654,6 +9887,39 @@ export const usePlaceCopyMutation = <TError = unknown, TContext = unknown>(
         PlaceCopyDocument,
         variables
       )(),
+    options
+  );
+};
+
+const marcGetMarcByRecordIdDocument = `
+  query marcGetMarcByRecordId($recordId: String!) {
+    marc {
+      getMarcByRecordId(recordId: $recordId) {
+        id
+        agencyId
+        bibliographicRecordId
+        contentSerializationFormat
+        deleted
+        content
+      }
+    }
+  }
+`;
+
+export type MarcGetMarcByRecordIdArgs = {
+  recordId: Scalars["String"]["input"];
+};
+
+export const useGetMaterialMarc = <TData = MarcRecord, TError = unknown>(
+  variables: MarcGetMarcByRecordIdArgs,
+  options?: UseQueryOptions<MarcRecord, TError, TData>
+) => {
+  return useQuery<MarcRecord, TError, TData>(
+    ["marcGetMarcByRecordId", variables],
+    fetcher<MarcRecord, MarcGetMarcByRecordIdArgs>(
+      marcGetMarcByRecordIdDocument,
+      variables
+    ),
     options
   );
 };
