@@ -15,7 +15,16 @@ import {
   timeFormat
 } from "../../configuration/date-format";
 
-dayjs.locale("da");
+let dayjsLocaleName = "da";
+//@ts-ignore-next-line
+if (window.DPL_dayjsCustomLocale) {
+  //@ts-ignore-next-line
+  dayjs.locale(window.DPL_dayjsCustomLocale, null, true);
+  //@ts-ignore-next-line
+  dayjsLocaleName = window.DPL_dayjsCustomLocale.name;
+}
+
+dayjs.locale(dayjsLocaleName);
 dayjs.extend(weekOfYear);
 dayjs.extend(utc);
 

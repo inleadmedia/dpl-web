@@ -57,6 +57,9 @@ export type Work = Omit<
     }[];
     hasAdaptation: Relations["hasAdaptation"];
   };
+  parsedMarc?: any;
+  parsedExtraMarc?: any;
+  isLazyLoading?: boolean;
 };
 
 export type Patron = PatronV5;

@@ -29,6 +29,7 @@ type ModalProps = {
   eventCallbacks?: {
     close?: () => void;
   };
+  isFullScreen?: boolean;
 };
 
 export interface ModalIdsProps {
@@ -47,7 +48,8 @@ function Modal({
   classNames,
   isSlider,
   dataCy = "modal",
-  eventCallbacks
+  eventCallbacks,
+  isFullScreen = false
 }: ModalProps) {
   const dispatch = useDispatch();
   const { modalIds } = useSelector((s: ModalIdsProps) => s.modal);
@@ -107,7 +109,8 @@ function Modal({
           className={clsx(
             "modal",
             {
-              "modal-show": modalIds.includes(modalId)
+              "modal-show": modalIds.includes(modalId),
+              "dpl-modal--full-screen": isFullScreen
             },
             classNames
           )}

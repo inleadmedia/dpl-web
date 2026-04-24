@@ -8,12 +8,13 @@ export const getQueryParams = (url: URL): Record<string, string> => {
 
 export const appendQueryParametersToUrl = (
   url: URL,
-  parameters: { [key: string]: string }
+  parameters: { [key: string]: string | undefined }
 ) => {
   // We need to clone url in order not to manipulate the incoming object.
   const processedUrl = new URL(url);
   Object.keys(parameters).forEach((key) => {
-    processedUrl.searchParams.set(key, encodeURI(parameters[key]));
+    if (parameters[key] !== undefined)
+      processedUrl.searchParams.set(key, encodeURI(parameters[key]));
   });
 
   return processedUrl;
@@ -105,9 +106,10 @@ export const constructMaterialUrl = (
   return materialUrl;
 };
 
-export const constructSearchUrl = (searchUrl: URL, q: string) =>
+export const constructSearchUrl = (searchUrl: URL, q: string, branchId?: string) =>
   appendQueryParametersToUrl(searchUrl, {
-    q
+    q,
+    branchId
   });
 
 export const constructCreatorSearchUrl = (searchUrl: URL, creator: string) =>
@@ -131,9 +133,10 @@ export const constructDK5SearchUrl = (searchUrl: URL, dk5: string) =>
     facets: [{ facetName: "dk5", selectedValues: [dk5.toLowerCase()] }]
   });
 
-export const constructAdvancedSearchUrl = (advancedSearchUrl: URL, q: string) =>
+export const constructAdvancedSearchUrl = (advancedSearchUrl: URL, q: string, branchId?: string) =>
   appendQueryParametersToUrl(advancedSearchUrl, {
-    advancedSearchCql: q
+    advancedSearchCql: q,
+    branchId
   });
 
 // Type for facet state in URL (matches search-result-v2 format)

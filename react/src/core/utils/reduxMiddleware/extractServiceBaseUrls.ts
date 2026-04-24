@@ -9,7 +9,8 @@ type Api =
   | "materialList"
   | "fbi"
   | "fbiLocal"
-  | "fbiGlobal";
+  | "fbiGlobal"
+  | "wayfinder";
 
 export type ApiBaseUrlKey = `${Api}BaseUrl`;
 
@@ -34,7 +35,8 @@ export const serviceUrlKeys = {
   materialList: "materialListBaseUrl",
   fbi: "fbiBaseUrl",
   fbiLocal: "fbiLocalBaseUrl",
-  fbiGlobal: "fbiGlobalBaseUrl"
+  fbiGlobal: "fbiGlobalBaseUrl",
+  wayfinder: "wayfinderBaseUrl"
 } as const;
 
 // ServiceBaseUrls "store". We use this to store the base urls for the different services.
@@ -94,7 +96,8 @@ const extractServiceBaseUrls: Middleware<
 
 export const getServiceBaseUrl = (apiBaseUrlKey: ApiBaseUrlKey) => {
   if (!serviceBaseUrls[apiBaseUrlKey as ServiceBaseUrlKey]) {
-    throw new Error(`Service base url for ${apiBaseUrlKey} is not defined.`);
+    // eslint-disable-next-line
+    console.warn(`Service base url for ${apiBaseUrlKey} is not defined.`);
   }
   return serviceBaseUrls[apiBaseUrlKey as ServiceBaseUrlKey];
 };
