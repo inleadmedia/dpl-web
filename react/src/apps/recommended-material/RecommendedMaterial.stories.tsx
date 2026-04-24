@@ -43,7 +43,7 @@ export const Default: Story = {
   args: {
     ...globalTextArgs,
     ...serviceUrlArgs,
-    wid: "work-of:870970-basis:22383590",
+    wid: "work-of:870970-basis:25104005",
     materialType: "bog" as ManifestationMaterialType,
     materialUrl: "/work/:workid",
     etAlText: "et al."
