@@ -285,7 +285,7 @@ export const ReservationModalBody = ({
       {!reservationResults && !openOrderResponse && (
         <section className="reservation-modal">
           <header className="reservation-modal-header">
-            <Cover ids={[manifestation.pid]} size="medium" animate />
+            <Cover ids={[manifestation.pid]} bestRepresentation={ manifestation } size="medium" animate />
             <div className="reservation-modal-description">
               <div className="reservation-modal-tag">{materialType}</div>
               <h2 className="text-header-h2 mt-22 mb-8">
