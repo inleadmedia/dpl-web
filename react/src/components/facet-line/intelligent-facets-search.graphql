@@ -5,6 +5,10 @@ query intelligentFacets(
   $filters: SearchFiltersInput!
 ) {
   search(q: $q, filters: $filters) {
+    sorting {
+      name
+      value
+    }
     intelligentFacets(limit: $facetsLimit) {
       name
       type
