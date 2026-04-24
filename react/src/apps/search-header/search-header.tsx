@@ -11,11 +11,13 @@ import { Autosuggest } from "../../components/autosuggest/autosuggest";
 import { Suggestion } from "../../core/utils/types/autosuggest";
 import { useUrls } from "../../core/utils/url";
 import {
+  constructAdvancedSearchUrl,
   constructCreatorSearchUrl,
   constructMaterialUrl,
   constructSearchUrl,
   constructSearchUrlWithFilter,
   constructSubjectSearchUrl,
+  getUrlQueryParam,
   redirectTo
 } from "../../core/utils/helpers/url";
 import { WorkId } from "../../core/utils/types/ids";
@@ -39,6 +41,8 @@ const SearchHeader: React.FC = () => {
   const materialUrl = u("materialUrl");
   const advancedSearchUrl = u("advancedSearchUrl");
   const initialQuery = getInitialSearchQuery();
+  const initialBranchId = getUrlQueryParam("branchId") || "";
+  const [searchBranch, setSearchBranch] = useState<string>(initialBranchId);
   const [q, setQ] = useState<string>(initialQuery);
   const [qWithoutQuery, setQWithoutQuery] = useState<string>(q);
   const [suggestItems, setSuggestItems] = useState<
@@ -113,6 +117,7 @@ const SearchHeader: React.FC = () => {
   }
 
   // Autosuggest opening and closing based on input text length and user interaction.
+  // hasUserTyped already prevents showing on page load, so no need to compare against initialSearchQuery.
   useEffect(() => {
     if (
       hasUserTyped &&
@@ -345,7 +350,25 @@ const SearchHeader: React.FC = () => {
     }, 100);
   });
 
-  const redirectUrl = constructSearchUrl(searchUrl, q);
+  const [redirectUrl, setRedirectUrl] = useState<URL>(
+    constructSearchUrl(searchUrl, q, searchBranch)
+  );
+
+  useEffect(() => {
+    // We redirect to Advanced search results instead of regular search results if:
+    // - the query is wrapped in double quotes
+    // - the query is not just empty double quotes
+    if (
+      q.trim().charAt(0) === '"' &&
+      q.trim().charAt(q.length - 1) === '"' &&
+      q.trim() !== '""' &&
+      q.trim() !== '"'
+    ) {
+      setRedirectUrl(constructAdvancedSearchUrl(advancedSearchUrl, q, searchBranch));
+    } else {
+      setRedirectUrl(constructSearchUrl(searchUrl, q, searchBranch));
+    }
+  }, [q, advancedSearchUrl, searchUrl, searchBranch]);
 
   return (
     <div className="header__menu-second">
@@ -355,11 +378,17 @@ const SearchHeader: React.FC = () => {
           getInputProps={getInputProps}
           getLabelProps={getLabelProps}
           qWithoutQuery={qWithoutQuery}
-          setQWithoutQuery={setQWithoutQuery}
+          setQWithoutQuery={(query: string) => {
+            setQWithoutQuery(query);
+            setQ(query);
+            setHasUserTyped(true);
+          }}
           isHeaderDropdownOpen={isHeaderDropdownOpen}
           setIsHeaderDropdownOpen={setIsHeaderDropdownOpen}
           advancedSearchUrl={advancedSearchUrl}
           redirectUrl={redirectUrl}
+          initialBranchId={ searchBranch }
+          onBranchChange={ setSearchBranch }
         />
         <Autosuggest
           textData={textData}
