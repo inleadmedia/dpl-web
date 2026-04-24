@@ -9,11 +9,13 @@ interface FeeInfoProps {
   material: BasicDetailsType;
   materialItemNumber: string;
   children: ReactNode;
+  work?: any;
 }
 const FeeInfo: FC<FeeInfoProps> = ({
   material,
   materialItemNumber,
-  children
+  children,
+  work
 }) => {
   const {
     authorsShort = "",
@@ -34,6 +36,8 @@ const FeeInfo: FC<FeeInfoProps> = ({
           size="small"
           animate={false}
           alt={description || ""}
+          // @ts-ignore-next-line
+          bestRepresentation={work}
         />
       </div>
       <div className="list-reservation__information">
