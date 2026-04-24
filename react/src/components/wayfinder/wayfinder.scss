@@ -1,0 +1,16 @@
+.dpl-wayfinder {
+  &-iframe {
+    width: 100%;
+  }
+  &-button {
+    position: absolute;
+    left: -24px;
+    top: 2px;
+  }
+
+  //Override custom styles
+  .modal-show {
+    //padding: 0;
+    padding: 70px;
+  }
+}
