@@ -20,6 +20,10 @@ export const getServiceUrlWithParams = ({
   return `${baseUrl}${url}?${urlParams}`;
 };
 
+export const getCoversBaseUrl = function() {
+  return getServiceBaseUrl(serviceUrlKeys.cover);
+};
+
 export const fetcher = async <ResponseType>({
   url,
   method,
