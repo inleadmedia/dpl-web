@@ -1,3 +1,4 @@
+import lodash from "lodash";
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,7 +15,8 @@ import {
   removeQueryParametersFromUrl,
   setQueryParametersInUrl
 } from "../../core/utils/helpers/url";
-import { FacetFieldEnum } from "../../core/dbc-gateway/generated/graphql";
+
+import { FacetFieldEnum, SearchSortingOption } from "../../core/dbc-gateway/generated/graphql";
 import { getAllFilterPathsAsString, mapFacetToFilter } from "./helper";
 import { useEventStatistics } from "../../core/statistics/useStatistics";
 import { statistics } from "../../core/statistics/statistics";
@@ -22,7 +24,18 @@ import { statistics } from "../../core/statistics/statistics";
 const useFilterHandler = () => {
   const { track } = useEventStatistics();
   const dispatch = useDispatch();
-  const filters = useSelector((state: RootState) => state.filter) as Filter;
+  const filters = useSelector((state: RootState) => {
+    return lodash.omit(state.filter || {}, ["sorting"]);
+  }) as Filter;
+
+  const sorting = useSelector((state: RootState) => {
+    let activeSortingKey = Object.keys(state.filter.sorting || {})[0];
+
+    if (!activeSortingKey)
+      return null;
+
+    return state.filter.sorting[activeSortingKey];
+  });
 
   const clearFilter = useCallback(() => {
     removeQueryParametersFromUrl("filters");
@@ -90,10 +103,15 @@ const useFilterHandler = () => {
       // We dont have a traceId, so we just use a placeholder.
       addToFilter({
         facet: mapFacetToFilter(facet),
-        term: { key: "key", term: urlFilter, traceId: "traceId" },
+        term: { key: urlFilter, term: urlFilter, traceId: "traceId" },
         origin: "facetUrl"
       });
     }
+  };
+
+  const setSorting = (sorting: SearchSortingOption | undefined) => {
+    // @ts-ignore-next-line
+    dispatch(add({ facet: "sorting", term: { key: sorting?.value || "", term: sorting?.name || ""  } }));
   };
 
   return {
@@ -101,7 +119,9 @@ const useFilterHandler = () => {
     addToFilter,
     removeFromFilter,
     clearFilter,
-    addFilterFromUrlParamListener
+    addFilterFromUrlParamListener,
+    sorting,
+    setSorting
   };
 };
 

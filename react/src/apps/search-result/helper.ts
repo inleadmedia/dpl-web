@@ -62,13 +62,21 @@ export const allFacetFields = [
   FacetFieldEnum.Childrenoradults
 ];
 
+// EONEXT-214: Fix filter key names for lix and let ranges.
+// FacetFieldEnum names (lowercase) differ from SearchFiltersInput field names
+// for some fields - map them here.
+const facetNameToFilterKey: Record<string, string> = {
+  lix: "lixRange",
+  let: "letRange"
+};
+
 export const formatFacetTerms = (filters: {
   [key: string]: { [key: string]: FilterItemTerm };
 }) => {
   return Object.keys(filters).reduce(
     (acc, key) => ({
       ...acc,
-      [key]: Object.keys(filters[key])
+      [facetNameToFilterKey[key] ?? key]: Object.keys(filters[key])
     }),
     {}
   );
