@@ -103,6 +103,7 @@ const MaterialDetails: FC<MaterialDetailsProps & MaterialProps> = ({
             description={description}
             materialType={materialType}
             isbnForCover={identifier || ""}
+            work={material}
             workUrl={workUrl}
           >
             {dueDate && (
