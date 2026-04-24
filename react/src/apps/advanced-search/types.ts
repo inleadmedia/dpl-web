@@ -1,5 +1,15 @@
 import { SortOrderEnum } from "../../core/dbc-gateway/generated/graphql";
 
+let extendedComplexSearchOptions: any = document.querySelector("[data-eonext-ext-complex-search]")?.getAttribute("data-eonext-ext-complex-search") || ""
+if (extendedComplexSearchOptions) {
+  try {
+    extendedComplexSearchOptions = JSON.parse(extendedComplexSearchOptions)
+  } catch (error) {
+    extendedComplexSearchOptions = {};
+    console.warn("Cannot parse [data-eonext-ext-complex-search] options!", error);
+  }
+}
+
 export const advancedSearchIndexes = [
   "all",
   "term.creatorcontributor",
@@ -15,7 +25,7 @@ export const advancedSearchIndexes = [
   "term.childrenoradults",
   "term.publisher",
   "term.isbn"
-] as const;
+].concat(extendedComplexSearchOptions?.terms || []) as any;
 
 export const advancedSearchIndexTranslations = {
   all: "advancedSearchAllIndexesText",
@@ -61,6 +71,7 @@ export type AdvancedSearchRowUpdateRowAspect =
 
 export type AdvancedSearchQuery = {
   rows: AdvancedSearchRowData[];
+  branchId?: string;
 };
 
 export const initialAdvancedSearchQuery: AdvancedSearchQuery = {

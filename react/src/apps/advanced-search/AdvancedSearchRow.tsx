@@ -146,10 +146,10 @@ const AdvancedSearchRow: React.FC<AdvancedSearchRowProps> = ({
               updateRowData("searchIndex", e.target.value, setSearchObject);
             }}
           >
-            {advancedSearchIndexes.map((index) => {
+            {advancedSearchIndexes.map((index: any) => {
               return (
-                <option key={index} className="dropdown__option" value={index}>
-                  {t(
+                <option key={index.term || index} className="dropdown__option" value={index.term || index}>
+                  {index.label || t(
                     advancedSearchIndexTranslations[
                       index as keyof typeof advancedSearchIndexTranslations
                     ]
