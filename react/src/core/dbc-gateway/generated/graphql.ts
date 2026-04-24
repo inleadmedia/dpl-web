@@ -5117,32 +5117,6 @@ export type RecommendFromFaustQuery = {
   };
 };
 
-export type SearchFacetQueryVariables = Exact<{
-  q: SearchQueryInput;
-  facets: Array<FacetFieldEnum> | FacetFieldEnum;
-  facetLimit: Scalars["Int"]["input"];
-  filters?: InputMaybe<SearchFiltersInput>;
-}>;
-
-export type SearchFacetQuery = {
-  __typename?: "Query";
-  search: {
-    __typename?: "SearchResponse";
-    facets: Array<{
-      __typename?: "FacetResult";
-      name: string;
-      type: FacetFieldEnum;
-      values: Array<{
-        __typename?: "FacetValue";
-        key: string;
-        term: string;
-        score?: number | null;
-        traceId: string;
-      }>;
-    }>;
-  };
-};
-
 export type SearchWithPaginationQueryVariables = Exact<{
   q: SearchQueryInput;
   offset: Scalars["Int"]["input"];

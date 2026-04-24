@@ -8,6 +8,16 @@ Danish public libraries implemented in TypeScript.
 Read more about DPL React by visiting our
 [Documentation site](https://danskernesdigitalebibliotek.github.io/dpl-docs/DPL-React)
 
+# Inlead installation Guide
+
+1. Clone the dpl-web project `git clone git@github.com:inleadmedia/dpl-web.git`
+2. Make sure you have using NodeJS 22 or above
+3. Install dependencies for `design-system` folder: `cd ./design-system && yarn install`;
+4. Build the `design-system`: `sh ./bindle.sh`;
+5. Remove the `node_modules` folder for much effort installation of the dpl-react: `rm -rf ./node_modules`;
+6. Go to `dpl-react` folder and install dependencies: `cd ../react && yarn install`;
+7. Run `yarn start:storybook:dev` to start development or `yarn build` to build library for `DPL-CMS`;
+
 # Inlead extended fields
 
 Extended fields must be defined at the JSON format with following schema.
