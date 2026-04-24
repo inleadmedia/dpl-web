@@ -1,0 +1,15 @@
+services:
+  eonext_translation.service:
+    class: Drupal\eonext_translation\TranslationService
+    arguments: ["@state", "@config.factory", "@language_manager", "@path.matcher", "@current_route_match"]
+
+  eonext_translation.graphql_response_subscriber:
+    class: Drupal\eonext_translation\EventSubscriber\GraphQLResponseSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  eonext_translation.go_redirect_cleaner_subscriber:
+    class: Drupal\eonext_translation\EventSubscriber\GoRedirectCleanerSubscriber
+    arguments: ["@dpl_go.go_site"]
+    tags:
+      - { name: event_subscriber }

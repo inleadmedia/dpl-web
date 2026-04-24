@@ -1,0 +1,33 @@
+uuid: 7c68c566-d0a6-49f3-8310-b56ac711806e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_available_branches
+    - node.type.branch
+    - paragraphs.paragraphs_type.eonext_opening_hours
+  module:
+  enforced:
+    module:
+      - eonext_opening_hours
+id: paragraph.eonext_opening_hours.field_available_branches
+field_name: field_available_branches
+entity_type: paragraph
+bundle: eonext_opening_hours
+label: 'Available Branches'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      branch: branch
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

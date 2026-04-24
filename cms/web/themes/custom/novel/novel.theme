@@ -355,7 +355,7 @@ function novel_preprocess_views_view_unformatted(&$variables): void {
   $rows = &$variables['rows'];
   foreach ($rows as $index => &$row) {
 
-    if ($row['content']['#view_mode'] !== 'list_teaser_stacked_parent' ||
+    if ($row['content']['#view_mode'] ?? '' !== 'list_teaser_stacked_parent' ||
       !($row['content']['#eventinstance'] instanceof EventInstance)) {
       continue;
     }

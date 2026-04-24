@@ -1,0 +1,9 @@
+eonext_ext_fields.settings:
+  path: '/admin/config/eonext/ext-fields'
+  defaults:
+    _title: 'Extended fields settings'
+    _form: '\Drupal\eonext_ext_fields\Form\AdditionalFieldsSettingsForm'
+  requirements:
+    _permission: 'administer eonext ext fields'
+  options:
+    _admin_route: TRUE

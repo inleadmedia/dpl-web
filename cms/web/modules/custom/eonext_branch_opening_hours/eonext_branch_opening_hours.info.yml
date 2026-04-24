@@ -1,0 +1,5 @@
+type: module
+name: EO Next Branch Opening Hours
+description: Show branch opening hours only.
+package: EO next
+core_version_requirement: ^10

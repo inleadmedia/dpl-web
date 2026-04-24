@@ -1,0 +1,260 @@
+<?php
+
+/**
+ * @file
+ * EO Next Marketing Script paragraph module.
+ */
+
+use Drupal\Core\Render\Markup;
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_marketing_script_theme($existing, $type, $theme, $path) {
+  return [
+    'paragraph__marketing_script' => [
+      'template' => 'paragraph--marketing-script',
+      'base hook' => 'paragraph',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_paragraph().
+ *
+ * Replaces marketing_script paragraph content with the marketing form.
+ */
+function eonext_marketing_script_preprocess_paragraph(&$variables) {
+  $paragraph = $variables['paragraph'];
+
+  if ($paragraph->bundle() === 'marketing_script') {
+    // Marketing form HTML with styling - EXACT COPY from original.
+    $marketing_html = '
+<!--
+Do not modify the NAME value of any of the INPUT fields
+the FORM action, or any of the hidden fields (eg. input type=hidden).
+These are all required for this form to function correctly.
+-->
+
+
+<script type="text/javascript">
+// <![CDATA[
+
+			function CheckMultiple7430(frm, name) {
+      for (var i = 0; i < frm.length; i++) {
+        fldObj = frm.elements[i];
+        fldId = fldObj.id;
+        if (fldId) {
+          var fieldnamecheck = fldObj.id.indexOf(name);
+          if (fieldnamecheck != -1) {
+            if (fldObj.checked) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function CheckForm7430(f) {
+      var email_re = /[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/i;
+      if (!email_re.test(f.email.value)) {
+        alert("Venligst indtaste din e-mail-adresse.");
+        f.email.focus();
+        return false;
+      }
+
+      if (typeof intlNumber != "undefined" && intlNumber != "") {
+        $("#mobile").val(intlNumber);
+      }
+      return true;
+    }
+
+// ]]>
+</script>
+<style type="text/css">
+    .myForm {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .myForm td,
+    .myForm input,
+    .myForm select,
+    .myForm textarea,
+    .myForm checkbox {
+      font-family: Noto sans;
+      font-size: 14px;
+      hyphens: none;
+    }
+    .myForm input[type="text"] {
+      font-size: 14px;
+      line-height: 20px;
+      background-color: rgb(249 250 251);
+      border: 1px solid rgb(209 213 219);
+      border-radius: 2px;
+      width: 92%;
+      display: block;
+      padding: 6px 4%;
+      margin-bottom: 10px;
+    }
+    .myForm input[type="submit"] {
+      color: #fff;
+      background-color:#2a5576;
+      font-size: 16px;
+      line-height: 22px;
+      padding: 0 12px;
+      border-radius: 2px;
+      width: 100%;
+      height: 40px;
+      cursor: pointer;
+      text-transform: none;
+      box-sizing: border-box;
+      border: 0 solid #e5e7eb;
+      margin-top: 20px;
+
+    }
+    /* The container */
+.myForm .container {
+
+  font-family: Verdana !important;
+  display: block;
+  position: relative;
+  padding-left: 28px;
+  padding-top: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #5f5f5f;
+  line-height: 16px !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Hide the browser\'s default radio button */
+.myForm .container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Create a custom radio button */
+.myForm .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 16%;
+}
+
+/* On mouse-over, add a grey background color */
+.myForm .container:hover input     ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.myForm .container input:checked     ~ .checkmark {
+  background-color: #2a5576;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.myForm .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.myForm .container input:checked     ~ .checkmark:after {
+  display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.myForm .container .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+        @media only screen and (max-width: 480px) {
+          .myForm.mainTable{width: 100%;}
+        }
+</style>
+<div>
+    <table border="0" cellpadding="0" cellspacing="0" width="600" class="myForm mainTable">
+      <tbody>
+        <tr>
+          <td></td>
+          <td>
+            <form method="post" action="https://app.marketingplatform.com/ExtAccess/Form?form=7430" id="frmSS7430"
+              onsubmit="return CheckForm7430(this);">
+              <table  border="0" cellpadding="0" cellspacing="0">
+                <tbody>
+                  <tr>
+                    <td style="font-size: 26px;font-weight: bold;padding: 10px 0;"> Nyhedsbrev</td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="padding-bottom: 20px;">Vil du holde dig opdateret med det nyeste fra biblioteket? <br />
+                      Vi tilbyder to forskellige nyhedsbreve – ét for voksne og ét for børn og familier. <br />
+                      Du vælger selv, om du vil modtage det ene eller begge. <br />
+                      Hvert nyhedsbrev udkommer hver anden måned og byder på spændende nyheder, inspiration til læsning,
+                      information om kommende arrangementer, praktiske oplysninger og et overblik over månedens
+                      aktiviteter. <br /> Tilmeld dig i dag og få biblioteket direkte i din indbakke!</td>
+                      </tr>
+                  <tr>
+                    <td width="20%"> Fornavn:</td>
+                    <td width="80%"><input type="text" class="form-control" name="CustomFields[336216]"
+                        id="CustomFields_336216_7430" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td width="20%"> Efternavn:</td>
+                    <td width="80%"><input type="text" class="form-control" name="CustomFields[336221]"
+                        id="CustomFields_336221_7430" value="" /></td>
+                  </tr>
+                  <tr>
+                    <td width="20%"> Din e-mail:</td>
+                    <td width="80%"><input type="text" name="email" /></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2"  style="padding-bottom: 10px;">Hvilket nyhedsbrev ønsker du at modtage?</td>
+                  </tr>
+                  <tr>
+                    <td><label class="container" for="CustomFields[335222_7430]_B&oslash;rn og familie"><input
+                          type="checkbox" id="CustomFields[335222_7430]_B&oslash;rn og familie"
+                          name="CustomFields[335222][]" value="B&oslash;rn og familie" /><span class="checkmark"></span>B&oslash;rn og
+                        familie</label><br /><label class="container" for="CustomFields[335222_7430]_Voksen"><input
+                          type="checkbox" id="CustomFields[335222_7430]_Voksen" name="CustomFields[335222][]"
+                          value="Voksen" /><span class="checkmark"></span>Voksen</label></td>
+                  </tr>
+                  <tr style="display: none;">
+                    <td> First Name:</td>
+                    <td><input type="text" class="form-control" name="first_name_mp" id="first_name_mp" /></td>
+                  </tr>
+                  <tr>
+                    <td><input type="submit" value="Tilmeld" /></td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+';
+
+    // Replace the paragraph content with the marketing form.
+    $variables['content'] = [
+      '#markup' => Markup::create($marketing_html),
+    ];
+  }
+}

@@ -1,0 +1,236 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for EO Next Opening Hours module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\eonext_opening_hours\Plugin\Block\PerBranchBlock;
+use Drupal\node\NodeInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_opening_hours_theme() {
+  return [
+    'eonext_opening_hours' => [
+      'variables' => [
+        'header_items' => NULL,
+        'items' => NULL,
+      ],
+    ],
+    'paragraph__eonext_opening_hours' => [
+      'variables' => [],
+      '#render element' => 'elements',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ *
+ * Set the contents of the opening hours paragraph.
+ */
+function eonext_opening_hours_preprocess_paragraph__eonext_opening_hours(array &$variables): void {
+
+  $branches = $variables['elements']['field_available_branches'] ?? [];
+
+  if (!count($branches)) {
+    return;
+  }
+
+  // Available branches are stored in array elements that has an integer key.
+  $branches = array_filter($branches, 'is_int', ARRAY_FILTER_USE_KEY);
+
+  $available_branches = [];
+  if (count($branches)) {
+    $available_branches = array_map(function ($branch) {
+      return $branch['#entity']->id();
+    }, $branches);
+  }
+
+  // Render the opening hours block here.
+  $block = \Drupal::service('plugin.manager.block')
+    ->createInstance('eonext_opening_hours_per_branch', [
+      'available_branches' => $available_branches,
+    ])
+    ->build();
+
+  $variables['title'] = $variables['elements']['field_paragraph_title'];
+  $variables['link'] = $variables['elements']['field_button_link'];
+
+  if (isset($variables['link'][0])) {
+    $variables['link'][0]['#options']['attributes']['class'][] = 'branches-link';
+  }
+
+  $variables['opening_hours'] = \Drupal::service('renderer')->render($block);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function eonext_opening_hours_cron() {
+
+  // Define the cron interval. Midnight.
+  $next_midnight = strtotime('tomorrow');
+  $next_execution = \Drupal::state()->get('eonext_opening_hours.cron_next_execution', 0);
+  $request_time = \Drupal::time()->getRequestTime();
+
+  if ($request_time >= $next_execution) {
+    // Invalidate the tag.
+    \Drupal::service('cache_tags.invalidator')->invalidateTags([PerBranchBlock::MIDNIGHT_CACHE_TAG]);
+    \Drupal::state()->set('eonext_opening_hours.cron_next_execution', $next_midnight);
+    \Drupal::logger('eonext_opening_hours')->info('Cache tag invalidated and next execution time set to @time', ['@time' => date('Y-m-d H:i:s', $next_midnight)]);
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function eonext_opening_hours_preprocess_html(array &$variables): void {
+  // Add expanded branches configuration to HTML attributes.
+  $branch_expansion_config = \Drupal::config('eonext_opening_hours.branch_expansion');
+  $expanded_branches = $branch_expansion_config->get('expanded_branches') ?? [];
+
+  if (!empty($expanded_branches)) {
+    $variables['attributes']['data-opening-hours-sidebar-expanded'] = implode(',', $expanded_branches);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for the general settings form.
+ */
+function eonext_opening_hours_form_dpl_library_agency_general_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $config = \Drupal::config('eonext_opening_hours.branch_expansion');
+
+  // Load local branch nodes.
+  $branchNodes = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->loadByProperties(['type' => 'branch']);
+
+  // Sort branches by title.
+  usort($branchNodes, function ($a, $b) {
+    if ($a instanceof NodeInterface && $b instanceof NodeInterface) {
+      return strcmp($a->getTitle(), $b->getTitle());
+    }
+    return 0;
+  });
+
+  // Add expanded branches configuration to the form.
+  $form['expanded_branches'] = [
+    '#type' => 'details',
+    '#title' => t('Opening Hours - Expanded Branches'),
+    '#open' => FALSE,
+    '#weight' => 2,
+  ];
+
+  $form['expanded_branches']['description'] = [
+    '#markup' => t('Select which local branches should be expanded by default in the opening hours sidebar.'),
+  ];
+
+  // Get currently expanded branches.
+  $expanded_branches = $config->get('expanded_branches') ?? [];
+
+  $form['expanded_branches']['expanded_branches_checkboxes'] = [
+    '#type' => 'checkboxes',
+    '#title' => t('Expanded Branches'),
+    '#options' => [],
+  ];
+
+  // Add checkboxes for each branch node.
+  foreach ($branchNodes as $node) {
+    if ($node instanceof NodeInterface) {
+      $node_id = $node->id();
+      $form['expanded_branches']['expanded_branches_checkboxes']['#options'][$node_id] = $node->getTitle();
+    }
+  }
+
+  $form['expanded_branches']['expanded_branches_checkboxes']['#default_value'] = $expanded_branches;
+
+  // Add custom submit handler.
+  $form['#submit'][] = 'eonext_opening_hours_expanded_branches_form_submit';
+}
+
+/**
+ * Submit handler for the expanded branches configuration.
+ */
+function eonext_opening_hours_expanded_branches_form_submit(array &$form, FormStateInterface $form_state): void {
+  $expanded_branches = array_filter($form_state->getValue('expanded_branches_checkboxes'));
+
+  \Drupal::configFactory()
+    ->getEditable('eonext_opening_hours.branch_expansion')
+    ->set('expanded_branches', array_values($expanded_branches))
+    ->save();
+}
+
+/**
+ * Implements hook_preprocess_dpl_react_app().
+ */
+function eonext_opening_hours_preprocess_dpl_react_app(array &$variables): void {
+
+  // Only process the opening-hours-editor app.
+  if ($variables['name'] !== 'opening-hours-editor') {
+    return;
+  }
+
+  // Check if categories config exists.
+  if (!isset($variables['data']['opening-hours-editor-categories-config'])) {
+    return;
+  }
+
+  // Get the current language from URL context.
+  $currentLanguage = \Drupal::languageManager()
+    ->getCurrentLanguage(LanguageInterface::TYPE_URL)->getId();
+
+  $categories = $variables['data']['opening-hours-editor-categories-config'];
+
+  $taxonomyStorage = \Drupal::entityTypeManager()
+    ->getStorage('taxonomy_term');
+
+  $translatedCategories = [];
+  $processedTermIds = [];
+
+  // Translate each category.
+  foreach ($categories as $category) {
+    // Load the term by name to get its translations.
+    $terms = $taxonomyStorage->loadByProperties([
+      'name' => $category['title'],
+      'vid' => 'opening_hours_categories',
+    ]);
+
+    $term = reset($terms);
+
+    if (!$term instanceof ContentEntityInterface) {
+      // If term doesn't exist, keep the original category.
+      $translatedCategories[] = $category;
+      continue;
+    }
+
+    // Skip if we've already processed this term (avoids duplicates from translations).
+    $termId = $term->id();
+    if (in_array($termId, $processedTermIds)) {
+      continue;
+    }
+    $processedTermIds[] = $termId;
+
+    // Add translated version if available, otherwise use original.
+    if ($term->hasTranslation($currentLanguage)) {
+      $translatedTerm = $term->getTranslation($currentLanguage);
+      $translatedCategories[] = [
+        'title' => (string) $translatedTerm->label(),
+        'color' => $category['color'],
+      ];
+    }
+    else {
+      // Use the original if no translation exists.
+      $translatedCategories[] = $category;
+    }
+  }
+
+  // Update both the data array and the attributes.
+  $variables['data']['opening-hours-editor-categories-config'] = $translatedCategories;
+  $variables['attributes']['data-opening-hours-editor-categories-config'] = json_encode($translatedCategories);
+}

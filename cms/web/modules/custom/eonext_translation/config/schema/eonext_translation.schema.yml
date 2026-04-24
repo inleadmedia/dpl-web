@@ -1,0 +1,77 @@
+# Schema for the configuration files of the EO Next Translation module.
+
+eonext_translation.settings:
+  type: config_object
+  label: "EO Next Translation settings"
+  mapping:
+    translation_type:
+      type: string
+      label: "Translation Type"
+    drupal_translation_available_languages:
+      type: sequence
+      label: "Drupal Translation Language"
+      sequence:
+        type: string
+        label: "Language ID"
+    custom_locale_config:
+      type: text
+      label: "Custom Locale Configuration (deprecated - use language-specific configs)"
+    custom_locale_config_en:
+      type: text
+      label: "Custom Locale Configuration for English"
+    custom_locale_config_da:
+      type: text
+      label: "Custom Locale Configuration for Danish"
+    custom_locale_config_kl:
+      type: text
+      label: "Custom Locale Configuration for Kalaallisut"
+
+eonext_translation.footer:
+  type: config_object
+  label: "EO Next Footer settings"
+  mapping:
+    translate_footer:
+      type: integer
+      label: "Footer is translated"
+    footer_items:
+      type: sequence
+      label: "Footer Items"
+      sequence:
+        type: mapping
+        mapping:
+          name:
+            type: text
+            label: name
+          content:
+            type: mapping
+            mapping:
+              value:
+                type: text
+                label: Value
+              format:
+                type: string
+                label: Format
+    secondary_links:
+      type: sequence
+      label: "Secondary Links"
+      sequence:
+        type: mapping
+        mapping:
+          name:
+            type: text
+            label: Name
+          content:
+            type: text
+            label: Content
+    facebook:
+      type: text
+      label: Facebook
+    instagram:
+      type: text
+      label: Instagram
+    youtube:
+      type: text
+      label: Youtube
+    spotify:
+      type: text
+      label: Spotify

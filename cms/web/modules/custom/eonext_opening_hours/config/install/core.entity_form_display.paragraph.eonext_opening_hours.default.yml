@@ -1,0 +1,48 @@
+uuid: edc6d4d7-b799-407a-9f4e-8f9ae674a393
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.eonext_opening_hours.field_available_branches
+    - field.field.paragraph.eonext_opening_hours.field_button_link
+    - field.field.paragraph.eonext_opening_hours.field_paragraph_title
+    - paragraphs.paragraphs_type.eonext_opening_hours
+  module:
+    - link
+  enforced:
+    module:
+      - eonext_opening_hours
+id: paragraph.eonext_opening_hours.default
+targetEntityType: paragraph
+bundle: eonext_opening_hours
+mode: default
+content:
+  field_available_branches:
+    type: entity_reference_autocomplete
+    weight: 1
+    region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_button_link:
+    type: link_default
+    weight: 3
+    region: content
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+  field_paragraph_title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

@@ -1,0 +1,17 @@
+{#
+/**
+ * @file
+ * Template for marketing script paragraph.
+ */
+#}
+{%
+  set classes = [
+    'paragraph',
+    'paragraph--type--' ~ paragraph.bundle|clean_class,
+    'paragraph--marketing-script',
+  ]
+%}
+
+<div{{ attributes.addClass(classes) }}>
+  {{ content }}
+</div>

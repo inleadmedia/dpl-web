@@ -1,0 +1,7 @@
+name: 'EO Next Opening Hours'
+type: module
+description: 'Adds multiple render options for opening hours, extra functionality for opening hours.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - dpl_opening_hours:dpl_opening_hours

@@ -1,0 +1,6 @@
+eonext_ext_fields.settings:
+  title: 'Extended fields'
+  description: Settings for extended fields
+  route_name: eonext_ext_fields.settings
+  parent: dpl_library_agency.settings
+  weight: -100

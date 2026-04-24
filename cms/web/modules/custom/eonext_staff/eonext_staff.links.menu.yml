@@ -1,0 +1,5 @@
+entity.eonext_library_staff.settings:
+  title: 'Library Staff'
+  description: 'Configure a Library Staff entity type.'
+  route_name:  entity.eonext_library_staff.settings
+  parent: system.admin_structure

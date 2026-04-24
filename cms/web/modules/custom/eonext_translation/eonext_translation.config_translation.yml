@@ -1,0 +1,5 @@
+dpl_footer.footer_form:
+  title: "EONEXT Footer"
+  base_route_name: dpl_footer.footer_form
+  names:
+    - eonext_translation.footer

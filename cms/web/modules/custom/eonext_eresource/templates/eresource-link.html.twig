@@ -1,0 +1,16 @@
+{#
+/**
+ * @file
+ * Theme override of a link with separate title and URL elements.
+ *
+ * Available variables:
+ * - url_string: The url.
+ * - title: (optional) A descriptive or alternate title for the link, which may
+ *   be different than the actual link text.
+ *
+ * @see template_preprocess()
+ */
+#}
+{% apply spaceless %}
+ <a target="_blank" class="link-tag" href={{url_string}}>{{ 'See online'|t }}</a>
+{% endapply %}

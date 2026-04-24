@@ -1,0 +1,20 @@
+uuid: 52830b29-82a1-428e-9732-5a407f8229e0
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+    - node
+id: eonext_library_staff.field_branch
+field_name: field_branch
+entity_type: eonext_library_staff
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

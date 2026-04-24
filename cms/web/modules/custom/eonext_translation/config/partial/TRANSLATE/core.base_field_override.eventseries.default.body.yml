@@ -1,0 +1,21 @@
+uuid: 7824e53f-ad2b-49f4-a6fc-efebf3b7d7f8
+langcode: en
+status: true
+dependencies:
+  config:
+    - recurring_events.eventseries_type.default
+  module:
+    - text
+id: eventseries.default.body
+field_name: body
+entity_type: eventseries
+bundle: default
+label: Body
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

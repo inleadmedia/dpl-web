@@ -1,0 +1,207 @@
+<?php
+
+/**
+ * @file
+ * EO Next Branch Ordering module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Markup;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Alters the DPL Library Agency general settings form to add branch ordering.
+ */
+function eonext_branch_ordering_form_dpl_library_agency_general_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $config = \Drupal::config('eonext_branch_ordering.settings');
+
+  // Get the branch repository to load all branches.
+  $branch_repository = \Drupal::service('dpl_library_agency.branch.repository');
+
+  // Get branch settings to check for excluded branches.
+  $branch_settings = \Drupal::service('dpl_library_agency.branch_settings');
+  $excluded_search = $branch_settings->getExcludedSearchBranches();
+  $excluded_availability = $branch_settings->getExcludedAvailabilityBranches();
+  $excluded_reservation = $branch_settings->getExcludedReservationBranches();
+
+  try {
+    $branches = $branch_repository->getBranches();
+
+    // Get current ordering configuration.
+    $current_ordering = $config->get('branch_ordering_config') ?? '';
+    $ordering_data = [];
+    if (!empty($current_ordering)) {
+      $ordering_data = json_decode($current_ordering, TRUE) ?? [];
+    }
+
+    // Build the table rows with current ordering.
+    $table_data = [];
+    foreach ($branches as $branch) {
+      $sort_order = $ordering_data[$branch->id] ?? 9999;
+
+      // Check if branch is excluded from any service.
+      $is_excluded = in_array($branch->id, $excluded_search) ||
+                     in_array($branch->id, $excluded_availability) ||
+                     in_array($branch->id, $excluded_reservation);
+
+      $branch_title = $branch->title;
+      if ($is_excluded) {
+        $branch_title = '<del style="color: #999;">' . $branch_title . '</del>';
+      }
+
+      $table_data[] = [
+        'branch_id' => $branch->id,
+        'branch_title' => $branch_title,
+        'sort_order' => $sort_order,
+      ];
+    }
+
+    // Sort by current sort order for display.
+    usort($table_data, function ($a, $b) {
+      return $a['sort_order'] <=> $b['sort_order'];
+    });
+
+    // Add branch ordering configuration to the form.
+    $form['branch_ordering'] = [
+      '#type' => 'details',
+      '#title' => t('Branch Ordering'),
+      '#open' => FALSE,
+      '#weight' => 1,
+      '#states' => [
+        'visible' => [
+          ':input[name="show_search_branch_selection"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
+    // Create the draggable table.
+    $header = [
+      t('Branch'),
+      t('Branch ID'),
+      t('Weight'),
+    ];
+
+    $form['branch_ordering']['branch_order_table'] = [
+      '#type' => 'table',
+      '#header' => $header,
+      '#tabledrag' => [
+        [
+          'action' => 'order',
+          'relationship' => 'sibling',
+          'group' => 'branch-order-weight',
+        ],
+      ],
+      '#empty' => t('No branches available.'),
+    ];
+
+    // Add rows to the table.
+    foreach ($table_data as $index => $row) {
+      $form['branch_ordering']['branch_order_table'][$row['branch_id']] = [
+        '#attributes' => ['class' => ['draggable']],
+        '#weight' => $index,
+        'branch_title' => [
+          '#markup' => Markup::create($row['branch_title']),
+        ],
+        'branch_id' => [
+          '#markup' => $row['branch_id'],
+        ],
+        'weight' => [
+          '#type' => 'weight',
+          '#title' => t('Weight for @title', [
+            '@title' => $row['branch_title'],
+          ]),
+          '#title_display' => 'invisible',
+          '#default_value' => $index,
+          '#attributes' => ['class' => ['branch-order-weight']],
+        ],
+      ];
+    }
+
+  }
+  catch (Exception $e) {
+    // If we can't load branches, show a message.
+    $form['branch_ordering'] = [
+      '#type' => 'details',
+      '#title' => t('Branch Ordering'),
+      '#open' => TRUE,
+      '#weight' => 1,
+    ];
+
+    $form['branch_ordering']['error'] = [
+      '#markup' => '<p>' . t('Unable to load branches for ordering. Please check your API configuration.') . '</p>',
+    ];
+  }
+
+  // Add custom validation and submit handlers.
+  $form['#validate'][] = 'eonext_branch_ordering_form_validate';
+  $form['#submit'][] = 'eonext_branch_ordering_form_submit';
+}
+
+/**
+ * Custom validation handler for branch ordering configuration.
+ */
+function eonext_branch_ordering_form_validate(array &$form, FormStateInterface $form_state) {
+  // No specific validation needed for draggable table.
+  // Drupal handles weight validation.
+}
+
+/**
+ * Custom submit handler for branch ordering configuration.
+ */
+function eonext_branch_ordering_form_submit(array &$form, FormStateInterface $form_state) {
+  $branch_order_table = $form_state->getValue('branch_order_table');
+
+  if ($branch_order_table) {
+    // Convert the table data back to JSON format for storage.
+    $ordering_data = [];
+
+    // Sort the table data by weight to get the correct order.
+    uasort($branch_order_table, function ($a, $b) {
+      return $a['weight'] <=> $b['weight'];
+    });
+
+    // Build the ordering configuration.
+    $sort_order = 1;
+    foreach ($branch_order_table as $branch_id => $row) {
+      $ordering_data[$branch_id] = $sort_order;
+      $sort_order++;
+    }
+
+    // Save the configuration as JSON.
+    \Drupal::configFactory()
+      ->getEditable('eonext_branch_ordering.settings')
+      ->set('branch_ordering_config', json_encode($ordering_data))
+      ->save();
+  }
+}
+
+/**
+ * Implements hook_preprocess_dpl_react_app().
+ */
+function eonext_branch_ordering_preprocess_dpl_react_app(array &$variables): void {
+  $config = \Drupal::config('eonext_branch_ordering.settings');
+  $branch_ordering = $config->get('branch_ordering_config');
+
+  if (!empty($branch_ordering) && isset($variables['attributes']['data-branches-config'])) {
+    $decoded_ordering = json_decode($branch_ordering, TRUE);
+    if ($decoded_ordering !== NULL && is_array($decoded_ordering)) {
+      // Get the existing branches-config from attributes.
+      $branches = json_decode($variables['attributes']['data-branches-config'], TRUE);
+      if ($branches !== NULL && is_array($branches)) {
+        // Add sortOrder to each branch and sort.
+        foreach ($branches as &$branch) {
+          $branch['sortOrder'] = $decoded_ordering[$branch['branchId']] ?? 9999;
+        }
+
+        // Sort branches by sortOrder.
+        usort($branches, function ($a, $b) {
+          return $a['sortOrder'] <=> $b['sortOrder'];
+        });
+
+        // Update the attribute with the sorted branches.
+        $variables['attributes']['data-branches-config'] = json_encode($branches);
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+eonext_branch_ordering.settings:
+  type: config_object
+  label: 'EO Next Branch Ordering settings'
+  mapping:
+    branch_ordering_config:
+      type: string
+      label: 'Branch ordering configuration'
