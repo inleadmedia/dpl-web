@@ -1,9 +1,20 @@
 import * as React from "react";
+import searchIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-search.svg";
 import menuIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-menu.svg";
 import profileIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-profile.svg";
 import heartIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-heart.svg";
 import watchIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-watch-static.svg";
 import crossIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-cross-medium.svg";
+import expandIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/ExpandMore.svg";
+import { useText } from "../../core/utils/text";
+
+/* eslint-disable */
+const exampleCMSData = {
+  "data-branches-config": '[{"branchId":"DK-733006","title":"Hash\\u00f8j Skole"},{"branchId":"DK-733010","title":"Dalmose Servicepunkt Dagli\\u2019 Brugsen"},{"branchId":"DK-733000","title":"Slagelse Bibliotek"},{"branchId":"DK-733001","title":"Kors\\u00f8r Bibliotek"},{"branchId":"DK-733003","title":"Vemmelev Servicepunkt Dagli\\u2019Brugsen"},{"branchId":"DK-733002","title":"Sk\\u00e6lsk\\u00f8r Bibliotek"},{"branchId":"DK-661103","title":"L\\u00e6sekreds"}]',
+  "data-blacklisted-search-branches-config": "DK-733006,DK-733010",
+  "data-show-search-branch-selection": "true"
+};
+/* eslint-enable */
 
 export interface StoryHeaderProps {
   search?: React.ReactNode;
@@ -18,8 +29,10 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
   // please update it to match the design system
   // NOTE: icons need to be imported here + the search bar needs to be
   // replaced by {children}
+  const t = useText();
+
   return (
-    <div>
+    <div { ...exampleCMSData }>
       <header className="header">
         <div className="header__logo-desktop">
           <a className="header__logo-desktop-link" href="/">
@@ -102,19 +115,46 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
                 </li>
               </ul>
             </div>
+
             {userProfile || (
               <button type="button" className="header__button">
                 <img src={profileIcon} alt="Profile" />
-                <span className="header__button-text">Login</span>
+                <span className="header__button-text">
+                  {t("searchHeaderLoginText")}
+                </span>
               </button>
             )}
 
             <a href="/" className="header__button">
               <img src={heartIcon} alt="List of bookmarks" />
-              <span className="header__button-text">Liked</span>
+              <span className="header__button-text">
+                {t("searchHeaderFavoritesText")}
+              </span>
             </a>
           </nav>
-          {search}
+          { search || (
+              <div className="header__menu-search">
+                <input
+                  name="q"
+                  className="header__menu-search-input text-body-medium-regular"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Cannot search in this story"
+                />
+                <input
+                  type="image"
+                  src={searchIcon}
+                  className="header__menu-search-icon"
+                  alt="search icon"
+                />
+                <img
+                  className="header__menu-dropdown-icon"
+                  src={expandIcon}
+                  alt="expand dropdown icon"
+                />
+              </div>
+            )
+          }
         </div>
         <div className="header__clock">
           <div className="pagefold-parent--medium">
