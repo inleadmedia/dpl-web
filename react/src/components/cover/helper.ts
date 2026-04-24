@@ -1,8 +1,10 @@
-import { first } from "lodash";
 import type {
   Cover as GraphQLCover,
   Manifestation as GraphQLManifestation
 } from "../../core/dbc-gateway/generated/graphql";
+
+import lodash, { first } from "lodash";
+import { CoverImageUrls } from "../../core/cover-service-api/model";
 import { Manifestation } from "../../core/utils/types/entities";
 import { Pid } from "../../core/utils/types/ids";
 import {
@@ -56,6 +58,14 @@ export const getCoverUrl = ({
   bestRepresentation?: Manifestation;
   size: FbiCoverImageSizeKey;
 }) => {
+  // @ts-ignore-next-line
+  let _customCoverField: string = document.querySelector('[data-eonext-ext-covers]')?.getAttribute("data-eonext-ext-covers") || "";
+  if (_customCoverField) {
+    let coverUrl = lodash.get(bestRepresentation, _customCoverField);
+    if (coverUrl)
+      return coverUrl;
+  }
+
   if (!coverData) {
     return null;
   }
