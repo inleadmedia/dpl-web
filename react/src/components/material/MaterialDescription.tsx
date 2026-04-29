@@ -190,13 +190,13 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   return (
     <section className="material-description" data-cy="material-description">
       <>
-        {work.abstract && work.abstract[0] && (
+        { (descriptionOverride || work.abstract && work.abstract[0]) && (
           <>
             <h2 className="material-description__heading">
               {t("descriptionHeadlineText")}
             </h2>
             <p className="material-description__content">
-              { descriptionOverride === null ? work.abstract[0] : descriptionOverride }
+              { descriptionOverride === null ? work.abstract && work.abstract[0] : descriptionOverride }
             </p>
           </>
         )}
