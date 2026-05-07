@@ -64,9 +64,9 @@ const FindOnShelfManifestationListItem: FC<
 
   return (
     <li className="find-on-shelf__row text-body-medium-regular" role="row">
-      <p className="dpl-find-on-shelf-title">
+      <p className="dpl-find-on-shelf-title find-on-shelf__material-text">
         <Wayfinder viewId={wayfinderLink.viewId} link={wayfinderLink.link} />
-        <span className="find-on-shelf__material-text" role="cell">
+        <span role="cell">
           {title}
           {publicationYear && ` (${publicationYear})`}
         </span>

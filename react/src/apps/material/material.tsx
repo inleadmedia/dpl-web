@@ -307,6 +307,10 @@ function hasExtraMarc(pointers: string[]) {
   return (pointers || []).some((pointer: string) => pointer.startsWith("extraMarc:"));
 }
 
+function hasDefaultMarc(pointers: string[]) {
+  return (pointers || []).some((pointer: string) => pointer.startsWith("marc:"));
+}
+
 const Material: React.FC<MaterialProps> = ({ wid }) => {
   const t = useText();
   const [selectedManifestations, setSelectedManifestations] = useState<
@@ -332,6 +336,7 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     try {
       extendedFields = JSON.parse(extendedFields);
       extendedFields.aliases = extendedFields.aliases || {};
+      extendedFields._withDefaultMarc = false;
       extendedFields._withExtraMarc = false;
 
       if (extendedFields.shelfmarkOverride)
@@ -349,6 +354,10 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
             extendedFields[sectionName][fieldLabel].getter = extendedFieldsDataGetter.bind(null, pointers);
             if (hasExtraMarc(extendedFields[sectionName][fieldLabel]?.data)) {
               extendedFields._withExtraMarc = true;
+            }
+
+            if (hasDefaultMarc(extendedFields[sectionName][fieldLabel]?.data)) {
+              extendedFields._withDefaultMarc = true;
             }
 
             extendedFields[sectionName][fieldLabel].findLabelIndex = (targetList: string[]) => {
@@ -384,6 +393,10 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
             extendedFields._withExtraMarc = true;
           }
 
+          if (hasDefaultMarc(extendedFields[sectionName]?.body)) {
+            extendedFields._withDefaultMarc = true;
+          }
+
           (extendedFields[sectionName].tags || []).forEach((tag: any) => {
             tag.merge = extendedFieldsDataMerge.bind(null, tag);
             tag.getter = (work: any) => {
@@ -394,6 +407,10 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
 
             if (hasExtraMarc(tag?.data)) {
               extendedFields._withExtraMarc = true;
+            }
+
+            if (hasDefaultMarc(tag?.data)) {
+              extendedFields._withDefaultMarc = true;
             }
           });
         }
@@ -407,7 +424,7 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     return {};
   }, [wid]);
 
-  const { data, isLoading, workType } = useGetWork(wid, customFields?._withExtraMarc, customFields?.shelfmarkOverride);
+  const { data, isLoading, workType } = useGetWork(wid, customFields?._withDefaultMarc, customFields?._withExtraMarc, customFields?.shelfmarkOverride);
 
   useUpdateEffect(() => {
     updatePageStatistics({ waitTime: 2500 });
