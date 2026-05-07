@@ -8818,10 +8818,21 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
     fragment ManifestationsSimpleFields on Manifestation {
   pid
   genreAndForm
+  genreForm {
+    display
+    language {
+      isoCode
+      display
+    }
+  }
   source
   subjects {
     all {
       display
+      language {
+        isoCode
+        display
+      }
     }
   }
   ...WithLanguages
@@ -8919,6 +8930,13 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   audience {
     generalAudience
+    audienceGeneral {
+      display
+      language {
+        isoCode
+        display
+      }
+    }
     ages {
       display
     }
