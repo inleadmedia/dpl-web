@@ -176,6 +176,7 @@ function filterDuplicates(workData: any) {
 
 export const useGetWork = (
   wid: WorkId,
+  withDefaultMarc: boolean,
   withExtraMarc: boolean,
   shelfmarkOverride: any
 ):
@@ -185,11 +186,13 @@ export const useGetWork = (
     ) & { workType: WorkType })
   | { data: null; isLoading: true; error: null; workType: WorkType } => {
   const localWork = useGetMaterialQuery({
-    wid
+    wid,
+    withDefaultMarc: withDefaultMarc
   });
   const globalWork = useGetMaterialGloballyQuery(
     {
-      wid
+      wid,
+      withDefaultMarc: withDefaultMarc
     },
     { enabled: localWork.isSuccess && !localWork.data.work }
   );

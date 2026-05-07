@@ -4,6 +4,7 @@ import {
   UseQueryOptions,
   UseMutationOptions
 } from "react-query";
+import lodash from "lodash";
 // @ts-ignore-next-line
 import * as async from "async-es";
 import { useState, useEffect, useRef } from "react";
@@ -3113,6 +3114,7 @@ export type GetManifestationViaBestRepresentationByFaustQuery = {
 
 export type GetMaterialQueryVariables = Exact<{
   wid: Scalars["String"]["input"];
+  withDefaultMarc?: boolean;
 }>;
 
 export type GetMaterialQuery = {
@@ -3764,6 +3766,7 @@ export type GetMaterialQuery = {
 
 export type GetMaterialGloballyQueryVariables = Exact<{
   wid: Scalars["String"]["input"];
+  withDefaultMarc?: boolean;
 }>;
 
 export type GetMaterialGloballyQuery = {
@@ -8999,9 +9002,6 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   cover {
     detail
   }
-  marc {
-    content
-  }
 }
     ${WithLanguagesFragmentDoc}`;
 export const ManifestationsSimpleFragmentDoc = `
@@ -9073,9 +9073,6 @@ export const WorkSmallSearchFragmentDoc = `
 export const WorkMediumFragmentDoc = `
     fragment WorkMedium on Work {
   ...WorkSmall
-  marc {
-    content
-  }
   materialTypes {
     materialTypeGeneral {
       code
@@ -9281,6 +9278,28 @@ export const GetMaterialDocument = `
 }
     ${WorkMediumFragmentDoc}`;
 
+function addDefaultMarc(graphqlRequest: string, options: any) {
+  if (options?.withDefaultMarc) {
+    [
+      "fragment ManifestationsSimpleFields on Manifestation {",
+      "fragment WorkMedium on Work {"
+    ].forEach(target => {
+      if (graphqlRequest.indexOf(target) === -1)
+        return;
+
+      let _graphqlRequest = graphqlRequest.split(target);
+      _graphqlRequest.forEach((chunk, index) => {
+        if (index % 2 === 1)
+          _graphqlRequest[index] = "marc { content } " + _graphqlRequest[index];
+      });
+
+      graphqlRequest = _graphqlRequest.join(target);
+    });
+  }
+
+  return graphqlRequest;
+}
+
 export const useGetMaterialQuery = <TData = GetMaterialQuery, TError = unknown>(
   variables: GetMaterialQueryVariables,
   options?: UseQueryOptions<GetMaterialQuery, TError, TData>
@@ -9288,8 +9307,8 @@ export const useGetMaterialQuery = <TData = GetMaterialQuery, TError = unknown>(
   return useQuery<GetMaterialQuery, TError, TData>(
     ["getMaterial", variables],
     fetcher<GetMaterialQuery, GetMaterialQueryVariables>(
-      GetMaterialDocument,
-      variables
+      addDefaultMarc(GetMaterialDocument, variables || {}),
+      lodash.omit(variables || {}, ["withDefaultMarc"])
     ),
     options
   );
@@ -9313,8 +9332,8 @@ export const useGetMaterialGloballyQuery = <
   return useQuery<GetMaterialGloballyQuery, TError, TData>(
     ["getMaterialGlobally", variables],
     fetcher<GetMaterialGloballyQuery, GetMaterialGloballyQueryVariables>(
-      GetMaterialGloballyDocument,
-      variables
+      addDefaultMarc(GetMaterialGloballyDocument, variables || {}),
+      lodash.omit(variables || {}, ["withDefaultMarc"])
     ),
     options
   );
