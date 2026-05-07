@@ -84,9 +84,9 @@
             "package": {
                 "name": "inleadmedia/dpl-react",
                 "type": "drupal-library",
-                "version": "dev-EONEXT-214-no-oenext-197.1",
+                "version": "dev-EONEXT-214-no-oenext-197.2",
                 "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-development-no-oenext-197/dist-development-no-oenext-197.zip",
+                    "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-EONEXT-197/dist-eonext-197.zip",
                     "type": "zip"
                 }
             }
@@ -240,7 +240,7 @@
         "drupal/webform_mailerlite": "^1.0",
         "drush/drush": "^13",
         "inleadmedia/dpl-design-system": "2026.10.0",
-        "inleadmedia/dpl-react": "dev-EONEXT-214-no-oenext-197.1",
+        "inleadmedia/dpl-react": "dev-EONEXT-214-no-oenext-197.2",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/select2": "^4.0",
