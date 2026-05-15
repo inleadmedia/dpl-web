@@ -391,6 +391,7 @@ const SearchHeader: React.FC = () => {
           onBranchChange={ setSearchBranch }
         />
         <Autosuggest
+          query={q}
           textData={textData}
           materialData={materialData}
           categoryData={categoryData}

@@ -10,3 +10,6 @@
 @use "./search-bar/search-bar";
 @use "../apps/advanced-search/advanced-search";
 @use "../apps/material/material";
+
+@use "../components/autosuggest/autosuggest";
+@use "../components/autosuggest-editorial/autosuggest-editorial";
