@@ -1,0 +1,5 @@
+service-banner-preview:
+  version: VERSION
+  css:
+    component:
+      css/service-banner-preview.css: {}

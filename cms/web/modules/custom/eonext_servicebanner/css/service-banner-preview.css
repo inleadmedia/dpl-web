@@ -1,0 +1,84 @@
+.service-banner-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #EEE9E5;
+  padding: 1.75rem 2.5rem 1.75rem 3rem;
+  margin-top: .75rem;
+  max-width: 1156px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* Paper-fold corner — two triangles matching the design */
+.service-banner-preview__fold {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.service-banner-preview__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-banner-preview__icon svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.service-banner-preview__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.service-banner-preview__title {
+  display: block;
+  font-weight: 400;
+  font-size: 1.125rem;
+  color: #1a1a1a;
+  margin: 0 0 .25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.service-banner-preview__body {
+  font-size: .8125rem;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.service-banner-preview--linked {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.service-banner-preview__arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding-left: 2rem;
+  transition: transform 0.2s ease;
+}
+
+.service-banner-preview--linked:hover .service-banner-preview__arrow,
+.service-banner-preview--linked:focus .service-banner-preview__arrow {
+  transform: translateX(6px);
+}
