@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\eonext_advanced_search\Plugin\rest\resource\v1;
+namespace Drupal\eonext_editorial_search\Plugin\rest\resource\v1;
 
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponse;
@@ -8,6 +8,8 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Url;
 use Drupal\dpl_search\DplSearchSettings;
+use Drupal\file\FileInterface;
+use Drupal\media\MediaInterface;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\views\Views;
 use Drupal\views\ViewExecutable;
@@ -20,7 +22,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * REST resource for querying the editorial search.
  *
  * @RestResource(
- *   id = "eonext_advanced_search:editorial_search",
+ *   id = "eonext_editorial_search:editorial_search",
  *   label = @Translation("Editorial search"),
  *   uri_paths = {
  *     "canonical" = "/api/v1/editorial-search",
@@ -144,6 +146,8 @@ final class EditorialSearchResource extends ResourceBase {
       $data['teaser_text'] = $entity->get('field_teaser_text')->getString();
     }
 
+    $data['image'] = $this->extractTeaserImage($entity);
+
     $categories_field = $entity->hasField('field_categories') ? $entity->get('field_categories') : NULL;
     if ($categories_field instanceof EntityReferenceFieldItemListInterface) {
       foreach ($categories_field->referencedEntities() as $term) {
@@ -169,6 +173,60 @@ final class EditorialSearchResource extends ResourceBase {
     }
 
     return $data;
+  }
+
+  /**
+   * Extracts the teaser image URL and alt text from an entity.
+   *
+   * Checks the following fields in order, using the first non-empty one:
+   *   - field_teaser_image        (nodes, eventseries)
+   *   - field_e_resource_list_image (e_resource nodes)
+   *
+   * Resolves: entity → <image field> (media) → field_media_image (file).
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity to extract the image from.
+   *
+   * @return array{url: string, alt: string}|null
+   *   An array with 'url' and 'alt', or NULL if no image is set.
+   */
+  private function extractTeaserImage(ContentEntityInterface $entity): ?array {
+    $candidate_fields = ['field_teaser_image', 'field_e_resource_list_image'];
+
+    $image_media_field = NULL;
+    foreach ($candidate_fields as $field_name) {
+      $field = $entity->hasField($field_name) ? $entity->get($field_name) : NULL;
+      if ($field instanceof EntityReferenceFieldItemListInterface && !$field->isEmpty()) {
+        $image_media_field = $field;
+        break;
+      }
+    }
+
+    if ($image_media_field === NULL) {
+      return NULL;
+    }
+
+    $media = $image_media_field->referencedEntities()[0] ?? NULL;
+    if (!($media instanceof MediaInterface) || !$media->hasField('field_media_image') || $media->get('field_media_image')->isEmpty()) {
+      return NULL;
+    }
+
+    $image_field = $media->get('field_media_image');
+    $file = ($image_field instanceof EntityReferenceFieldItemListInterface)
+      ? $image_field->referencedEntities()[0] ?? NULL
+      : NULL;
+
+    if (!($file instanceof FileInterface)) {
+      return NULL;
+    }
+
+    /** @var \Drupal\Core\File\FileUrlGeneratorInterface $url_generator */
+    $url_generator = \Drupal::service('file_url_generator');
+
+    return [
+      'url' => $url_generator->generateAbsoluteString($file->getFileUri()),
+      'alt' => $image_field->first()?->get('alt')->getString() ?? '',
+    ];
   }
 
 }
