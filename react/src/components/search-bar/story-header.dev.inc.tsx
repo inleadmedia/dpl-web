@@ -8,7 +8,6 @@ import crossIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icon
 import expandIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/ExpandMore.svg";
 import { useMemo } from "react";
 import { useText } from "../../core/utils/text";
-import { getServiceBannerFromBody } from "./service-banner";
 
 /* eslint-disable */
 const exampleCMSData = {
@@ -32,16 +31,10 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
   // NOTE: icons need to be imported here + the search bar needs to be
   // replaced by {children}
   const t = useText();
-  const serviceBanner = useMemo(() => getServiceBannerFromBody(), []);
-  const isServiceBanner = Boolean(serviceBanner);
 
   return (
     <div {...exampleCMSData}>
-      <header
-        className={["header", isServiceBanner ? "header__with-banner" : null]
-          .filter(Boolean)
-          .join(" ")}
-      >
+      <header className="header">
         <div className="header__logo-desktop">
           <a className="header__logo-desktop-link" href="/">
             <div>
@@ -173,35 +166,6 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
             <span className="text-small-caption">28 Maj</span>
           </div>
         </div>
-
-        {serviceBanner ? (
-          <div className="header__menu-banner">
-            <div className="header__menu-banner-content">
-              <p
-                className="header__menu-banner-title text-body-medium-medium"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: serviceBanner.title }}
-              />
-              {serviceBanner.body ||
-              (serviceBanner.url && serviceBanner.urlText) ? (
-                <p className="header__menu-banner-body text-body-medium-regular">
-                  {serviceBanner.body}
-                  {serviceBanner.url && serviceBanner.urlText ? (
-                    <>
-                      {serviceBanner.body ? " " : null}
-                      <a
-                        href={serviceBanner.url}
-                        className="link-tag color-secondary-gray"
-                      >
-                        {serviceBanner.urlText}
-                      </a>
-                    </>
-                  ) : null}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
       </header>
       <div className="header-sidebar-nav" data-open="closed">
         <div className="header-sidebar-nav__background-wrapper">
