@@ -51,19 +51,60 @@ final class EditorialSearchResource extends ResourceBase {
    * Editorial search resource.
    *
    * Supported query parameters:
-   *   q         - Fulltext search string (required).
+   *   q         - Fulltext search string (required unless material is set).
+   *   material  - Work ID to find related editorial content.
    *   page      - Zero-based page number (default: 0).
    *   page_size - Items per page (default: 10, max: 100).
    */
   public function get(Request $request): Response {
     $search = $request->query->get('q');
+    $material = $request->query->get('material');
+
+    $material_editorials = [];
+    $editorial_nids = [];
+
+    if (!empty($material)) {
+      $editorial_nids = \Drupal::entityTypeManager()
+        ->getStorage('node')
+        ->getQuery()
+        ->accessCheck(TRUE)
+        ->condition('field_material', $material)
+        ->range(0, self::DEFAULT_PAGE_SIZE)
+        ->execute();
+
+      $material_editorials = \Drupal::entityTypeManager()
+        ->getStorage('node')
+        ->loadMultiple($editorial_nids);
+    }
+
+    // Return the editorials directly.
+    if (!empty($material) && (empty($search) || !is_string($search))) {
+      $results = [];
+      foreach ($material_editorials as $editorial) {
+        $results[] = $this->mapEntity($editorial);
+      }
+
+      $response = $this->createJsonResponse($results);
+      $response->addCacheableDependency(
+        $this->buildCacheMetadata($material_editorials)
+      );
+
+      return $response;
+    }
 
     if (empty($search) || !is_string($search)) {
       throw new HttpException(400, 'Missing required query parameter "q".');
     }
 
     $page = max(0, (int) $request->query->get('page', 0));
-    $page_size = min(self::MAX_PAGE_SIZE, max(1, (int) $request->query->get('page_size', self::DEFAULT_PAGE_SIZE)));
+
+    $page_size = min(
+      self::MAX_PAGE_SIZE,
+      max(
+        1,
+        (int) $request->query->get('page_size', self::DEFAULT_PAGE_SIZE)
+      )
+    );
 
     $view = Views::getView(DplSearchSettings::EDITORIAL_VIEW_ID);
 
@@ -78,36 +119,83 @@ final class EditorialSearchResource extends ResourceBase {
     $view->execute();
 
     $results = [];
+
     foreach ($view->result as $row) {
       $entity = $row->_entity ?? NULL;
       if ($entity instanceof ContentEntityInterface) {
+
+        if (!empty($material) && !in_array($entity->id(), $editorial_nids)) {
+          continue;
+        }
         $results[] = $this->mapEntity($entity);
       }
     }
 
     $data = [
-      'total' => (int) $view->total_rows,
+      'total' => !empty($material) ? count($results) : (int) $view->total_rows,
       'page' => $page,
       'page_size' => $page_size,
       'results' => $results,
     ];
 
-    $response = new CacheableResponse(
+    $response = $this->createJsonResponse($data);
+    $response->addCacheableDependency(
+      $this->buildCacheMetadata($material_editorials)
+    );
+
+    return $response;
+  }
+
+  /**
+   * Builds cache metadata for editorial search responses.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface[] $entities
+   *   Optional entities to add as cacheable dependencies.
+   */
+  private function buildCacheMetadata(array $entities = []): CacheableMetadata {
+    $cache = new CacheableMetadata();
+    $cache->setCacheContexts($this->getQueryArgCacheContexts());
+    $cache->setCacheTags(['search_api_list:content_events']);
+
+    foreach ($entities as $entity) {
+      if ($entity instanceof ContentEntityInterface) {
+        $cache->addCacheableDependency($entity);
+      }
+    }
+
+    return $cache;
+  }
+
+  /**
+   * Returns cache contexts for supported query parameters.
+   *
+   * All supported query args are always included so that responses for the
+   * same "q" value cannot collide when "material" (or pagination args) differ.
+   *
+   * @return string[]
+   *   Cache context IDs.
+   */
+  private function getQueryArgCacheContexts(): array {
+    return [
+      'url.query_args:q',
+      'url.query_args:material',
+      'url.query_args:page',
+      'url.query_args:page_size',
+    ];
+  }
+
+  /**
+   * Creates a JSON cacheable response.
+   *
+   * @param mixed $data
+   *   The response data to encode as JSON.
+   */
+  private function createJsonResponse(mixed $data): CacheableResponse {
+    return new CacheableResponse(
       json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
       200,
       ['Content-Type' => 'application/json']
     );
-
-    $cache = new CacheableMetadata();
-    $cache->setCacheContexts([
-      'url.query_args:q',
-      'url.query_args:page',
-      'url.query_args:page_size',
-    ]);
-    $cache->setCacheTags(['search_api_list:content_events']);
-    $response->addCacheableDependency($cache);
-
-    return $response;
   }
 
   /**
