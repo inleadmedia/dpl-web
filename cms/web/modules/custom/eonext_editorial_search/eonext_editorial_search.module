@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for EO Next Editorial Search module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function eonext_editorial_search_form_dpl_library_agency_general_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  $config = \Drupal::config('eonext_editorial_search.settings');
+
+  $form['editorial_search']['enable_editorial_search'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Enable Editorial Search'),
+    '#default_value' => $config->get('enable_editorial_search') ?? FALSE,
+    '#description' => t('If enabled, the editorial search will be available.'),
+  ];
+
+  // Add custom submit handler.
+  $form['#submit'][] = 'eonext_editorial_search_general_settings_form_submit';
+}
+
+/**
+ * Submit handler for the general settings form.
+ */
+function eonext_editorial_search_general_settings_form_submit(array &$form, FormStateInterface $form_state): void {
+
+  $enable_editorial_search = $form_state->getValue('enable_editorial_search');
+
+  \Drupal::configFactory()
+    ->getEditable('eonext_editorial_search.settings')
+    ->set('enable_editorial_search', (bool) $enable_editorial_search)
+    ->save();
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ *
+ * @see dpl_react_preprocess_dpl_react_app()
+ */
+function eonext_editorial_search_preprocess_dpl_react_app(array &$variables): void {
+
+  $enabled = (bool) \Drupal::config('eonext_editorial_search.settings')
+    ->get('enable_editorial_search');
+
+  $variables['attributes']['data-editorial-search'] = json_encode($enabled);
+  $variables['#cache']['tags'][] = 'config:eonext_editorial_search.settings';
+}
