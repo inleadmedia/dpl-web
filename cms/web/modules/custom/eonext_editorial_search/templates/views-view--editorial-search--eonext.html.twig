@@ -36,6 +36,34 @@
         </aside>
 
         <section class="editorial-search__results">
+          {% if editorial_search_sort_options %}
+            <div class="search__sort-select editorial-search__sort">
+              <label class="search__sort-select__label" for="editorial-search-sort">
+                {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
+              </label>
+              <div class="search__sort-select__select-wrapper">
+                <select
+                  class="search__sort-select__select"
+                  id="editorial-search-sort"
+                  data-editorial-search-sort
+                >
+                  {% for value, label in editorial_search_sort_options %}
+                    <option value="{{ value }}"{{ value == editorial_search_sort_selected ? ' selected' : '' }}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <div class="search__dropdown__arrows">
+                  <img
+                    class="search__dropdown__arrow"
+                    alt=""
+                    src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                  >
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
           {% if rows -%}
             {{ rows }}
           {% elseif empty -%}

@@ -89,6 +89,26 @@
   }
 
   /**
+   * Handle sort dropdown changes via Views AJAX.
+   */
+  function handleSortChange(event) {
+    const select = event.currentTarget;
+    const [sortBy, sortOrder] = select.value.split('|');
+    const url = new URL(window.location.href);
+
+    url.searchParams.set('sort_by', sortBy);
+    url.searchParams.set('sort_order', sortOrder);
+    url.searchParams.delete('page');
+
+    const $view = $(select).closest('.editorial-search');
+    window.history.pushState({}, document.title, url.toString());
+
+    if (!refreshEditorialSearchView($view)) {
+      window.location = url.toString();
+    }
+  }
+
+  /**
    * Handle facet filter clicks via Views AJAX.
    */
   function handleFacetsFilter(event, url) {
@@ -117,6 +137,10 @@
     attach(context) {
       $(once('editorial-search-facets-ajax', '.editorial-search .js-facets-widget', context)).each(function () {
         $(this).off('facets_filter.facets').on('facets_filter.facets', handleFacetsFilter);
+      });
+
+      once('editorial-search-sort', '.editorial-search [data-editorial-search-sort]', context).forEach((select) => {
+        select.addEventListener('change', handleSortChange);
       });
 
       once('editorial-search-popstate', 'body', context).forEach(() => {

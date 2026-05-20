@@ -13,6 +13,7 @@ use Drupal\search_api\IndexInterface;
  */
 function eonext_editorial_search_install(): void {
   eonext_editorial_search_ensure_facet_index_fields();
+  eonext_editorial_search_ensure_sort_index_fields();
 }
 
 /**
@@ -20,6 +21,21 @@ function eonext_editorial_search_install(): void {
  */
 function eonext_editorial_search_update_9001(): string {
   return eonext_editorial_search_ensure_facet_index_fields();
+}
+
+/**
+ * Rebuild theme registry so module editorial search templates are picked up.
+ */
+function eonext_editorial_search_update_9002(): string {
+  \Drupal::service('theme.registry')->reset();
+  return 'Rebuilt theme registry for editorial search templates.';
+}
+
+/**
+ * Add Search API sort fields used by editorial search exposed sorting.
+ */
+function eonext_editorial_search_update_9003(): string {
+  return eonext_editorial_search_ensure_sort_index_fields();
 }
 
 /**
@@ -111,6 +127,70 @@ function eonext_editorial_search_ensure_facet_index_fields(): string {
 
   return sprintf(
     'Added Search API fields (%s) to index content_events. Re-index with: drush search-api:index content_events',
+    implode(', ', $added_fields),
+  );
+}
+
+/**
+ * Adds missing Search API fields required for editorial search sorting.
+ */
+function eonext_editorial_search_ensure_sort_index_fields(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial sort fields were not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $field_definitions = [
+    'sort_date' => [
+      'label' => 'Sort date',
+      'property_path' => 'aggregated_field',
+      'type' => 'date',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:node/created',
+          'entity:eventseries/created',
+        ],
+      ],
+    ],
+    'sort_title' => [
+      'label' => 'Sort title',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:node/title',
+          'entity:eventseries/title',
+        ],
+      ],
+    ],
+  ];
+
+  $added_fields = [];
+  foreach ($field_definitions as $field_id => $field_info) {
+    if ($index->getField($field_id)) {
+      continue;
+    }
+
+    $field = $fields_helper->createField($index, $field_id, $field_info);
+    $index->addField($field);
+    $added_fields[] = $field_id;
+  }
+
+  if ($added_fields === []) {
+    return 'Editorial search sort fields already exist on index content_events.';
+  }
+
+  $index->save();
+
+  return sprintf(
+    'Added Search API sort fields (%s) to index content_events. Re-index with: drush search-api:index content_events',
     implode(', ', $added_fields),
   );
 }
