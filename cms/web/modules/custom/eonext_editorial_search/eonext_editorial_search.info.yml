@@ -1,5 +1,5 @@
 type: module
-name: EONEXT Editorial Search
+name: EO NEXT Editorial Search
 description: Provides a REST API endpoint for querying the editorial search.
 package: EO next
 core_version_requirement: ^10
@@ -8,4 +8,5 @@ dependencies:
   - drupal:media
   - drupal:file
   - drupal:views
+  - facets:facets
   - dpl_search:dpl_search

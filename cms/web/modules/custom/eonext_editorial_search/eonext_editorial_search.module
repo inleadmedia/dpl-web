@@ -8,6 +8,97 @@
 use Drupal\Core\Form\FormStateInterface;
 
 /**
+ * Implements hook_theme().
+ */
+function eonext_editorial_search_theme($existing, $type, $theme, $path) {
+  return [
+    'views_view__editorial_search' => [
+      'base hook' => 'views_view',
+      'path' => $path . '/templates',
+      'template' => 'views-view--editorial-search',
+    ],
+    'facets_item_list__editorial_search_checkbox' => [
+      'base hook' => 'facets_item_list',
+      'path' => $path . '/templates',
+      'template' => 'facets-item-list--editorial-search-checkbox',
+    ],
+    'block__facet_block__editorial_search' => [
+      'base hook' => 'block',
+      'path' => $path . '/templates',
+      'template' => 'block--facet-block--editorial-search',
+    ],
+    'form__views_exposed_form__editorial_search__page' => [
+      'base hook' => 'form',
+      'path' => $path . '/templates',
+      'template' => 'form--views-exposed-form--editorial-search-page',
+    ],
+  ];
+}
+
+/**
+ * Returns the active theme design-system icon path.
+ */
+function eonext_editorial_search_get_base_icon_path(): string {
+  $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
+  return '/' . $theme_path . '/assets/dpl-design-system/icons';
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for views_view.
+ */
+function eonext_editorial_search_theme_suggestions_views_view_alter(array &$suggestions, array $variables): void {
+  if (($variables['view']->id() ?? '') === 'editorial_search') {
+    $suggestions[] = 'views_view__editorial_search';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for facets_item_list.
+ */
+function eonext_editorial_search_theme_suggestions_facets_item_list_alter(array &$suggestions, array $variables): void {
+  $facet = $variables['facet'] ?? NULL;
+  if ($facet && str_starts_with($facet->id(), 'editorial_')) {
+    $suggestions[] = 'facets_item_list__editorial_search_checkbox';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for block.
+ */
+function eonext_editorial_search_theme_suggestions_block_alter(array &$suggestions, array $variables): void {
+  $plugin_id = $variables['plugin_id'] ?? $variables['elements']['#plugin_id'] ?? '';
+  if (str_starts_with((string) $plugin_id, 'facet_block:editorial_')) {
+    $suggestions[] = 'block__facet_block__editorial_search';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for form.
+ */
+function eonext_editorial_search_theme_suggestions_form_alter(array &$suggestions, array $variables): void {
+  $form_id = $variables['element']['#id'] ?? '';
+  if ($form_id === 'views-exposed-form-editorial-search-page') {
+    $suggestions[] = 'form__views_exposed_form__editorial_search__page';
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for facets_item_list.
+ */
+function eonext_editorial_search_preprocess_facets_item_list__editorial_search_checkbox(array &$variables): void {
+  $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views_view.
+ */
+function eonext_editorial_search_preprocess_views_view(array &$variables): void {
+  if (($variables['view']->id() ?? '') === 'editorial_search') {
+    $variables['#attached']['library'][] = 'eonext_editorial_search/editorial-search';
+  }
+}
+
+/**
  * Implements hook_form_FORM_ID_alter().
  */
 function eonext_editorial_search_form_dpl_library_agency_general_settings_alter(&$form, FormStateInterface $form_state, $form_id) {

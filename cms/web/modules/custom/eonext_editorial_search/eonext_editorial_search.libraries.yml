@@ -1,0 +1,13 @@
+editorial-search:
+  css:
+    theme:
+      css/editorial-search.css: {}
+  js:
+    js/editorial-search-facets.js: {}
+    js/editorial-search-facets-ajax.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+    - facets/drupal.facets.checkbox-widget
+    - views/views.ajax

@@ -9,6 +9,7 @@ use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\Url;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\file\FileInterface;
+use Drupal\image\Plugin\Field\FieldType\ImageItem;
 use Drupal\media\MediaInterface;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\views\Views;
@@ -275,8 +276,8 @@ final class EditorialSearchResource extends ResourceBase {
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity to extract the image from.
    *
-   * @return array{url: string, alt: string}|null
-   *   An array with 'url' and 'alt', or NULL if no image is set.
+   * @return array|null
+   *   An array with 'url' and 'alt' keys, or NULL if no image is set.
    */
   private function extractTeaserImage(ContentEntityInterface $entity): ?array {
     $candidate_fields = ['field_teaser_image', 'field_e_resource_list_image'];
@@ -311,9 +312,13 @@ final class EditorialSearchResource extends ResourceBase {
     /** @var \Drupal\Core\File\FileUrlGeneratorInterface $url_generator */
     $url_generator = \Drupal::service('file_url_generator');
 
+    $image_item = $image_field->first();
+
     return [
       'url' => $url_generator->generateAbsoluteString($file->getFileUri()),
-      'alt' => $image_field->first()?->get('alt')->getString() ?? '',
+      'alt' => $image_item instanceof ImageItem
+        ? (string) ($image_item->alt ?? '')
+        : '',
     ];
   }
 
