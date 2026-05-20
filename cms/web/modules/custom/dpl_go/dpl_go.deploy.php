@@ -44,16 +44,12 @@ function dpl_go_deploy_0001_create_next_go_site_configuration(): string {
     'revalidate_secret' => $revalidate_secret,
   ];
 
-  $storage = \Drupal::entityTypeManager()->getStorage('next_site');
-
-  // Load existing entity or create a new one to ensure idempotency.
-  $entity = $storage->load('go') ?? $storage->create($entity_data);
-
-  // Always update all fields so re-runs apply the latest configuration.
-  foreach ($entity_data as $field => $value) {
-    $entity->set($field, $value);
-  }
+  // Create the Go site entity.
+  $entity = \Drupal::entityTypeManager()
+    ->getStorage('next_site')
+    ->create($entity_data);
+  // Save the entity.
   $entity->save();
 
-  return 'The "Go" next_site has been created or updated.';
+  return 'The "Go" next_site has been created.';
 }
