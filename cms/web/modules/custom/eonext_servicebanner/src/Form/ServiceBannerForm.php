@@ -169,7 +169,7 @@ class ServiceBannerForm extends ConfigFormBase {
 
     if (empty($title) && empty($body)) {
       return [
-        '#markup' => '<p><em>' . $this->t('Fill in the title or body above and click "Refresh preview".') . '</em></p>',
+        '#markup' => $this->t('Fill in the title or body above and click "Refresh preview".'),
       ];
     }
 
