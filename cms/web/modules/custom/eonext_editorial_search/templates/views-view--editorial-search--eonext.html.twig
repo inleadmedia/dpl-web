@@ -2,7 +2,7 @@
   set classes = [
   dom_id ? 'js-view-dom-id-' ~ dom_id,
   'content-list-page',
-  'editorial-search',
+  'eonext-editorial-search',
 ]
 %}
 <div{{ attributes.addClass(classes) }}>
@@ -15,19 +15,19 @@
   {{ header }}
 
   {% if exposed %}
-    <div class="editorial-search__search-form">
+    <div class="eonext-editorial-search__search-form">
       {{ exposed }}
     </div>
   {% endif %}
 
   {{ attachment_before }}
 
-  <div class="search editorial-search__layout">
-    <div class="search__results">
-      <div class="search__grid editorial-search__grid">
-        <aside class="search-facets editorial-search__facets">
-          <div class="search-facets__container">
-            <ul class="search-facets__groups">
+  <div class="eonext-search eonext-editorial-search__layout">
+    <div class="eonext-search__results">
+      <div class="eonext-search__grid eonext-editorial-search__grid">
+        <aside class="eonext-search-facets eonext-editorial-search__facets">
+          <div class="eonext-search-facets__container">
+            <ul class="eonext-search-facets__groups">
               {{ drupal_block('facet_block:editorial_content_type') }}
               {{ drupal_block('facet_block:editorial_categories') }}
               {{ drupal_block('facet_block:editorial_tags') }}
@@ -35,15 +35,15 @@
           </div>
         </aside>
 
-        <section class="editorial-search__results">
+        <section class="eonext-editorial-search__results">
           {% if editorial_search_sort_options %}
-            <div class="search__sort-select editorial-search__sort">
-              <label class="search__sort-select__label" for="editorial-search-sort">
+            <div class="eonext-search__sort-select eonext-editorial-search__sort">
+              <label class="eonext-search__sort-select__label" for="editorial-search-sort">
                 {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
               </label>
-              <div class="search__sort-select__select-wrapper">
+              <div class="eonext-search__sort-select__select-wrapper">
                 <select
-                  class="search__sort-select__select"
+                  class="eonext-search__sort-select__select"
                   id="editorial-search-sort"
                   data-editorial-search-sort
                 >
@@ -53,9 +53,9 @@
                     </option>
                   {% endfor %}
                 </select>
-                <div class="search__dropdown__arrows">
+                <div class="eonext-search__dropdown__arrows">
                   <img
-                    class="search__dropdown__arrow"
+                    class="eonext-search__dropdown__arrow"
                     alt=""
                     src="{{ baseIconPath }}/collection/ExpandMore.svg"
                   >

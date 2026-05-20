@@ -17,28 +17,6 @@ function eonext_editorial_search_install(): void {
 }
 
 /**
- * Ensure Search API facet fields exist on the content_events index.
- */
-function eonext_editorial_search_update_9001(): string {
-  return eonext_editorial_search_ensure_facet_index_fields();
-}
-
-/**
- * Rebuild theme registry so module editorial search templates are picked up.
- */
-function eonext_editorial_search_update_9002(): string {
-  \Drupal::service('theme.registry')->reset();
-  return 'Rebuilt theme registry for editorial search templates.';
-}
-
-/**
- * Add Search API sort fields used by editorial search exposed sorting.
- */
-function eonext_editorial_search_update_9003(): string {
-  return eonext_editorial_search_ensure_sort_index_fields();
-}
-
-/**
  * Adds missing Search API fields required by editorial search facets.
  *
  * Facets fail with InvalidQueryTypeException when the index is missing the

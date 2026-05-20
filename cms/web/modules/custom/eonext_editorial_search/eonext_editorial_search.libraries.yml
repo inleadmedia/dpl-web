@@ -1,7 +1,7 @@
 editorial-search:
   css:
     theme:
-      css/editorial-search.css: {}
+      css/eonext_editorial_search.min.css: {}
   js:
     js/editorial-search-facets.js: {}
     js/editorial-search-facets-ajax.js: {}

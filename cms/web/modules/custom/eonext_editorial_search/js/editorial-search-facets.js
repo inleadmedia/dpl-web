@@ -15,7 +15,7 @@
    * Restyle a facets checkbox item to match the design system.
    */
   function restyleFacetCheckbox(item) {
-    if (item.querySelector('.checkbox')) {
+    if (item.querySelector('.eonext-checkbox')) {
       return;
     }
 
@@ -42,23 +42,23 @@
     }
 
     label.classList.remove('form-check-label');
-    label.classList.add('checkbox__label');
+    label.classList.add('eonext-checkbox__label');
     label.innerHTML =
-      '<span class="checkbox__icon">' + CHECKBOX_ICON_SVG + '</span>' +
-      '<span class="checkbox__text">' + labelText + '</span>';
+      '<span class="eonext-checkbox__icon">' + CHECKBOX_ICON_SVG + '</span>' +
+      '<span class="eonext-checkbox__text">' + labelText + '</span>';
 
     input.classList.remove('form-checkbox', 'form-check-input');
-    input.classList.add('checkbox__input');
+    input.classList.add('eonext-checkbox__input');
 
     const checkboxWrapper = document.createElement('div');
-    checkboxWrapper.className = 'checkbox';
+    checkboxWrapper.className = 'eonext-checkbox';
     item.insertBefore(checkboxWrapper, input);
     checkboxWrapper.appendChild(input);
     checkboxWrapper.appendChild(label);
 
     if (count) {
       const countSpan = document.createElement('span');
-      countSpan.className = 'search-facet-group__item-count';
+      countSpan.className = 'eonext-search-facet-group__item-count';
       countSpan.id = input.id + '-count';
       countSpan.textContent = count;
       input.setAttribute('aria-describedby', countSpan.id);
@@ -70,7 +70,7 @@
    * Apply design-system checkbox markup to all items in a facet list.
    */
   function restyleFacetList(facetList) {
-    facetList.querySelectorAll('.search-facet-group__item').forEach(restyleFacetCheckbox);
+    facetList.querySelectorAll('.eonext-search-facet-group__item').forEach(restyleFacetCheckbox);
   }
 
   /**
@@ -79,7 +79,7 @@
   function toggleFacetGroup(button) {
     const contentId = button.getAttribute('aria-controls');
     const content = document.getElementById(contentId);
-    const chevron = button.querySelector('.search-facet-group__chevron');
+    const chevron = button.querySelector('.eonext-search-facet-group__chevron');
     const isExpanded = button.getAttribute('aria-expanded') === 'true';
 
     button.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
@@ -95,17 +95,17 @@
     }
 
     if (chevron) {
-      chevron.classList.toggle('search-facet-group__chevron--expanded', !isExpanded);
+      chevron.classList.toggle('eonext-search-facet-group__chevron--expanded', !isExpanded);
     }
   }
 
   Drupal.behaviors.editorialSearchFacets = {
     attach(context) {
-      once('editorial-search-facet-header', '.editorial-search .search-facet-group__header', context).forEach((button) => {
+      once('editorial-search-facet-header', '.eonext-editorial-search .eonext-search-facet-group__header', context).forEach((button) => {
         button.addEventListener('click', () => toggleFacetGroup(button));
       });
 
-      once('editorial-search-facet-checkboxes', '.editorial-search .search-facet-group__content', context).forEach((facetList) => {
+      once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content', context).forEach((facetList) => {
         // Facets checkbox widget runs in the same attach cycle.
         window.setTimeout(() => restyleFacetList(facetList), 0);
       });

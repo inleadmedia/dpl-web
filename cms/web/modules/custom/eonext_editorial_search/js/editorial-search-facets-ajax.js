@@ -100,7 +100,7 @@
     url.searchParams.set('sort_order', sortOrder);
     url.searchParams.delete('page');
 
-    const $view = $(select).closest('.editorial-search');
+    const $view = $(select).closest('.eonext-editorial-search');
     window.history.pushState({}, document.title, url.toString());
 
     if (!refreshEditorialSearchView($view)) {
@@ -115,7 +115,7 @@
     event.preventDefault();
 
     const $widget = $(event.currentTarget);
-    const $view = $widget.closest('.editorial-search');
+    const $view = $widget.closest('.eonext-editorial-search');
 
     if (!$view.length) {
       window.location = url;
@@ -135,17 +135,17 @@
    */
   Drupal.behaviors.facetsFilterEditorialOverride = {
     attach(context) {
-      $(once('editorial-search-facets-ajax', '.editorial-search .js-facets-widget', context)).each(function () {
+      $(once('editorial-search-facets-ajax', '.eonext-editorial-search .js-facets-widget', context)).each(function () {
         $(this).off('facets_filter.facets').on('facets_filter.facets', handleFacetsFilter);
       });
 
-      once('editorial-search-sort', '.editorial-search [data-editorial-search-sort]', context).forEach((select) => {
+      once('editorial-search-sort', '.eonext-editorial-search [data-editorial-search-sort]', context).forEach((select) => {
         select.addEventListener('change', handleSortChange);
       });
 
       once('editorial-search-popstate', 'body', context).forEach(() => {
         window.addEventListener('popstate', () => {
-          const $view = $('.editorial-search').first();
+          const $view = $('.eonext-editorial-search').first();
           if ($view.length) {
             refreshEditorialSearchView($view);
           }

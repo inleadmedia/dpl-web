@@ -19,19 +19,19 @@
 {% set is_active = attributes.hasClass('facet-active') %}
 {% set is_expanded = facet.id in ['editorial_content_type', 'editorial_categories'] or is_active %}
 
-<li class="search-facet-group">
+<li class="eonext-search-facet-group">
   <button
     type="button"
-    class="search-facet-group__header"
+    class="eonext-search-facet-group__header"
     aria-expanded="{{ is_expanded ? 'true' : 'false' }}"
     aria-controls="{{ facet_group_id }}"
   >
-    <div class="search-facet-group__header-content">
-      <span class="search-facet-group__label">{{ facet.label }}</span>
+    <div class="eonext-search-facet-group__header-content">
+      <span class="eonext-search-facet-group__label">{{ facet.label }}</span>
     </div>
     <img
       alt=""
-      class="search-facet-group__chevron{{ is_expanded ? ' search-facet-group__chevron--expanded' : '' }}"
+      class="eonext-search-facet-group__chevron{{ is_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
       src="{{ baseIconPath }}/collection/ExpandMore.svg"
     >
   </button>
@@ -41,7 +41,7 @@
       <ul
         id="{{ facet_group_id }}"
         {{ attributes.addClass([
-          'search-facet-group__content',
+          'eonext-search-facet-group__content',
           'facets-widget-' ~ facet.widget.type,
           'item-list__' ~ facet.widget.type,
           'facet-checkboxes',
@@ -49,11 +49,11 @@
         {% if not is_expanded %}hidden{% endif %}
       >
         {%- for item in items -%}
-          <li{{ item.attributes.addClass(['search-facet-group__item', 'facet-item']) }}>{{ item.value }}</li>
+          <li{{ item.attributes.addClass(['eonext-search-facet-group__item', 'facet-item']) }}>{{ item.value }}</li>
         {%- endfor -%}
       </ul>
     {%- else -%}
-      <div class="search-facet-group__content">{{ empty }}</div>
+      <div class="eonext-search-facet-group__content">{{ empty }}</div>
     {%- endif -%}
   {% endif %}
 </li>
