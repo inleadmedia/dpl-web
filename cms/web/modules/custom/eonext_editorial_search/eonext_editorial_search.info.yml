@@ -9,4 +9,5 @@ dependencies:
   - drupal:file
   - drupal:views
   - facets:facets
+  - search_api:search_api
   - dpl_search:dpl_search
