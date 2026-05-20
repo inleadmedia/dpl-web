@@ -6,7 +6,6 @@ import heartIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icon
 import watchIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-watch-static.svg";
 import crossIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-cross-medium.svg";
 import expandIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/ExpandMore.svg";
-import { useMemo } from "react";
 import { useText } from "../../core/utils/text";
 
 /* eslint-disable */
@@ -33,7 +32,7 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
   const t = useText();
 
   return (
-    <div {...exampleCMSData}>
+    <div { ...exampleCMSData }>
       <header className="header">
         <div className="header__logo-desktop">
           <a className="header__logo-desktop-link" href="/">
@@ -133,7 +132,7 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
               </span>
             </a>
           </nav>
-          {search || (
+          { search || (
             <div className="header__menu-search">
               <input
                 name="q"
@@ -154,7 +153,8 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
                 alt="expand dropdown icon"
               />
             </div>
-          )}
+          )
+          }
         </div>
         <div className="header__clock">
           <div className="pagefold-parent--medium">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { createPortal } from 'react-dom';
+import { createPortal } from "react-dom";
 
 export type ServiceBanner = {
   title: string;
@@ -9,7 +9,10 @@ export type ServiceBanner = {
 };
 
 const getServiceBannerFromBody = (): ServiceBanner | null => {
-  const title = document.body.getAttribute("data-service-banner-title");
+  const title =
+    document
+      .querySelector("[data-service-banner-title]")
+      ?.getAttribute("data-service-banner-title") || "";
 
   if (!title) {
     return null;
@@ -28,8 +31,7 @@ export default function ServiceBanner() {
   const [headerRef, setHeaderRef] = useState<any>();
 
   useEffect(() => {
-    if (!serviceBannerData)
-      return;
+    if (!serviceBannerData) return;
 
     const header = document.querySelector(".header");
     header?.classList?.add("header__with-banner");
@@ -41,8 +43,7 @@ export default function ServiceBanner() {
     };
   }, []);
 
-  if (!serviceBannerData || !headerRef)
-    return null;
+  if (!serviceBannerData || !headerRef) return null;
 
   return createPortal(
     <div className="header__menu-banner">
@@ -52,23 +53,23 @@ export default function ServiceBanner() {
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: serviceBannerData.title }}
         />
-        {serviceBannerData.body ||
+        { serviceBannerData.body ||
         (serviceBannerData.url && serviceBannerData.urlText) ? (
           <p className="header__menu-banner-body text-body-medium-regular">
-            {serviceBannerData.body}
-            {serviceBannerData.url && serviceBannerData.urlText ? (
+            { serviceBannerData.body }
+            { serviceBannerData.url && serviceBannerData.urlText ? (
               <>
-                {serviceBannerData.body ? " " : null}
+                { serviceBannerData.body ? " " : null }
                 <a
-                  href={serviceBannerData.url}
+                  href={ serviceBannerData.url }
                   className="link-tag color-secondary-gray"
                 >
-                  {serviceBannerData.urlText}
+                  { serviceBannerData.urlText }
                 </a>
               </>
-            ) : null}
+            ) : null }
           </p>
-        ) : null}
+        ) : null }
       </div>
     </div>,
     headerRef
