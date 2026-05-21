@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 yarn install
 yarn build
@@ -11,8 +12,9 @@ cp -r ./src/styles/css ./build/css
 cp -r ./src/styles/fonts ./build/fonts
 find ./src -name "*.js" -exec cp {} ./build/js \;
 
-if [ -n "$VERSION" ]; then
-   echo $VERSION > ./build/version.txt
+if [ -n "${VERSION:-}" ]; then
+  echo "$VERSION" > ./build/version.txt
 fi
 
-zip -r dist.zip build/
+rm -f dist.zip
+(cd build && zip -r ../dist.zip .)
