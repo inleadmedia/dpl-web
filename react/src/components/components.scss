@@ -11,3 +11,6 @@
 @use "./search-bar/header-banner";
 @use "../apps/advanced-search/advanced-search";
 @use "../apps/material/material";
+
+@use "../components/autosuggest/autosuggest";
+@use "../components/autosuggest-editorial/autosuggest-editorial";

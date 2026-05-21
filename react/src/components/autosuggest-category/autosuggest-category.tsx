@@ -34,10 +34,7 @@ const AutosuggestCategory: FC<AutosuggestCategoryProps> = ({
         return (
           <li
             className={clsx(
-              "autosuggest__text-item text-body-medium-regular px-24",
-              {
-                "autosuggest__text-item--highlight": highlightedIndex === index
-              }
+              "autosuggest__text-item text-body-medium-regular px-24"
             )}
             key={`${item.term}-${index}`}
             // TODO: Explicitly define prop types for better clarity
