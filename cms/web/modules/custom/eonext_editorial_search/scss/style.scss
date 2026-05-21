@@ -6,9 +6,11 @@
   }
 
   &__layout.eonext-search {
-    max-width: 1200px;
+    max-width: 1156px;
     margin-left: auto;
     margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   &__grid.eonext-search__grid {
@@ -28,6 +30,7 @@
 
   &__facets.eonext-search-facets {
     display: none;
+    margin-top: 46px;
     margin-bottom: auto;
 
     @media (min-width: 768px) {

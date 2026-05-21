@@ -172,3 +172,25 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
     implode(', ', $added_fields),
   );
 }
+
+/**
+ * Renames the content type facet label shown in the editorial search sidebar.
+ */
+function eonext_editorial_search_update_9001(): string {
+  $facet = \Drupal::entityTypeManager()
+    ->getStorage('facets_facet')
+    ->load('editorial_content_type');
+
+  if (!$facet) {
+    return 'Facet editorial_content_type was not found.';
+  }
+
+  if ($facet->getName() === 'Type') {
+    return 'Facet editorial_content_type label is already Type.';
+  }
+
+  $facet->set('name', 'Type');
+  $facet->save();
+
+  return 'Renamed editorial_content_type facet label to Type.';
+}
