@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
-import StoryHeader from "../../components/search-bar/story-header.dev.inc";
 import serviceUrlArgs, {
   argTypes as serviceUrlArgTypes
 } from "../../core/storybook/serviceUrlArgs";
@@ -13,6 +12,7 @@ import globalTextArgs, {
 import globalConfigArgs, {
   argTypes as globalConfigArgTypes
 } from "../../core/storybook/globalConfigArgs";
+import StoryHeader from "../../components/search-bar/story-header.dev.inc";
 
 const meta: Meta<typeof SearchHeaderEntry> = {
   title: "Apps / Header",

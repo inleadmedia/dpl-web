@@ -1,0 +1,85 @@
+{%
+  set classes = [
+  dom_id ? 'js-view-dom-id-' ~ dom_id,
+  'content-list-page',
+  'eonext-editorial-search',
+]
+%}
+<div{{ attributes.addClass(classes) }}>
+  {% if view.getTitle() %}
+    {{ title_prefix }}
+    <h1 class="content-list-page__heading">{{ view.getTitle() }}</h1>
+    {{ title_suffix }}
+  {% endif %}
+
+  {{ header }}
+
+  {% if exposed %}
+    <div class="eonext-editorial-search__search-form">
+      {{ exposed }}
+    </div>
+  {% endif %}
+
+  {{ attachment_before }}
+
+  <div class="eonext-search eonext-editorial-search__layout">
+    <div class="eonext-search__results">
+      <div class="eonext-search__grid eonext-editorial-search__grid">
+        <aside class="eonext-search-facets eonext-editorial-search__facets">
+          <div class="eonext-search-facets__container">
+            <ul class="eonext-search-facets__groups">
+              {{ drupal_block('facet_block:editorial_content_type') }}
+              {{ drupal_block('facet_block:editorial_categories') }}
+              {{ drupal_block('facet_block:editorial_tags') }}
+            </ul>
+          </div>
+        </aside>
+
+        <section class="eonext-editorial-search__results">
+          {% if editorial_search_sort_options %}
+            <div class="eonext-search__sort-select eonext-editorial-search__sort">
+              <label class="eonext-search__sort-select__label" for="editorial-search-sort">
+                {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
+              </label>
+              <div class="eonext-search__sort-select__select-wrapper">
+                <select
+                  class="eonext-search__sort-select__select"
+                  id="editorial-search-sort"
+                  data-editorial-search-sort
+                >
+                  {% for value, label in editorial_search_sort_options %}
+                    <option value="{{ value }}"{{ value == editorial_search_sort_selected ? ' selected' : '' }}>
+                      {{ label }}
+                    </option>
+                  {% endfor %}
+                </select>
+                <div class="eonext-search__dropdown__arrows">
+                  <img
+                    class="eonext-search__dropdown__arrow"
+                    alt=""
+                    src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                  >
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if rows -%}
+            {{ rows }}
+          {% elseif empty -%}
+            <div class="empty-view">
+              {{ empty }}
+            </div>
+          {% endif %}
+
+          {{ pager }}
+        </section>
+      </div>
+    </div>
+  </div>
+
+  {{ attachment_after }}
+  {{ more }}
+  {{ footer }}
+  {{ feed_icons }}
+</div>

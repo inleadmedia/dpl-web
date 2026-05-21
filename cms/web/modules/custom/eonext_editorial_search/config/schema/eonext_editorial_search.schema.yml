@@ -1,0 +1,7 @@
+eonext_editorial_search.settings:
+  type: config_object
+  label: 'Editorial search settings'
+  mapping:
+    enable_editorial_search:
+      type: boolean
+      label: 'Enable editorial search'

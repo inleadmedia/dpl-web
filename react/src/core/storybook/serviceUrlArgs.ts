@@ -256,6 +256,8 @@ if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true"
 
   document.body.setAttribute("data-show-search-sorting", showSearchSorting);
   document.body.setAttribute("data-search-lazy-types-loading", searchLazyTypesLoading);
+  document.body.setAttribute("data-autosuggest-editorial", "false");
+  document.body.setAttribute("data-editorial-search", "false");
 
   document.body.setAttribute("data-show-search-branch-selection", showSearchBranchSelection);
   document.body.setAttribute("data-branches-config", JSON.stringify(branchesConfig));
@@ -267,4 +269,18 @@ if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true"
   document.body.setAttribute("data-agency-config", JSON.stringify(agencyConfig));
 
   document.body.setAttribute("data-opening-hours-sidebar-expanded", "10, 12, 24");
+
+  document.body.setAttribute(
+    "data-service-banner-title",
+    "Biblioteket er åbent – så grib coronapasset og kom indenfor"
+  );
+  document.body.setAttribute(
+    "data-service-banner-body",
+    "Åbningstider frem til 31. maj: Mandag-fredag: 8-18, weekender: 9-15"
+  );
+  document.body.setAttribute(
+    "data-service-banner-url",
+    "https://dpl-web.ddev.site/admin/config/eonext/service-banner"
+  );
+  document.body.setAttribute("data-service-banner-url-text", "Go to there");
 }

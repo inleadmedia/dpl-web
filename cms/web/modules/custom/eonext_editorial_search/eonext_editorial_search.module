@@ -1,0 +1,280 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for EO Next Editorial Search module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\dpl_search\DplSearchSettings;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\views\ViewExecutable;
+
+/**
+ * Returns the module templates directory path.
+ */
+function eonext_editorial_search_get_templates_path(): string {
+  return \Drupal::service('extension.list.module')->getPath('eonext_editorial_search') . '/templates';
+}
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_editorial_search_theme($existing, $type, $theme, $path) {
+  $templates_path = $path . '/templates';
+
+  return [
+    'views_view__editorial_search__eonext' => [
+      'base hook' => 'views_view',
+      'path' => $templates_path,
+      'template' => 'views-view--editorial-search--eonext',
+    ],
+    'views_view__editorial_search__page__eonext' => [
+      'base hook' => 'views_view',
+      'path' => $templates_path,
+      'template' => 'views-view--editorial-search--eonext',
+    ],
+    'facets_item_list__editorial_search__eonext' => [
+      'base hook' => 'facets_item_list',
+      'path' => $templates_path,
+      'template' => 'facets-item-list--editorial-search--eonext',
+    ],
+    'block__facet_block__editorial_search__eonext' => [
+      'base hook' => 'block',
+      'path' => $templates_path,
+      'template' => 'block--facet-block--editorial-search--eonext',
+    ],
+    'form__views_exposed_form__editorial_search__page__eonext' => [
+      'base hook' => 'form',
+      'path' => $templates_path,
+      'template' => 'form--views-exposed-form--editorial-search-page--eonext',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Forces editorial search templates to render from this module, even when a
+ * theme still provides views-view--editorial-search*.html.twig overrides.
+ */
+function eonext_editorial_search_theme_registry_alter(array &$theme_registry): void {
+  $templates_path = eonext_editorial_search_get_templates_path();
+
+  $overrides = [
+    'views_view__editorial_search' => 'views-view--editorial-search--eonext',
+    'views_view__editorial_search__page' => 'views-view--editorial-search--eonext',
+    'views_view__editorial_search__eonext' => 'views-view--editorial-search--eonext',
+    'views_view__editorial_search__page__eonext' => 'views-view--editorial-search--eonext',
+    'facets_item_list__editorial_search__eonext' => 'facets-item-list--editorial-search--eonext',
+    'block__facet_block__editorial_search__eonext' => 'block--facet-block--editorial-search--eonext',
+    'form__views_exposed_form__editorial_search__page__eonext' => 'form--views-exposed-form--editorial-search-page--eonext',
+  ];
+
+  foreach ($overrides as $hook => $template) {
+    if (!isset($theme_registry[$hook])) {
+      continue;
+    }
+
+    $theme_registry[$hook]['path'] = $templates_path;
+    $theme_registry[$hook]['template'] = $template;
+    $theme_registry[$hook]['type'] = 'module';
+  }
+}
+
+/**
+ * Returns editorial search sort options for the results dropdown.
+ */
+function eonext_editorial_search_get_sort_options(): array {
+  return [
+    'relevance|DESC' => t('Relevance', [], ['context' => 'eonext_editorial_search']),
+    'sort_date|DESC' => t('Date', [], ['context' => 'eonext_editorial_search']),
+    'sort_title|ASC' => t('Title', [], ['context' => 'eonext_editorial_search']),
+  ];
+}
+
+/**
+ * Resolves the active editorial search sort from the current request.
+ */
+function eonext_editorial_search_get_selected_sort(?string $search_query = NULL): array {
+  $request = \Drupal::request();
+  $sort_by = $request->query->get('sort_by');
+  $sort_order = $request->query->get('sort_order');
+
+  if (is_string($sort_by) && $sort_by !== '') {
+    return [
+      'sort_by' => $sort_by,
+      'sort_order' => is_string($sort_order) && $sort_order !== '' ? strtoupper($sort_order) : 'DESC',
+    ];
+  }
+
+  if ($search_query === NULL) {
+    $search_query = $request->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, '');
+  }
+
+  if (is_string($search_query) && $search_query !== '') {
+    return [
+      'sort_by' => 'relevance',
+      'sort_order' => 'DESC',
+    ];
+  }
+
+  return [
+    'sort_by' => 'sort_date',
+    'sort_order' => 'DESC',
+  ];
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query): void {
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID || $view->current_display !== 'page') {
+    return;
+  }
+
+  if (!$query instanceof SearchApiQuery) {
+    return;
+  }
+
+  $search_api_query = $query->getSearchApiQuery();
+  if ($search_api_query === NULL) {
+    return;
+  }
+
+  $input = $view->getExposedInput();
+  $search_query = $input[DplSearchSettings::EDITORIAL_QUERY_KEY] ?? '';
+  $selected_sort = eonext_editorial_search_get_selected_sort(is_string($search_query) ? $search_query : '');
+
+  $sorts = &$search_api_query->getSorts();
+  $sorts = [];
+
+  $sort_field = $selected_sort['sort_by'] === 'relevance'
+    ? 'search_api_relevance'
+    : $selected_sort['sort_by'];
+
+  $search_api_query->sort($sort_field, $selected_sort['sort_order']);
+}
+
+/**
+ * Returns the active theme design-system icon path.
+ */
+function eonext_editorial_search_get_base_icon_path(): string {
+  $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
+  return '/' . $theme_path . '/assets/dpl-design-system/icons';
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for views_view.
+ */
+function eonext_editorial_search_theme_suggestions_views_view_alter(array &$suggestions, array $variables): void {
+  if (($variables['view']->id() ?? '') === 'editorial_search') {
+    // Module-only suggestions so they win over any theme template overrides.
+    $suggestions[] = 'views_view__editorial_search__page__eonext';
+    $suggestions[] = 'views_view__editorial_search__eonext';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for facets_item_list.
+ */
+function eonext_editorial_search_theme_suggestions_facets_item_list_alter(array &$suggestions, array $variables): void {
+  $facet = $variables['facet'] ?? NULL;
+  if ($facet && str_starts_with($facet->id(), 'editorial_')) {
+    $suggestions[] = 'facets_item_list__editorial_search__eonext';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for block.
+ */
+function eonext_editorial_search_theme_suggestions_block_alter(array &$suggestions, array $variables): void {
+  $plugin_id = $variables['plugin_id'] ?? $variables['elements']['#plugin_id'] ?? '';
+  if (str_starts_with((string) $plugin_id, 'facet_block:editorial_')) {
+    $suggestions[] = 'block__facet_block__editorial_search__eonext';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for form.
+ */
+function eonext_editorial_search_theme_suggestions_form_alter(array &$suggestions, array $variables): void {
+  $form_id = $variables['element']['#id'] ?? '';
+  if ($form_id === 'views-exposed-form-editorial-search-page') {
+    $suggestions[] = 'form__views_exposed_form__editorial_search__page__eonext';
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for facets_item_list.
+ */
+function eonext_editorial_search_preprocess_facets_item_list__editorial_search__eonext(array &$variables): void {
+  $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views_view.
+ */
+function eonext_editorial_search_preprocess_views_view(array &$variables): void {
+  $view = $variables['view'] ?? NULL;
+  if (!($view instanceof ViewExecutable) || $view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID) {
+    return;
+  }
+
+  $variables['#attached']['library'][] = 'eonext_editorial_search/editorial-search';
+
+  if ($view->current_display !== 'page') {
+    return;
+  }
+
+  $search_query = \Drupal::request()->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, '');
+  $selected_sort = eonext_editorial_search_get_selected_sort(is_string($search_query) ? $search_query : '');
+  $variables['editorial_search_sort_options'] = eonext_editorial_search_get_sort_options();
+  $variables['editorial_search_sort_selected'] = $selected_sort['sort_by'] . '|' . $selected_sort['sort_order'];
+  $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function eonext_editorial_search_form_dpl_library_agency_general_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  $config = \Drupal::config('eonext_editorial_search.settings');
+
+  $form['editorial_search']['enable_editorial_search'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Enable Editorial Search'),
+    '#default_value' => $config->get('enable_editorial_search') ?? FALSE,
+    '#description' => t('If enabled, the editorial search will be available.'),
+  ];
+
+  // Add custom submit handler.
+  $form['#submit'][] = 'eonext_editorial_search_general_settings_form_submit';
+}
+
+/**
+ * Submit handler for the general settings form.
+ */
+function eonext_editorial_search_general_settings_form_submit(array &$form, FormStateInterface $form_state): void {
+
+  $enable_editorial_search = $form_state->getValue('enable_editorial_search');
+
+  \Drupal::configFactory()
+    ->getEditable('eonext_editorial_search.settings')
+    ->set('enable_editorial_search', (bool) $enable_editorial_search)
+    ->save();
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ *
+ * @see dpl_react_preprocess_dpl_react_app()
+ */
+function eonext_editorial_search_preprocess_dpl_react_app(array &$variables): void {
+
+  $enabled = (bool) \Drupal::config('eonext_editorial_search.settings')
+    ->get('enable_editorial_search');
+
+  $variables['attributes']['data-editorial-search'] = json_encode($enabled);
+  $variables['#cache']['tags'][] = 'config:eonext_editorial_search.settings';
+}

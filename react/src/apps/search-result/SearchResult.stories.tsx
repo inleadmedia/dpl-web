@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import SearchResultEntry from "./SearchResult.entry";
 import serviceUrlArgs, {
   argTypes as serviceUrlArgTypes
 } from "../../core/storybook/serviceUrlArgs";
@@ -15,6 +14,7 @@ import mappArgs, {
 import zeroHitsSearchUrlArgs, {
   argTypes as zeroHitsSearchUrlArgTypes
 } from "../../core/storybook/zeroHitsSearchUrlArgs";
+import SearchResultEntry from "./SearchResult.entry";
 
 const meta: Meta<typeof SearchResultEntry> = {
   title: "Apps / Search Result",

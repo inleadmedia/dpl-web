@@ -55,11 +55,11 @@
         {
             "type": "package",
             "package": {
-                "name": "danskernesdigitalebibliotek/dpl-react",
-                "version": "0.0.0",
+                "name": "inleadmedia/dpl-react",
+                "version": "0.0.1-dev",
                 "type": "drupal-library",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-react.zip",
+                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-react.zip",
                     "type": "zip"
                 },
                 "require": {
@@ -70,24 +70,31 @@
         {
             "type": "package",
             "package": {
-                "name": "danskernesdigitalebibliotek/dpl-design-system",
+                "name": "inleadmedia/dpl-design-system",
                 "type": "drupal-library",
-                "version": "0.0.0",
+                "version": "0.0.1-dev",
                 "dist": {
-                    "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip",
+                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-design-system.zip",
                     "type": "zip"
                 }
             }
         },
         {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-react",
-                "type": "drupal-library",
-                "version": "dev-EONEXT-214-no-oenext-197.2",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-EONEXT-197/dist-eonext-197.zip",
-                    "type": "zip"
+            "type": "path",
+            "url": "packages/fbs-client",
+            "options": {
+                "versions": {
+                    "danskernesdigitalebibliotek/fbs-client": "dev-main"
+                }
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/dpl-react-local/dist",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "inleadmedia/dpl-react": "dev-local"
                 }
             }
         },
@@ -130,8 +137,6 @@
         "composer/installers": "1.12.0",
         "cweagans/composer-patches": "1.7.3",
         "danskernesdigitalebibliotek/cms-api": "*",
-        "danskernesdigitalebibliotek/dpl-design-system": "0.0.0",
-        "danskernesdigitalebibliotek/dpl-react": "0.0.0",
         "danskernesdigitalebibliotek/fbs-client": "*",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0.0",
         "deoliveiralucas/array-keys-case-transform": "^1.1",
@@ -239,8 +244,8 @@
         "drupal/webform": "^6.2",
         "drupal/webform_mailerlite": "^1.0",
         "drush/drush": "^13",
-        "inleadmedia/dpl-design-system": "2026.10.0",
-        "inleadmedia/dpl-react": "dev-EONEXT-214-no-oenext-197.2",
+        "inleadmedia/dpl-design-system": "0.0.1-dev",
+        "inleadmedia/dpl-react": "0.0.0-dev",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/select2": "^4.0",
@@ -460,6 +465,9 @@
             },
             "drupal/theme_permission": {
                 "3105637: Edit, install and uninstall permission": "https://www.drupal.org/files/issues/2024-02-01/theme-permission-edit-install-uninstall-3105637-7.patch"
+            },
+            "sparkpost/sparkpost": {
+                "212: Compatibility with psr/http-message 2.0": "patches/sparkpost-psr-http-message-v2.patch"
             }
         }
     }

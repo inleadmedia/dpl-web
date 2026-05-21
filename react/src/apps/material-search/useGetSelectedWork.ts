@@ -44,6 +44,7 @@ const useGetSelectedWork = ({
   const queryFn = fetcher<GetMaterialQuery, GetMaterialQueryVariables>(
     GetMaterialDocument,
     variables,
+    undefined,
     useGoVipProfile ? GO_VIP_PROFILE_URL : undefined
   );
 

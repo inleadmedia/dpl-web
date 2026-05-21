@@ -1,0 +1,59 @@
+{# Cache logic that we duplicate from the parent template
+   cms/web/modules/contrib/facets/templates/facets-item-list.html.twig #}
+{% if cache_hash %}
+  <!-- facets cacheable metadata
+    hash: {{ cache_hash }}
+  {% if cache_contexts %}
+    contexts: {{ cache_contexts }}
+  {%- endif %}
+  {% if cache_tags %}
+    tags: {{ cache_tags }}
+  {%- endif %}
+  {% if cache_max_age %}
+    max age: {{ cache_max_age }}
+  {%- endif %}
+  -->
+{%- endif %}
+
+{% set facet_group_id = 'filter-group-content-' ~ facet.id|upper %}
+{% set is_active = attributes.hasClass('facet-active') %}
+{% set is_expanded = facet.id in ['editorial_content_type', 'editorial_categories'] or is_active %}
+
+<li class="eonext-search-facet-group">
+  <button
+    type="button"
+    class="eonext-search-facet-group__header"
+    aria-expanded="{{ is_expanded ? 'true' : 'false' }}"
+    aria-controls="{{ facet_group_id }}"
+  >
+    <div class="eonext-search-facet-group__header-content">
+      <span class="eonext-search-facet-group__label">{{ facet.label }}</span>
+    </div>
+    <img
+      alt=""
+      class="eonext-search-facet-group__chevron{{ is_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
+      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+    >
+  </button>
+
+  {% if items or empty %}
+    {%- if items -%}
+      <ul
+        id="{{ facet_group_id }}"
+        {{ attributes.addClass([
+          'eonext-search-facet-group__content',
+          'facets-widget-' ~ facet.widget.type,
+          'item-list__' ~ facet.widget.type,
+          'facet-checkboxes',
+        ]) }}
+        {% if not is_expanded %}hidden{% endif %}
+      >
+        {%- for item in items -%}
+          <li{{ item.attributes.addClass(['eonext-search-facet-group__item', 'facet-item']) }}>{{ item.value }}</li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <div class="eonext-search-facet-group__content">{{ empty }}</div>
+    {%- endif -%}
+  {% endif %}
+</li>

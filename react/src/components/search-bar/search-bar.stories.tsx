@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
+import "../../core/storybook/serviceUrlArgs";
 import SearchBar, { SearchBarProps } from "./search-bar";
 import StorySearchBar from "./search-bar.dev.inc";
 import globalTextArgs, {
