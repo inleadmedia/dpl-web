@@ -3,11 +3,13 @@ import { getServiceBaseUrl, serviceUrlKeys } from "../../core/utils/reduxMiddlew
 import { getServiceUrlWithParams } from "../../core/fetchers/helpers";
 import { formatCustomDateString } from "../../core/utils/helpers/date";
 import { useText } from "../../core/utils/text";
+import { omitBy } from "lodash";
 
 interface AutosuggestEditorialProps {
   query?: string;
   limit?: number;
   template?: string;
+  materialId?: string;
   onFound?(searchResult: EditorialSearchResult): void;
 };
 
@@ -26,7 +28,8 @@ interface EditorialSuggestion {
   image: {
     url: string;
     alt: string;
-  }
+  };
+  categories?: string[];
 };
 
 // See the same option at the `apps/search-header/search-header.tsx` file;
@@ -61,22 +64,54 @@ const AutosuggestEditorialSuggestion: React.FC<EditorialSuggestion> = ({ url, ti
   </li>;
 }
 
-const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, limit = 7, template = "suggestion", onFound }) => {
+const AutoSuggestMaterial: React.FC<EditorialSuggestion> = ({ title, url, created_at, image, categories }) => {
+  return (
+    <li className="autosuggest-editorial__material">
+      <a className="autosuggest-editorial__material-link" href={url}>
+        <div className="autosuggest-editorial__material-wrapper">
+          <div className="autosuggest-editorial__materia-image-wrapper">
+            <img src={image.url} alt={image.alt} />
+          </div>
+
+          <div className="autosuggest-editorial__material-text">
+            {categories && categories.length > 0 ? (
+              <div className="autosuggest-editorial__categories">
+                {categories.map((category: string) => {
+                  return <span key={category}>{category}</span>;
+                })}
+              </div>
+            ) : null}
+            <h2 className="autosuggest-editorial__material-title">{title}</h2>
+            <p className="autosuggest-editorial__material-date">
+              {formatCustomDateString(created_at)}
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+  );
+};
+
+const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, materialId, limit = 7, template = "suggestion", onFound }) => {
   const lastQuery = useRef("");
   const [editorialSuggestions, setEditorialSuggestions] = useState([]);
 
   useEffect(() => {
-    if (!query || query.length < minimalAutosuggestCharacters || lastQuery.current === query)
+    if (!materialId && (!query || query.length < minimalAutosuggestCharacters || lastQuery.current === query))
       return;
 
-    lastQuery.current = query;
+    lastQuery.current = query || materialId;
     const serviceUrl = getServiceUrlWithParams({
       baseUrl: getServiceBaseUrl(serviceUrlKeys.dplCms),
       url: "/api/v1/editorial-search",
-      params: {
-        page_size: limit || 7,
-        q: query
-      }
+      params: omitBy(
+        {
+          page_size: limit || 7,
+          q: query,
+          material: materialId
+        },
+        (value) => value == null || value === ""
+      )
     });
 
     (async function() {
@@ -85,7 +120,7 @@ const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, limi
         const editorialSuggestions = await response.json();
 
         /* Omit response for expired query */
-        if (lastQuery.current !== query)
+        if (lastQuery.current !== query && lastQuery.current !== materialId)
           return;
 
         if (onFound)
@@ -106,6 +141,9 @@ const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, limi
       editorialSuggestions.map((editorialSuggestion: EditorialSuggestion) => {
         if (template === "search-results")
           return <AutosuggestEditorialSearchResult key={ editorialSuggestion.uuid } { ...editorialSuggestion } />;
+
+        if (template === "material-results")
+          return <AutoSuggestMaterial key={ editorialSuggestion.uuid } { ...editorialSuggestion }/>;
 
         return <AutosuggestEditorialSuggestion key={ editorialSuggestion.uuid } { ...editorialSuggestion } />;
       })

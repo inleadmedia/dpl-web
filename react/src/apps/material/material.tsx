@@ -59,6 +59,7 @@ import useAvailabilityData from "../../components/availability-label/useAvailabi
 import { AccessTypeCodeEnum } from "../../core/dbc-gateway/generated/graphql";
 import { useScrollToLocation } from "../../core/utils/UseScrollToLocation";
 import EditionSwitchModal from "../../components/reservation/EditionSwitchModal";
+import AutosuggestEditorial from "../../components/autosuggest-editorial/autosuggest-editorial";
 
 export interface MaterialProps {
   wid: WorkId;
@@ -689,6 +690,20 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
               <MaterialReviews pids={hasReview.map((review) => review.pid)} />
             </MaterialDisclosure>
           )}
+
+          <MaterialDisclosure
+            dataCy="material-details-disclosure"
+            title={t("relatedContent")}
+            icon={Receipt}
+            open={disclosureOpenStates.details}
+          >
+            <div className="autosuggest__editorial-suggestions">
+              <AutosuggestEditorial
+                materialId={wid}
+                template="material-results"
+              />
+            </div>
+          </MaterialDisclosure>
         </div>
       </section>
       {work && (
