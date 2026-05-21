@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "73bcb306bf4170f635bd9142967b7761",
+    "content-hash": "a256aaf073810585048970317a267ad3",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -1110,27 +1110,6 @@
             "transport-options": {
                 "relative": true
             }
-        },
-        {
-            "name": "danskernesdigitalebibliotek/dpl-design-system",
-            "version": "0.0.0",
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip"
-            },
-            "type": "drupal-library"
-        },
-        {
-            "name": "danskernesdigitalebibliotek/dpl-react",
-            "version": "0.0.0",
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-react.zip"
-            },
-            "require": {
-                "composer/installers": "^1.2.0"
-            },
-            "type": "drupal-library"
         },
         {
             "name": "danskernesdigitalebibliotek/fbs-client",
