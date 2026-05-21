@@ -64,13 +64,22 @@ final class EditorialSearchResource extends ResourceBase {
     $material_editorials = [];
     $editorial_nids = [];
 
+    $page = max(0, (int) $request->query->get('page', 0));
+    $page_size = min(
+      self::MAX_PAGE_SIZE,
+      max(
+        1,
+        (int) $request->query->get('page_size', self::DEFAULT_PAGE_SIZE)
+      )
+    );
+
     if (!empty($material)) {
       $editorial_nids = \Drupal::entityTypeManager()
         ->getStorage('node')
         ->getQuery()
         ->accessCheck(TRUE)
         ->condition('field_material', $material)
-        ->range(0, self::DEFAULT_PAGE_SIZE)
+        ->range(0, $page_size)
         ->execute();
 
       $material_editorials = \Drupal::entityTypeManager()
@@ -85,7 +94,14 @@ final class EditorialSearchResource extends ResourceBase {
         $results[] = $this->mapEntity($editorial);
       }
 
-      $response = $this->createJsonResponse($results);
+      $data = [
+        'total' => count($results),
+        'page' => 1,
+        'page_size' => $page_size,
+        'results' => $results,
+      ];
+
+      $response = $this->createJsonResponse($data);
       $response->addCacheableDependency(
         $this->buildCacheMetadata($material_editorials)
       );
@@ -96,16 +112,6 @@ final class EditorialSearchResource extends ResourceBase {
     if (empty($search) || !is_string($search)) {
       throw new HttpException(400, 'Missing required query parameter "q".');
     }
-
-    $page = max(0, (int) $request->query->get('page', 0));
-
-    $page_size = min(
-      self::MAX_PAGE_SIZE,
-      max(
-        1,
-        (int) $request->query->get('page_size', self::DEFAULT_PAGE_SIZE)
-      )
-    );
 
     $view = Views::getView(DplSearchSettings::EDITORIAL_VIEW_ID);
 
