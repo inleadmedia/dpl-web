@@ -133,27 +133,27 @@ const StoryHeader: React.FC<StoryHeaderProps> = ({ search, userProfile }) => {
             </a>
           </nav>
           { search || (
-            <div className="header__menu-search">
-              <input
-                name="q"
-                className="header__menu-search-input text-body-medium-regular"
-                type="text"
-                autoComplete="off"
-                placeholder="Cannot search in this story"
-              />
-              <input
-                type="image"
-                src={searchIcon}
-                className="header__menu-search-icon"
-                alt="search icon"
-              />
-              <img
-                className="header__menu-dropdown-icon"
-                src={expandIcon}
-                alt="expand dropdown icon"
-              />
-            </div>
-          )
+              <div className="header__menu-search">
+                <input
+                  name="q"
+                  className="header__menu-search-input text-body-medium-regular"
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Cannot search in this story"
+                />
+                <input
+                  type="image"
+                  src={searchIcon}
+                  className="header__menu-search-icon"
+                  alt="search icon"
+                />
+                <img
+                  className="header__menu-dropdown-icon"
+                  src={expandIcon}
+                  alt="expand dropdown icon"
+                />
+              </div>
+            )
           }
         </div>
         <div className="header__clock">
