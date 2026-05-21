@@ -1,0 +1,14 @@
+.autosuggest {
+  &__main-suggestions {
+    width: 100%;
+  }
+
+  &--with-editorial-suggestions &__main-suggestions {
+    display: flex;
+    flex-direction: row;
+
+    & > * {
+      width: 50%;
+    }
+  }
+}

@@ -8,5 +8,9 @@
 @use "./modal-styles-override";
 @use "../apps/menu/translations/header-styles-extended";
 @use "./search-bar/search-bar";
+@use "./search-bar/header-banner";
 @use "../apps/advanced-search/advanced-search";
 @use "../apps/material/material";
+
+@use "../components/autosuggest/autosuggest";
+@use "../components/autosuggest-editorial/autosuggest-editorial";

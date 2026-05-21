@@ -33,6 +33,7 @@ import { statistics } from "../../core/statistics/statistics";
 import HeaderDropdown from "../../components/header-dropdown/HeaderDropdown";
 import useFilterHandler from "../search-result/useFilterHandler";
 import { cleanCreatorName } from "../../core/utils/helpers/material";
+import ServiceBanner from "../../components/service-banner/service-banner";
 
 const SearchHeader: React.FC = () => {
   const t = useText();
@@ -370,7 +371,7 @@ const SearchHeader: React.FC = () => {
     }
   }, [q, advancedSearchUrl, searchUrl, searchBranch]);
 
-  return (
+  return <>
     <div className="header__menu-second">
       <div className="header__menu-search">
         <SearchBar
@@ -391,6 +392,7 @@ const SearchHeader: React.FC = () => {
           onBranchChange={ setSearchBranch }
         />
         <Autosuggest
+          query={q}
           textData={textData}
           materialData={materialData}
           categoryData={categoryData}
@@ -411,7 +413,8 @@ const SearchHeader: React.FC = () => {
         )}
       </div>
     </div>
-  );
+    <ServiceBanner />
+  </>;
 };
 
 export default SearchHeader;

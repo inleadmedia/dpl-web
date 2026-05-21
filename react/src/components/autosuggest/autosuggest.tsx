@@ -5,9 +5,11 @@ import { Suggestion, Suggestions } from "../../core/utils/types/autosuggest";
 import AutosuggestCategory from "../autosuggest-category/autosuggest-category";
 import AutosuggestMaterial from "../autosuggest-material/autosuggest-material";
 import { AutosuggestText } from "../autosuggest-text/autosuggest-text";
+import AutosuggestEditorial from "../autosuggest-editorial/autosuggest-editorial";
 import { createPortal } from "react-dom";
 
 export interface AutosuggestProps {
+  query?: string;
   textData: SuggestionsFromQueryStringQuery["localSuggest"]["result"];
   materialData: Suggestions;
   getMenuProps: UseComboboxPropGetters<unknown>["getMenuProps"];
@@ -20,7 +22,9 @@ export interface AutosuggestProps {
   dataCy?: string;
 }
 
+const isEditorialSuggestionsEnabled = document.querySelector("[data-autosuggest-editorial]")?.getAttribute("data-autosuggest-editorial") === "true";
 export const Autosuggest: React.FC<AutosuggestProps> = ({
+  query,
   textData,
   materialData,
   getMenuProps,
@@ -49,18 +53,29 @@ export const Autosuggest: React.FC<AutosuggestProps> = ({
 
       {/* The downshift combobox works this way by design */}
       <ul
-        className={`autosuggest ${isOpen ? "autosuggest--open" : ""}`}
+        className={`autosuggest ${isOpen ? "autosuggest--open" : ""} ${ isEditorialSuggestionsEnabled ? "autosuggest--with-editorial-suggestions" : "" }`}
         // TODO: Explicitly define prop types for better clarity
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...getMenuProps()}
         style={!isOpen ? { display: "none" } : {}}
         data-cy={dataCy}
       >
-        <AutosuggestText
-          textData={textData}
-          highlightedIndex={highlightedIndex}
-          getItemProps={getItemProps}
-        />
+        <div className="autosuggest__main-suggestions">
+          <div className="autosuggest__text-suggestions">
+            <AutosuggestText
+              textData={textData}
+              highlightedIndex={highlightedIndex}
+              getItemProps={getItemProps}
+            />
+          </div>
+          {
+            isEditorialSuggestionsEnabled
+              ? <div className="autosuggest__editorial-suggestions">
+                <AutosuggestEditorial query={ query } />
+              </div>
+              : null
+          }
+        </div>
         {materialData.length > 0 && (
           <AutosuggestMaterial
             materialData={materialData}
