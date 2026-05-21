@@ -56,10 +56,10 @@
             "type": "package",
             "package": {
                 "name": "inleadmedia/dpl-react",
-                "version": "0.0.1-dev",
+                "version": "0.0.2-dev",
                 "type": "drupal-library",
                 "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-react.zip",
+                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-react.zip",
                     "type": "zip"
                 },
                 "require": {
@@ -72,9 +72,9 @@
             "package": {
                 "name": "inleadmedia/dpl-design-system",
                 "type": "drupal-library",
-                "version": "0.0.1-dev",
+                "version": "0.0.2-dev",
                 "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-design-system.zip",
+                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-design-system.zip",
                     "type": "zip"
                 }
             }
@@ -244,8 +244,8 @@
         "drupal/webform": "^6.2",
         "drupal/webform_mailerlite": "^1.0",
         "drush/drush": "^13",
-        "inleadmedia/dpl-design-system": "0.0.1-dev",
-        "inleadmedia/dpl-react": "0.0.0-dev",
+        "inleadmedia/dpl-design-system": "0.0.2-dev",
+        "inleadmedia/dpl-react": "0.0.2-dev",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/select2": "^4.0",
@@ -315,7 +315,6 @@
         ],
         "installer-paths": {
             "web/themes/custom/novel/assets/{$name}": [
-                "danskernesdigitalebibliotek/dpl-design-system",
                 "inleadmedia/dpl-design-system"
             ],
             "web/core": [

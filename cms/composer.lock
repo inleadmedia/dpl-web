@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a256aaf073810585048970317a267ad3",
+    "content-hash": "8bbeb0e739dc4ed67d3b7b3cc3a91e36",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10507,19 +10507,19 @@
         },
         {
             "name": "inleadmedia/dpl-design-system",
-            "version": "0.0.1-dev",
+            "version": "0.0.2-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-design-system.zip"
+                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-design-system.zip"
             },
             "type": "drupal-library"
         },
         {
             "name": "inleadmedia/dpl-react",
-            "version": "0.0.0-dev",
+            "version": "0.0.2-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-development/dist-development.zip"
+                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-react.zip"
             },
             "require": {
                 "composer/installers": "^1.2.0"
