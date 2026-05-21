@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f460aae53bd6031ad2070c9e84473482",
+    "content-hash": "73bcb306bf4170f635bd9142967b7761",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10528,19 +10528,22 @@
         },
         {
             "name": "inleadmedia/dpl-design-system",
-            "version": "2026.10.0",
+            "version": "0.0.1-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-design-system/releases/download/2026.10.0%2Binlead.19.03.2026/dist-2026-10-0-inlead-19-03-2026-ae12a1a90834afac95a08ad67e888a08513d7e52.zip"
+                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242/dist-design-system.zip"
             },
             "type": "drupal-library"
         },
         {
             "name": "inleadmedia/dpl-react",
-            "version": "dev-EONEXT-214-no-oenext-197.2",
+            "version": "0.0.0-dev",
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-EONEXT-197/dist-eonext-197.zip"
+                "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-development/dist-development.zip"
+            },
+            "require": {
+                "composer/installers": "^1.2.0"
             },
             "type": "drupal-library"
         },
@@ -22878,6 +22881,7 @@
         "drupal/potion": 20,
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
+        "inleadmedia/dpl-design-system": 20,
         "inleadmedia/dpl-react": 20
     },
     "prefer-stable": true,
