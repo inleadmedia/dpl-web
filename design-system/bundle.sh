@@ -16,7 +16,17 @@ if [ -n "${VERSION:-}" ]; then
   echo "$VERSION" > ./build/version.txt
 fi
 
-cp composer.json build/composer.json
+if [ -f composer.json ]; then
+  cp composer.json build/composer.json
+else
+  # Fallback when composer.json is not in the repo checkout (prefer committing it).
+  cat > build/composer.json <<'EOF'
+{
+  "name": "inleadmedia/dpl-design-system",
+  "type": "drupal-library"
+}
+EOF
+fi
 
 # dist.zip is for GitHub releases only; Composer path install uses build/ directly.
 if command -v zip >/dev/null 2>&1; then
