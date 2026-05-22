@@ -48,7 +48,6 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
   });
   const cleanBranches = cleanBranchesId(branches);
 
-  const [foundEditorials, setFoundEditorials] = useState(0);
   const { openDialogWithContent, closeDialog, dialogRef } = useDialog();
 
   // Facets state from URL via nuqs
@@ -206,17 +205,6 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
         }
       />
 
-      {
-        foundEditorials
-          ? <p className="editorial-search-preview__text text-small-caption">
-            {t("Skift til søgning på artikler, arrangementer, hjælpesider og anden formidling fra Københavns Biblioteker")} &nbsp;
-            <a href={"/search/web?search=" + q} className="editorial-search-preview__query">
-              { q } ({ foundEditorials })
-            </a>
-          </p>
-          : null
-      }
-
       <div className="search__results">
         <div className="search__grid">
           <SearchResultFacets facets={facets} />
@@ -224,7 +212,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
           <section>
             {
               isEditorialSearchEnabled
-                ? <AutosuggestEditorial query={q} limit={4} template={"search-results"} onFound={ (result) => setFoundEditorials(result.total) } />
+                ? <AutosuggestEditorial query={q} limit={4} template={"search-results"} />
                 : null
             }
 
