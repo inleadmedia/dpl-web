@@ -64,7 +64,7 @@ export default function ServiceBanner() {
                   href={ serviceBannerData.url }
                   className="link-tag color-secondary-gray"
                 >
-                Body:  { serviceBannerData.urlText }
+                  { serviceBannerData.urlText }
                 </a>
               </>
             ) : null }
