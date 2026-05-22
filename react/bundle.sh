@@ -24,4 +24,14 @@ if [ -n "${VERSION:-}" ]; then
   echo "$VERSION" > ./dist/version.txt
 fi
 
-zip -r dist.zip dist/
+cp composer.json dist/composer.json
+
+# dist.zip is for GitHub releases only; Composer path install uses dist/ directly.
+if command -v zip >/dev/null 2>&1; then
+  zip -r dist.zip dist/
+else
+  echo "zip not found; skipping dist.zip (not required for drupal:update)" >&2
+fi
+
+# Used by cms/Taskfile.yaml to skip rebuilds when sources are unchanged.
+touch "$SCRIPT_DIR/dist/.bundle-stamp"
