@@ -3,6 +3,10 @@
     text-decoration: none;
   }
 
+  &__item-link-type {
+    text-transform: capitalize;
+  }
+
   &--search-results {
     display: flex;
     flex-direction: row;
