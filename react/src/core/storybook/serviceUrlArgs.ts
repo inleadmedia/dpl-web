@@ -127,6 +127,8 @@ export default envOptions;
 
 if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true") {
   const extendedCovers = "cover.detail";
+  const extendedFields = {};
+  /*
   const extendedFields = {
     shelfmarkOverride: {
       data: "652.m[0]"
@@ -215,6 +217,7 @@ if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true"
       }
     }
   };
+  */
 
   const complexSearch = {
     terms: [{ label: "Marc 088a", term: "localclassification" }]
