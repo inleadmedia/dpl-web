@@ -36,6 +36,24 @@ final class EditorialSearchResource extends ResourceBase {
   const MAX_PAGE_SIZE = 100;
 
   /**
+   * Query parameter used by Drupal facets (query_string processor).
+   */
+  private const FACET_FILTER_KEY = 'f';
+
+  /**
+   * Request attribute for entity-type filters (node, eventseries).
+   */
+  private const ENTITY_TYPE_FILTER_ATTRIBUTE = 'editorial_search_entity_types';
+
+  /**
+   * Values for "type" that filter by Drupal entity type, not content_type facet.
+   */
+  private const ENTITY_TYPE_FILTER_VALUES = [
+    'node',
+    'eventseries',
+  ];
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
@@ -56,6 +74,8 @@ final class EditorialSearchResource extends ResourceBase {
    *   material  - Work ID to find related editorial content.
    *   page      - Zero-based page number (default: 0).
    *   page_size - Items per page (default: 10, max: 100).
+   *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
+   *   entity_type - Entity filter (node, eventseries).
    */
   public function get(Request $request): Response {
     $search = $request->query->get('q');
@@ -123,9 +143,12 @@ final class EditorialSearchResource extends ResourceBase {
     $view->setItemsPerPage($page_size);
     $view->setCurrentPage($page);
     $view->setExposedInput([DplSearchSettings::EDITORIAL_QUERY_KEY => $search]);
+    $this->applyFacetFiltersToRequest($request);
     $view->execute();
 
     $results = [];
+
+    $entity_type_filters = $request->attributes->get(self::ENTITY_TYPE_FILTER_ATTRIBUTE, []);
 
     foreach ($view->result as $row) {
       $entity = $row->_entity ?? NULL;
@@ -134,12 +157,19 @@ final class EditorialSearchResource extends ResourceBase {
         if (!empty($material) && !in_array($entity->id(), $editorial_nids)) {
           continue;
         }
+
+        if ($entity_type_filters !== [] && !in_array($entity->getEntityTypeId(), $entity_type_filters, TRUE)) {
+          continue;
+        }
+
         $results[] = $this->mapEntity($entity);
       }
     }
 
+    $use_result_count = !empty($material) || $entity_type_filters !== [];
+
     $data = [
-      'total' => !empty($material) ? count($results) : (int) $view->total_rows,
+      'total' => $use_result_count ? count($results) : (int) $view->total_rows,
       'page' => $page,
       'page_size' => $page_size,
       'results' => $results,
@@ -183,12 +213,116 @@ final class EditorialSearchResource extends ResourceBase {
    *   Cache context IDs.
    */
   private function getQueryArgCacheContexts(): array {
-    return [
+    $contexts = [
       'url.query_args:q',
       'url.query_args:material',
       'url.query_args:page',
       'url.query_args:page_size',
+      'url.query_args:' . self::FACET_FILTER_KEY,
     ];
+
+    $contexts[] = 'url.query_args:entity_type';
+
+    return $contexts;
+  }
+
+  /**
+   * Applies editorial search facet filters to the request (for Views + Facets).
+   *
+   * Mirrors /search/web facet query strings, e.g. f[]=content_type:article.
+   */
+  private function applyFacetFiltersToRequest(Request $request): void {
+    $facet_filters = array_values(array_unique($this->collectFacetFilterValues($request)));
+    [$facet_filters, $entity_type_filters] = $this->partitionFacetFilters($facet_filters);
+
+    if ($request->query->has('entity_type')) {
+      $raw = $request->query->all()['entity_type'] ?? [];
+      $values = is_array($raw) ? $raw : [$raw];
+      foreach ($values as $value) {
+        if (is_string($value) && in_array($value, self::ENTITY_TYPE_FILTER_VALUES, TRUE)) {
+          $entity_type_filters[] = $value;
+        }
+      }
+    }
+
+    $entity_type_filters = array_values(array_unique($entity_type_filters));
+
+    if ($entity_type_filters !== []) {
+      $request->attributes->set(self::ENTITY_TYPE_FILTER_ATTRIBUTE, $entity_type_filters);
+    }
+
+    if ($facet_filters === []) {
+      return;
+    }
+
+    $request->query->set(self::FACET_FILTER_KEY, $facet_filters);
+  }
+
+  /**
+   * Splits facet tokens into Search API facet filters and entity-type filters.
+   *
+   * The content_type facet uses bundle machine names (article, default). Values
+   * "node" and "eventseries" filter by Drupal entity type instead.
+   *
+   * @return array{0: string[], 1: string[]}
+   *   [facet filter tokens, entity type IDs].
+   */
+  private function partitionFacetFilters(array $tokens): array {
+    $facet_filters = [];
+    $entity_type_filters = [];
+
+    foreach ($tokens as $token) {
+      if (preg_match('/^content_type:([^:]+)$/', $token, $matches)) {
+        $value = $matches[1];
+        if (in_array($value, self::ENTITY_TYPE_FILTER_VALUES, TRUE)) {
+          $entity_type_filters[] = $value;
+          continue;
+        }
+      }
+
+      $facet_filters[] = $token;
+    }
+
+    return [
+      $facet_filters,
+      array_values(array_unique($entity_type_filters)),
+    ];
+  }
+
+  /**
+   * Collects facet filter tokens from the "f" query parameter.
+   *
+   * @return string[]
+   *   Filter tokens, e.g. ["content_type:article", "categories:42"].
+   */
+  private function collectFacetFilterValues(Request $request): array {
+    $query = $request->query->all();
+    $values = [];
+
+    if (isset($query[self::FACET_FILTER_KEY])) {
+      $filters = $query[self::FACET_FILTER_KEY];
+      if (is_array($filters)) {
+        foreach ($filters as $filter) {
+          if (is_string($filter) && $filter !== '') {
+            $values[] = $filter;
+          }
+        }
+      }
+      elseif (is_string($filters) && $filters !== '') {
+        $values[] = $filters;
+      }
+    }
+
+    foreach ($query as $key => $value) {
+      if (!is_string($key) || !preg_match('/^f(\[\d*\])?$/', $key)) {
+        continue;
+      }
+      if (is_string($value) && $value !== '') {
+        $values[] = $value;
+      }
+    }
+
+    return $values;
   }
 
   /**
@@ -215,11 +349,21 @@ final class EditorialSearchResource extends ResourceBase {
    *   The mapped entity data.
    */
   private function mapEntity(ContentEntityInterface $entity): array {
+    $bundle = $entity->bundle();
+    $entity_type = $entity->getEntityTypeId();
+
     $data = [
       'uuid' => $entity->uuid(),
       'id' => (int) $entity->id(),
-      'type' => $entity->getEntityTypeId(),
-      'bundle' => $entity->bundle(),
+      'type' => $entity_type,
+      'entity_type' => $entity_type,
+      'bundle' => $bundle,
+      'content_type' => $bundle,
+      'facets' => [
+        'content_type' => $bundle,
+        'categories' => [],
+        'tags' => [],
+      ],
       'title' => $entity->label(),
       'url' => Url::fromRoute(
         'entity.' . $entity->getEntityTypeId() . '.canonical',
@@ -247,6 +391,7 @@ final class EditorialSearchResource extends ResourceBase {
     if ($categories_field instanceof EntityReferenceFieldItemListInterface) {
       foreach ($categories_field->referencedEntities() as $term) {
         $data['categories'][] = $term->label();
+        $data['facets']['categories'][] = (string) $term->id();
       }
     }
 
@@ -254,6 +399,7 @@ final class EditorialSearchResource extends ResourceBase {
     if ($tags_field instanceof EntityReferenceFieldItemListInterface) {
       foreach ($tags_field->referencedEntities() as $term) {
         $data['tags'][] = $term->label();
+        $data['facets']['tags'][] = (string) $term->id();
       }
     }
 
