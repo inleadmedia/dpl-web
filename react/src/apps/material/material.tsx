@@ -693,7 +693,7 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
 
           <MaterialDisclosure
             dataCy="material-details-disclosure"
-            title={t("Related content")}
+            title={t("relatedContentText")}
             icon={Receipt}
             open={disclosureOpenStates.details}
           >

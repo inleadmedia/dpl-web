@@ -245,6 +245,10 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Reviews",
       control: { type: "text" }
     },
+    relatedContentText: {
+      description: "Related content",
+      control: { type: "text" }
+    },
     detailsListTypeText: {
       description: "Type",
       control: { type: "text" }
@@ -953,6 +957,7 @@ const meta: Meta<typeof MaterialEntry> = {
     fictionNonfictionText: "Fictional",
     detailsText: "Details",
     reviewsText: "Reviews",
+    relatedContentText: "Related content",
     detailsListTypeText: "Type",
     detailsListLanguageText: "Language",
     detailsListContributorsText: "Contributors",
