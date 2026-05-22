@@ -20,6 +20,7 @@ interface EditorialSearchResult {
 
 interface EditorialSuggestion {
   uuid: string;
+  bundle: string;
   title: string;
   url: string;
   created_at: string;
@@ -53,10 +54,22 @@ const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title
   </li>;
 }
 
-const AutosuggestEditorialSuggestion: React.FC<EditorialSuggestion> = ({ url, title }) => {
+const editorialBundleMapping = {
+  default: "Event",
+  e_resource: "E-Resource"
+};
+
+const AutosuggestEditorialSuggestion: React.FC<EditorialSuggestion> = ({ url, title, bundle }) => {
+  const t = useText();
+  let mappedBundle = editorialBundleMapping[bundle as keyof typeof editorialBundleMapping] || bundle;
+
   return <li className="autosuggest-editorial__item">
     <a className="autosuggest__text-item text-body-medium-regular px-24 autosuggest-editorial__item-link" href={ url }>
       { title }
+      <span className="autosuggest-editorial__item-link-type">
+        &nbsp;
+        { mappedBundle ? "(" + t(mappedBundle) + ")" : null }
+      </span>
     </a>
   </li>;
 }
