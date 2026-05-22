@@ -11,6 +11,8 @@ use Drupal\dpl_search\DplSearchSettings;
 use Drupal\file\FileInterface;
 use Drupal\image\Plugin\Field\FieldType\ImageItem;
 use Drupal\media\MediaInterface;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\views\Views;
 use Drupal\views\ViewExecutable;
@@ -54,6 +56,11 @@ final class EditorialSearchResource extends ResourceBase {
   ];
 
   /**
+   * Paragraph bundle that stores manual material work IDs on articles.
+   */
+  private const MATERIAL_GRID_PARAGRAPH_BUNDLE = 'material_grid_manual';
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
@@ -71,7 +78,8 @@ final class EditorialSearchResource extends ResourceBase {
    *
    * Supported query parameters:
    *   q         - Fulltext search string (required unless material is set).
-   *   material  - Work ID to find related editorial content.
+   *   material  - Work ID; finds articles with a material_grid_manual paragraph
+   *               containing the work ID (field_paragraphs / field_related_materials).
    *   page      - Zero-based page number (default: 0).
    *   page_size - Items per page (default: 10, max: 100).
    *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
@@ -93,40 +101,35 @@ final class EditorialSearchResource extends ResourceBase {
       )
     );
 
-    if (!empty($material)) {
-      $editorial_nids = \Drupal::entityTypeManager()
-        ->getStorage('node')
-        ->getQuery()
-        ->accessCheck(TRUE)
-        ->condition('field_material', $material)
-        ->range(0, $page_size)
-        ->execute();
+    if (!empty($material) && is_string($material)) {
+      $editorial_nids = $this->findArticleNidsByMaterial($material);
 
-      $material_editorials = \Drupal::entityTypeManager()
-        ->getStorage('node')
-        ->loadMultiple($editorial_nids);
-    }
+      // Return the editorials directly when no fulltext query is provided.
+      if (empty($search) || !is_string($search)) {
+        $paged_nids = array_slice($editorial_nids, $page * $page_size, $page_size);
+        $material_editorials = \Drupal::entityTypeManager()
+          ->getStorage('node')
+          ->loadMultiple($paged_nids);
 
-    // Return the editorials directly.
-    if (!empty($material) && (empty($search) || !is_string($search))) {
-      $results = [];
-      foreach ($material_editorials as $editorial) {
-        $results[] = $this->mapEntity($editorial);
+        $results = [];
+        foreach ($material_editorials as $editorial) {
+          $results[] = $this->mapEntity($editorial);
+        }
+
+        $data = [
+          'total' => count($editorial_nids),
+          'page' => $page,
+          'page_size' => $page_size,
+          'results' => $results,
+        ];
+
+        $response = $this->createJsonResponse($data);
+        $response->addCacheableDependency(
+          $this->buildCacheMetadata($material_editorials)
+        );
+
+        return $response;
       }
-
-      $data = [
-        'total' => count($results),
-        'page' => 1,
-        'page_size' => $page_size,
-        'results' => $results,
-      ];
-
-      $response = $this->createJsonResponse($data);
-      $response->addCacheableDependency(
-        $this->buildCacheMetadata($material_editorials)
-      );
-
-      return $response;
     }
 
     if (empty($search) || !is_string($search)) {
@@ -154,8 +157,10 @@ final class EditorialSearchResource extends ResourceBase {
       $entity = $row->_entity ?? NULL;
       if ($entity instanceof ContentEntityInterface) {
 
-        if (!empty($material) && !in_array($entity->id(), $editorial_nids)) {
-          continue;
+        if (!empty($material) && is_string($material)) {
+          if ($entity->getEntityTypeId() !== 'node' || !in_array((int) $entity->id(), $editorial_nids, TRUE)) {
+            continue;
+          }
         }
 
         if ($entity_type_filters !== [] && !in_array($entity->getEntityTypeId(), $entity_type_filters, TRUE)) {
@@ -323,6 +328,56 @@ final class EditorialSearchResource extends ResourceBase {
     }
 
     return $values;
+  }
+
+  /**
+   * Finds article node IDs that reference a material in a manual material grid.
+   *
+   * Looks at material_grid_manual paragraphs on field_paragraphs and
+   * field_related_materials.
+   *
+   * @return int[]
+   *   Article node IDs, sorted ascending.
+   */
+  private function findArticleNidsByMaterial(string $material): array {
+    $paragraph_storage = \Drupal::entityTypeManager()->getStorage('paragraph');
+    $query = $paragraph_storage->getQuery()
+      ->accessCheck(TRUE)
+      ->condition('type', self::MATERIAL_GRID_PARAGRAPH_BUNDLE);
+
+    $work_id_group = $query->orConditionGroup()
+      ->condition('field_material_grid_work_ids.value', $material)
+      ->condition('field_work_id.value', $material);
+    $query->condition($work_id_group);
+
+    $paragraph_ids = $query->execute();
+    if ($paragraph_ids === []) {
+      return [];
+    }
+
+    /** @var \Drupal\paragraphs\Entity\Paragraph[] $paragraphs */
+    $paragraphs = $paragraph_storage->loadMultiple($paragraph_ids);
+    $article_nids = [];
+
+    foreach ($paragraphs as $paragraph) {
+      if (!$paragraph instanceof Paragraph) {
+        continue;
+      }
+
+      $parent = $paragraph->getParentEntity();
+      while ($parent instanceof ContentEntityInterface && $parent->getEntityTypeId() !== 'node') {
+        $parent = $parent->getParentEntity();
+      }
+
+      if ($parent instanceof NodeInterface && $parent->bundle() === 'article') {
+        $article_nids[(int) $parent->id()] = (int) $parent->id();
+      }
+    }
+
+    $article_nids = array_values($article_nids);
+    sort($article_nids, SORT_NUMERIC);
+
+    return $article_nids;
   }
 
   /**
