@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8bbeb0e739dc4ed67d3b7b3cc3a91e36",
+    "content-hash": "ef86ea1fa23f4ee697fc2f99474851a1",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10509,22 +10509,32 @@
             "name": "inleadmedia/dpl-design-system",
             "version": "0.0.2-dev",
             "dist": {
-                "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-design-system.zip"
+                "type": "path",
+                "url": "../design-system/build",
+                "reference": "a61b259a25779345e11cf47b7a389b64d90e6003"
             },
-            "type": "drupal-library"
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "inleadmedia/dpl-react",
             "version": "0.0.2-dev",
             "dist": {
-                "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-react.zip"
+                "type": "path",
+                "url": "../react/dist",
+                "reference": "60faa9ce731bf88267ee0e299be196313d389e01"
             },
             "require": {
                 "composer/installers": "^1.2.0"
             },
-            "type": "drupal-library"
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "jms/metadata",
