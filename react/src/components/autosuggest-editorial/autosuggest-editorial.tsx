@@ -10,6 +10,7 @@ interface AutosuggestEditorialProps {
   limit?: number;
   template?: string;
   materialId?: string;
+  filter?: string;
   onFound?(searchResult: EditorialSearchResult): void;
 };
 
@@ -77,7 +78,7 @@ const AutosuggestEditorialSuggestion: React.FC<EditorialSuggestion> = ({ url, ti
   </li>;
 }
 
-const AutoSuggestMaterial: React.FC<EditorialSuggestion> = ({ title, url, created_at, image, categories }) => {
+const AutosuggestMaterial: React.FC<EditorialSuggestion> = ({ title, url, created_at, image, categories }) => {
   return (
     <li className="autosuggest-editorial__material">
       <a className="autosuggest-editorial__material-link" href={url}>
@@ -105,8 +106,8 @@ const AutoSuggestMaterial: React.FC<EditorialSuggestion> = ({ title, url, create
   );
 };
 
-const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, materialId, limit = 7, template = "suggestion", onFound }) => {
-  const lastQuery = useRef("");
+const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, materialId, filter, limit = 7, template = "suggestion", onFound }) => {
+  const lastQuery = useRef<string | undefined>("");
   const [editorialSuggestions, setEditorialSuggestions] = useState([]);
 
   useEffect(() => {
@@ -121,7 +122,8 @@ const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, mate
         {
           page_size: limit || 7,
           q: query,
-          material: materialId
+          material: materialId,
+          f: filter
         },
         (value) => value == null || value === ""
       )
@@ -146,7 +148,7 @@ const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, mate
     })();
   }, [query]);
 
-  if (editorialSuggestions.length === 0)
+  if (Array.isArray(editorialSuggestions) === false || editorialSuggestions.length === 0)
     return null;
 
   return <ul className={`autosuggest-editorial autosuggest-editorial--${ template }`}>
@@ -156,7 +158,7 @@ const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, mate
           return <AutosuggestEditorialSearchResult key={ editorialSuggestion.uuid } { ...editorialSuggestion } />;
 
         if (template === "material-results")
-          return <AutoSuggestMaterial key={ editorialSuggestion.uuid } { ...editorialSuggestion }/>;
+          return <AutosuggestMaterial key={ editorialSuggestion.uuid } { ...editorialSuggestion }/>;
 
         return <AutosuggestEditorialSuggestion key={ editorialSuggestion.uuid } { ...editorialSuggestion } />;
       })
