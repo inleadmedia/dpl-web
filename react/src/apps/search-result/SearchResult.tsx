@@ -212,7 +212,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
           <section>
             {
               isEditorialSearchEnabled
-                ? <AutosuggestEditorial query={q} limit={4} template={"search-results"} />
+                ? <AutosuggestEditorial query={q} limit={4} template="search-results" filter="content_type:article" />
                 : null
             }
 
