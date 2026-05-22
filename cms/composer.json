@@ -53,60 +53,22 @@
             "url": "https://asset-packagist.org"
         },
         {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-react",
-                "version": "0.0.2-dev",
-                "type": "drupal-library",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-react.zip",
-                    "type": "zip"
-                },
-                "require": {
-                    "composer/installers": "^1.2.0"
-                }
-            }
-        },
-        {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-design-system",
-                "type": "drupal-library",
-                "version": "0.0.2-dev",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-web/releases/download/branch-eonext-242-release/dist-design-system.zip",
-                    "type": "zip"
-                }
-            }
-        },
-        {
             "type": "path",
-            "url": "packages/fbs-client",
-            "options": {
-                "versions": {
-                    "danskernesdigitalebibliotek/fbs-client": "dev-main"
-                }
-            }
-        },
-        {
-            "type": "path",
-            "url": "packages/dpl-react-local/dist",
+            "url": "../react/dist",
             "options": {
                 "symlink": true,
                 "versions": {
-                    "inleadmedia/dpl-react": "dev-local"
+                    "inleadmedia/dpl-react": "0.0.2-dev"
                 }
             }
         },
         {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-design-system",
-                "type": "drupal-library",
-                "version": "2026.10.0",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-design-system/releases/download/2026.10.0%2Binlead.19.03.2026/dist-2026-10-0-inlead-19-03-2026-ae12a1a90834afac95a08ad67e888a08513d7e52.zip",
-                    "type": "zip"
+            "type": "path",
+            "url": "../design-system/build",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "inleadmedia/dpl-design-system": "0.0.2-dev"
                 }
             }
         },

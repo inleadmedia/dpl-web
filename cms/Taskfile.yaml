@@ -36,14 +36,55 @@ tasks:
 
   drupal:update:
     desc: Install/update composer dependencies
+    deps:
+      - drupal:build-react
     cmds:
       - cp -n .env.example .env || true
-      - rm web/libraries/dpl-react -rf
+      - rm -rf web/libraries/dpl-react web/themes/custom/novel/assets/dpl-design-system
       - composer install --no-cache
       - composer reinstall inleadmedia/dpl-design-system inleadmedia/dpl-react --no-cache
       - composer drupal:scaffold
       - $(cd dev-scripts/dpl-react; composer install --no-cache)
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
+
+  drupal:build-react:
+    desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild)
+    preconditions:
+      - sh: test -f ../react/bundle.sh && test -f ../design-system/bundle.sh
+        msg: Run from cms/ in the dpl-web monorepo (../react and ../design-system required).
+    sources:
+      - ../react/src/**/*
+      - ../react/package.json
+      - ../react/yarn.lock
+      - ../react/bundle.sh
+      - ../react/composer.json
+      - ../react/webpack*.js
+      - ../react/tsconfig.json
+      - ../design-system/src/**/*
+      - ../design-system/public/**/*
+      - ../design-system/package.json
+      - ../design-system/yarn.lock
+      - ../design-system/bundle.sh
+      - ../design-system/composer.json
+    generates:
+      - ../react/dist/.bundle-stamp
+    cmds:
+      - (cd ../react && ./bundle.sh)
+
+  drupal:assets:status:
+    desc: Report whether a react/design-system bundle build is needed (does not build)
+    cmds:
+      - |
+        STAMP=../react/dist/.bundle-stamp
+        if [ ! -f "$STAMP" ]; then
+          echo "NEEDS_BUILD (no bundle stamp — run: task -t Taskfile.yaml drupal:build-react)"
+          exit 0
+        fi
+        if task -t Taskfile.yaml drupal:build-react --dry 2>&1 | grep -q 'task up to date'; then
+          echo "UP_TO_DATE (stamp: $STAMP)"
+        else
+          echo "NEEDS_BUILD (sources newer than stamp: $STAMP)"
+        fi
 
   drupal:locale:
     desc: Update translation strings
