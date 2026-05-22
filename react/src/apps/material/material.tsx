@@ -693,11 +693,11 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
 
           <MaterialDisclosure
             dataCy="material-details-disclosure"
-            title={t("relatedContent")}
+            title={t("Related content")}
             icon={Receipt}
             open={disclosureOpenStates.details}
           >
-            <div className="autosuggest__editorial-suggestions">
+            <div className="autosuggest__editorial-suggestions-materials">
               <AutosuggestEditorial
                 materialId={wid}
                 template="material-results"

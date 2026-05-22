@@ -103,3 +103,7 @@
     max-width: 250px;
   }
 }
+
+.disclosure:has(.autosuggest__editorial-suggestions-materials):not(:has(.autosuggest-editorial--material-results)) {
+  display: none;
+}
