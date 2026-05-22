@@ -276,5 +276,6 @@ function eonext_editorial_search_preprocess_dpl_react_app(array &$variables): vo
     ->get('enable_editorial_search');
 
   $variables['attributes']['data-editorial-search'] = json_encode($enabled);
+  $variables['attributes']['data-autosuggest-editorial'] = json_encode($enabled);
   $variables['#cache']['tags'][] = 'config:eonext_editorial_search.settings';
 }
