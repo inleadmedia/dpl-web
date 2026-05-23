@@ -14,6 +14,7 @@ use Drupal\search_api\IndexInterface;
 function eonext_editorial_search_install(): void {
   eonext_editorial_search_ensure_facet_index_fields();
   eonext_editorial_search_ensure_sort_index_fields();
+  eonext_editorial_search_ensure_editorial_event_date_processor();
 }
 
 /**
@@ -131,7 +132,6 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
         'separator' => '-not used-',
         'fields' => [
           'entity:node/created',
-          'entity:eventseries/created',
         ],
       ],
     ],
@@ -171,6 +171,61 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
     'Added Search API sort fields (%s) to index content_events. Re-index with: drush search-api:index content_events',
     implode(', ', $added_fields),
   );
+}
+
+/**
+ * Ensures the editorial event date processor is enabled on the search index.
+ */
+function eonext_editorial_search_ensure_editorial_event_date_processor(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial event date processor was not added.';
+  }
+
+  $processors = $index->getProcessors();
+  if (isset($processors['editorial_event_date'])) {
+    return 'Editorial event date processor is already enabled on index content_events.';
+  }
+
+  $processor = \Drupal::service('search_api.plugin_helper')
+    ->createProcessorPlugin($index, 'editorial_event_date');
+  $index->addProcessor($processor);
+  $index->save();
+
+  return 'Enabled editorial event date processor on index content_events. Re-index with: drush search-api:index content_events';
+}
+
+/**
+ * Updates sort_date configuration and enables editorial event date indexing.
+ */
+function eonext_editorial_search_update_9002(): string {
+  $messages = [
+    eonext_editorial_search_ensure_editorial_event_date_processor(),
+  ];
+
+  $index = Index::load('content_events');
+  if ($index instanceof IndexInterface) {
+    $sort_date = $index->getField('sort_date');
+    if ($sort_date) {
+      $configuration = $sort_date->getConfiguration();
+      $configuration['fields'] = ['entity:node/created'];
+      $sort_date->setConfiguration($configuration);
+      $index->save();
+      $messages[] = 'Updated sort_date on index content_events to use node created dates and upcoming event dates for events.';
+    }
+    else {
+      $messages[] = eonext_editorial_search_ensure_sort_index_fields();
+    }
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Ensures editorial event date processor is enabled after skipped update hooks.
+ */
+function eonext_editorial_search_update_9004(): string {
+  return eonext_editorial_search_update_9002();
 }
 
 /**

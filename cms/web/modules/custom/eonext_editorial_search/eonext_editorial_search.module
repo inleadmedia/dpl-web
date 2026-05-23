@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\node\NodeInterface;
+use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\ViewExecutable;
 
@@ -165,6 +166,40 @@ function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query)
     : $selected_sort['sort_by'];
 
   $search_api_query->sort($sort_field, $selected_sort['sort_order']);
+}
+
+/**
+ * Implements hook_views_post_execute().
+ *
+ * Removes expired event series left over from stale index entries.
+ */
+function eonext_editorial_search_views_post_execute(ViewExecutable $view): void {
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID || $view->current_display !== 'page') {
+    return;
+  }
+
+  /** @var \Drupal\dpl_event\ReoccurringDateFormatter $formatter */
+  $formatter = \Drupal::service('dpl_event.reoccurring_date_formatter');
+  $removed = 0;
+
+  foreach ($view->result as $key => $row) {
+    $entity = $row->_entity ?? NULL;
+    if (!($entity instanceof EventSeries)) {
+      continue;
+    }
+
+    if ($formatter->getUpcomingEventDetails($entity) === NULL) {
+      unset($view->result[$key]);
+      $removed++;
+    }
+  }
+
+  if ($removed === 0) {
+    return;
+  }
+
+  $view->result = array_values($view->result);
+  $view->total_rows = max(0, (int) $view->total_rows - $removed);
 }
 
 /**
