@@ -6,6 +6,8 @@
 (function (Drupal, once) {
   'use strict';
 
+  const FACET_VISIBLE_LIMIT = 5;
+
   const CHECKBOX_ICON_SVG =
     '<svg width="20" height="20" aria-hidden="true">' +
     '<polyline points="1.5 6 4.5 9 10.5 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>' +
@@ -74,6 +76,96 @@
   }
 
   /**
+   * Remove the "View all" toggle from a facet group.
+   */
+  function removeViewAllToggle(facetGroup) {
+    facetGroup.querySelector('.eonext-search-facet-group__view-all')?.remove();
+  }
+
+  /**
+   * Create or update the "View all" / "Show less" toggle for a facet group.
+   */
+  function updateViewAllToggle(facetGroup, isExpanded) {
+    let toggle = facetGroup.querySelector('.eonext-search-facet-group__view-all');
+
+    if (!toggle) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'eonext-search-facet-group__view-all';
+      const facetList = facetGroup.querySelector('.eonext-search-facet-group__content.facet-checkboxes');
+      facetList?.after(toggle);
+      toggle.addEventListener('click', () => {
+        facetGroup.classList.toggle('is-facet-items-expanded');
+        applyFacetItemLimit(facetGroup);
+      });
+    }
+
+    toggle.textContent = isExpanded ? Drupal.t('Show less') : Drupal.t('View all');
+    toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+  }
+
+  /**
+   * Show only the first few facet items, with active selections always visible.
+   */
+  function applyFacetItemLimit(facetGroup) {
+    const facetList = facetGroup.querySelector('.eonext-search-facet-group__content.facet-checkboxes');
+
+    if (!facetList || facetList.hasAttribute('hidden')) {
+      return;
+    }
+
+    const items = Array.from(
+      facetList.querySelectorAll(':scope > .eonext-search-facet-group__item'),
+    );
+
+    if (items.length <= FACET_VISIBLE_LIMIT) {
+      facetGroup.classList.remove('is-facet-items-expanded');
+      items.forEach((item) => item.classList.remove('is-facet-item-hidden'));
+      removeViewAllToggle(facetGroup);
+      return;
+    }
+
+    const isExpanded = facetGroup.classList.contains('is-facet-items-expanded');
+
+    if (isExpanded) {
+      items.forEach((item) => item.classList.remove('is-facet-item-hidden'));
+      updateViewAllToggle(facetGroup, true);
+      return;
+    }
+
+    let hasHidden = false;
+
+    items.forEach((item, index) => {
+      const isChecked = item.querySelector('input.facets-checkbox:checked');
+      const shouldShow = index < FACET_VISIBLE_LIMIT || isChecked;
+      item.classList.toggle('is-facet-item-hidden', !shouldShow);
+
+      if (!shouldShow) {
+        hasHidden = true;
+      }
+    });
+
+    if (hasHidden) {
+      updateViewAllToggle(facetGroup, false);
+    }
+    else {
+      removeViewAllToggle(facetGroup);
+    }
+  }
+
+  /**
+   * Restyle facet checkboxes and apply the visible item limit.
+   */
+  function initFacetList(facetList) {
+    restyleFacetList(facetList);
+    const facetGroup = facetList.closest('.eonext-search-facet-group');
+
+    if (facetGroup) {
+      applyFacetItemLimit(facetGroup);
+    }
+  }
+
+  /**
    * Toggle facet group visibility.
    */
   function toggleFacetGroup(button) {
@@ -90,7 +182,7 @@
       }
       else {
         content.removeAttribute('hidden');
-        restyleFacetList(content);
+        initFacetList(content);
       }
     }
 
@@ -105,9 +197,9 @@
         button.addEventListener('click', () => toggleFacetGroup(button));
       });
 
-      once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content', context).forEach((facetList) => {
+      once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content.facet-checkboxes', context).forEach((facetList) => {
         // Facets checkbox widget runs in the same attach cycle.
-        window.setTimeout(() => restyleFacetList(facetList), 0);
+        window.setTimeout(() => initFacetList(facetList), 0);
       });
     },
   };

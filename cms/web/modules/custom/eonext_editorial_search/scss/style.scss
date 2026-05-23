@@ -137,6 +137,10 @@
     padding: 0 16px;
     min-height: 32px;
 
+    &.is-facet-item-hidden {
+      display: none;
+    }
+
     &:hover {
       background-color: var(--c-global-secondary, #eee9e5);
     }
@@ -233,6 +237,30 @@
     color: var(--c-text-primary-black, #000);
     text-align: right;
     flex-shrink: 0;
+  }
+
+  &__view-all {
+    display: block;
+    width: 100%;
+    padding: 4px 16px 12px;
+    border: none;
+    background: none;
+    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--c-text-secondary-gray, #484848);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--c-text-primary-black, #000);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--c-text-primary-black, #000);
+      outline-offset: 2px;
+    }
   }
 }
 
