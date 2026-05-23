@@ -6,7 +6,9 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\dpl_search\DplSearchSettings;
+use Drupal\node\NodeInterface;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\ViewExecutable;
 
@@ -15,6 +17,15 @@ use Drupal\views\ViewExecutable;
  */
 function eonext_editorial_search_get_templates_path(): string {
   return \Drupal::service('extension.list.module')->getPath('eonext_editorial_search') . '/templates';
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function eonext_editorial_search_entity_presave(EntityInterface $entity): void {
+  if ($entity instanceof NodeInterface && $entity->bundle() === 'article') {
+    \Drupal::service('Drupal\eonext_editorial_search\ArticleMaterialSync')->syncArticle($entity);
+  }
 }
 
 /**

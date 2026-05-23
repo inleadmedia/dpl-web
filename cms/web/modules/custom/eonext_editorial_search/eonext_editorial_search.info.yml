@@ -8,6 +8,10 @@ dependencies:
   - drupal:media
   - drupal:file
   - drupal:views
+  - drupal:node
+  - paragraphs:paragraphs
   - facets:facets
   - search_api:search_api
   - dpl_search:dpl_search
+  - dpl_fbi:dpl_fbi
+  - dpl_library_agency:dpl_library_agency

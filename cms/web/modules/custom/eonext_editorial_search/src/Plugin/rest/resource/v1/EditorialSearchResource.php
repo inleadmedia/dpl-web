@@ -11,8 +11,6 @@ use Drupal\dpl_search\DplSearchSettings;
 use Drupal\file\FileInterface;
 use Drupal\image\Plugin\Field\FieldType\ImageItem;
 use Drupal\media\MediaInterface;
-use Drupal\node\NodeInterface;
-use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\rest\Plugin\ResourceBase;
 use Drupal\views\Views;
 use Drupal\views\ViewExecutable;
@@ -56,11 +54,6 @@ final class EditorialSearchResource extends ResourceBase {
   ];
 
   /**
-   * Paragraph bundle that stores manual material work IDs on articles.
-   */
-  private const MATERIAL_GRID_PARAGRAPH_BUNDLE = 'material_grid_manual';
-
-  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
@@ -78,8 +71,7 @@ final class EditorialSearchResource extends ResourceBase {
    *
    * Supported query parameters:
    *   q         - Fulltext search string (required unless material is set).
-   *   material  - Work ID; finds articles with a material_grid_manual paragraph
-   *               containing the work ID (field_paragraphs / field_related_materials).
+   *   material  - Work ID; finds articles referencing the work in field_material.
    *   page      - Zero-based page number (default: 0).
    *   page_size - Items per page (default: 10, max: 100).
    *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
@@ -331,50 +323,19 @@ final class EditorialSearchResource extends ResourceBase {
   }
 
   /**
-   * Finds article node IDs that reference a material in a manual material grid.
-   *
-   * Looks at material_grid_manual paragraphs on field_paragraphs and
-   * field_related_materials.
+   * Finds article node IDs that reference a material in field_material.
    *
    * @return int[]
    *   Article node IDs, sorted ascending.
    */
   private function findArticleNidsByMaterial(string $material): array {
-    $paragraph_storage = \Drupal::entityTypeManager()->getStorage('paragraph');
-    $query = $paragraph_storage->getQuery()
+    $article_nids = \Drupal::entityQuery('node')
       ->accessCheck(TRUE)
-      ->condition('type', self::MATERIAL_GRID_PARAGRAPH_BUNDLE);
+      ->condition('type', 'article')
+      ->condition('field_material.value', $material)
+      ->execute();
 
-    $work_id_group = $query->orConditionGroup()
-      ->condition('field_material_grid_work_ids.value', $material)
-      ->condition('field_work_id.value', $material);
-    $query->condition($work_id_group);
-
-    $paragraph_ids = $query->execute();
-    if ($paragraph_ids === []) {
-      return [];
-    }
-
-    /** @var \Drupal\paragraphs\Entity\Paragraph[] $paragraphs */
-    $paragraphs = $paragraph_storage->loadMultiple($paragraph_ids);
-    $article_nids = [];
-
-    foreach ($paragraphs as $paragraph) {
-      if (!$paragraph instanceof Paragraph) {
-        continue;
-      }
-
-      $parent = $paragraph->getParentEntity();
-      while ($parent instanceof ContentEntityInterface && $parent->getEntityTypeId() !== 'node') {
-        $parent = $parent->getParentEntity();
-      }
-
-      if ($parent instanceof NodeInterface && $parent->bundle() === 'article') {
-        $article_nids[(int) $parent->id()] = (int) $parent->id();
-      }
-    }
-
-    $article_nids = array_values($article_nids);
+    $article_nids = array_map('intval', array_values($article_nids));
     sort($article_nids, SORT_NUMERIC);
 
     return $article_nids;

@@ -1,0 +1,7 @@
+---
+services:
+  eonext_editorial_search.commands:
+    class: Drupal\eonext_editorial_search\Drush\Commands\EditorialSearchCommands
+    autowire: true
+    tags:
+      - { name: drush.command }
