@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
   description: new TranslatableMarkup('Excludes expired event series and indexes the next upcoming event date for sorting.'),
   stages: [
     'alter_items' => 0,
-    'process' => 10,
+    'preprocess_index' => 0,
   ],
 )]
 final class EditorialEventDateProcessor extends ProcessorPluginBase {
@@ -74,7 +74,16 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function addFieldValues(ItemInterface $item): void {
+  public function preprocessIndexItems(array $items): void {
+    foreach ($items as $item) {
+      $this->setEventSortDate($item);
+    }
+  }
+
+  /**
+   * Sets sort_date on an indexed event series item.
+   */
+  private function setEventSortDate(ItemInterface $item): void {
     $entity = $item->getOriginalObject()->getValue();
     if (!($entity instanceof EventSeries)) {
       return;
@@ -85,24 +94,11 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
       return;
     }
 
-    $sort_date_field = $this->getItemField($item, 'sort_date');
+    $sort_date_field = $item->getField('sort_date', FALSE);
     if ($sort_date_field instanceof FieldInterface) {
       $sort_date_field->setValues([]);
       $sort_date_field->addValue($upcoming_event['start']->getTimestamp());
     }
-  }
-
-  /**
-   * Loads a field from an indexed item by identifier.
-   */
-  private function getItemField(ItemInterface $item, string $field_id): ?FieldInterface {
-    foreach ($item->getFields() as $field) {
-      if ($field->getFieldIdentifier() === $field_id) {
-        return $field;
-      }
-    }
-
-    return NULL;
   }
 
 }

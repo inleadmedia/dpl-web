@@ -36,29 +36,54 @@
         </aside>
 
         <section class="eonext-editorial-search__results">
-          {% if editorial_search_sort_options %}
+          {% if editorial_search_sort_field_options %}
             <div class="eonext-search__sort-select eonext-editorial-search__sort">
-              <label class="eonext-search__sort-select__label" for="editorial-search-sort">
-                {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
-              </label>
-              <div class="eonext-search__sort-select__select-wrapper">
-                <select
-                  class="eonext-search__sort-select__select"
-                  id="editorial-search-sort"
-                  data-editorial-search-sort
-                >
-                  {% for value, label in editorial_search_sort_options %}
-                    <option value="{{ value }}"{{ value == editorial_search_sort_selected ? ' selected' : '' }}>
-                      {{ label }}
-                    </option>
-                  {% endfor %}
-                </select>
-                <div class="eonext-search__dropdown__arrows">
-                  <img
-                    class="eonext-search__dropdown__arrow"
-                    alt=""
-                    src="{{ baseIconPath }}/collection/ExpandMore.svg"
+              <div class="eonext-editorial-search__sort-field">
+                <label class="eonext-search__sort-select__label" for="editorial-search-sort">
+                  {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
+                </label>
+                <div class="eonext-search__sort-select__select-wrapper">
+                  <select
+                    class="eonext-search__sort-select__select"
+                    id="editorial-search-sort"
+                    data-editorial-search-sort
                   >
+                    {% for value, label in editorial_search_sort_field_options %}
+                      <option value="{{ value }}"{{ value == editorial_search_sort_field_selected ? ' selected' : '' }}>
+                        {{ label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="eonext-search__dropdown__arrows">
+                    <img
+                      class="eonext-search__dropdown__arrow"
+                      alt=""
+                      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="eonext-editorial-search__sort-order">
+                <div class="eonext-search__sort-select__select-wrapper">
+                  <select
+                    class="eonext-search__sort-select__select"
+                    id="editorial-search-sort-order"
+                    data-editorial-search-sort-order
+                    aria-label="{{ 'Sort order'|t({}, {'context': 'eonext_editorial_search'}) }}"
+                  >
+                    {% for value, label in editorial_search_sort_order_options %}
+                      <option value="{{ value }}"{{ value == editorial_search_sort_order_selected ? ' selected' : '' }}>
+                        {{ label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="eonext-search__dropdown__arrows">
+                    <img
+                      class="eonext-search__dropdown__arrow"
+                      alt=""
+                      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                    >
+                  </div>
                 </div>
               </div>
             </div>

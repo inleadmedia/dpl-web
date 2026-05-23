@@ -95,14 +95,35 @@ function eonext_editorial_search_theme_registry_alter(array &$theme_registry): v
 }
 
 /**
- * Returns editorial search sort options for the results dropdown.
+ * Returns editorial search sort field options.
  */
-function eonext_editorial_search_get_sort_options(): array {
+function eonext_editorial_search_get_sort_field_options(): array {
   return [
-    'relevance|DESC' => t('Relevance', [], ['context' => 'eonext_editorial_search']),
-    'sort_date|DESC' => t('Date', [], ['context' => 'eonext_editorial_search']),
-    'sort_title|ASC' => t('Title', [], ['context' => 'eonext_editorial_search']),
+    'relevance' => t('Relevance', [], ['context' => 'eonext_editorial_search']),
+    'sort_date' => t('Date', [], ['context' => 'eonext_editorial_search']),
+    'sort_title' => t('Title', [], ['context' => 'eonext_editorial_search']),
   ];
+}
+
+/**
+ * Returns editorial search sort order options for the results dropdown.
+ */
+function eonext_editorial_search_get_sort_order_options(): array {
+  return [
+    'ASC' => t('Ascending', [], ['context' => 'eonext_editorial_search']),
+    'DESC' => t('Descending', [], ['context' => 'eonext_editorial_search']),
+  ];
+}
+
+/**
+ * Returns the default sort order for a given sort field.
+ */
+function eonext_editorial_search_get_default_sort_order(string $sort_by): string {
+  return match ($sort_by) {
+    'sort_date' => 'DESC',
+    'sort_title' => 'ASC',
+    default => 'DESC',
+  };
 }
 
 /**
@@ -113,27 +134,17 @@ function eonext_editorial_search_get_selected_sort(?string $search_query = NULL)
   $sort_by = $request->query->get('sort_by');
   $sort_order = $request->query->get('sort_order');
 
-  if (is_string($sort_by) && $sort_by !== '') {
-    return [
-      'sort_by' => $sort_by,
-      'sort_order' => is_string($sort_order) && $sort_order !== '' ? strtoupper($sort_order) : 'DESC',
-    ];
+  if (!is_string($sort_by) || $sort_by === '') {
+    $sort_by = 'relevance';
   }
 
-  if ($search_query === NULL) {
-    $search_query = $request->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, '');
-  }
-
-  if (is_string($search_query) && $search_query !== '') {
-    return [
-      'sort_by' => 'relevance',
-      'sort_order' => 'DESC',
-    ];
-  }
+  $sort_order = is_string($sort_order) && $sort_order !== ''
+    ? strtoupper($sort_order)
+    : eonext_editorial_search_get_default_sort_order($sort_by);
 
   return [
-    'sort_by' => 'sort_date',
-    'sort_order' => 'DESC',
+    'sort_by' => $sort_by,
+    'sort_order' => $sort_order,
   ];
 }
 
@@ -275,8 +286,10 @@ function eonext_editorial_search_preprocess_views_view(array &$variables): void 
 
   $search_query = \Drupal::request()->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, '');
   $selected_sort = eonext_editorial_search_get_selected_sort(is_string($search_query) ? $search_query : '');
-  $variables['editorial_search_sort_options'] = eonext_editorial_search_get_sort_options();
-  $variables['editorial_search_sort_selected'] = $selected_sort['sort_by'] . '|' . $selected_sort['sort_order'];
+  $variables['editorial_search_sort_field_options'] = eonext_editorial_search_get_sort_field_options();
+  $variables['editorial_search_sort_order_options'] = eonext_editorial_search_get_sort_order_options();
+  $variables['editorial_search_sort_field_selected'] = $selected_sort['sort_by'];
+  $variables['editorial_search_sort_order_selected'] = $selected_sort['sort_order'];
   $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
 }
 

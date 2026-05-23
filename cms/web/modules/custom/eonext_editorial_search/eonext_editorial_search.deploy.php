@@ -48,6 +48,14 @@ function eonext_editorial_search_deploy_reindex_content_events(): string {
 
   $index->reindex();
   $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:reset-tracker content_events && drush search-api:index content_events';
+  $messages[] = eonext_editorial_search_remove_expired_event_series_from_index();
 
   return implode(' ', $messages);
+}
+
+/**
+ * Removes expired event series still present in the editorial search index.
+ */
+function eonext_editorial_search_deploy_remove_expired_events_from_index(): string {
+  return eonext_editorial_search_remove_expired_event_series_from_index();
 }

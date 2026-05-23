@@ -174,6 +174,42 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
 }
 
 /**
+ * Removes expired event series from the editorial search index.
+ */
+function eonext_editorial_search_remove_expired_event_series_from_index(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; expired events were not removed.';
+  }
+
+  /** @var \Drupal\dpl_event\ReoccurringDateFormatter $formatter */
+  $formatter = \Drupal::service('dpl_event.reoccurring_date_formatter');
+  $query = $index->query();
+  $query->range(0, 10000);
+  $results = $query->execute();
+
+  $item_ids = [];
+  foreach ($results->getResultItems() as $item) {
+    $entity = $item->getOriginalObject()->getValue();
+    if ($entity instanceof \Drupal\recurring_events\Entity\EventSeries
+      && $formatter->getUpcomingEventDetails($entity) === NULL) {
+      $item_ids[] = $item->getId();
+    }
+  }
+
+  if ($item_ids === []) {
+    return 'No expired event series found in index content_events.';
+  }
+
+  $index->getServerInstance()->deleteItems($index, $item_ids);
+
+  return sprintf(
+    'Removed %d expired event series from index content_events.',
+    count($item_ids),
+  );
+}
+
+/**
  * Ensures the editorial event date processor is enabled on the search index.
  */
 function eonext_editorial_search_ensure_editorial_event_date_processor(): string {
@@ -226,6 +262,13 @@ function eonext_editorial_search_update_9002(): string {
  */
 function eonext_editorial_search_update_9004(): string {
   return eonext_editorial_search_update_9002();
+}
+
+/**
+ * Removes stale expired event series left in the editorial search index.
+ */
+function eonext_editorial_search_update_9005(): string {
+  return eonext_editorial_search_remove_expired_event_series_from_index();
 }
 
 /**
