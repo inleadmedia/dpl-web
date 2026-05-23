@@ -8,15 +8,12 @@ use Drupal\eonext_editorial_search\ArticleMaterialSync;
 use Drush\Attributes\Command;
 use Drush\Attributes\Option;
 use Drush\Attributes\Usage;
-use Drush\Commands\AutowireTrait;
 use Drush\Commands\DrushCommands;
 
 /**
  * Drush commands for editorial search maintenance.
  */
 final class EditorialSearchCommands extends DrushCommands {
-
-  use AutowireTrait;
 
   public function __construct(
     private readonly ArticleMaterialSync $articleMaterialSync,
