@@ -10,6 +10,13 @@ declare(strict_types=1);
 use Drupal\eonext_editorial_search\ArticleMaterialSync;
 
 /**
+ * Loads install-time helpers for deploy hooks.
+ */
+function _eonext_editorial_search_load_install(): void {
+  \Drupal::moduleHandler()->loadInclude('eonext_editorial_search', 'install');
+}
+
+/**
  * Populates field_material on existing articles from material grid paragraphs.
  */
 function eonext_editorial_search_deploy_sync_article_materials(): string {
@@ -28,6 +35,8 @@ function eonext_editorial_search_deploy_sync_article_materials(): string {
  * Enables editorial event date indexing and marks the index for re-indexing.
  */
 function eonext_editorial_search_deploy_reindex_content_events(): string {
+  _eonext_editorial_search_load_install();
+
   $messages = [
     eonext_editorial_search_ensure_editorial_event_date_processor(),
   ];
@@ -57,5 +66,7 @@ function eonext_editorial_search_deploy_reindex_content_events(): string {
  * Removes expired event series still present in the editorial search index.
  */
 function eonext_editorial_search_deploy_remove_expired_events_from_index(): string {
+  _eonext_editorial_search_load_install();
+
   return eonext_editorial_search_remove_expired_event_series_from_index();
 }
