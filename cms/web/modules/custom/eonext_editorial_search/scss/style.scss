@@ -126,6 +126,10 @@
 
     &[hidden] {
       display: none;
+
+      + .eonext-search-facet-group__view-all {
+        display: none;
+      }
     }
   }
 

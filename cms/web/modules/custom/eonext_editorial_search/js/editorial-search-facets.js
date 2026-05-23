@@ -171,6 +171,8 @@
   function toggleFacetGroup(button) {
     const contentId = button.getAttribute('aria-controls');
     const content = document.getElementById(contentId);
+    const facetGroup = button.closest('.eonext-search-facet-group');
+    const viewAllToggle = facetGroup?.querySelector('.eonext-search-facet-group__view-all');
     const chevron = button.querySelector('.eonext-search-facet-group__chevron');
     const isExpanded = button.getAttribute('aria-expanded') === 'true';
 
@@ -179,9 +181,11 @@
     if (content) {
       if (isExpanded) {
         content.setAttribute('hidden', 'hidden');
+        viewAllToggle?.setAttribute('hidden', 'hidden');
       }
       else {
         content.removeAttribute('hidden');
+        viewAllToggle?.removeAttribute('hidden');
         initFacetList(content);
       }
     }
