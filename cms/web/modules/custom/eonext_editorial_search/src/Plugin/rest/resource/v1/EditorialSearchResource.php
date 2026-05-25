@@ -401,7 +401,7 @@ final class EditorialSearchResource extends ResourceBase {
       $data['teaser_text'] = $entity->get('field_teaser_text')->getString();
     }
 
-    $data['image'] = $this->extractTeaserImage($entity);
+    $data['image'] = $this->extractTeaserImage($entity) ?? NULL;
 
     $categories_field = $entity->hasField('field_categories') ? $entity->get('field_categories') : NULL;
     if ($categories_field instanceof EntityReferenceFieldItemListInterface) {
