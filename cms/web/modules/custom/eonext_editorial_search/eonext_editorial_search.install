@@ -15,6 +15,7 @@ function eonext_editorial_search_install(): void {
   eonext_editorial_search_ensure_facet_index_fields();
   eonext_editorial_search_ensure_sort_index_fields();
   eonext_editorial_search_ensure_editorial_event_date_processor();
+  eonext_editorial_search_ensure_editorial_content_indexing();
 }
 
 /**
@@ -210,6 +211,78 @@ function eonext_editorial_search_remove_expired_event_series_from_index(): strin
 }
 
 /**
+ * Adds editorial content field and processor to the search index.
+ */
+function eonext_editorial_search_ensure_editorial_content_indexing(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial content indexing was not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $messages = [];
+  $added_fields = [];
+
+  if (!$index->getField('editorial_content')) {
+    $field = $fields_helper->createField($index, 'editorial_content', [
+      'label' => 'Editorial content',
+      'property_path' => 'aggregated_field',
+      'type' => 'text',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ]);
+    $index->addField($field);
+    $added_fields[] = 'editorial_content';
+  }
+
+  $processors = $index->getProcessors();
+  if (!isset($processors['editorial_content'])) {
+    $processor = \Drupal::service('search_api.plugin_helper')
+      ->createProcessorPlugin($index, 'editorial_content');
+    $index->addProcessor($processor);
+    $messages[] = 'Enabled editorial content processor on index content_events.';
+  }
+
+  if ($added_fields !== [] || $messages !== []) {
+    $ignorecase = $index->getProcessorIfAvailable('ignorecase');
+    if ($ignorecase) {
+      $configuration = $ignorecase->getConfiguration();
+      $ignorecase_fields = $configuration['fields'] ?? [];
+      foreach ($added_fields as $field_id) {
+        if (!in_array($field_id, $ignorecase_fields, TRUE)) {
+          $ignorecase_fields[] = $field_id;
+        }
+      }
+      $configuration['fields'] = $ignorecase_fields;
+      $ignorecase->setConfiguration($configuration);
+    }
+
+    $index->save();
+    $index->reindex();
+  }
+
+  if ($added_fields !== []) {
+    $messages[] = sprintf(
+      'Added Search API fields (%s) to index content_events.',
+      implode(', ', $added_fields),
+    );
+  }
+
+  if ($messages === []) {
+    return 'Editorial content indexing is already configured on index content_events.';
+  }
+
+  $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+
+  return implode(' ', $messages);
+}
+
+/**
  * Ensures the editorial event date processor is enabled on the search index.
  */
 function eonext_editorial_search_ensure_editorial_event_date_processor(): string {
@@ -269,6 +342,13 @@ function eonext_editorial_search_update_9004(): string {
  */
 function eonext_editorial_search_update_9005(): string {
   return eonext_editorial_search_remove_expired_event_series_from_index();
+}
+
+/**
+ * Indexes full editorial content (body text, materials, etc.) for search.
+ */
+function eonext_editorial_search_update_9006(): string {
+  return eonext_editorial_search_ensure_editorial_content_indexing();
 }
 
 /**

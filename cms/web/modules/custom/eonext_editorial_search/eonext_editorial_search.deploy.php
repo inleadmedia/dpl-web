@@ -70,3 +70,12 @@ function eonext_editorial_search_deploy_remove_expired_events_from_index(): stri
 
   return eonext_editorial_search_remove_expired_event_series_from_index();
 }
+
+/**
+ * Enables full editorial content indexing and marks the index for re-indexing.
+ */
+function eonext_editorial_search_deploy_index_editorial_content(): string {
+  _eonext_editorial_search_load_install();
+
+  return eonext_editorial_search_ensure_editorial_content_indexing();
+}
