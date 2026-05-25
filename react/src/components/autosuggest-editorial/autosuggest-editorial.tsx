@@ -42,7 +42,11 @@ const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title
 
   return <li className="autosuggest-editorial__search-item">
     <a className="autosuggest__text-item text-body-medium-regular px-24 autosuggest-editorial__item-link" href={ url }>
-      <img className="autosuggest-editorial__search-item-image" src={image.url} alt={image.alt} />
+      {
+        image && image.url
+          ? <img className="autosuggest-editorial__search-item-image" src={image.url} alt={image.alt} />
+          : <div className="autosuggest-editorial__search-item-image media-container media-container--placeholder"></div>
+      }
       <span className="autosuggest-editorial__search-item-meta text-small-caption">
         <span className="autosuggest-editorial__search-item-type">
           { t("Artikel") }
