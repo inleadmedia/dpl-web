@@ -79,3 +79,12 @@ function eonext_editorial_search_deploy_index_editorial_content(): string {
 
   return eonext_editorial_search_ensure_editorial_content_indexing();
 }
+
+/**
+ * Excludes GO articles from editorial search index and facet filters.
+ */
+function eonext_editorial_search_deploy_exclude_go_articles_from_index(): string {
+  _eonext_editorial_search_load_install();
+
+  return eonext_editorial_search_exclude_go_articles_from_index();
+}
