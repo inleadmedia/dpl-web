@@ -233,6 +233,14 @@ function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query)
 
   $search_api_query->sort($sort_field, $selected_sort['sort_order']);
 
+  if ($sort_field === 'sort_date') {
+    $search_api_query->sort('sort_title', $selected_sort['sort_order']);
+    $search_api_query->sort('search_api_id', 'ASC');
+  }
+  elseif ($sort_field === 'sort_title') {
+    $search_api_query->sort('search_api_id', 'ASC');
+  }
+
   if (eonext_editorial_search_show_past_events()) {
     return;
   }

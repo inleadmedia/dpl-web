@@ -12,3 +12,5 @@ services:
       $logger: '@logger.channel.eonext_editorial_search'
 
   Drupal\eonext_editorial_search\EditorialContentExtractor: ~
+
+  Drupal\eonext_editorial_search\EditorialEventSortDateResolver: ~

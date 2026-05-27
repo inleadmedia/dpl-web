@@ -6,6 +6,7 @@ namespace Drupal\eonext_editorial_search\Plugin\search_api\processor;
 
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\dpl_event\ReoccurringDateFormatter;
+use Drupal\eonext_editorial_search\EditorialEventSortDateResolver;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\search_api\Attribute\SearchApiProcessor;
 use Drupal\search_api\IndexInterface;
@@ -38,11 +39,17 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
   protected ReoccurringDateFormatter $reoccurringDateFormatter;
 
   /**
+   * Resolves sort dates for indexed event series.
+   */
+  protected EditorialEventSortDateResolver $sortDateResolver;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     $processor = parent::create($container, $configuration, $plugin_id, $plugin_definition);
     $processor->reoccurringDateFormatter = $container->get('dpl_event.reoccurring_date_formatter');
+    $processor->sortDateResolver = $container->get(EditorialEventSortDateResolver::class);
     return $processor;
   }
 
@@ -87,14 +94,9 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
     }
 
     $sort_timestamp = NULL;
-    if ($upcoming_event !== NULL) {
-      $sort_timestamp = $upcoming_event['start']->getTimestamp();
-    }
-    else {
-      $past_event = $this->reoccurringDateFormatter->getPastEventDetails($entity);
-      if ($past_event !== NULL) {
-        $sort_timestamp = $past_event['end']->getTimestamp();
-      }
+    $sort_date_details = $this->sortDateResolver->resolveSortDateDetails($entity);
+    if ($sort_date_details !== NULL) {
+      $sort_timestamp = $sort_date_details['start']->getTimestamp();
     }
 
     if ($sort_timestamp === NULL) {
