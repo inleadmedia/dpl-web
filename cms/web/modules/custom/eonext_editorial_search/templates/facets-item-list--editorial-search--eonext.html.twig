@@ -48,6 +48,30 @@
         ]) }}
         {% if not is_expanded %}hidden{% endif %}
       >
+        {% if facet.id == 'editorial_content_type' and editorial_search_has_matching_past_events %}
+          <li class="eonext-search-facet-group__item eonext-editorial-search__past-events">
+            <div class="eonext-checkbox">
+              <input
+                type="checkbox"
+                class="eonext-checkbox__input"
+                id="editorial-search-show-past-events"
+                data-editorial-search-show-past-events
+                value="1"
+                {{ editorial_search_show_past_events ? ' checked' : '' }}
+              >
+              <label class="eonext-checkbox__label" for="editorial-search-show-past-events">
+                <span class="eonext-checkbox__icon">
+                  <svg width="12" height="10" viewBox="0 0 12 10">
+                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                  </svg>
+                </span>
+                <span class="eonext-checkbox__text">
+                  {{ 'Show past events'|t({}, {'context': 'eonext_editorial_search'}) }}
+                </span>
+              </label>
+            </div>
+          </li>
+        {% endif %}
         {%- for item in items -%}
           <li{{ item.attributes.addClass(['eonext-search-facet-group__item', 'facet-item']) }}>{{ item.value }}</li>
         {%- endfor -%}

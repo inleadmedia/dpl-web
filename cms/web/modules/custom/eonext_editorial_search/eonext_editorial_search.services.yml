@@ -10,3 +10,7 @@ services:
   Drupal\eonext_editorial_search\ArticleMaterialSync:
     arguments:
       $logger: '@logger.channel.eonext_editorial_search'
+
+  Drupal\eonext_editorial_search\EditorialContentExtractor: ~
+
+  Drupal\eonext_editorial_search\EditorialEventSortDateResolver: ~

@@ -76,6 +76,7 @@ final class EditorialSearchResource extends ResourceBase {
    *   page_size - Items per page (default: 10, max: 100).
    *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
    *   entity_type - Entity filter (node, eventseries).
+   *   show_past_events - Include past event series (1 to enable).
    */
   public function get(Request $request): Response {
     $search = $request->query->get('q');
@@ -219,6 +220,7 @@ final class EditorialSearchResource extends ResourceBase {
     ];
 
     $contexts[] = 'url.query_args:entity_type';
+    $contexts[] = 'url.query_args:show_past_events';
 
     return $contexts;
   }

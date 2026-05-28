@@ -60,7 +60,7 @@ processor_configs:
     weights:
       post_query: 50
     settings:
-      replacements: "article|Article\r\npage|Page\r\ne_resource|E-resource\r\ngo_article|GO Article\r\ngo_page|GO page\r\ngo_category|GO category\r\ndefault|Event\r\n"
+      replacements: "article|Article\r\npage|Page\r\ne_resource|E-resource\r\ngo_page|GO page\r\ngo_category|GO category\r\ndefault|Event\r\n"
   url_processor_handler:
     processor_id: url_processor_handler
     weights:
