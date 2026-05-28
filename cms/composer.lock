@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f460aae53bd6031ad2070c9e84473482",
+    "content-hash": "9863e5dec67c0f20138209ce0d8e2fba",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10528,21 +10528,34 @@
         },
         {
             "name": "inleadmedia/dpl-design-system",
-            "version": "2026.10.0",
+            "version": "0.0.2-dev",
             "dist": {
-                "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-design-system/releases/download/2026.10.0%2Binlead.19.03.2026/dist-2026-10-0-inlead-19-03-2026-ae12a1a90834afac95a08ad67e888a08513d7e52.zip"
+                "type": "path",
+                "url": "../design-system/build",
+                "reference": "a61b259a25779345e11cf47b7a389b64d90e6003"
             },
-            "type": "drupal-library"
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "inleadmedia/dpl-react",
-            "version": "dev-EONEXT-214-no-oenext-197.2",
+            "version": "0.0.2-dev",
             "dist": {
-                "type": "zip",
-                "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-EONEXT-197/dist-eonext-197.zip"
+                "type": "path",
+                "url": "../react/dist",
+                "reference": "60faa9ce731bf88267ee0e299be196313d389e01"
             },
-            "type": "drupal-library"
+            "require": {
+                "composer/installers": "^1.2.0"
+            },
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "jms/metadata",
@@ -22878,6 +22891,7 @@
         "drupal/potion": 20,
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
+        "inleadmedia/dpl-design-system": 20,
         "inleadmedia/dpl-react": 20
     },
     "prefer-stable": true,

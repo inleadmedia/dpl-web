@@ -80,26 +80,22 @@
             }
         },
         {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-react",
-                "type": "drupal-library",
-                "version": "dev-EONEXT-214-no-oenext-197.2",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-react/releases/download/branch-EONEXT-197/dist-eonext-197.zip",
-                    "type": "zip"
+            "type": "path",
+            "url": "../react/dist",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "inleadmedia/dpl-react": "0.0.2-dev"
                 }
             }
         },
         {
-            "type": "package",
-            "package": {
-                "name": "inleadmedia/dpl-design-system",
-                "type": "drupal-library",
-                "version": "2026.10.0",
-                "dist": {
-                    "url": "https://github.com/inleadmedia/dpl-design-system/releases/download/2026.10.0%2Binlead.19.03.2026/dist-2026-10-0-inlead-19-03-2026-ae12a1a90834afac95a08ad67e888a08513d7e52.zip",
-                    "type": "zip"
+            "type": "path",
+            "url": "../design-system/build",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "inleadmedia/dpl-design-system": "0.0.2-dev"
                 }
             }
         },
@@ -239,8 +235,8 @@
         "drupal/webform": "^6.2",
         "drupal/webform_mailerlite": "^1.0",
         "drush/drush": "^13",
-        "inleadmedia/dpl-design-system": "2026.10.0",
-        "inleadmedia/dpl-react": "dev-EONEXT-214-no-oenext-197.2",
+        "inleadmedia/dpl-design-system": "0.0.2-dev",
+        "inleadmedia/dpl-react": "0.0.2-dev",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/select2": "^4.0",
