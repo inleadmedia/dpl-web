@@ -16,6 +16,7 @@ function eonext_editorial_search_install(): void {
   eonext_editorial_search_ensure_sort_index_fields();
   eonext_editorial_search_ensure_editorial_event_date_processor();
   eonext_editorial_search_ensure_editorial_content_indexing();
+  eonext_editorial_search_ensure_event_has_upcoming_indexing();
 }
 
 /**
@@ -178,36 +179,7 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
  * Removes expired event series from the editorial search index.
  */
 function eonext_editorial_search_remove_expired_event_series_from_index(): string {
-  $index = Index::load('content_events');
-  if (!$index instanceof IndexInterface) {
-    return 'Search API index content_events was not found; expired events were not removed.';
-  }
-
-  /** @var \Drupal\dpl_event\ReoccurringDateFormatter $formatter */
-  $formatter = \Drupal::service('dpl_event.reoccurring_date_formatter');
-  $query = $index->query();
-  $query->range(0, 10000);
-  $results = $query->execute();
-
-  $item_ids = [];
-  foreach ($results->getResultItems() as $item) {
-    $entity = $item->getOriginalObject()->getValue();
-    if ($entity instanceof \Drupal\recurring_events\Entity\EventSeries
-      && $formatter->getUpcomingEventDetails($entity) === NULL) {
-      $item_ids[] = $item->getId();
-    }
-  }
-
-  if ($item_ids === []) {
-    return 'No expired event series found in index content_events.';
-  }
-
-  $index->getServerInstance()->deleteItems($index, $item_ids);
-
-  return sprintf(
-    'Removed %d expired event series from index content_events.',
-    count($item_ids),
-  );
+  return 'Past events are indexed for editorial search; expired event cleanup is no longer performed.';
 }
 
 /**
@@ -356,6 +328,55 @@ function eonext_editorial_search_update_9006(): string {
  */
 function eonext_editorial_search_update_9007(): string {
   return eonext_editorial_search_exclude_go_articles_from_index();
+}
+
+/**
+ * Indexes past events and adds event_has_upcoming for editorial search filtering.
+ */
+function eonext_editorial_search_update_9008(): string {
+  return eonext_editorial_search_ensure_event_has_upcoming_indexing();
+}
+
+/**
+ * Adds event_has_upcoming field and marks the index for re-indexing.
+ */
+function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; event_has_upcoming was not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $messages = [];
+
+  if (!$index->getField('event_has_upcoming')) {
+    $field = $fields_helper->createField($index, 'event_has_upcoming', [
+      'label' => 'Event has upcoming instances',
+      'property_path' => 'aggregated_field',
+      'type' => 'boolean',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ]);
+    $index->addField($field);
+    $messages[] = 'Added event_has_upcoming field to index content_events.';
+  }
+
+  if ($messages !== []) {
+    $index->save();
+    $index->reindex();
+    $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+  }
+
+  if ($messages === []) {
+    return 'Event upcoming indexing is already configured on index content_events.';
+  }
+
+  return implode(' ', $messages);
 }
 
 /**

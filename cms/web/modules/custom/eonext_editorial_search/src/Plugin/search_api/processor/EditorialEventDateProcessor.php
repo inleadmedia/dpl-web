@@ -6,6 +6,7 @@ namespace Drupal\eonext_editorial_search\Plugin\search_api\processor;
 
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\dpl_event\ReoccurringDateFormatter;
+use Drupal\eonext_editorial_search\EditorialEventSortDateResolver;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\search_api\Attribute\SearchApiProcessor;
 use Drupal\search_api\IndexInterface;
@@ -15,18 +16,22 @@ use Drupal\search_api\Processor\ProcessorPluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Excludes expired event series and indexes upcoming event dates for sorting.
+ * Indexes event dates and upcoming status for editorial search sorting/filtering.
  */
 #[SearchApiProcessor(
   id: 'editorial_event_date',
   label: new TranslatableMarkup('Editorial event date'),
-  description: new TranslatableMarkup('Excludes expired event series and indexes the next upcoming event date for sorting.'),
+  description: new TranslatableMarkup('Indexes upcoming status and the next or most recent event date for sorting.'),
   stages: [
-    'alter_items' => 0,
     'preprocess_index' => 0,
   ],
 )]
 final class EditorialEventDateProcessor extends ProcessorPluginBase {
+
+  /**
+   * Search API field ID for whether an event series has upcoming instances.
+   */
+  public const FIELD_HAS_UPCOMING = 'event_has_upcoming';
 
   /**
    * The recurring event date formatter.
@@ -34,11 +39,17 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
   protected ReoccurringDateFormatter $reoccurringDateFormatter;
 
   /**
+   * Resolves sort dates for indexed event series.
+   */
+  protected EditorialEventSortDateResolver $sortDateResolver;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): self {
     $processor = parent::create($container, $configuration, $plugin_id, $plugin_definition);
     $processor->reoccurringDateFormatter = $container->get('dpl_event.reoccurring_date_formatter');
+    $processor->sortDateResolver = $container->get(EditorialEventSortDateResolver::class);
     return $processor;
   }
 
@@ -58,46 +69,44 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function alterIndexedItems(array &$items): void {
-    foreach ($items as $item_id => $item) {
-      $entity = $item->getOriginalObject()->getValue();
-      if (!($entity instanceof EventSeries)) {
-        continue;
-      }
-
-      if ($this->reoccurringDateFormatter->getUpcomingEventDetails($entity) === NULL) {
-        unset($items[$item_id]);
-      }
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function preprocessIndexItems(array $items): void {
     foreach ($items as $item) {
-      $this->setEventSortDate($item);
+      $this->setEventIndexFields($item);
     }
   }
 
   /**
-   * Sets sort_date on an indexed event series item.
+   * Sets event_has_upcoming and sort_date on an indexed event series item.
    */
-  private function setEventSortDate(ItemInterface $item): void {
+  private function setEventIndexFields(ItemInterface $item): void {
     $entity = $item->getOriginalObject()->getValue();
     if (!($entity instanceof EventSeries)) {
       return;
     }
 
     $upcoming_event = $this->reoccurringDateFormatter->getUpcomingEventDetails($entity);
-    if ($upcoming_event === NULL) {
+    $has_upcoming = $upcoming_event !== NULL;
+
+    $has_upcoming_field = $item->getField(self::FIELD_HAS_UPCOMING, FALSE);
+    if ($has_upcoming_field instanceof FieldInterface) {
+      $has_upcoming_field->setValues([]);
+      $has_upcoming_field->addValue($has_upcoming);
+    }
+
+    $sort_timestamp = NULL;
+    $sort_date_details = $this->sortDateResolver->resolveSortDateDetails($entity);
+    if ($sort_date_details !== NULL) {
+      $sort_timestamp = $sort_date_details['start']->getTimestamp();
+    }
+
+    if ($sort_timestamp === NULL) {
       return;
     }
 
     $sort_date_field = $item->getField('sort_date', FALSE);
     if ($sort_date_field instanceof FieldInterface) {
       $sort_date_field->setValues([]);
-      $sort_date_field->addValue($upcoming_event['start']->getTimestamp());
+      $sort_date_field->addValue($sort_timestamp);
     }
   }
 

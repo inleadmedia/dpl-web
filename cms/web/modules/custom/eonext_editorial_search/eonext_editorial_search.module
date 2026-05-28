@@ -14,6 +14,61 @@ use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\ViewExecutable;
 
 /**
+ * Query parameter for including past events in editorial search results.
+ */
+const EONEXT_EDITORIAL_SEARCH_SHOW_PAST_EVENTS_KEY = 'show_past_events';
+
+/**
+ * Returns whether past events should be included in editorial search results.
+ */
+function eonext_editorial_search_show_past_events(): bool {
+  $value = \Drupal::request()->query->get(EONEXT_EDITORIAL_SEARCH_SHOW_PAST_EVENTS_KEY);
+
+  return $value === '1' || $value === 1 || $value === TRUE;
+}
+
+/**
+ * Facet source ID for the editorial search page display.
+ */
+const EONEXT_EDITORIAL_SEARCH_FACET_SOURCE_ID = 'search_api:views_page__editorial_search__page';
+
+/**
+ * Returns whether any past events match the current editorial search query.
+ */
+function eonext_editorial_search_has_matching_past_events(): bool {
+  $request = \Drupal::request();
+  $cached = $request->attributes->get('editorial_search.has_matching_past_events');
+  if ($cached !== NULL) {
+    return (bool) $cached;
+  }
+
+  $has_matching = FALSE;
+  $index = \Drupal\search_api\Entity\Index::load('content_events');
+  if ($index !== NULL && $index->getField('event_has_upcoming') !== NULL) {
+    $query = $index->query();
+    $query->addCondition('status', TRUE);
+    $query->addCondition('event_has_upcoming', FALSE);
+    $query->addCondition('search_api_datasource', 'entity:eventseries');
+
+    $search = $request->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, '');
+    if (is_string($search) && trim($search) !== '') {
+      $query->keys(trim($search));
+    }
+
+    /** @var \Drupal\facets\FacetManager\DefaultFacetManager $facet_manager */
+    $facet_manager = \Drupal::service('facets.manager');
+    $facet_manager->alterQuery($query, EONEXT_EDITORIAL_SEARCH_FACET_SOURCE_ID);
+
+    $query->range(0, 1);
+    $has_matching = $query->execute()->getResultCount() > 0;
+  }
+
+  $request->attributes->set('editorial_search.has_matching_past_events', $has_matching);
+
+  return $has_matching;
+}
+
+/**
  * Returns the module templates directory path.
  */
 function eonext_editorial_search_get_templates_path(): string {
@@ -177,6 +232,28 @@ function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query)
     : $selected_sort['sort_by'];
 
   $search_api_query->sort($sort_field, $selected_sort['sort_order']);
+
+  if ($sort_field === 'sort_date') {
+    $search_api_query->sort('sort_title', $selected_sort['sort_order']);
+    $search_api_query->sort('search_api_id', 'ASC');
+  }
+  elseif ($sort_field === 'sort_title') {
+    $search_api_query->sort('search_api_id', 'ASC');
+  }
+
+  if (eonext_editorial_search_show_past_events()) {
+    return;
+  }
+
+  $index = $search_api_query->getIndex();
+  if ($index->getField('event_has_upcoming') === NULL) {
+    return;
+  }
+
+  $condition_group = $search_api_query->createConditionGroup('OR');
+  $condition_group->addCondition('event_has_upcoming', TRUE);
+  $condition_group->addCondition('search_api_datasource', 'entity:node');
+  $search_api_query->addConditionGroup($condition_group);
 }
 
 /**
@@ -186,6 +263,10 @@ function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query)
  */
 function eonext_editorial_search_views_post_execute(ViewExecutable $view): void {
   if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID || $view->current_display !== 'page') {
+    return;
+  }
+
+  if (eonext_editorial_search_show_past_events()) {
     return;
   }
 
@@ -267,6 +348,16 @@ function eonext_editorial_search_theme_suggestions_form_alter(array &$suggestion
  */
 function eonext_editorial_search_preprocess_facets_item_list__editorial_search__eonext(array &$variables): void {
   $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
+
+  $facet = $variables['facet'] ?? NULL;
+  if ($facet && $facet->id() === 'editorial_content_type') {
+    $variables['editorial_search_show_past_events'] = eonext_editorial_search_show_past_events();
+    $variables['editorial_search_has_matching_past_events'] = eonext_editorial_search_has_matching_past_events();
+    $variables['#cache']['contexts'][] = 'url.query_args:show_past_events';
+    $variables['#cache']['contexts'][] = 'url.query_args:' . DplSearchSettings::EDITORIAL_QUERY_KEY;
+    $variables['#cache']['contexts'][] = 'url.query_args';
+    $variables['#cache']['tags'][] = 'search_api_list:content_events';
+  }
 }
 
 /**
@@ -290,6 +381,7 @@ function eonext_editorial_search_preprocess_views_view(array &$variables): void 
   $variables['editorial_search_sort_order_options'] = eonext_editorial_search_get_sort_order_options();
   $variables['editorial_search_sort_field_selected'] = $selected_sort['sort_by'];
   $variables['editorial_search_sort_order_selected'] = $selected_sort['sort_order'];
+  $variables['editorial_search_show_past_events'] = eonext_editorial_search_show_past_events();
   $variables['baseIconPath'] = eonext_editorial_search_get_base_icon_path();
 }
 

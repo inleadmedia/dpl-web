@@ -38,6 +38,12 @@
     }
   }
 
+  &__past-events.eonext-search-facet-group__item {
+    border-bottom: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+
   &__sort.eonext-search__sort-select {
     display: flex;
     align-items: center;
