@@ -1,5 +1,5 @@
 type: module
-name: EONEXT Service Banner
+name: EO NEXT Service Banner
 description: Provides a configurable service banner for the library website.
 package: EO next
 core_version_requirement: ^10
