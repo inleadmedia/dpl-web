@@ -2,4 +2,4 @@ service-banner-preview:
   version: VERSION
   css:
     component:
-      css/service-banner-preview.css: {}
+      css/eonext_servicebanner.min.css: {}

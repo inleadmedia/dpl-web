@@ -1,0 +1,14 @@
+{
+  "name": "eonext_servicebanner",
+  "version": "1.0.0",
+  "description": "Styles for EO Next Service Banner",
+  "scripts": {
+    "scss-dev": "node-sass scss/style.scss css/eonext_servicebanner.css --output-style expanded",
+    "scss": "node-sass scss/style.scss css/eonext_servicebanner.min.css --output-style compressed"
+  },
+  "dependencies": {
+    "globule": "^1.3.4",
+    "node-sass": "^9.0.0",
+    "uglify-js": "^3.17.4"
+  }
+}
