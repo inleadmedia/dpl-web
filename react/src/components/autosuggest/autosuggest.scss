@@ -5,6 +5,11 @@
 
   &--found-editorial-suggestions {
     border-left: 1px solid #dbdbdb;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &--with-editorial-suggestions {
+    padding-top: 0 !important;
   }
 
   &--with-editorial-suggestions &__main-suggestions {
