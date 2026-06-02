@@ -3,6 +3,10 @@
     width: 100%;
   }
 
+  &--found-editorial-suggestions {
+    border-left: 1px solid #dbdbdb;
+  }
+
   &--with-editorial-suggestions &__main-suggestions {
     display: flex;
     flex-direction: row;
