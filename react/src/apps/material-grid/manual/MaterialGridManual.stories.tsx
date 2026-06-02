@@ -64,6 +64,10 @@ const meta: Meta<typeof MaterialGridManual> = {
       description: "Button text",
       control: { type: "text" }
     },
+    showAllLinkConfig: {
+      description: "Link of the show all materials button",
+      control: { type: "text" }
+    },
     materials: {
       description: "Materials",
       control: { type: "object" }
@@ -107,6 +111,7 @@ export const Primary: Story = {
     description:
       "This is a long description of the materials selected, or whatever else you want to put in here",
     buttonText: "Show all",
+    showAllLinkConfig: "https://slagbib-eonext.stg.inlead.dev/",
     materials: JSON.stringify(materials),
     materialUrl: "/work/:workid",
     etAlText: "et al.",
