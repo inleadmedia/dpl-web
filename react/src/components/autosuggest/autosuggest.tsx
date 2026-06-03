@@ -1,12 +1,13 @@
 import { UseComboboxPropGetters } from "downshift";
-import React from "react";
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { SuggestionsFromQueryStringQuery } from "../../core/dbc-gateway/generated/graphql";
 import { Suggestion, Suggestions } from "../../core/utils/types/autosuggest";
+import { useText } from "../../core/utils/text";
 import AutosuggestCategory from "../autosuggest-category/autosuggest-category";
 import AutosuggestMaterial from "../autosuggest-material/autosuggest-material";
 import { AutosuggestText } from "../autosuggest-text/autosuggest-text";
 import AutosuggestEditorial from "../autosuggest-editorial/autosuggest-editorial";
-import { createPortal } from "react-dom";
 
 export interface AutosuggestProps {
   query?: string;
@@ -36,6 +37,9 @@ export const Autosuggest: React.FC<AutosuggestProps> = ({
   isLoading,
   dataCy = "autosuggest"
 }) => {
+  const [editorialSuggestionsHits, setEditorialSuggestionsHits] = useState(0);
+  const t = useText();
+
   if (isLoading && !textData) {
     return null;
   }
@@ -62,6 +66,14 @@ export const Autosuggest: React.FC<AutosuggestProps> = ({
       >
         <div className="autosuggest__main-suggestions">
           <div className="autosuggest__text-suggestions">
+            {
+              isEditorialSuggestionsEnabled
+                ? <h3 className="card-list-item__title text-header-h4 mt-8 mb-8 px-24">
+                  {t("Materialer")}
+                </h3>
+                : null
+            }
+
             <AutosuggestText
               textData={textData}
               highlightedIndex={highlightedIndex}
@@ -70,8 +82,15 @@ export const Autosuggest: React.FC<AutosuggestProps> = ({
           </div>
           {
             isEditorialSuggestionsEnabled
-              ? <div className="autosuggest__editorial-suggestions">
-                <AutosuggestEditorial query={ query } />
+              ? <div className={`autosuggest__editorial-suggestions ${ editorialSuggestionsHits > 0 ? "autosuggest--found-editorial-suggestions" : "" }`}>
+                {
+                  editorialSuggestionsHits > 0
+                    ? <h3 className="card-list-item__title text-header-h4 mt-8 mb-8 px-24">
+                      {t("Redaktionelt Indhold")}
+                    </h3>
+                    : null
+                }
+                <AutosuggestEditorial query={ query } onFound={ (editorialSuggestions) => setEditorialSuggestionsHits(editorialSuggestions.total) } />
               </div>
               : null
           }
