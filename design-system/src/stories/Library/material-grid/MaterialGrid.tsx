@@ -14,6 +14,7 @@ export type MaterialGridProps = {
   initialMaximumDisplay?: AllowedDisplayAmount;
   materials: RecommendedMaterialProps[];
   buttonText?: string;
+  buttonLink?: string;
 };
 
 export const MaterialGrid: React.FC<MaterialGridProps> = ({
@@ -22,6 +23,7 @@ export const MaterialGrid: React.FC<MaterialGridProps> = ({
   selectedAmountOfMaterialsForDisplay,
   materials,
   buttonText,
+  buttonLink,
   initialMaximumDisplay = 4,
 }) => {
   const initialMaterialsToDisplay =
@@ -65,17 +67,22 @@ export const MaterialGrid: React.FC<MaterialGridProps> = ({
             </li>
           ))}
       </ul>
-      {moreMaterialsThanInitialMaximum && !showAllMaterials && buttonText && (
-        <button
-          className="material-grid__show-more btn-primary btn-outline btn-medium"
-          data-show-more
-          aria-expanded={showAllMaterials ? "true" : "false"}
-          aria-controls="material-grid__items"
-          onClick={() => handleSetShowAllMaterials()}
-        >
-          {buttonText}
-        </button>
-      )}
+      {/* eslint-disable */}
+      {/* Linter is going crazy with current ternary condition format */}
+      {
+        moreMaterialsThanInitialMaximum && !showAllMaterials && buttonText
+          ? React.createElement(buttonLink ? "a" : "button", {
+            className: "material-grid__show-more btn-primary btn-outline btn-medium btn-fit-content",
+            "data-show-more": true,
+            "aria-expanded": showAllMaterials ? "true" : "false",
+            type: "button",
+            "aria-controls": "material-grid__items",
+            onClick: buttonLink ? undefined : () => handleSetShowAllMaterials(),
+            href: buttonLink
+          }, buttonText)
+          : null
+      }
+      {/* eslint-enable */}
     </div>
   );
 };

@@ -3,12 +3,31 @@
     width: 100%;
   }
 
+  &--found-editorial-suggestions {
+    border-left: 1px solid #dbdbdb;
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  &--with-editorial-suggestions {
+    padding-top: 0 !important;
+  }
+
   &--with-editorial-suggestions &__main-suggestions {
     display: flex;
     flex-direction: row;
 
     & > * {
       width: 50%;
+    }
+  }
+}
+
+@media (max-width: 1023px) {
+  .autosuggest--with-editorial-suggestions .autosuggest__main-suggestions {
+    flex-direction: column;
+
+    & > * {
+      width: 100%;
     }
   }
 }

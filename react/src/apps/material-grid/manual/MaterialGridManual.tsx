@@ -3,6 +3,7 @@ import MaterialGrid, {
   MaterialGridItemProps
 } from "../../../components/material-grid/MaterialGrid";
 import { useText } from "../../../core/utils/text";
+import { useConfig } from "../../../core/utils/config";
 
 export type MaterialGridManualProps = {
   materials: MaterialGridItemProps[];
@@ -17,6 +18,8 @@ const MaterialGridManual: React.FC<MaterialGridManualProps> = ({
 }) => {
   const t = useText();
   const buttonText = t("buttonText");
+  const config = useConfig();
+  const buttonLink = config("showAllLinkConfig");
 
   return (
     <MaterialGrid
@@ -24,6 +27,7 @@ const MaterialGridManual: React.FC<MaterialGridManualProps> = ({
       description={description}
       materials={materials}
       buttonText={buttonText}
+      buttonLink={buttonLink}
     />
   );
 };

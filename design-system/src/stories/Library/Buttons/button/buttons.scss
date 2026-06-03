@@ -56,6 +56,10 @@ $color__btn-filled-hover: $color__text-secondary-gray;
   }
 }
 
+.btn-fit-content {
+  width: fit-content;
+}
+
 .btn-xlarge {
   height: 48px;
   padding: $s-sm 86px;

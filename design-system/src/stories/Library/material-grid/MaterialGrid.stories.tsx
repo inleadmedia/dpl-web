@@ -56,6 +56,7 @@ export const GridWithMoreMaterials = Template.bind({});
 
 GridWithMoreMaterials.args = {
   selectedAmountOfMaterialsForDisplay: 8,
+  buttonLink: "https://slagbib-eonext.stg.inlead.dev/",
 };
 
 export const GridWithNoDescription = Template.bind({});
