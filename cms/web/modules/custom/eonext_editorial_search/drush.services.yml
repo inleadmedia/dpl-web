@@ -1,0 +1,8 @@
+---
+services:
+  eonext_editorial_search.commands:
+    class: Drupal\eonext_editorial_search\Drush\Commands\EditorialSearchCommands
+    arguments:
+      - '@Drupal\eonext_editorial_search\ArticleMaterialSync'
+    tags:
+      - { name: drush.command }

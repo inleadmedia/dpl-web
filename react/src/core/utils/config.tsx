@@ -44,8 +44,9 @@ export const useConfig = (): UseConfigFunction => {
     }
   ) => {
     if (typeof data[key] !== "string") {
-      throw new Error(`Config entry "${key}" is not defined.`);
+      return undefined;
     }
+
     if (options?.transformer === "jsonParse") {
       return JSON.parse(data[key]);
     }

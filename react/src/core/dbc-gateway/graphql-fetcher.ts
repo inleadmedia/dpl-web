@@ -8,8 +8,8 @@ const forceLibraryToken = document.querySelector("[data-lms-user-api-enabled]")?
 export const fetcher = <TData, TVariables>(
   query: string,
   variables?: TVariables,
-  urlOverride?: string,
-  abortController?: AbortController
+  abortController?: AbortController,
+  urlOverride?: string
 ) => {
   return (context?: QueryFunctionContext): Promise<TData> => {
     // Resolve the url based on the query name if present.

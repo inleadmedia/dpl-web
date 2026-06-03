@@ -7,6 +7,7 @@ import {
 } from "../../../core/dbc-gateway/generated/graphql";
 import useGetSearchBranches from "../../../core/utils/branches";
 import { useText } from "../../../core/utils/text";
+import { useConfig } from "../../../core/utils/config";
 import { WorkId } from "../../../core/utils/types/ids";
 import { commaSeparatedStringToArray } from "../../advanced-search/helpers";
 import {
@@ -42,6 +43,8 @@ const MaterialGridAutomatic: React.FC<MaterialGridAutomaticProps> = ({
 }) => {
   const t = useText();
   const buttonText = t("buttonText");
+  const config = useConfig();
+  const buttonLink = config("showAllLinkConfig");
   const cleanBranches = useGetSearchBranches();
 
   const { data, isLoading } = useComplexSearchWithPaginationQuery({
@@ -83,6 +86,7 @@ const MaterialGridAutomatic: React.FC<MaterialGridAutomaticProps> = ({
       materials={materials}
       description={description}
       buttonText={buttonText}
+      buttonLink={buttonLink}
     />
   );
 };

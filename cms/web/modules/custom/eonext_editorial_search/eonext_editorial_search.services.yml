@@ -1,0 +1,16 @@
+---
+services:
+  _defaults:
+    autowire: true
+
+  logger.channel.eonext_editorial_search:
+    parent: logger.channel_base
+    arguments: ['eonext_editorial_search']
+
+  Drupal\eonext_editorial_search\ArticleMaterialSync:
+    arguments:
+      $logger: '@logger.channel.eonext_editorial_search'
+
+  Drupal\eonext_editorial_search\EditorialContentExtractor: ~
+
+  Drupal\eonext_editorial_search\EditorialEventSortDateResolver: ~

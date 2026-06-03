@@ -85,6 +85,10 @@ const meta: Meta<typeof MaterialGridAutomatic> = {
       description: "Button text",
       control: { type: "text" }
     },
+    showAllLinkConfig: {
+      description: "Link of the show all materials button",
+      control: { type: "text" }
+    },
     materialUrl: {
       description: "Path to the material page",
       control: { type: "text" }
@@ -133,6 +137,7 @@ export const Primary: Story = {
     firstaccessiondateitem: "",
     requestedAmount: 12,
     buttonText: "Show all",
+    showAllLinkConfig: "https://slagbib-eonext.stg.inlead.dev/",
     materialUrl: "/work/:workid",
     etAlText: "et al.",
     blacklistedPickupBranchesConfig:

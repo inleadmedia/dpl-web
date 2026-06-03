@@ -26,6 +26,7 @@ import { Button } from "../../components/Buttons/Button";
 import { convertFacetsToFilters, isValidFacetsState } from "./helpers";
 import { isWildcardQuery } from "../advanced-search-v2/lib/query-builder";
 import { allFacetFields, createFilters } from "./helper";
+import AutosuggestEditorial from "../../components/autosuggest-editorial/autosuggest-editorial";
 import { useCampaignMatchPOST } from "../../core/dpl-cms/dpl-cms";
 import { CampaignMatchPOSTBody } from "../../core/dpl-cms/model/campaignMatchPOSTBody";
 
@@ -33,6 +34,8 @@ interface SearchResultProps {
   q: string;
   pageSize: number;
 }
+
+const isEditorialSearchEnabled = document.querySelector("[data-editorial-search]")?.getAttribute("data-editorial-search") === "true";
 
 const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
   const u = useUrls();
@@ -228,11 +231,18 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
           ) : null
         }
       />
+
       <div className="search__results">
         <div className="search__grid">
           <SearchResultFacets facets={facets} />
 
           <section>
+            {
+              isEditorialSearchEnabled
+                ? <AutosuggestEditorial query={q} limit={4} template="search-results" filter="content_type:article" />
+                : null
+            }
+
             <div className="search__results-top-bar">
               <div className="search__results-top-bar__left">
                 <h2 className="search__results-heading">

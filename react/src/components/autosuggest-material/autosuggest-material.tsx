@@ -62,9 +62,7 @@ const AutosuggestMaterial: React.FC<AutosuggestMaterialProps> = ({
           <li
             className={clsx("autosuggest__material-item", {
               "autosuggest__material-item--two": materialData.length === 2,
-              "autosuggest__material-item--one": materialData.length === 1,
-              "autosuggest__material-item--highlight":
-                highlightedIndex === index
+              "autosuggest__material-item--one": materialData.length === 1
             })}
             key={workId}
             // TODO: Explicitly define prop types for better clarity

@@ -245,6 +245,10 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Reviews",
       control: { type: "text" }
     },
+    relatedContentText: {
+      description: "Related content",
+      control: { type: "text" }
+    },
     detailsListTypeText: {
       description: "Type",
       control: { type: "text" }
@@ -901,7 +905,7 @@ const meta: Meta<typeof MaterialEntry> = {
     searchUrl: "/search",
     materialUrl: "/work/:workid",
     advancedSearchUrl: "/advancedsearch",
-    wid: "work-of:870970-basis:141339257",
+    wid: "work-of:870970-basis:141399357",
     agencyIdConfig: "710100",
     localSubjectsAgencyIdsConfig: "",
     smsNotificationsForReservationsEnabledConfig: "1",
@@ -953,6 +957,7 @@ const meta: Meta<typeof MaterialEntry> = {
     fictionNonfictionText: "Fictional",
     detailsText: "Details",
     reviewsText: "Reviews",
+    relatedContentText: "Related content",
     detailsListTypeText: "Type",
     detailsListLanguageText: "Language",
     detailsListContributorsText: "Contributors",

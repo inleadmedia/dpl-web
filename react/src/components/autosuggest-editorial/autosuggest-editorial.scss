@@ -1,0 +1,127 @@
+.autosuggest-editorial {
+  &__item-link {
+    text-decoration: none;
+  }
+
+  &__item-link-type {
+    text-transform: capitalize;
+  }
+
+  &--search-results {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 24px;
+    width: calc(100% + 24px);
+    margin-left: -12px;
+    margin-top: -12px;
+  }
+
+  &--search-results &__item-link {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 12px !important;
+    text-align: left !important;
+    align-items: flex-start;
+    height: auto !important;
+  }
+
+  &__search-item {
+    width: 25%;
+    min-height: max(260px, 100%);
+  }
+
+  &__search-item-image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    margin-bottom: 8px;
+  }
+
+  &__search-item-meta {
+    color: #000000;
+  }
+
+  &__search-item-type {
+    opacity: 0.5;
+  }
+
+  &__search-item-meta-delimiter {
+    margin: 0 2px;
+  }
+
+  &__search-item-date {
+  }
+
+  &__search-item-title {
+    display: block;
+    color: #000000;
+  }
+
+//  material
+
+  &__material {
+    background-color: #fff;
+    padding: 24px;
+    margin: 0 24px 16px 24px;
+    padding-top: 30px;
+  }
+
+  &__material-link {
+    text-decoration: none;
+  }
+
+  &__material-wrapper {
+    display: flex;
+    gap: 24px;
+  }
+
+  &__materia-image-wrapper {
+    display: none;
+
+    @media screen and (min-width: 768px) {
+      display: block;
+      width: 15%;
+    }
+    img {
+      height: 100%;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+  }
+
+  &__categories {
+    margin-bottom: 16px;
+    span {
+      background-color: #f6f5f0;
+      padding: 4px 6px;
+      font-weight: 500;
+    }
+  }
+
+  &__material-text {
+    @media screen and (min-width: 768px) {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  &__material-title {
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+
+    @media screen and (min-width: 768px) {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      max-width: none;
+    }
+  }
+}
+
+.disclosure:has(.autosuggest__editorial-suggestions-materials):not(:has(.autosuggest-editorial--material-results)) {
+  display: none;
+}
