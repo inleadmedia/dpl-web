@@ -14,6 +14,7 @@
     width: calc(100% + 24px);
     margin-left: -12px;
     margin-top: -12px;
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   &--search-results &__item-link {
@@ -23,16 +24,21 @@
     padding: 12px !important;
     text-align: left !important;
     align-items: flex-start;
-    height: auto !important;
+    height: 100% !important;
   }
 
   &__search-item {
-    width: 25%;
+    width: 20%;
     min-height: max(260px, 100%);
+
+    &:hover .autosuggest-editorial__search-item-title {
+      text-decoration: underline;
+    }
   }
 
   &__search-item-image {
     width: 100%;
+    height: auto !important;
     aspect-ratio: 1;
     object-fit: cover;
     margin-bottom: 8px;

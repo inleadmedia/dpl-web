@@ -232,17 +232,17 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
         }
       />
 
+      {
+        isEditorialSearchEnabled
+          ? <AutosuggestEditorial query={q} limit={5} template="search-results" filter="content_type:article" />
+          : null
+      }
+
       <div className="search__results">
         <div className="search__grid">
           <SearchResultFacets facets={facets} />
 
           <section>
-            {
-              isEditorialSearchEnabled
-                ? <AutosuggestEditorial query={q} limit={4} template="search-results" filter="content_type:article" />
-                : null
-            }
-
             <div className="search__results-top-bar">
               <div className="search__results-top-bar__left">
                 <h2 className="search__results-heading">

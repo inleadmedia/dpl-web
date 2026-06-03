@@ -73,10 +73,12 @@ const AutosuggestEditorialSuggestion: React.FC<EditorialSuggestion> = ({ url, ti
 
   return <li className="autosuggest-editorial__item">
     <a className="autosuggest__text-item text-body-medium-regular px-24 autosuggest-editorial__item-link" href={ url }>
-      { title }
-      <span className="autosuggest-editorial__item-link-type">
-        &nbsp;
-        { mappedBundle ? "(" + t(mappedBundle) + ")" : null }
+      <span>
+        { title }
+        <span className="autosuggest-editorial__item-link-type">
+          &nbsp;
+          { mappedBundle ? "(" + t(mappedBundle) + ")" : null }
+        </span>
       </span>
     </a>
   </li>;

@@ -1,5 +1,5 @@
 .header.header__with-banner {
-  border-bottom: none;
+  position: relative;
 
   .header {
     &__menu,
@@ -12,25 +12,88 @@
 .header {
   &__menu-banner {
     grid-column: 1 / -1;
-    border-top: 1px solid #dbdbdb;
     z-index: -1;
+    max-width: 1156px;
+    width: 90%;
+    margin: 0 auto;
+    position: absolute;
+    bottom: -20px;
+    transform: translateY(100%) translateX(-50%);
+    left: 50%;
+
+    @media (max-width: 767px) {
+      bottom: -80px;
+    }
+  }
+
+  &__menu-banner-fold {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    pointer-events: none;
   }
 
   &__menu-banner-content {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 16px;
-    background-color: #eee9e5;
-    border-bottom: 1px solid #dbdbdb;
+    align-items: center;
+    gap: 1rem;
+    background: #EEE9E5;
+    padding: 1.75rem 2.5rem 1.75rem 3rem;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: inherit;
+    overflow: hidden;
 
     @media (min-width: 768px) {
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 8px 16px;
-      padding: 12px 24px;
+      padding: 16px 24px;
     }
+  }
+
+  &__menu-banner-content--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ebe7e3;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1f2937;
+      outline-offset: 2px;
+    }
+  }
+
+  &__menu-banner-icon,
+  &__menu-banner-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111827;
+  }
+
+  &__menu-banner-icon {
+    opacity: 0.9;
+  }
+
+  &__menu-banner-arrow {
+    opacity: 0.7;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding-left: 2rem;
+    transition: transform 0.2s ease;
+  }
+
+  &__menu-banner-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   &__menu-banner-title {
@@ -39,9 +102,13 @@
 
   &__menu-banner-body {
     margin: 0;
-    flex: 1;
     min-width: 0;
     color: #484848;
     line-height: 160%;
+  }
+
+  &__menu-banner-linktext {
+    color: #484848;
+    text-underline-offset: 3px;
   }
 }
