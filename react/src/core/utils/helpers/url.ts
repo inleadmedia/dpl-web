@@ -162,9 +162,6 @@ export const constructSearchUrlWithFacets = (args: {
   return processedUrl;
 };
 
-/**
- * @deprecated Use constructSearchUrlWithFacets instead for search-result-v2 compatibility
- */
 export const constructAdvancedSearchSubjectUrl = (
   advancedSearchUrl: URL,
   subject: string
@@ -173,6 +170,9 @@ export const constructAdvancedSearchSubjectUrl = (
   return new URL(`${advancedSearchUrl}?filters=${filters}&view=results`);
 };
 
+/**
+ * @deprecated Use constructSearchUrlWithFacets instead for search-result-v2 compatibility
+ */
 export const constructSearchUrlWithFilter = (args: {
   searchUrl: URL;
   selectedItemString: string;

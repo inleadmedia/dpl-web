@@ -45,6 +45,19 @@ query GetNode($id: ID!) {
 
 
       paragraphs {
+        ... on ParagraphContentSlider {
+          id
+          contentReferences {
+            ... on NodeInterface {
+              id
+            }
+          }
+          underlinedTitle {
+            format
+            value
+          }
+        }
+
         ... on ParagraphNavGridManual {
           id
           titleOptional: title
@@ -244,6 +257,11 @@ query GetNode($id: ID!) {
               id
               name
               mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
             }
           }
         }
@@ -286,7 +304,20 @@ query GetNode($id: ID!) {
       teaserText
 
       paragraphs {
-        ... on ParagraphNavGridManual {
+        ... on ParagraphContentSlider {
+          id
+          contentReferences {
+            ... on NodeInterface {
+              id
+            }
+          }
+          underlinedTitle {
+            format
+            value
+          }
+        }
+
+... on ParagraphNavGridManual {
           id
           titleOptional: title
           showSubtitles
@@ -486,6 +517,11 @@ query GetNode($id: ID!) {
               id
               name
               mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
             }
           }
         }
@@ -618,6 +654,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           title
         }
@@ -637,6 +678,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           goVideoTitle
           videoAmountOfMaterials
@@ -654,6 +700,61 @@ query GetNode($id: ID!) {
               id
               name
               mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          videoBundleWorkIds {
+            material_type
+            work_id
+          }
+        }
+        ... on ParagraphGoVideoBundleVerticalAuto {
+          id
+          cqlSearch {
+            value
+          }
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          goVideoTitle
+          videoAmountOfMaterials
+        }
+        ... on ParagraphGoVideoBundleVerticalManual {
+          id
+          goVideoTitle
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
             }
           }
           videoBundleWorkIds {
@@ -787,6 +888,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           title
         }
@@ -806,6 +912,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           goVideoTitle
           videoAmountOfMaterials
@@ -823,6 +934,61 @@ query GetNode($id: ID!) {
               id
               name
               mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          videoBundleWorkIds {
+            material_type
+            work_id
+          }
+        }
+        ... on ParagraphGoVideoBundleVerticalAuto {
+          id
+          cqlSearch {
+            value
+          }
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          goVideoTitle
+          videoAmountOfMaterials
+        }
+        ... on ParagraphGoVideoBundleVerticalManual {
+          id
+          goVideoTitle
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
             }
           }
           videoBundleWorkIds {
@@ -932,6 +1098,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           title
         }
@@ -951,6 +1122,11 @@ query GetNode($id: ID!) {
               name
               mediaVideotool
             }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
           }
           goVideoTitle
           videoAmountOfMaterials
@@ -968,6 +1144,61 @@ query GetNode($id: ID!) {
               id
               name
               mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          videoBundleWorkIds {
+            material_type
+            work_id
+          }
+        }
+        ... on ParagraphGoVideoBundleVerticalAuto {
+          id
+          cqlSearch {
+            value
+          }
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
+            }
+          }
+          goVideoTitle
+          videoAmountOfMaterials
+        }
+        ... on ParagraphGoVideoBundleVerticalManual {
+          id
+          goVideoTitle
+          embedVideo {
+            ... on MediaVideo {
+              id
+              name
+              mediaOembedVideo
+            }
+            ... on MediaVideotool {
+              id
+              name
+              mediaVideotool
+            }
+            ... on MediaVideotoolVertical {
+              id
+              name
+              mediaVideotoolVertical
             }
           }
           videoBundleWorkIds {
