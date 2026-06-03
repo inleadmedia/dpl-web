@@ -12,6 +12,7 @@ interface MaterialGridAutomaticEntryConfigProps {
   blacklistedPickupBranchesConfig?: string;
   blacklistedSearchBranchesConfig?: string;
   branchesConfig: string;
+  showAllLinkConfig?: string;
 }
 
 export interface MaterialGridAutomaticEntryProps

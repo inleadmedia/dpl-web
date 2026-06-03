@@ -16,6 +16,7 @@ export type MaterialGridProps = {
   title?: string;
   description?: string;
   buttonText?: string;
+  buttonLink?: string;
   initialMaximumDisplay?: number;
 };
 
@@ -31,6 +32,7 @@ const MaterialGrid: React.FC<MaterialGridProps> = ({
   title,
   description,
   buttonText,
+  buttonLink,
   initialMaximumDisplay = defaultIncrement
 }) => {
   const firstNewItemRef = React.useRef<HTMLLIElement>(null);
@@ -97,17 +99,18 @@ const MaterialGrid: React.FC<MaterialGridProps> = ({
             );
           })}
       </ul>
-      {moreMaterialsThanInitialMaximum && !showAllMaterials && buttonText && (
-        <button
-          className="material-grid__show-more btn-primary btn-outline btn-medium"
-          data-show-more
-          aria-expanded={showAllMaterials ? "true" : "false"}
-          type="button"
-          onClick={() => handleShowAllMaterials()}
-        >
-          {buttonText}
-        </button>
-      )}
+      {
+        moreMaterialsThanInitialMaximum && !showAllMaterials && buttonText
+          ? React.createElement(buttonLink ? "a" : "button", {
+            className: "material-grid__show-more btn-primary btn-outline btn-medium btn-fit-content",
+            "data-show-more": true,
+            "aria-expanded": showAllMaterials ? "true" : "false",
+            type: "button",
+            onClick: buttonLink ? undefined : () => handleShowAllMaterials(),
+            href: buttonLink
+          }, buttonText)
+          : null
+      }
     </div>
   );
 };
