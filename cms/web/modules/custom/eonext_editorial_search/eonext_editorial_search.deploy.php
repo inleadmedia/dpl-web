@@ -17,6 +17,18 @@ function _eonext_editorial_search_load_install(): void {
 }
 
 /**
+ * Ensures Search API fields required by editorial search facets exist on the index.
+ */
+function eonext_editorial_search_deploy_ensure_search_index_fields(): string {
+  _eonext_editorial_search_load_install();
+
+  return implode(' ', [
+    eonext_editorial_search_ensure_facet_index_fields(),
+    eonext_editorial_search_ensure_sort_index_fields(),
+  ]);
+}
+
+/**
  * Populates field_material on existing articles from material grid paragraphs.
  */
 function eonext_editorial_search_deploy_sync_article_materials(): string {
