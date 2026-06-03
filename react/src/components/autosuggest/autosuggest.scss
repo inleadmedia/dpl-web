@@ -21,3 +21,13 @@
     }
   }
 }
+
+@media (max-width: 1023px) {
+  .autosuggest--with-editorial-suggestions .autosuggest__main-suggestions {
+    flex-direction: column;
+
+    & > * {
+      width: 100%;
+    }
+  }
+}
