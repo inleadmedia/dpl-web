@@ -9,6 +9,13 @@ type SliderProps = {
 const Slider: FC<SliderProps> = ({ title, items }) => {
   useEffect(() => {
     require("./init-slider");
+    /* eslint-disable */
+    // Properly init Swiper carousel.
+    setTimeout(() => {
+      // @ts-ignore-next-line
+      window.DPL_designSystem_initSwiper(document.querySelector("#swiper-script"));
+    }, 500);
+    /* eslint-enable */
   }, []);
 
   return (
@@ -19,7 +26,10 @@ const Slider: FC<SliderProps> = ({ title, items }) => {
           href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
         />
 
-        <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" />
+        <script
+          id="swiper-script"
+          src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"
+        />
       </Helmet>
 
       <div className="slider swiper">

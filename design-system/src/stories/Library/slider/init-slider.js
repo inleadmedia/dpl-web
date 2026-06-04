@@ -63,14 +63,18 @@ function disableKeyboardNavigation(swiper) {
   });
 }
 
-// Initialize the Swiper library, when the page is ready.
-window.addEventListener("load", () => {
+let swiperInitialized = false;
+function initSwiper() {
+  if (swiperInitialized) {
+    return;
+  }
+
+  swiperInitialized = true;
   // eslint-disable-next-line no-undef, @typescript-eslint/no-unused-vars
   const swiperInit = new Swiper(".swiper", {
     slidesPerView: "auto",
-    spaceBetween: "5%",
     freeMode: true,
-    centeredSlidesBounds: false,
+    centerInsufficientSlides: true,
     on: {
       afterInit: (swiper) => {
         swiperWrapperEventInit(swiper);
@@ -87,10 +91,21 @@ window.addEventListener("load", () => {
       nextEl: ".swiper-next",
       prevEl: ".swiper-prev",
     },
-    breakpoints: {
-      1200: {
-        spaceBetween: 82,
-      },
-    },
   });
+}
+
+// Method to init Swiper carousel at storybook
+window.DPL_designSystem_initSwiper = function (scriptNode) {
+  if (window.Swiper) {
+    initSwiper();
+  } else {
+    document.querySelector("#swiper-script").onload = function () {
+      initSwiper();
+    };
+  }
+};
+
+// Initialize the Swiper library, when the page is ready.
+window.addEventListener("load", () => {
+  initSwiper();
 });
