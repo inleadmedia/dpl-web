@@ -18,13 +18,9 @@
     width: 90%;
     margin: 0 auto;
     position: absolute;
-    bottom: 45px;
+    bottom: 0;
     transform: translateX(-50%);
     left: 50%;
-
-    @media (max-width: 767px) {
-      bottom: -70px;
-    }
   }
 
   &__menu-banner-fold {
