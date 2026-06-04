@@ -63,34 +63,57 @@ function disableKeyboardNavigation(swiper) {
   });
 }
 
+let swiperInitialized = false;
+function initSwiper() {
+  if (swiperInitialized) {
+    return;
+  }
+
+  swiperInitialized = true;
+  // eslint-disable-next-line no-undef, @typescript-eslint/no-unused-vars
+  const elementsForCarousel = document.querySelectorAll(".swiper");
+  [].forEach.call(elementsForCarousel, (elementForCarousel) => {
+    const isCentered = elementForCarousel.getAttribute("data-swiper-centered");
+    if (isCentered) {
+      elementForCarousel.classList.add("swiper--centered");
+    }
+
+    const swiperInit = new window.Swiper(elementForCarousel, {
+      slidesPerView: "auto",
+      freeMode: true,
+      centerInsufficientSlides: isCentered != null,
+      on: {
+        afterInit: (swiper) => {
+          swiperWrapperEventInit(swiper);
+          disableKeyboardNavigation(swiper);
+        },
+        transitionEnd: (swiper) => {
+          disableKeyboardNavigation(swiper);
+        },
+      },
+      a11y: {
+        slideRole: "listitem",
+      },
+      navigation: {
+        nextEl: ".swiper-next",
+        prevEl: ".swiper-prev",
+      },
+    });
+  });
+}
+
+// Method to init Swiper carousel at storybook
+window.DPL_designSystem_initSwiper = function (scriptNode) {
+  if (window.Swiper) {
+    initSwiper();
+  } else {
+    document.querySelector("#swiper-script").onload = function () {
+      initSwiper();
+    };
+  }
+};
+
 // Initialize the Swiper library, when the page is ready.
 window.addEventListener("load", () => {
-  // eslint-disable-next-line no-undef, @typescript-eslint/no-unused-vars
-  const swiperInit = new Swiper(".swiper", {
-    slidesPerView: "auto",
-    spaceBetween: "5%",
-    freeMode: true,
-    centeredSlidesBounds: false,
-    on: {
-      afterInit: (swiper) => {
-        swiperWrapperEventInit(swiper);
-        disableKeyboardNavigation(swiper);
-      },
-      transitionEnd: (swiper) => {
-        disableKeyboardNavigation(swiper);
-      },
-    },
-    a11y: {
-      slideRole: "listitem",
-    },
-    navigation: {
-      nextEl: ".swiper-next",
-      prevEl: ".swiper-prev",
-    },
-    breakpoints: {
-      1200: {
-        spaceBetween: 82,
-      },
-    },
-  });
+  initSwiper();
 });
