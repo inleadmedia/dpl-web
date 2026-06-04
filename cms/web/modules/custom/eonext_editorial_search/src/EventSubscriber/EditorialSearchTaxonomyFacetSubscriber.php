@@ -55,7 +55,7 @@ final class EditorialSearchTaxonomyFacetSubscriber implements EventSubscriberInt
     }
 
     if ($index->getField('field_automatic_list_hide') !== NULL) {
-      $query->addCondition('field_automatic_list_hide', '1', '<>');
+      $query->addCondition('field_automatic_list_hide', TRUE, '<>');
     }
   }
 
