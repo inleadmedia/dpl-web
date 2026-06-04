@@ -11,6 +11,8 @@ use Drupal\dpl_search\DplSearchSettings;
 use Drupal\node\NodeInterface;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\eonext_editorial_search\EonextEditorialSearchTaxonomyContext;
+use Drupal\taxonomy\TermInterface;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -66,6 +68,25 @@ function eonext_editorial_search_has_matching_past_events(): bool {
   $request->attributes->set('editorial_search.has_matching_past_events', $has_matching);
 
   return $has_matching;
+}
+
+/**
+ * Facet IDs to hide on taxonomy term landing pages (filter is already applied).
+ *
+ * @return string[]
+ *   Facet machine names, e.g. editorial_tags on /search/web/tag/{name}.
+ */
+function eonext_editorial_search_get_hidden_facets(): array {
+  $context = EonextEditorialSearchTaxonomyContext::fromRoute();
+  if ($context === NULL) {
+    return [];
+  }
+
+  return match ($context->field) {
+    'tags' => ['editorial_tags'],
+    'categories' => ['editorial_categories'],
+    default => [],
+  };
 }
 
 /**
@@ -241,6 +262,12 @@ function eonext_editorial_search_views_query_alter(ViewExecutable $view, $query)
     $search_api_query->sort('search_api_id', 'ASC');
   }
 
+  // Term landing pages use the term_page display (no past-events filter). Facets
+  // re-run the page display on the same route and must match that result set.
+  if (EonextEditorialSearchTaxonomyContext::fromRoute() !== NULL) {
+    return;
+  }
+
   if (eonext_editorial_search_show_past_events()) {
     return;
   }
@@ -370,6 +397,8 @@ function eonext_editorial_search_preprocess_views_view(array &$variables): void 
   }
 
   $variables['#attached']['library'][] = 'eonext_editorial_search/editorial-search';
+  $variables['editorial_search_hidden_facets'] = eonext_editorial_search_get_hidden_facets();
+  $variables['#cache']['contexts'][] = 'route';
 
   if ($view->current_display !== 'page') {
     return;
