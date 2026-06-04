@@ -11,8 +11,6 @@
     display: flex;
     flex-direction: row;
     margin-bottom: 24px;
-    width: calc(100% + 24px);
-    margin-left: -12px;
     margin-top: -12px;
     background-color: rgba(0, 0, 0, 0.05);
   }
@@ -26,6 +24,7 @@
     align-items: flex-start;
     height: 100% !important;
   }
+
 
   &__search-item {
     width: 20%;
@@ -64,6 +63,37 @@
     color: #000000;
   }
 
+  &__search-item-teaser {
+    display: none;
+  }
+
+  @media (max-width: 1023px) {
+    &--search-results {
+      flex-direction: column;
+    }
+
+    &__search-item {
+      width: 100%;
+      min-height: auto;
+
+      .autosuggest-editorial__item-link {
+        flex-direction: row;
+        gap: 16px;
+      }
+    }
+
+    &__search-item-image {
+      width: 100px !important;
+    }
+
+    &__search-item-title {
+      margin-top: 0 !important;
+    }
+
+    &__search-item-teaser {
+      display: initial;
+    }
+  }
 //  material
 
   &__material {

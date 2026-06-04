@@ -32,12 +32,13 @@ interface EditorialSuggestion {
     alt: string;
   };
   categories?: string[];
+  teaser_text?: string;
 };
 
 // See the same option at the `apps/search-header/search-header.tsx` file;
 const minimalAutosuggestCharacters = 3;
 
-const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title, url, created_at, image }) => {
+const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title, url, created_at, image, teaser_text }) => {
   const t = useText();
 
   return <li className="autosuggest-editorial__search-item">
@@ -47,16 +48,22 @@ const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title
           ? <img className="autosuggest-editorial__search-item-image" src={image.url} alt={image.alt} />
           : <div className="autosuggest-editorial__search-item-image media-container media-container--placeholder"></div>
       }
-      <span className="autosuggest-editorial__search-item-meta text-small-caption">
-        <span className="autosuggest-editorial__search-item-type">
-          { t("Artikel") }
-        </span>
-        <span className="autosuggest-editorial__search-item-meta-delimiter">|</span>
-        <span className="autosuggest-editorial__search-item-date">{ formatCustomDateString(created_at) }</span>
-      </span>
 
-      <span className="autosuggest-editorial__search-item-title card-list-item__title text-header-h4 mb-4">
-        { title }
+      <span>
+        <span className="autosuggest-editorial__search-item-meta text-small-caption">
+          <span className="autosuggest-editorial__search-item-type">
+            { t("Artikel") }
+          </span>
+          <span className="autosuggest-editorial__search-item-meta-delimiter">|</span>
+          <span className="autosuggest-editorial__search-item-date">{ formatCustomDateString(created_at) }</span>
+        </span>
+
+        <span className="autosuggest-editorial__search-item-title card-list-item__title text-header-h4 mb-4">
+          { title }
+        </span>
+        <span className="autosuggest-editorial__search-item-teaser text-small-caption">
+          { teaser_text }
+        </span>
       </span>
     </a>
   </li>;
