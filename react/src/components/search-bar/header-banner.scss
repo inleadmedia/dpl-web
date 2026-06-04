@@ -1,10 +1,12 @@
 .header.header__with-banner {
   position: relative;
+  padding-bottom: var(--header-banner-height, 0);
+  border-bottom: none;
 
   .header {
     &__menu,
     &__logo-desktop {
-      border-bottom: none;
+      border-bottom: 1px solid #dbdbdb;;
     }
   }
 }
@@ -17,12 +19,12 @@
     width: 90%;
     margin: 0 auto;
     position: absolute;
-    bottom: -20px;
+    bottom: 75px;
     transform: translateY(100%) translateX(-50%);
     left: 50%;
 
     @media (max-width: 767px) {
-      bottom: -80px;
+      bottom: 25px;
     }
   }
 
