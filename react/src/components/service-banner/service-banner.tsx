@@ -93,7 +93,11 @@ export default function ServiceBanner() {
     if (!header || !banner) return;
     const syncBannerHeight = () => {
       const height = Math.ceil(banner.getBoundingClientRect().height);
-      header.style.setProperty(BANNER_HEIGHT_VAR, `${height}px`);
+      const bannerHeaderPadding = 80;
+      header.style.setProperty(
+        BANNER_HEIGHT_VAR,
+        `${height + bannerHeaderPadding}px`
+      );
     };
     syncBannerHeight();
     const resizeObserver = new ResizeObserver(syncBannerHeight);
