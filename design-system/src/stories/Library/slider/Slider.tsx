@@ -32,7 +32,7 @@ const Slider: FC<SliderProps> = ({ title, items }) => {
         />
       </Helmet>
 
-      <div className="slider swiper">
+      <div className="slider swiper" data-swiper-centered>
         <div className="slider__header">
           {title && (
             <h2

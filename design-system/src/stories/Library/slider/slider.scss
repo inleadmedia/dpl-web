@@ -1,4 +1,4 @@
-.swiper-wrapper {
+.swiper--centered .swiper-wrapper {
   width: fit-content !important;
   margin: 0 !important;
 }
@@ -76,5 +76,15 @@
   .slider__item {
     padding-left: 41px;
     padding-right: 41px;
+  }
+}
+
+.swiper:not(.swiper--centered) .slider__item {
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
   }
 }

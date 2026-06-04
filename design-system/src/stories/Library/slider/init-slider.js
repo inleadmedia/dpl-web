@@ -71,26 +71,34 @@ function initSwiper() {
 
   swiperInitialized = true;
   // eslint-disable-next-line no-undef, @typescript-eslint/no-unused-vars
-  const swiperInit = new Swiper(".swiper", {
-    slidesPerView: "auto",
-    freeMode: true,
-    centerInsufficientSlides: true,
-    on: {
-      afterInit: (swiper) => {
-        swiperWrapperEventInit(swiper);
-        disableKeyboardNavigation(swiper);
+  const elementsForCarousel = document.querySelectorAll(".swiper");
+  [].forEach.call(elementsForCarousel, (elementForCarousel) => {
+    const isCentered = elementForCarousel.getAttribute("data-swiper-centered");
+    if (isCentered) {
+      elementForCarousel.classList.add("swiper--centered");
+    }
+
+    const swiperInit = new window.Swiper(elementForCarousel, {
+      slidesPerView: "auto",
+      freeMode: true,
+      centerInsufficientSlides: isCentered != null,
+      on: {
+        afterInit: (swiper) => {
+          swiperWrapperEventInit(swiper);
+          disableKeyboardNavigation(swiper);
+        },
+        transitionEnd: (swiper) => {
+          disableKeyboardNavigation(swiper);
+        },
       },
-      transitionEnd: (swiper) => {
-        disableKeyboardNavigation(swiper);
+      a11y: {
+        slideRole: "listitem",
       },
-    },
-    a11y: {
-      slideRole: "listitem",
-    },
-    navigation: {
-      nextEl: ".swiper-next",
-      prevEl: ".swiper-prev",
-    },
+      navigation: {
+        nextEl: ".swiper-next",
+        prevEl: ".swiper-prev",
+      },
+    });
   });
 }
 
