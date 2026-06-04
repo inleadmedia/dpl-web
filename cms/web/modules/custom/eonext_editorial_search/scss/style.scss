@@ -38,6 +38,16 @@
     }
   }
 
+  &--tag-term {
+    .eonext-editorial-search__facets.eonext-search-facets {
+      margin-top: 0;
+    }
+
+    .eonext-editorial-search__grid.eonext-search__grid {
+      margin-top: 46px;
+    }
+  }
+
   &__past-events.eonext-search-facet-group__item {
     border-bottom: 1px solid var(--c-global-tertiary-1, #dbdbdb);
     margin-bottom: 4px;

@@ -1,9 +1,11 @@
+{% set is_tag_term_page = 'editorial_tags' in editorial_search_hidden_facets|default([]) %}
 {%
   set classes = [
-  dom_id ? 'js-view-dom-id-' ~ dom_id,
-  'content-list-page',
-  'eonext-editorial-search',
-]
+    dom_id ? 'js-view-dom-id-' ~ dom_id,
+    'content-list-page',
+    'eonext-editorial-search',
+    is_tag_term_page ? 'eonext-editorial-search--tag-term',
+  ]
 %}
 <div{{ attributes.addClass(classes) }}>
   {% if view.getTitle() %}
@@ -29,8 +31,12 @@
           <div class="eonext-search-facets__container">
             <ul class="eonext-search-facets__groups">
               {{ drupal_block('facet_block:editorial_content_type') }}
-              {{ drupal_block('facet_block:editorial_categories') }}
-              {{ drupal_block('facet_block:editorial_tags') }}
+              {% if 'editorial_categories' not in editorial_search_hidden_facets|default([]) %}
+                {{ drupal_block('facet_block:editorial_categories') }}
+              {% endif %}
+              {% if 'editorial_tags' not in editorial_search_hidden_facets|default([]) %}
+                {{ drupal_block('facet_block:editorial_tags') }}
+              {% endif %}
             </ul>
           </div>
         </aside>

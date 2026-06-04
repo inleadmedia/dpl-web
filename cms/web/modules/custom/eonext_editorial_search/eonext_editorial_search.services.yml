@@ -14,3 +14,8 @@ services:
   Drupal\eonext_editorial_search\EditorialContentExtractor: ~
 
   Drupal\eonext_editorial_search\EditorialEventSortDateResolver: ~
+
+  eonext_editorial_search.taxonomy_facet_subscriber:
+    class: Drupal\eonext_editorial_search\EventSubscriber\EditorialSearchTaxonomyFacetSubscriber
+    tags:
+      - { name: event_subscriber }
