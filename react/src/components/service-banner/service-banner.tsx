@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type ServiceBanner = {
@@ -13,6 +13,8 @@ type ServiceBannerWrapperProps = {
   ariaLabel: string;
   children: React.ReactNode;
 };
+
+const BANNER_HEIGHT_VAR = "--header-banner-height";
 
 const ServiceBannerWrapper = ({
   href,
@@ -70,6 +72,7 @@ const getServiceBannerFromBody = (): ServiceBanner | null => {
 const serviceBannerData = getServiceBannerFromBody();
 export default function ServiceBanner() {
   const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
+  const bannerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!serviceBannerData) return;
@@ -84,6 +87,27 @@ export default function ServiceBanner() {
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const header = headerRef;
+    const banner = bannerRef.current;
+    if (!header || !banner) return;
+    const syncBannerHeight = () => {
+      const height = Math.ceil(banner.getBoundingClientRect().height);
+      const bannerHeaderPadding = 40;
+      header.style.setProperty(
+        BANNER_HEIGHT_VAR,
+        `${height + bannerHeaderPadding}px`
+      );
+    };
+    syncBannerHeight();
+    const resizeObserver = new ResizeObserver(syncBannerHeight);
+    resizeObserver.observe(banner);
+    return () => {
+      resizeObserver.disconnect();
+      header.style.removeProperty(BANNER_HEIGHT_VAR);
+    };
+  }, [headerRef]);
+
   if (!serviceBannerData || !headerRef) return null;
 
   const ariaLabel =
@@ -92,7 +116,10 @@ export default function ServiceBanner() {
     "Service banner";
 
   return createPortal(
-    <div className="header__menu-banner">
+    <div
+      ref={bannerRef as React.RefObject<HTMLDivElement>}
+      className="header__menu-banner"
+    >
       <ServiceBannerWrapper
         href={serviceBannerData.url || undefined}
         ariaLabel={ariaLabel}
