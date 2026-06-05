@@ -195,6 +195,62 @@
     }
   }
 
+  /**
+   * Returns the editorial search root element for a given context node.
+   */
+  function getEditorialSearchRoot(context) {
+    if (context instanceof Element && context.classList.contains('eonext-editorial-search')) {
+      return context;
+    }
+
+    if (context instanceof Element) {
+      const nested = context.querySelector('.eonext-editorial-search');
+      if (nested) {
+        return nested;
+      }
+    }
+
+    return document.querySelector('.eonext-editorial-search');
+  }
+
+  /**
+   * Moves facet sidebar into the mobile filters dialog.
+   */
+  function openFacetsDialog(root) {
+    const dialog = root.querySelector('[data-editorial-search-filters-dialog]');
+    const facets = root.querySelector('.eonext-editorial-search__facets');
+    const mount = dialog?.querySelector('[data-editorial-search-facets-dialog-mount]');
+
+    if (!dialog || !facets || !mount || typeof dialog.showModal !== 'function') {
+      return;
+    }
+
+    mount.appendChild(facets);
+    facets.classList.add('eonext-editorial-search__facets--mobile-dialog');
+    dialog.showModal();
+  }
+
+  /**
+   * Returns facet sidebar to the results grid and closes the dialog.
+   */
+  function closeFacetsDialog(root) {
+    const dialog = root.querySelector('[data-editorial-search-filters-dialog]');
+    const facets = root.querySelector('.eonext-editorial-search__facets--mobile-dialog');
+    const grid = root.querySelector('.eonext-editorial-search__grid');
+    const results = root.querySelector('.eonext-editorial-search__results');
+
+    if (dialog?.open) {
+      dialog.close();
+    }
+
+    if (!facets || !grid || !results) {
+      return;
+    }
+
+    facets.classList.remove('eonext-editorial-search__facets--mobile-dialog');
+    grid.insertBefore(facets, results);
+  }
+
   Drupal.behaviors.editorialSearchFacets = {
     attach(context) {
       once('editorial-search-facet-header', '.eonext-editorial-search .eonext-search-facet-group__header', context).forEach((button) => {
@@ -204,6 +260,41 @@
       once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content.facet-checkboxes', context).forEach((facetList) => {
         // Facets checkbox widget runs in the same attach cycle.
         window.setTimeout(() => initFacetList(facetList), 0);
+      });
+
+      once('editorial-search-facets-dialog', '.eonext-editorial-search [data-editorial-search-filters-open]', context).forEach((button) => {
+        button.addEventListener('click', () => {
+          const root = getEditorialSearchRoot(button.closest('.eonext-editorial-search') || context);
+          if (root) {
+            openFacetsDialog(root);
+          }
+        });
+      });
+
+      once('editorial-search-facets-dialog-close', '.eonext-editorial-search [data-editorial-search-filters-close]', context).forEach((button) => {
+        button.addEventListener('click', () => {
+          const root = getEditorialSearchRoot(button.closest('.eonext-editorial-search') || context);
+          if (root) {
+            closeFacetsDialog(root);
+          }
+        });
+      });
+
+      once('editorial-search-facets-dialog-cancel', '.eonext-editorial-search [data-editorial-search-filters-dialog]', context).forEach((dialog) => {
+        dialog.addEventListener('cancel', (event) => {
+          event.preventDefault();
+          const root = getEditorialSearchRoot(dialog.closest('.eonext-editorial-search') || context);
+          if (root) {
+            closeFacetsDialog(root);
+          }
+        });
+
+        dialog.addEventListener('close', () => {
+          const root = getEditorialSearchRoot(dialog.closest('.eonext-editorial-search') || context);
+          if (root) {
+            closeFacetsDialog(root);
+          }
+        });
       });
     },
   };

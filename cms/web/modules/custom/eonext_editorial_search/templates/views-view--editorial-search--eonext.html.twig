@@ -42,6 +42,20 @@
         </aside>
 
         <section class="eonext-editorial-search__results">
+          <div class="eonext-editorial-search__results-top-bar search__results-top-bar">
+            <div class="search__results-top-bar__right">
+              <button
+                type="button"
+                class="search__modify-filters-button"
+                data-editorial-search-filters-open
+                aria-haspopup="dialog"
+              >
+                <img src="{{ baseIconPath }}/basic/icon-filter.svg" alt="" width="16" height="16">
+                <span>{{ 'Filters'|t({}, {'context': 'eonext_editorial_search'}) }}</span>
+              </button>
+            </div>
+          </div>
+
           {% if editorial_search_sort_field_options %}
             <div class="eonext-search__sort-select eonext-editorial-search__sort">
               <div class="eonext-editorial-search__sort-field">
@@ -108,6 +122,40 @@
       </div>
     </div>
   </div>
+
+  <dialog
+    class="dialog dialog--sidebar eonext-editorial-search__facets-dialog"
+    data-editorial-search-filters-dialog
+    aria-labelledby="editorial-search-filters-dialog-title"
+  >
+    <div class="dialog__top-bar">
+      <button
+        type="button"
+        class="dialog__close-button"
+        data-editorial-search-filters-close
+        aria-label="{{ 'Close'|t }}"
+      >
+        <img src="{{ baseIconPath }}/collection/CloseLarge.svg" alt="" width="16" height="16">
+      </button>
+    </div>
+    <div class="search-facets__dialog">
+      <div class="search-facets__dialog-content">
+        <h2 class="search-facets__dialog-content__heading" id="editorial-search-filters-dialog-title">
+          {{ 'Filter results'|t({}, {'context': 'eonext_editorial_search'}) }}
+        </h2>
+        <div data-editorial-search-facets-dialog-mount></div>
+      </div>
+      <div class="search-facets__dialog__actions">
+        <button
+          type="button"
+          class="btn-primary btn-filled btn-medium search-facets__dialog__actions__button"
+          data-editorial-search-filters-close
+        >
+          {{ 'Show results'|t({}, {'context': 'eonext_editorial_search'}) }}
+        </button>
+      </div>
+    </div>
+  </dialog>
 
   {{ attachment_after }}
   {{ more }}

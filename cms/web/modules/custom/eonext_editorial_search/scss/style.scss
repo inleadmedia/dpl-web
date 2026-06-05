@@ -38,6 +38,58 @@
     }
   }
 
+  &__facets--mobile-dialog.eonext-search-facets {
+    display: flex;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  &__results-top-bar.search__results-top-bar {
+    margin-bottom: 16px;
+
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  &__facets-dialog {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .dialog__top-bar {
+      flex-shrink: 0;
+    }
+
+    .search-facets__dialog {
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-facets__dialog-content {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    .search-facets__dialog__actions {
+      flex-shrink: 0;
+      position: static;
+      margin: 0 -24px -24px;
+    }
+
+    .eonext-search-facets__container {
+      border-left: none;
+      border-right: none;
+      overflow: visible;
+    }
+  }
+
   &--tag-term {
     .eonext-editorial-search__facets.eonext-search-facets {
       margin-top: 0;
