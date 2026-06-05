@@ -1,3 +1,8 @@
+.swiper--centered .swiper-wrapper {
+  width: fit-content !important;
+  margin: 0 !important;
+}
+
 .slider__header {
   @include layout-container;
 
@@ -37,7 +42,9 @@
   $_card-mobile-peek: 50px;
 
   width: fit-content !important;
-  margin-right: 5%;
+  padding-left: 18px;
+  padding-right: 18px;
+  box-sizing: border-box;
 
   .card {
     // We dont want the max-width to be 100%, as we want peek-effect on mobile.
@@ -62,5 +69,22 @@
         @extend %card-variant--small;
       }
     }
+  }
+}
+
+@media (min-width: 1200px) {
+  .slider__item {
+    padding-left: 41px;
+    padding-right: 41px;
+  }
+}
+
+.swiper:not(.swiper--centered) .slider__item {
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
   }
 }
