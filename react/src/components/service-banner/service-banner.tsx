@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type ServiceBanner = {
@@ -14,7 +14,27 @@ type ServiceBannerWrapperProps = {
   children: React.ReactNode;
 };
 
-const BANNER_HEIGHT_VAR = "--header-banner-height";
+const SERVICE_BANNER_MOUNT_ID = "service-banner-mount";
+
+const getServiceBannerMountTarget = (): HTMLElement | null => {
+  const existingMount = document.getElementById(SERVICE_BANNER_MOUNT_ID);
+  if (existingMount) {
+    return existingMount;
+  }
+
+  const breadcrumb = document.querySelector("nav.breadcrumb");
+  const anchor = breadcrumb ?? document.querySelector(".header");
+  if (!anchor) {
+    return null;
+  }
+
+  const mount = document.createElement("div");
+  mount.id = SERVICE_BANNER_MOUNT_ID;
+  mount.className = "service-banner-mount";
+  anchor.insertAdjacentElement("afterend", mount);
+
+  return mount;
+};
 
 const ServiceBannerWrapper = ({
   href,
@@ -71,44 +91,22 @@ const getServiceBannerFromBody = (): ServiceBanner | null => {
 
 const serviceBannerData = getServiceBannerFromBody();
 export default function ServiceBanner() {
-  const [headerRef, setHeaderRef] = useState<HTMLElement | null>(null);
-  const bannerRef = useRef<HTMLElement | null>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!serviceBannerData) return;
 
-    const header = document.querySelector(".header");
-    header?.classList?.add("header__with-banner");
+    const mount = getServiceBannerMountTarget();
+    if (!mount) return;
 
-    setHeaderRef(header as HTMLElement | null);
+    setPortalTarget(mount);
 
     return () => {
-      header?.classList?.remove("header__with-banner");
+      mount.remove();
     };
   }, []);
 
-  useLayoutEffect(() => {
-    const header = headerRef;
-    const banner = bannerRef.current;
-    if (!header || !banner) return;
-    const syncBannerHeight = () => {
-      const height = Math.ceil(banner.getBoundingClientRect().height);
-      const bannerHeaderPadding = 40;
-      header.style.setProperty(
-        BANNER_HEIGHT_VAR,
-        `${height + bannerHeaderPadding}px`
-      );
-    };
-    syncBannerHeight();
-    const resizeObserver = new ResizeObserver(syncBannerHeight);
-    resizeObserver.observe(banner);
-    return () => {
-      resizeObserver.disconnect();
-      header.style.removeProperty(BANNER_HEIGHT_VAR);
-    };
-  }, [headerRef]);
-
-  if (!serviceBannerData || !headerRef) return null;
+  if (!serviceBannerData || !portalTarget) return null;
 
   const ariaLabel =
     serviceBannerData.urlText ||
@@ -116,10 +114,7 @@ export default function ServiceBanner() {
     "Service banner";
 
   return createPortal(
-    <div
-      ref={bannerRef as React.RefObject<HTMLDivElement>}
-      className="header__menu-banner"
-    >
+    <div className="header__menu-banner header__menu-banner--below-breadcrumb">
       <ServiceBannerWrapper
         href={serviceBannerData.url || undefined}
         ariaLabel={ariaLabel}
@@ -197,6 +192,6 @@ export default function ServiceBanner() {
         </span>
       </ServiceBannerWrapper>
     </div>,
-    headerRef
+    portalTarget
   );
 }
