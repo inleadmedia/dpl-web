@@ -44,7 +44,10 @@ final class EditorialEventSortDateResolver {
       ->range(0, 1)
       ->execute();
     if ($upcoming_ids !== []) {
-      return $this->loadEventInstanceDateDetails((int) reset($upcoming_ids));
+      $upcoming_details = $this->loadEventInstanceDateDetails((int) reset($upcoming_ids));
+      if ($upcoming_details !== NULL) {
+        return $upcoming_details;
+      }
     }
 
     $past_ids = $storage->getQuery()
@@ -55,7 +58,10 @@ final class EditorialEventSortDateResolver {
       ->range(0, 1)
       ->execute();
     if ($past_ids !== []) {
-      return $this->loadEventInstanceDateDetails((int) reset($past_ids));
+      $past_details = $this->loadEventInstanceDateDetails((int) reset($past_ids));
+      if ($past_details !== NULL) {
+        return $past_details;
+      }
     }
 
     return $this->getSeriesScheduleSortDateDetails($event_series);
@@ -87,15 +93,16 @@ final class EditorialEventSortDateResolver {
     /** @var \Drupal\datetime_range\Plugin\Field\FieldType\DateRangeItem $event_instance_date */
     $event_instance_date = $event_instance->get('date')->first();
 
-    /** @var \Drupal\Core\Datetime\DrupalDateTime $start_date */
     $start_date = $event_instance_date->get('start_date')->getValue();
-
-    /** @var \Drupal\Core\Datetime\DrupalDateTime $end_date */
     $end_date = $event_instance_date->get('end_date')->getValue();
+
+    if (!($start_date instanceof DrupalDateTime)) {
+      return NULL;
+    }
 
     return [
       'start' => $start_date,
-      'end' => $end_date,
+      'end' => $end_date instanceof DrupalDateTime ? $end_date : NULL,
     ];
   }
 
@@ -106,16 +113,29 @@ final class EditorialEventSortDateResolver {
    *   The latest schedule date range, or NULL.
    */
   private function getSeriesScheduleSortDateDetails(EventSeries $event_series): array|null {
-    $schedule_dates = $event_series->getCustomDates();
+    $schedule_dates = array_values(array_filter(
+      $event_series->getCustomDates(),
+      static fn (array $date): bool => ($date['start_date'] ?? NULL) instanceof DrupalDateTime,
+    ));
     if ($schedule_dates === []) {
       return NULL;
     }
 
     usort($schedule_dates, static function (array $first, array $second): int {
-      return $second['start']->getTimestamp() <=> $first['start']->getTimestamp();
+      return $second['start_date']->getTimestamp() <=> $first['start_date']->getTimestamp();
     });
 
-    return reset($schedule_dates) ?: NULL;
+    $latest = reset($schedule_dates);
+    if ($latest === FALSE) {
+      return NULL;
+    }
+
+    $end = $latest['end_date'] ?? NULL;
+
+    return [
+      'start' => $latest['start_date'],
+      'end' => $end instanceof DrupalDateTime ? $end : NULL,
+    ];
   }
 
 }

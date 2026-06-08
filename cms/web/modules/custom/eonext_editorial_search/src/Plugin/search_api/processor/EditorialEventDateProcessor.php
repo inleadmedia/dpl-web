@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_editorial_search\Plugin\search_api\processor;
 
+use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\eonext_editorial_search\EditorialEventSortDateResolver;
@@ -95,8 +96,11 @@ final class EditorialEventDateProcessor extends ProcessorPluginBase {
 
     $sort_timestamp = NULL;
     $sort_date_details = $this->sortDateResolver->resolveSortDateDetails($entity);
-    if ($sort_date_details !== NULL) {
-      $sort_timestamp = $sort_date_details['start']->getTimestamp();
+    if (is_array($sort_date_details)) {
+      $start_date = $sort_date_details['start'] ?? NULL;
+      if ($start_date instanceof DrupalDateTime) {
+        $sort_timestamp = $start_date->getTimestamp();
+      }
     }
 
     if ($sort_timestamp === NULL) {
