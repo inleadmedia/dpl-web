@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_show_all_behavior
+    - paragraphs.paragraphs_type.manual_event_list
+  module:
+    - options
+  enforced:
+    module:
+      - eonext_event_material_paragraphs
+id: paragraph.manual_event_list.field_show_all_behavior
+field_name: field_show_all_behavior
+entity_type: paragraph
+bundle: manual_event_list
+label: "'Show all' button behavior"
+description: 'Choose whether the "Show all" button expands the event list on the page, or links to an Explore subpage.'
+required: false
+translatable: false
+default_value:
+  -
+    value: expand
+default_value_callback: ''
+settings: {  }
+field_type: list_string

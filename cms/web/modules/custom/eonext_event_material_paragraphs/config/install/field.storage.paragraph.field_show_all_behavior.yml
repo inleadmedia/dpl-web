@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+  enforced:
+    module:
+      - eonext_event_material_paragraphs
+id: paragraph.field_show_all_behavior
+field_name: field_show_all_behavior
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: expand
+      label: 'Expand list'
+    -
+      value: link
+      label: 'Link to Explore page'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

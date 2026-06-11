@@ -1,0 +1,10 @@
+---
+services:
+  _defaults:
+    autowire: true
+
+  # Hook services, can be removed when upgrading to Drupal 11.2.
+  Drupal\eonext_event_material_paragraphs\Hook\FormHooks: {}
+  Drupal\eonext_event_material_paragraphs\Hook\PreprocessHooks: {}
+
+  Drupal\eonext_event_material_paragraphs\ShowAllSetup: {}
