@@ -370,6 +370,27 @@ function eonext_editorial_search_theme_suggestions_form_alter(array &$suggestion
 }
 
 /**
+ * Implements hook_preprocess_HOOK() for eventseries.
+ *
+ * Falls back to the main event image when no teaser image is set, matching
+ * eventinstance list teaser behaviour without theme template changes.
+ */
+function eonext_editorial_search_preprocess_eventseries(array &$variables): void {
+  if (($variables['view_mode'] ?? '') !== 'list_teaser') {
+    return;
+  }
+
+  $content = &$variables['content'];
+  if (!empty($content['field_teaser_image'][0])) {
+    return;
+  }
+
+  if (!empty($content['field_event_image'][0])) {
+    $content['field_teaser_image'] = $content['field_event_image'];
+  }
+}
+
+/**
  * Implements hook_preprocess_HOOK() for facets_item_list.
  */
 function eonext_editorial_search_preprocess_facets_item_list__editorial_search__eonext(array &$variables): void {
