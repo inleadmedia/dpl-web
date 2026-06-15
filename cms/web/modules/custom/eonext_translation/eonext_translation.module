@@ -14,6 +14,7 @@ use Drupal\Core\Render\Markup;
 use Drupal\eonext_translation\Form\TranslationSettingsForm;
 use Drupal\eonext_translation\TranslationService;
 use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
 
 /**
  * Implements hook_page_attachments().
@@ -273,6 +274,24 @@ function eonext_translation_preprocess_field(&$variables) {
     if ($country) {
       $variables['items'][0]['content']['country']['#value'] = t($country);
     }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for nav grid manual field template.
+ */
+function eonext_translation_preprocess_field__paragraph__field_content_references__nav_grid_manual(array &$variables): void {
+  $paragraph = $variables['element']['#object'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  $langcode = \Drupal::languageManager()
+    ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)
+    ->getId();
+
+  if ($paragraph->hasTranslation($langcode)) {
+    $variables['element']['#object'] = $paragraph->getTranslation($langcode);
   }
 }
 
