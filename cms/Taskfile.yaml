@@ -2,6 +2,12 @@ version: "3"
 
 dotenv: [".task.env"]
 
+vars:
+  GO_DIR: "../go"
+  GO_DEPLOY_PORT: '{{.GO_DEPLOY_PORT | default "3001"}}'
+  GO_PM2_APP_NAME: '{{.GO_PM2_APP_NAME | default "dpl-go"}}'
+  GO_DEPLOY_NODE_BIN: '{{.GO_DEPLOY_NODE_BIN | default "node"}}'
+
 env:
   SKIP_LANGUAGE_IMPORT: false
   DRUSH_EXEC: "./vendor/bin/drush"
@@ -129,3 +135,63 @@ tasks:
       - php vendor/bin/phpcs
       - php vendor/bin/twig-cs-fixer lint --fix
       - php vendor/bin/phpstan
+
+  go:deploy:plan:
+    desc: Show Go build/restart settings (from cms/.task.env)
+    silent: true
+    cmds:
+      - |
+        cat <<EOF
+        ────────── Go build/restart ──────────
+        App path     : {{.GO_DIR}}
+        Port         : {{.GO_DEPLOY_PORT}}
+        PM2 app      : {{.GO_PM2_APP_NAME}}
+        Node binary  : {{.GO_DEPLOY_NODE_BIN}}
+        ─────────────────────────────────────
+        Run from cms/ after code is synced (e.g. Jenkins).
+        EOF
+
+  go:deploy:
+    desc: Build and restart Go (yarn install, yarn build, pm2 restart)
+    deps: [go:deploy:preconditions]
+    cmds:
+      - task -t Taskfile.yaml go:deploy:plan
+      - task -t Taskfile.yaml go:deploy:verify-env
+      - task -t Taskfile.yaml go:deploy:build
+      - task -t Taskfile.yaml go:deploy:pm2-restart
+
+  go:deploy:build:
+    desc: yarn install and yarn build
+    dir: "{{.GO_DIR}}"
+    cmds:
+      - yarn install --frozen-lockfile
+      - yarn build
+
+  go:deploy:pm2-restart:
+    desc: Restart PM2 app (start if missing)
+    dir: "{{.GO_DIR}}"
+    cmds:
+      - |
+        if pm2 describe {{.GO_PM2_APP_NAME}} >/dev/null 2>&1; then
+          pm2 restart {{.GO_PM2_APP_NAME}}
+        else
+          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/.bin/next start -p {{.GO_DEPLOY_PORT}}
+        fi
+        pm2 save
+
+  go:deploy:verify-env:
+    desc: Verify DPL_CMS_BASE_URL and DPL_GO_BASE_URL in .env.local
+    dir: "{{.GO_DIR}}"
+    preconditions:
+      - sh: test -f .env.local
+        msg: ".env.local not found in {{.GO_DIR}}"
+    cmds:
+      - |
+        grep -q '^DPL_CMS_BASE_URL=' .env.local && grep -q '^DPL_GO_BASE_URL=' .env.local \
+          || (echo 'ERROR: .env.local must define DPL_CMS_BASE_URL and DPL_GO_BASE_URL' && exit 1)
+
+  go:deploy:preconditions:
+    internal: true
+    preconditions:
+      - sh: test -d {{.GO_DIR}}
+        msg: "Go directory not found at {{.GO_DIR}} — run task from cms/ in the monorepo."
