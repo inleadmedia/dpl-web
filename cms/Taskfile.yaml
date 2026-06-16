@@ -10,6 +10,7 @@ vars:
 
 env:
   SKIP_LANGUAGE_IMPORT: false
+  SKIP_GO_DEPLOY: false
   DRUSH_EXEC: "./vendor/bin/drush"
 
 tasks:
@@ -41,7 +42,7 @@ tasks:
       - ${DRUSH_EXEC} user:role:add 'patron' patron
 
   drupal:update:
-    desc: Install/update composer dependencies
+    desc: Install/update composer dependencies and build/restart Go when ../go is present
     deps:
       - drupal:build-react
     cmds:
@@ -52,6 +53,16 @@ tasks:
       - composer drupal:scaffold
       - $(cd dev-scripts/dpl-react; composer install --no-cache)
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
+      - |
+        if [ "${SKIP_GO_DEPLOY}" = true ]; then
+          echo "Skipping Go deploy due to SKIP_GO_DEPLOY environment variable"
+        elif [ ! -f ../go/package.json ]; then
+          echo "Skipping Go deploy (../go not found)"
+        elif [ ! -f ../go/.env.local ]; then
+          echo "Skipping Go deploy (../go/.env.local not found)"
+        else
+          task -t Taskfile.yaml go:deploy
+        fi
 
   drupal:build-react:
     desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild)
