@@ -1,7 +1,9 @@
 type: module
 name: EO Next Token Override
-description: Exposes an API resource to update tokens remotely.
+description: Exposes an API resource to update tokens remotely and fixes LMS OAuth login redirects.
 package: EO next
 core_version_requirement: ^10
 dependencies:
   - drupal:dpl_library_token
+  - dpl_library_agency:dpl_library_agency
+  - dpl_login:dpl_login

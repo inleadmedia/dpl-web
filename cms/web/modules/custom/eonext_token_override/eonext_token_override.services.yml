@@ -1,0 +1,6 @@
+services:
+  eonext_token_override.lms_login_redirect_subscriber:
+    class: Drupal\eonext_token_override\EventSubscriber\LmsLoginRedirectSubscriber
+    arguments: ['@config.factory']
+    tags:
+      - { name: event_subscriber }
