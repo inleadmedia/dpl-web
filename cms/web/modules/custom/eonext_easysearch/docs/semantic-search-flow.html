@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Easy Search — Architecture &amp; data flow</title>
+  <style>
+    :root {
+      --bg: #f0f2f7;
+      --surface: #ffffff;
+      --border: #d8dde8;
+      --text: #1c2333;
+      --muted: #5c6578;
+      --fbi: #4f46e5;
+      --fbi-bg: #eef2ff;
+      --tei: #0284c7;
+      --tei-bg: #e0f2fe;
+      --qdrant: #dc2626;
+      --qdrant-bg: #fee2e2;
+      --drupal: #0678be;
+      --drupal-bg: #e8f4fc;
+      --orange: #ea580c;
+      --pink: #db2777;
+      --green: #059669;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 { font-size: 1.45rem; font-weight: 650; letter-spacing: -0.02em; }
+    header p { color: var(--muted); margin-top: 0.45rem; max-width: 52rem; margin-inline: auto; font-size: 0.95rem; }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      padding: 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .tabs button {
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .tabs button:hover { border-color: var(--drupal); }
+    .tabs button.active { background: var(--drupal-bg); border-color: var(--drupal); color: var(--drupal); font-weight: 600; }
+
+    main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+    .view { display: none; animation: fade 0.35s ease; }
+    .view.active { display: block; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .infra-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .infra-card {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+    }
+
+    .infra-card.fbi { border-color: var(--fbi); }
+    .infra-card.tei { border-color: var(--tei); }
+    .infra-card.qdrant { border-color: var(--qdrant); }
+
+    .infra-card header {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .infra-card.fbi header { background: var(--fbi-bg); }
+    .infra-card.tei header { background: var(--tei-bg); }
+    .infra-card.qdrant header { background: var(--qdrant-bg); }
+
+    .infra-card header h2 { font-size: 1rem; }
+    .infra-card header p { font-size: 0.8rem; margin-top: 0.2rem; text-align: left; }
+
+    .infra-body { padding: 1rem; font-size: 0.84rem; }
+    .infra-body dl { display: grid; gap: 0.65rem; }
+    .infra-body dt { font-weight: 600; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .infra-body dd { margin: 0; }
+    .infra-body code { font-size: 0.78rem; background: var(--bg); padding: 0.1rem 0.35rem; border-radius: 4px; }
+
+    .when-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      margin-top: 0.35rem;
+    }
+
+    .when-index { background: #fef3c7; color: #92400e; }
+    .when-search { background: #d1fae5; color: #065f46; }
+    .when-both { background: #ede9fe; color: #5b21b6; }
+
+    .diagram-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+    }
+
+    .diagram-wrap svg { width: 100%; height: auto; display: block; }
+
+    .note {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.84rem;
+      margin-top: 1rem;
+      color: #78350f;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .legend span { display: flex; align-items: center; gap: 0.35rem; }
+    .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    .flow-dot { filter: drop-shadow(0 0 2px rgb(0 0 0 / 20%)); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .flow-dot { animation: none !important; }
+      .view { animation: none; }
+    }
+
+    /* Overview tab — visual-first */
+    .overview-tagline {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stack-diagram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .stack-row {
+      width: min(100%, 520px);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      text-align: center;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+    }
+
+    .stack-row .stack-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .stack-row .stack-name {
+      font-size: 1rem;
+      font-weight: 650;
+    }
+
+    .stack-row .stack-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .stack-row.react { border-color: var(--pink); background: #fce7f3; }
+    .stack-row.react .stack-name { color: var(--pink); }
+    .stack-row.drupal { border-color: var(--drupal); background: var(--drupal-bg); }
+    .stack-row.drupal .stack-name { color: var(--drupal); }
+    .stack-row.ai {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0.65rem;
+      background: #f8fafc;
+    }
+    .stack-row.ai .stack-label { grid-column: 1 / -1; }
+    .stack-mini {
+      border-radius: 8px;
+      padding: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .stack-mini.tei { background: var(--tei-bg); color: var(--tei); border: 1px solid #7dd3fc; }
+    .stack-mini.qdrant { background: var(--qdrant-bg); color: var(--qdrant); border: 1px solid #fca5a5; }
+    .stack-row.fbi { border-color: var(--fbi); background: var(--fbi-bg); }
+    .stack-row.fbi .stack-name { color: var(--fbi); }
+
+    .stack-arrow {
+      color: var(--muted);
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.2rem 0;
+    }
+
+    .node-tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .node-tile {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 0.65rem;
+      text-align: center;
+      cursor: default;
+    }
+
+    .node-tile h3 { font-size: 0.88rem; font-weight: 650; margin-bottom: 0.2rem; }
+    .node-tile p { font-size: 0.72rem; color: var(--muted); line-height: 1.35; }
+
+    .node-tile.react { border-color: var(--pink); }
+    .node-tile.drupal { border-color: var(--drupal); }
+    .node-tile.fbi { border-color: var(--fbi); }
+    .node-tile.tei { border-color: var(--tei); }
+    .node-tile.qdrant { border-color: var(--qdrant); }
+
+    .flow-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+    }
+
+    .flow-strip-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.85rem;
+    }
+
+    .flow-strip.index .flow-strip-header { color: #c2410c; }
+    .flow-strip.search .flow-strip-header { color: #047857; }
+
+    .flow-strip-header .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .flow-strip.index .dot { background: var(--orange); }
+    .flow-strip.search .dot { background: var(--green); }
+
+    .flow-steps {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      justify-content: center;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+    }
+
+    .flow-step span {
+      font-size: 0.78rem;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.2;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.65rem;
+      white-space: nowrap;
+    }
+
+    .flow-chevron {
+      color: var(--border);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .vs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 520px) { .vs-grid { grid-template-columns: 1fr; } }
+
+    .vs-card {
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid var(--border);
+    }
+
+    .vs-card.normal { background: #f8fafc; }
+    .vs-card.easy { background: var(--drupal-bg); border-color: var(--drupal); }
+
+    .vs-card h3 { font-size: 0.92rem; font-weight: 650; margin-bottom: 0.35rem; }
+    .vs-card ul {
+      list-style: none;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: left;
+      padding: 0;
+    }
+
+    .vs-card li {
+      padding: 0.25rem 0;
+      padding-left: 1.1rem;
+      position: relative;
+    }
+
+    .vs-card li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--drupal);
+    }
+
+    .examples {
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+    }
+
+    .examples h2 {
+      font-size: 0.95rem;
+      font-weight: 650;
+      margin-bottom: 0.25rem;
+    }
+
+    .examples .examples-intro {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .examples-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .examples-table th,
+    .examples-table td {
+      padding: 0.55rem 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .examples-table th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .examples-table tr:last-child td { border-bottom: none; }
+
+    .examples-table .query {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .examples-table .hint {
+      color: var(--muted);
+      font-size: 0.74rem;
+      margin-top: 0.15rem;
+    }
+
+    .examples-table .links {
+      white-space: nowrap;
+    }
+
+    .examples-table a {
+      display: inline-block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 0.2rem 0.45rem;
+      border-radius: 4px;
+      margin-right: 0.25rem;
+      margin-bottom: 0.15rem;
+    }
+
+    .examples-table a.semantic {
+      color: var(--drupal);
+      background: var(--drupal-bg);
+      border: 1px solid #7dd3fc;
+    }
+
+    .examples-table a.keyword {
+      color: var(--fbi);
+      background: var(--fbi-bg);
+      border: 1px solid #c7d2fe;
+    }
+
+    .examples-table a:hover { opacity: 0.85; }
+
+    .examples-group td {
+      background: var(--bg);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding-top: 0.75rem;
+    }
+
+    .lang-tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+
+    .lang-tag.en { background: #eef2ff; color: var(--fbi); }
+    .lang-tag.da { background: #fef3c7; color: #92400e; }
+
+    @media (max-width: 720px) {
+      .examples-table thead { display: none; }
+      .examples-table tr {
+        display: block;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .examples-table td {
+        display: block;
+        border: none;
+        padding: 0.15rem 0;
+      }
+      .examples-table td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        margin-bottom: 0.15rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Easy Search — architecture &amp; data flow</h1>
+    <p>
+      Semantic search over the library catalog — how components connect and what each one does.
+    </p>
+  </header>
+
+  <nav class="tabs" aria-label="Views">
+    <button type="button" class="active" data-view="overview">Overview</button>
+    <button type="button" data-view="infra">Infrastructure</button>
+    <button type="button" data-view="map">Connection map</button>
+  </nav>
+
+  <main>
+    <!-- OVERVIEW -->
+    <section class="view active" id="view-overview">
+      <p class="overview-tagline">Find materials by <strong>meaning</strong>, not just keywords — FBI stays the catalog source of truth.</p>
+
+      <div class="stack-diagram" aria-label="Architecture layers">
+        <div class="stack-row react">
+          <div class="stack-label">Patron</div>
+          <div class="stack-name">Library website</div>
+          <div class="stack-sub">React · /easy-search</div>
+        </div>
+        <div class="stack-arrow">↕</div>
+        <div class="stack-row drupal">
+          <div class="stack-label">Orchestrator</div>
+          <div class="stack-name">Drupal CMS</div>
+          <div class="stack-sub">REST API · coordinates all services</div>
+        </div>
+        <div class="stack-arrow">↕</div>
+        <div class="stack-row ai">
+          <div class="stack-label">Semantic index</div>
+          <div class="stack-mini tei">TEI · text → vectors</div>
+          <div class="stack-mini qdrant">Qdrant · vector search</div>
+        </div>
+        <div class="stack-arrow">↕</div>
+        <div class="stack-row fbi">
+          <div class="stack-label">Catalog</div>
+          <div class="stack-name">FBI API</div>
+          <div class="stack-sub">GraphQL · titles, covers, metadata</div>
+        </div>
+      </div>
+
+      <div class="node-tiles">
+        <div class="node-tile react">
+          <h3>Website</h3>
+          <p>Patron search UI — talks to Drupal only</p>
+        </div>
+        <div class="node-tile drupal">
+          <h3>Drupal</h3>
+          <p>Runs indexing jobs &amp; live search API</p>
+        </div>
+        <div class="node-tile fbi">
+          <h3>FBI</h3>
+          <p>Catalog records — fetch &amp; display data</p>
+        </div>
+        <div class="node-tile tei">
+          <h3>TEI</h3>
+          <p>AI model — text into meaning vectors</p>
+        </div>
+        <div class="node-tile qdrant">
+          <h3>Qdrant</h3>
+          <p>Vector DB — find similar works fast</p>
+        </div>
+      </div>
+
+      <div class="flow-strip index">
+        <div class="flow-strip-header"><span class="dot"></span> Indexing — background batch</div>
+        <div class="flow-steps">
+          <div class="flow-step"><span>Start job</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>FBI fetch</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>TEI embed</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>Qdrant store</span></div>
+        </div>
+      </div>
+
+      <div class="flow-strip search">
+        <div class="flow-strip-header"><span class="dot"></span> Search — when patron queries</div>
+        <div class="flow-steps">
+          <div class="flow-step"><span>Query</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>Drupal</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>TEI</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>Qdrant</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>FBI</span></div>
+          <span class="flow-chevron">→</span>
+          <div class="flow-step"><span>Results</span></div>
+        </div>
+      </div>
+
+      <div class="vs-grid">
+        <div class="vs-card normal">
+          <h3>/search</h3>
+          <ul>
+            <li>Keyword matching</li>
+            <li>FBI only</li>
+            <li>Full pagination</li>
+          </ul>
+        </div>
+        <div class="vs-card easy">
+          <h3>/easy-search</h3>
+          <ul>
+            <li>Meaning matching</li>
+            <li>TEI + Qdrant + FBI</li>
+            <li>Needs index first</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="examples">
+        <h2>High-impact examples</h2>
+        <p class="examples-intro">
+          5 English + 5 Danish queries from the indexed catalog — keyword search fails on these,
+          semantic search should still find the right work. Open both links and compare.
+        </p>
+        <table class="examples-table">
+          <thead>
+            <tr>
+              <th>Query</th>
+              <th>Keyword search fails because…</th>
+              <th>Compare</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="examples-group"><td colspan="3">English</td></tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag en">EN</span><span class="query">young orphan discovers he can do magic</span><div class="hint">→ Harry Potter og De Vises Sten</div></td>
+              <td data-label="Why">No “wizard”, “Potter”, or “magic school” in metadata</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=young%20orphan%20discovers%20he%20can%20do%20magic" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=young%20orphan%20discovers%20he%20can%20do%20magic" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag en">EN</span><span class="query">songs of the largest toothed whales</span><div class="hint">→ Kaskelotternes sang</div></td>
+              <td data-label="Why">“Whales” ≠ Danish “kaskelot”; keyword only hits filler words</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=songs%20of%20the%20largest%20toothed%20whales" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=songs%20of%20the%20largest%20toothed%20whales" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag en">EN</span><span class="query">murder mystery in seven square meters</span><div class="hint">→ Syv kvadratmeter med lås</div></td>
+              <td data-label="Why">English “seven square meters” ≠ “syv kvadratmeter”</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=murder%20mystery%20in%20seven%20square%20meters" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=murder%20mystery%20in%20seven%20square%20meters" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag en">EN</span><span class="query">friendly bacteria and gut wellness food</span><div class="hint">→ Tarme med charme</div></td>
+              <td data-label="Why">English health terms; title is Danish “Tarme…”</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=friendly%20bacteria%20and%20gut%20wellness%20food" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=friendly%20bacteria%20and%20gut%20wellness%20food" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag en">EN</span><span class="query">making wool sweaters with needles beginner</span><div class="hint">→ Strik, Strik 2</div></td>
+              <td data-label="Why">English craft words; catalog title is just “Strik”</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=making%20wool%20sweaters%20with%20needles%20beginner" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=making%20wool%20sweaters%20with%20needles%20beginner" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+
+            <tr class="examples-group"><td colspan="3">Danish</td></tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag da">DA</span><span class="query">brødre der dør for hinanden</span><div class="hint">→ Brødrene Løvehjerte</div></td>
+              <td data-label="Why">Plot theme; title says “Løvehjerte” not “dør for hinanden”</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=br%C3%B8dre%20der%20d%C3%B8r%20for%20hinanden" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=br%C3%B8dre%20der%20d%C3%B8r%20for%20hinanden" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag da">DA</span><span class="query">pige der synger under holocaust</span><div class="hint">→ Annas sang</div></td>
+              <td data-label="Why">Story premise; keyword finds Anne Frank instead</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=pige%20der%20synger%20under%20holocaust" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=pige%20der%20synger%20under%20holocaust" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag da">DA</span><span class="query">det handler ikke om dig selv</span><div class="hint">→ Det hele handler ikke om dig</div></td>
+              <td data-label="Why">Paraphrase; keyword matches unrelated “om dig” titles</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=det%20handler%20ikke%20om%20dig%20selv" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=det%20handler%20ikke%20om%20dig%20selv" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag da">DA</span><span class="query">krimi i meget lille lejlighed</span><div class="hint">→ Syv kvadratmeter med lås</div></td>
+              <td data-label="Why">Conceptual description; no “syv kvadratmeter” in query</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=krimi%20i%20meget%20lille%20lejlighed" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=krimi%20i%20meget%20lille%20lejlighed" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-label="Query"><span class="lang-tag da">DA</span><span class="query">sorg over tab af søskende</span><div class="hint">→ Brødrene Løvehjerte</div></td>
+              <td data-label="Why">Emotional theme; keyword hits unrelated “tab” titles</td>
+              <td class="links" data-label="Compare">
+                <a class="semantic" href="/easy-search?q=sorg%20over%20tab%20af%20s%C3%B8skende" target="_blank" rel="noopener">Semantic</a>
+                <a class="keyword" href="/search?q=sorg%20over%20tab%20af%20s%C3%B8skende" target="_blank" rel="noopener">Keyword</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INFRASTRUCTURE -->
+    <section class="view" id="view-infra">
+      <div class="infra-grid">
+        <article class="infra-card fbi">
+          <header>
+            <h2>FBI GraphQL API</h2>
+            <p>Catalog source of truth — all display metadata</p>
+          </header>
+          <div class="infra-body">
+            <dl>
+              <div>
+                <dt>URL</dt>
+                <dd><code>dpl_fbi.settings</code> / library profile<br />e.g. <code>https://…/graphql</code></dd>
+              </div>
+              <div>
+                <dt>Auth</dt>
+                <dd>Bearer token (<code>LibraryTokenHandler</code>)</dd>
+              </div>
+              <div>
+                <dt>When called</dt>
+                <dd>
+                  <span class="when-badge when-index">Index: complexSearch (paginated)</span>
+                  <span class="when-badge when-search">Search: works(id: […]) hydrate</span>
+                </dd>
+              </div>
+              <div>
+                <dt>Index operation</dt>
+                <dd><code>complexSearch(cql, filters)</code> → works with title, creator, abstract, subjects, type, language, audience</dd>
+              </div>
+              <div>
+                <dt>Search operation</dt>
+                <dd><code>works(id: $ids)</code> → full Work objects for React <code>CardListItem</code></dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="infra-card tei">
+          <header>
+            <h2>TEI — Text Embeddings Inference</h2>
+            <p>Turns text into 384-dimensional vectors (local Docker)</p>
+          </header>
+          <div class="infra-body">
+            <dl>
+              <div>
+                <dt>URL</dt>
+                <dd><code>TEI_URL</code> → default <code>http://tei:80</code></dd>
+              </div>
+              <div>
+                <dt>Model</dt>
+                <dd><code>intfloat/multilingual-e5-small</code> (384 floats)</dd>
+              </div>
+              <div>
+                <dt>When called</dt>
+                <dd>
+                  <span class="when-badge when-index">Index: embed passages</span>
+                  <span class="when-badge when-search">Search: embed query</span>
+                  <span class="when-badge when-both">Only if EONEXT_EASYSEARCH_EMBEDDING=tei</span>
+                </dd>
+              </div>
+              <div>
+                <dt>HTTP</dt>
+                <dd><code>POST /embed</code></dd>
+              </div>
+              <div>
+                <dt>Input</dt>
+                <dd><code>{ "inputs": ["passage: …", …] }</code> or <code>query: …</code> — max 16 strings per request</dd>
+              </div>
+              <div>
+                <dt>Output</dt>
+                <dd>JSON array of float[384] vectors, same order as inputs</dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="infra-card qdrant">
+          <header>
+            <h2>Qdrant</h2>
+            <p>Vector database — stores embeddings + searchable payload</p>
+          </header>
+          <div class="infra-body">
+            <dl>
+              <div>
+                <dt>URL</dt>
+                <dd><code>QDRANT_URL</code> → <code>http://qdrant:6333</code> or Qdrant Cloud</dd>
+              </div>
+              <div>
+                <dt>Collection</dt>
+                <dd><code>fbi_materials</code> — cosine distance, 384 dims (TEI mode)</dd>
+              </div>
+              <div>
+                <dt>When called</dt>
+                <dd>
+                  <span class="when-badge when-index">Index: PUT points (upsert)</span>
+                  <span class="when-badge when-search">Search: POST points/search (kNN)</span>
+                </dd>
+              </div>
+              <div>
+                <dt>Point structure (TEI mode)</dt>
+                <dd>
+                  <strong>id:</strong> UUID from workId<br />
+                  <strong>vector:</strong> float[384]<br />
+                  <strong>payload:</strong> workId, title, creator, abstract, materialType, languageCodes, …
+                </dd>
+              </div>
+              <div>
+                <dt>Search output</dt>
+                <dd>Ranked hits: workId + score + payload (used for filtering; display still from FBI)</dd>
+              </div>
+              <div>
+                <dt>Alt mode</dt>
+                <dd><code>qdrant_inference</code> — Qdrant embeds text itself; TEI not used</dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+      </div>
+
+      <div class="note">
+        <strong>Drupal orchestrates everything</strong> between these three. React never talks to FBI, TEI, or Qdrant directly — only to <code>GET /api/v1/material-semantic-search</code> on <code>/easy-search</code>.
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="view" id="view-map">
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 920 420" xmlns="http://www.w3.org/2000/svg" aria-label="Connection map">
+          <defs>
+            <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#ea580c" />
+            </marker>
+            <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#059669" />
+            </marker>
+            <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <!-- Lane labels -->
+          <rect x="24" y="12" width="168" height="22" rx="6" fill="#fff7ed" stroke="#fdba74" />
+          <text x="108" y="27" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="600">Indexing (Drush batch)</text>
+          <rect x="24" y="108" width="210" height="22" rx="6" fill="#ecfdf5" stroke="#6ee7b7" />
+          <text x="129" y="123" text-anchor="middle" fill="#047857" font-size="11" font-weight="600">Live search (/easy-search)</text>
+
+          <!-- Paths (routed in corridors, not through boxes) -->
+          <!-- Index: Drush → Drupal -->
+          <path d="M460 88 L460 118 L280 118 L280 158" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr-orange)" />
+          <!-- Index: Drupal → FBI -->
+          <path d="M350 188 L720 188" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr-orange)" />
+          <!-- Index: Drupal → TEI → Qdrant -->
+          <path d="M280 218 L280 268 L230 268 L230 308" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr-orange)" />
+          <path d="M300 334 L440 334" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arr-orange)" />
+
+          <!-- Search: Browser → Drupal -->
+          <path d="M155 188 L210 188" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arr-green)" />
+          <!-- Search: Drupal → TEI (embed query) -->
+          <path d="M280 218 L280 308" fill="none" stroke="#0284c7" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#arr-blue)" />
+          <!-- Search: Drupal → Qdrant -->
+          <path d="M350 188 L510 188 L510 308" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arr-green)" />
+          <!-- Search: Qdrant → FBI -->
+          <path d="M580 334 L790 334 L790 210" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arr-green)" />
+          <!-- Search: FBI → Browser (return corridor above boxes) -->
+          <path d="M790 158 L790 138 L98 138 L98 158" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-green)" />
+
+          <!-- Nodes -->
+          <rect x="380" y="48" width="160" height="40" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+          <text x="460" y="66" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">Drush vector-index</text>
+          <text x="460" y="80" text-anchor="middle" fill="#5c6578" font-size="9">starts batch job</text>
+
+          <rect x="40" y="158" width="115" height="60" rx="8" fill="#fce7f3" stroke="#db2777" stroke-width="1.5" />
+          <text x="97" y="184" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">Browser</text>
+          <text x="97" y="200" text-anchor="middle" fill="#5c6578" font-size="9">React UI</text>
+
+          <rect x="210" y="158" width="140" height="60" rx="8" fill="#e8f4fc" stroke="#0678be" stroke-width="1.5" />
+          <text x="280" y="184" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">Drupal</text>
+          <text x="280" y="200" text-anchor="middle" fill="#5c6578" font-size="9">REST + services</text>
+
+          <rect x="720" y="158" width="120" height="60" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="1.5" />
+          <text x="780" y="184" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">FBI API</text>
+          <text x="780" y="200" text-anchor="middle" fill="#5c6578" font-size="9">GraphQL</text>
+
+          <rect x="170" y="308" width="120" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+          <text x="230" y="332" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">TEI</text>
+          <text x="230" y="346" text-anchor="middle" fill="#5c6578" font-size="9">POST /embed</text>
+
+          <rect x="440" y="308" width="140" height="52" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" />
+          <text x="510" y="332" text-anchor="middle" fill="#1c2333" font-size="11" font-weight="600">Qdrant</text>
+          <text x="510" y="346" text-anchor="middle" fill="#5c6578" font-size="9">fbi_materials</text>
+
+          <!-- Animated dots -->
+          <circle class="flow-dot" r="4" fill="#ea580c"><animateMotion dur="6s" repeatCount="indefinite" path="M460 88 L460 118 L280 118 L280 158 L350 188 L720 188 L280 218 L280 268 L230 268 L230 308 L300 334 L440 334" /></circle>
+          <circle class="flow-dot" r="4" fill="#059669"><animateMotion dur="5s" repeatCount="indefinite" path="M155 188 L210 188 L350 188 L510 188 L510 308 L580 334 L790 334 L790 210 L790 138 L98 138 L98 158" begin="0.8s" /></circle>
+          <circle class="flow-dot" r="3" fill="#0284c7"><animateMotion dur="3.5s" repeatCount="indefinite" path="M280 218 L280 308" begin="1.2s" /></circle>
+        </svg>
+      </div>
+
+      <p style="text-align:center;color:var(--muted);font-size:0.82rem;margin-top:0.75rem;">
+        Orange dashed = indexing · Green solid = live search · Blue dashed = TEI embed on search
+      </p>
+
+      <div class="map-steps" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;font-size:0.82rem;">
+        <div style="background:var(--bg);border-radius:8px;padding:0.75rem 1rem;">
+          <strong style="color:#c2410c;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;">Index steps</strong>
+          <ol style="margin:0.45rem 0 0 1.1rem;color:var(--muted);">
+            <li>Drush → Drupal starts batch</li>
+            <li>Drupal → FBI <code>complexSearch</code></li>
+            <li>Drupal → TEI embed passages</li>
+            <li>TEI → Qdrant upsert vectors</li>
+          </ol>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:0.75rem 1rem;">
+          <strong style="color:#047857;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;">Search steps</strong>
+          <ol style="margin:0.45rem 0 0 1.1rem;color:var(--muted);">
+            <li>Browser → Drupal REST API</li>
+            <li>Drupal → TEI embed query</li>
+            <li>Drupal → Qdrant kNN search</li>
+            <li>Qdrant → FBI <code>works(id)</code> hydrate</li>
+            <li>FBI → Browser JSON results</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:#4f46e5"></i> FBI — catalog</span>
+        <span><i style="background:#0284c7"></i> TEI — embeddings</span>
+        <span><i style="background:#dc2626"></i> Qdrant — vectors</span>
+        <span><i style="background:#0678be"></i> Drupal — orchestration</span>
+        <span><i style="background:#db2777"></i> React — UI only</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll(".tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("view-" + btn.dataset.view).classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

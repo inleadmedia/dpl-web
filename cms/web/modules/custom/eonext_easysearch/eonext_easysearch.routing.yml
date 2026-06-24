@@ -4,3 +4,13 @@ eonext_easysearch.easy_search:
     _controller: '\Drupal\dpl_react_apps\Controller\DplReactAppsController::search'
   requirements:
     _permission: 'access content'
+
+eonext_easysearch.documentation:
+  path: '/admin/help/eonext-easysearch/documentation'
+  defaults:
+    _controller: '\Drupal\eonext_easysearch\Controller\EasysearchHelpController::documentation'
+    _title: 'Easy Search documentation'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE

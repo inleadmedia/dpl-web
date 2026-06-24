@@ -5,7 +5,30 @@
  * Primary module hooks for EO NEXT Easy Search.
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+
+/**
+ * Implements hook_help().
+ */
+function eonext_easysearch_help(string $route_name, RouteMatchInterface $route_match): array|string|null {
+  switch ($route_name) {
+    case 'help.page.eonext_easysearch':
+      return [
+        'documentation' => [
+          '#type' => 'html_tag',
+          '#tag' => 'iframe',
+          '#attributes' => [
+            'src' => Url::fromRoute('eonext_easysearch.documentation')->toString(),
+            'title' => t('Easy Search documentation'),
+            'style' => 'width:100%;min-height:960px;border:0;',
+          ],
+        ],
+      ];
+  }
+
+  return NULL;
+}
 
 /**
  * Implements hook_preprocess_HOOK().
