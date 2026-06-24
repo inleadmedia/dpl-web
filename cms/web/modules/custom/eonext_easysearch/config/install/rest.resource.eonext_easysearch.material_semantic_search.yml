@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_easysearch
+    - serialization
+    - user
+id: eonext_easysearch.material_semantic_search
+plugin_id: 'eonext_easysearch:material_semantic_search'
+granularity: resource
+configuration:
+  methods:
+    - GET
+  formats:
+    - json
+  authentication:
+    - cookie

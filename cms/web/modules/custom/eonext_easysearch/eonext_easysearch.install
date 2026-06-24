@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for eonext_easysearch.
+ */
+
+use Drupal\Core\Config\FileStorage;
+use Drupal\user\Entity\Role;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_easysearch_install(): void {
+  eonext_easysearch_grant_material_semantic_search_permissions();
+}
+
+/**
+ * Migrates semantic search from dpl_fbi and enables the new REST resource.
+ */
+function eonext_easysearch_update_9001(): string {
+  $fbi_config = \Drupal::config('dpl_fbi.settings');
+  if ($fbi_config->get('enable_semantic_search') !== NULL) {
+    \Drupal::configFactory()
+      ->getEditable('eonext_easysearch.settings')
+      ->set('enable_semantic_search', (bool) $fbi_config->get('enable_semantic_search'))
+      ->save(TRUE);
+  }
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_easysearch');
+  $source = new FileStorage($module_path . '/config/install');
+  $data = $source->read('rest.resource.eonext_easysearch.material_semantic_search');
+
+  if (is_array($data)) {
+    \Drupal::configFactory()
+      ->getEditable('rest.resource.eonext_easysearch.material_semantic_search')
+      ->setData($data)
+      ->save(TRUE);
+  }
+
+  $legacy_rest_name = 'rest.resource.dpl_fbi.material_semantic_search';
+  $legacy_exists = (bool) \Drupal::database()->select('config', 'c')
+    ->fields('c', ['name'])
+    ->condition('collection', '')
+    ->condition('name', $legacy_rest_name)
+    ->range(0, 1)
+    ->execute()
+    ->fetchField();
+  if ($legacy_exists) {
+    \Drupal::database()->delete('config')
+      ->condition('collection', '')
+      ->condition('name', $legacy_rest_name)
+      ->execute();
+    \Drupal::service('cache.config')->deleteAll();
+  }
+
+  eonext_easysearch_grant_material_semantic_search_permissions();
+  eonext_easysearch_revoke_legacy_fbi_permission();
+
+  return 'Migrated semantic search from dpl_fbi to eonext_easysearch.';
+}
+
+/**
+ * Grants anonymous users access to the semantic search REST resource.
+ */
+function eonext_easysearch_grant_material_semantic_search_permissions(): void {
+  $permission = 'restful get eonext_easysearch:material_semantic_search';
+  $role = Role::load('anonymous');
+
+  if ($role !== NULL && !$role->hasPermission($permission)) {
+    $role->grantPermission($permission);
+    $role->save();
+  }
+}
+
+/**
+ * Removes the legacy dpl_fbi semantic search REST permission from anonymous.
+ */
+function eonext_easysearch_revoke_legacy_fbi_permission(): void {
+  $permission = 'restful get dpl_fbi:material_semantic_search';
+  $role = Role::load('anonymous');
+
+  if ($role !== NULL && $role->hasPermission($permission)) {
+    $role->revokePermission($permission);
+    $role->save();
+  }
+}

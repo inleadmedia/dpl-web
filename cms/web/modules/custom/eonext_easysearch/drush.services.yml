@@ -1,0 +1,11 @@
+---
+services:
+  eonext_easysearch.vector_commands:
+    class: Drupal\eonext_easysearch\Drush\Commands\EasysearchVectorCommands
+    arguments:
+      - '@Drupal\eonext_easysearch\Vector\MaterialVectorIndexer'
+      - '@Drupal\eonext_easysearch\Vector\SemanticSearch'
+      - '@Drupal\eonext_easysearch\Vector\QdrantClient'
+      - '@Drupal\eonext_easysearch\Vector\VectorSearchSettings'
+    tags:
+      - { name: drush.command }

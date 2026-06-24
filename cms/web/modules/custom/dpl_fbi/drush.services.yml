@@ -1,0 +1,8 @@
+---
+services:
+  dpl_fbi.search_commands:
+    class: Drupal\dpl_fbi\Drush\Commands\FbiSearchCommands
+    arguments:
+      - '@Drupal\dpl_fbi\FreeTextSearchClient'
+    tags:
+      - { name: drush.command }

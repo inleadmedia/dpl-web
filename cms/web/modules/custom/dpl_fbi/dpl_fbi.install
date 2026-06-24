@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * @file
+ * Install and update hooks for dpl_fbi.
+ */
+
+use Drupal\user\Entity\Role;
+
+/**
  * Update the CQL search field to have a max length of 16000.
  */
 function dpl_fbi_update_10001():void {
@@ -24,4 +31,49 @@ function dpl_fbi_update_10001():void {
       throw new \Exception("Field 'field_cql_search_value' does not exist in the table {$table_name}");
     }
   }
+}
+
+/**
+ * Enable the material semantic search REST resource.
+ *
+ * @deprecated Superseded by eonext_easysearch. Kept for sites that have not
+ *   yet run dpl_fbi_update_10003.
+ */
+function dpl_fbi_update_10002(): string {
+  return 'Semantic search moved to eonext_easysearch; run drush en eonext_easysearch and updb.';
+}
+
+/**
+ * Disables legacy semantic search config in dpl_fbi (now in eonext_easysearch).
+ */
+function dpl_fbi_update_10003(): string {
+  $config = \Drupal::configFactory()->getEditable('dpl_fbi.settings');
+  if ($config->get('enable_semantic_search') !== NULL) {
+    $config->clear('enable_semantic_search')->save(TRUE);
+  }
+
+  $legacy_rest_name = 'rest.resource.dpl_fbi.material_semantic_search';
+  $legacy_exists = (bool) \Drupal::database()->select('config', 'c')
+    ->fields('c', ['name'])
+    ->condition('collection', '')
+    ->condition('name', $legacy_rest_name)
+    ->range(0, 1)
+    ->execute()
+    ->fetchField();
+  if ($legacy_exists) {
+    \Drupal::database()->delete('config')
+      ->condition('collection', '')
+      ->condition('name', $legacy_rest_name)
+      ->execute();
+    \Drupal::service('cache.config')->deleteAll();
+  }
+
+  $permission = 'restful get dpl_fbi:material_semantic_search';
+  $role = Role::load('anonymous');
+  if ($role !== NULL && $role->hasPermission($permission)) {
+    $role->revokePermission($permission);
+    $role->save();
+  }
+
+  return 'Removed semantic search from dpl_fbi (use eonext_easysearch module).';
 }

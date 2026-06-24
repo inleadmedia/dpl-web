@@ -1,0 +1,30 @@
+---
+services:
+  _defaults:
+    autowire: true
+
+  logger.channel.eonext_easysearch:
+    parent: logger.channel_base
+    arguments: ['eonext_easysearch']
+
+  Drupal\eonext_easysearch\Vector\VectorSearchSettings: {}
+
+  Drupal\eonext_easysearch\Vector\EmbeddingClient:
+    arguments:
+      $logger: '@logger.channel.eonext_easysearch'
+
+  Drupal\eonext_easysearch\Vector\QdrantClient:
+    arguments:
+      $logger: '@logger.channel.eonext_easysearch'
+
+  Drupal\eonext_easysearch\Vector\MaterialVectorIndexer:
+    arguments:
+      $logger: '@logger.channel.eonext_easysearch'
+
+  Drupal\eonext_easysearch\Vector\SemanticSearch: {}
+
+  Drupal\eonext_easysearch\FbiWorksClient:
+    arguments:
+      $logger: '@logger.channel.eonext_easysearch'
+
+  Drupal\eonext_easysearch\MaterialSemanticSearch: {}

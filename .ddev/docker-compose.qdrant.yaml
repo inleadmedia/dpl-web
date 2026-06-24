@@ -1,0 +1,26 @@
+# Qdrant vector database for local semantic material search (dpl_fbi).
+# Reachable from the web container at http://qdrant:6333 (REST).
+services:
+  qdrant:
+    container_name: ddev-${DDEV_SITENAME}-qdrant
+    image: qdrant/qdrant:v1.12.4
+    restart: "no"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    expose:
+      - "6333"
+      - "6334"
+    environment:
+      - VIRTUAL_HOST=$DDEV_HOSTNAME
+      - HTTP_EXPOSE=6333:6333
+      - HTTPS_EXPOSE=6343:6333
+    volumes:
+      - qdrant-storage:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "sh", "-c", "true"]
+      interval: 10s
+      timeout: 5s
+
+volumes:
+  qdrant-storage:

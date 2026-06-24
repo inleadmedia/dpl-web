@@ -1,0 +1,56 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for EO NEXT Easy Search.
+ */
+
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function eonext_easysearch_preprocess_dpl_react_app(array &$variables): void {
+  $name = $variables['name'] ?? NULL;
+  $enabled = eonext_easysearch_semantic_search_enabled();
+  $is_easy_search = \Drupal::routeMatch()->getRouteName() === 'eonext_easysearch.easy_search';
+
+  // Semantic results only on /easy-search; /search always uses FBI search.
+  if ($name === 'search-result' && $is_easy_search && $enabled) {
+    $variables['attributes']['data-semantic-search'] = json_encode(TRUE);
+    $variables['#cache']['tags'][] = 'config:eonext_easysearch.settings';
+    $variables['#cache']['contexts'][] = 'route';
+  }
+
+  if ($name === 'search-header' && $enabled) {
+    $variables['attributes']['data-semantic-search'] = json_encode(TRUE);
+    $variables['#cache']['tags'][] = 'config:eonext_easysearch.settings';
+  }
+}
+
+/**
+ * Implements hook_dpl_react_apps_data().
+ */
+function eonext_easysearch_dpl_react_apps_data(array &$data): void {
+  if (!eonext_easysearch_semantic_search_enabled()) {
+    return;
+  }
+
+  $data['urls'] += [
+    'easy-search' => dpl_react_apps_ensure_url_is_string(
+      Url::fromRoute('eonext_easysearch.easy_search')->toString()
+    ),
+  ];
+
+  $data['texts'] += [
+    'semantic-search-icon-alt' => t('AI search', [], ['context' => 'Global']),
+  ];
+}
+
+/**
+ * Whether semantic material search is enabled in site config.
+ */
+function eonext_easysearch_semantic_search_enabled(): bool {
+  return (bool) \Drupal::config('eonext_easysearch.settings')
+    ->get('enable_semantic_search');
+}

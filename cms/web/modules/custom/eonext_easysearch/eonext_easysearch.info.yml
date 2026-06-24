@@ -1,0 +1,11 @@
+type: module
+name: EO NEXT Easy Search
+description: Semantic (vector) material search via Qdrant with FBI hydration.
+package: EO next
+core_version_requirement: ^10
+dependencies:
+  - drupal:rest
+  - dpl_react_apps:dpl_react_apps
+  - dpl_fbi:dpl_fbi
+  - dpl_library_agency:dpl_library_agency
+  - dpl_library_token:dpl_library_token

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import useSearchResultTracking from "./useSearchResultTracking";
 import { useDeepCompareEffect } from "react-use";
 import { useQueryState, parseAsJson, parseAsBoolean } from "nuqs";
@@ -29,13 +29,26 @@ import { allFacetFields, createFilters } from "./helper";
 import AutosuggestEditorial from "../../components/autosuggest-editorial/autosuggest-editorial";
 import { useCampaignMatchPOST } from "../../core/dpl-cms/dpl-cms";
 import { CampaignMatchPOSTBody } from "../../core/dpl-cms/model/campaignMatchPOSTBody";
+import { buildSemanticSearchFilters } from "./semantic-search-filters";
+import {
+  SEMANTIC_SEARCH_MAX_LIMIT,
+  useMaterialSemanticSearch
+} from "./useMaterialSemanticSearch";
 
 interface SearchResultProps {
   q: string;
   pageSize: number;
 }
 
-const isEditorialSearchEnabled = document.querySelector("[data-editorial-search]")?.getAttribute("data-editorial-search") === "true";
+const isEditorialSearchEnabled =
+  document
+    .querySelector("[data-editorial-search]")
+    ?.getAttribute("data-editorial-search") === "true";
+
+const isSemanticSearchEnabled =
+  document
+    .querySelector('[data-dpl-app="search-result"]')
+    ?.getAttribute("data-semantic-search") === "true";
 
 const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
   const u = useUrls();
@@ -105,6 +118,22 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
 
   const campaignMutation = useCampaignMatchPOST();
 
+  const isWildcardQuerySearch = isWildcardQuery(q);
+  const useSemanticSearch = isSemanticSearchEnabled && !isWildcardQuerySearch;
+
+  const semanticFilters = useMemo(
+    () => buildSemanticSearchFilters(facetsFromUrl, facets),
+    [facetsFromUrl, facets]
+  );
+
+  const { data: semanticData, isLoading: isSemanticLoading } =
+    useMaterialSemanticSearch({
+      q,
+      limit: SEMANTIC_SEARCH_MAX_LIMIT,
+      filters: semanticFilters,
+      enabled: useSemanticSearch && q.length >= minimalQueryLength
+    });
+
   useEffect(() => {
     if (facets.length === 0) return;
 
@@ -127,7 +156,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facets]);
 
-  const { data, isLoading } = useSearchWithPaginationQuery(
+  const { data, isLoading: isFbiLoading } = useSearchWithPaginationQuery(
     {
       q: { all: q },
       offset: page * pageSize,
@@ -135,7 +164,9 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
       filters: searchFilters
     },
     {
-      enabled: q.length >= minimalQueryLength,
+      enabled:
+        q.length >= minimalQueryLength &&
+        !useSemanticSearch,
       onSuccess: (data) => {
         if (data.search.hitcount === 0) {
           redirectTo(zeroHitsSearchUrl);
@@ -144,8 +175,31 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
     }
   );
 
+  const isLoading = useSemanticSearch ? isSemanticLoading : isFbiLoading;
+
   useEffect(() => {
-    if (!data) {
+    if (!useSemanticSearch || !semanticData) {
+      return;
+    }
+
+    if (semanticData.hitcount === 0) {
+      redirectTo(zeroHitsSearchUrl);
+      return;
+    }
+
+    const works = semanticData.results.map((result) => result.work);
+    setHitCount(semanticData.hitcount);
+
+    if (page > 0) {
+      setResultItems(works.slice(0, (page + 1) * pageSize));
+      return;
+    }
+
+    setResultItems(works.slice(0, pageSize));
+  }, [semanticData, page, pageSize, useSemanticSearch, zeroHitsSearchUrl]);
+
+  useEffect(() => {
+    if (useSemanticSearch || !data) {
       return;
     }
     const {
@@ -169,15 +223,13 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
     }
 
     setResultItems(resultWorks);
-  }, [data, page]);
+  }, [data, page, useSemanticSearch]);
 
   useSearchResultTracking({ q, hitcount });
 
   if (!q || q.length < minimalQueryLength) {
     return <SearchResultInvalidSearch />;
   }
-
-  const isWildcardQuerySearch = isWildcardQuery(q);
 
   const headerTitle = isWildcardQuerySearch
     ? t("showingAllMaterialsText")

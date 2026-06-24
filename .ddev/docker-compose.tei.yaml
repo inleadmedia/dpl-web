@@ -1,0 +1,27 @@
+# Local multilingual embedding model (HuggingFace Text Embeddings Inference).
+# Serves intfloat/multilingual-e5-small so English queries match Danish content.
+# Reachable from the web container at http://tei:80 (POST /embed).
+#
+# Note: the CPU image is linux/amd64; on Apple Silicon it runs under emulation
+# (slower, but fine for a prototype with a sample of works).
+services:
+  tei:
+    container_name: ddev-${DDEV_SITENAME}-tei
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    platform: linux/amd64
+    restart: "no"
+    command: ["--model-id", "intfloat/multilingual-e5-small", "--port", "80", "--auto-truncate"]
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    expose:
+      - "80"
+    environment:
+      - VIRTUAL_HOST=$DDEV_HOSTNAME
+      - HTTP_EXPOSE=6380:80
+      - HTTPS_EXPOSE=6390:80
+    volumes:
+      - tei-model-cache:/data
+
+volumes:
+  tei-model-cache:

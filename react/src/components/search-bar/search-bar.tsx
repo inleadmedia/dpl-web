@@ -4,7 +4,14 @@ import expandIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/ico
 import { UseComboboxPropGetters } from "downshift";
 import clsx from "clsx";
 import { useText } from "../../core/utils/text";
+import { useUrls } from "../../core/utils/url";
 import { redirectTo } from "../../core/utils/helpers/url";
+import AiSearchIcon from "./AiSearchIcon";
+
+const isSemanticSearchEnabled = (): boolean =>
+  document
+    .querySelector('[data-dpl-app="search-header"]')
+    ?.getAttribute("data-semantic-search") === "true";
 
 export interface SearchBarProps {
   q: string;
@@ -46,8 +53,31 @@ const SearchBar: React.FC<SearchBarProps> = ({
   advancedSearchUrl
 }) => {
   const t = useText();
+  const u = useUrls();
+  const semanticSearchEnabled = React.useMemo(isSemanticSearchEnabled, []);
+  const easySearchUrl = semanticSearchEnabled
+    ? u("easySearchUrl", true)
+    : false;
+  const searchQuery = (qWithoutQuery || q).trim();
+  const showAiSearchIcon =
+    Boolean(easySearchUrl) && searchQuery.length >= 3;
+
   const handleDropdownMenu = () => {
     setIsHeaderDropdownOpen((prev) => !prev);
+  };
+
+  const redirectToEasySearch = () => {
+    if (!easySearchUrl) {
+      return;
+    }
+
+    const query = (qWithoutQuery || q).trim();
+    const url = new URL(easySearchUrl);
+    if (query !== "") {
+      url.searchParams.set("q", query);
+    }
+
+    redirectTo(url);
   };
 
   const branches = React.useMemo(() => {
@@ -72,7 +102,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <>
-      <form className="header__menu-search">
+      <form
+        className={clsx("header__menu-search-form", {
+          "header__menu-search-form--has-ai": showAiSearchIcon
+        })}
+      >
         <label
           className="hide-visually"
           // TODO: Explicitly define prop types for better clarity
@@ -125,6 +159,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
               </select>
             : null
         }
+        {showAiSearchIcon ? (
+          <button
+            type="button"
+            className="header__menu-search-ai-icon header__menu-search-ai-icon--visible"
+            aria-label={t("semanticSearchIconAltText")}
+            data-cy="search-header-ai-icon"
+            onClick={redirectToEasySearch}
+          >
+            <AiSearchIcon />
+          </button>
+        ) : null}
         <input
           type="image"
           src={searchIcon}
