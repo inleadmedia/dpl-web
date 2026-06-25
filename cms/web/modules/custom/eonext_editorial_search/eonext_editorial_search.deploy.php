@@ -109,12 +109,3 @@ function eonext_editorial_search_deploy_index_past_events(): string {
 
   return eonext_editorial_search_ensure_event_has_upcoming_indexing();
 }
-
-/**
- * Excludes GO categories from editorial search index and facet filters.
- */
-function eonext_editorial_search_deploy_exclude_go_categories_from_index(): string {
-  _eonext_editorial_search_load_install();
-
-  return eonext_editorial_search_exclude_go_categories_from_index();
-}
