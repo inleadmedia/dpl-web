@@ -338,6 +338,13 @@ function eonext_editorial_search_update_9008(): string {
 }
 
 /**
+ * Excludes GO categories from the editorial search index and removes stale items.
+ */
+function eonext_editorial_search_update_9009(): string {
+  return eonext_editorial_search_exclude_go_categories_from_index();
+}
+
+/**
  * Adds event_has_upcoming field and marks the index for re-indexing.
  */
 function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
@@ -383,9 +390,53 @@ function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
  * Excludes GO articles from the editorial search index and removes stale items.
  */
 function eonext_editorial_search_exclude_go_articles_from_index(): string {
+  $messages = eonext_editorial_search_exclude_node_bundle_from_index('go_article');
+
+  $messages[] = eonext_editorial_search_remove_facet_content_type_label(
+    'go_article|GO Article',
+    'GO Article',
+  );
+
+  $messages = array_values(array_filter($messages));
+  if ($messages === []) {
+    return 'GO articles are already excluded from index content_events.';
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Excludes GO categories from the editorial search index and removes stale items.
+ */
+function eonext_editorial_search_exclude_go_categories_from_index(): string {
+  $messages = eonext_editorial_search_exclude_node_bundle_from_index('go_category');
+
+  $messages[] = eonext_editorial_search_remove_facet_content_type_label(
+    'go_category|GO category',
+    'GO category',
+  );
+
+  $messages = array_values(array_filter($messages));
+  if ($messages === []) {
+    return 'GO categories are already excluded from index content_events.';
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Excludes a node bundle from the editorial search index and removes its items.
+ *
+ * @param string $bundle
+ *   The node bundle (content type) to exclude.
+ *
+ * @return string[]
+ *   Human-readable status messages describing what changed.
+ */
+function eonext_editorial_search_exclude_node_bundle_from_index(string $bundle): array {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
-    return 'Search API index content_events was not found; GO articles were not excluded.';
+    return [sprintf('Search API index content_events was not found; %s was not excluded.', $bundle)];
   }
 
   $messages = [];
@@ -394,15 +445,15 @@ function eonext_editorial_search_exclude_go_articles_from_index(): string {
   $bundles = $node_settings['bundles'] ?? [];
   $excluded_bundles = $bundles['selected'] ?? [];
 
-  if (!in_array('go_article', $excluded_bundles, TRUE)) {
-    $excluded_bundles[] = 'go_article';
+  if (!in_array($bundle, $excluded_bundles, TRUE)) {
+    $excluded_bundles[] = $bundle;
     sort($excluded_bundles);
     $bundles['selected'] = $excluded_bundles;
     $bundles['default'] = $bundles['default'] ?? TRUE;
     $datasource_settings['entity:node'] = $bundles;
     $index->set('datasource_settings', $datasource_settings);
     $index->save();
-    $messages[] = 'Excluded go_article from index content_events.';
+    $messages[] = sprintf('Excluded %s from index content_events.', $bundle);
   }
 
   // The content_type field is added by eonext_editorial_search install/update hooks
@@ -411,54 +462,64 @@ function eonext_editorial_search_exclude_go_articles_from_index(): string {
     $messages[] = eonext_editorial_search_ensure_facet_index_fields();
     $index = Index::load('content_events');
     if (!$index instanceof IndexInterface || !$index->getField('content_type')) {
-      $messages[] = 'Skipped removing indexed GO articles because content_type is not configured on index content_events.';
+      $messages[] = sprintf('Skipped removing indexed %s items because content_type is not configured on index content_events.', $bundle);
+      return $messages;
     }
   }
 
-  if ($index instanceof IndexInterface && $index->getField('content_type')) {
-    $query = $index->query();
-    $query->addCondition('content_type', 'go_article');
-    $query->range(0, 10000);
-    $results = $query->execute();
+  $query = $index->query();
+  $query->addCondition('content_type', $bundle);
+  $query->range(0, 10000);
+  $results = $query->execute();
 
-    $item_ids = [];
-    foreach ($results->getResultItems() as $item) {
-      $item_ids[] = $item->getId();
-    }
-
-    if ($item_ids !== []) {
-      $index->getServerInstance()->deleteItems($index, $item_ids);
-      $messages[] = sprintf(
-        'Removed %d GO article(s) from index content_events.',
-        count($item_ids),
-      );
-    }
+  $item_ids = [];
+  foreach ($results->getResultItems() as $item) {
+    $item_ids[] = $item->getId();
   }
 
+  if ($item_ids !== []) {
+    $index->getServerInstance()->deleteItems($index, $item_ids);
+    $messages[] = sprintf('Removed %d %s item(s) from index content_events.', count($item_ids), $bundle);
+  }
+
+  return $messages;
+}
+
+/**
+ * Removes a content type label from the editorial_content_type facet.
+ *
+ * @param string $replacement
+ *   The "machine_name|Label" replacement entry to remove.
+ * @param string $label
+ *   The human-readable label, used only in the status message.
+ *
+ * @return string
+ *   A status message, or an empty string when nothing changed.
+ */
+function eonext_editorial_search_remove_facet_content_type_label(string $replacement, string $label): string {
   $facet = \Drupal::entityTypeManager()
     ->getStorage('facets_facet')
     ->load('editorial_content_type');
 
-  if ($facet) {
-    $processors = $facet->get('processor_configs');
-    $replacements = $processors['replace']['settings']['replacements'] ?? '';
-    if (str_contains($replacements, 'go_article|GO Article')) {
-      $processors['replace']['settings']['replacements'] = str_replace(
-        "go_article|GO Article\r\n",
-        '',
-        $replacements,
-      );
-      $facet->set('processor_configs', $processors);
-      $facet->save();
-      $messages[] = 'Removed GO Article from editorial_content_type facet labels.';
-    }
+  if (!$facet) {
+    return '';
   }
 
-  if ($messages === []) {
-    return 'GO articles are already excluded from index content_events.';
+  $processors = $facet->get('processor_configs');
+  $replacements = $processors['replace']['settings']['replacements'] ?? '';
+  if (!str_contains($replacements, $replacement)) {
+    return '';
   }
 
-  return implode(' ', $messages);
+  $processors['replace']['settings']['replacements'] = str_replace(
+    $replacement . "\r\n",
+    '',
+    $replacements,
+  );
+  $facet->set('processor_configs', $processors);
+  $facet->save();
+
+  return sprintf('Removed %s from editorial_content_type facet labels.', $label);
 }
 
 /**
