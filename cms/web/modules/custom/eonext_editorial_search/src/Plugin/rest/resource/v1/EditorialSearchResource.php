@@ -76,7 +76,7 @@ final class EditorialSearchResource extends ResourceBase {
    *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
    *   entity_type - Entity filter (node, eventseries).
    *   show_past_events - Include past event series (1 to enable).
-   *   sort_by     - Sort field: relevance (default), sort_date, or sort_title.
+   *   sort_by     - Sort field (applied when q is provided): relevance (default), sort_date, or sort_title.
    *   sort_order  - Sort direction: ASC or DESC (defaults: DESC for relevance/date,
    *                 ASC for title).
    */
