@@ -12,9 +12,5 @@ use Drupal\eonext_event_material_paragraphs\ShowAllSetup;
  * Implements hook_install().
  */
 function eonext_event_material_paragraphs_install(): void {
-  // Run preprocess hooks after dpl_related_content, which builds the event
-  // list render array this module injects the Explore link into.
-  module_set_weight('eonext_event_material_paragraphs', 10);
-
   DrupalTyped::service(ShowAllSetup::class)->install();
 }

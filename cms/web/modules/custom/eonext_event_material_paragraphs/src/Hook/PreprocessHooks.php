@@ -54,7 +54,10 @@ final class PreprocessHooks {
   #[Hook('preprocess_paragraph__filtered_event_list')]
   public function filteredEventList(array &$variables): void {
     $show_all_link = $this->resolveLink($variables);
-    if ($show_all_link === NULL || !isset($variables['content']['view']['#theme'])) {
+    if (
+      $show_all_link === NULL
+      || ($variables['content']['view']['#theme'] ?? NULL) !== 'dpl_related_content'
+    ) {
       return;
     }
 

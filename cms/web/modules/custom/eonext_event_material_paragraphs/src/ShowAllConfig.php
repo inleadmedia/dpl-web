@@ -89,8 +89,9 @@ final class ShowAllConfig {
    * Builds the #states selector for a nested paragraph widget subform.
    *
    * Mirrors how Drupal builds the input "name" attribute from the element
-   * parents, so it works at any nesting depth (including top-level paragraph
-   * fields, where $field_parents is empty).
+   * parents, including the list_string item delta and value key, so it works
+   * at any nesting depth (including top-level paragraph fields, where
+   * $field_parents is empty).
    *
    * @param array $field_parents
    *   The widget field parents from the form element.
@@ -102,7 +103,11 @@ final class ShowAllConfig {
    * @phpstan-param array<int,string|int> $field_parents
    */
   public static function nestedBehaviorSelector(array $field_parents, string $field_name, int $delta): string {
-    $parents = array_merge($field_parents, [$field_name, $delta, 'subform', self::FIELD_BEHAVIOR]);
+    // list_string widgets expose the selected value at [0][value].
+    $parents = array_merge(
+      $field_parents,
+      [$field_name, $delta, 'subform', self::FIELD_BEHAVIOR, 0, 'value'],
+    );
     $first = array_shift($parents);
     $input_name = $first . implode('', array_map(
       static fn ($parent): string => '[' . $parent . ']',
@@ -116,7 +121,7 @@ final class ShowAllConfig {
    * CSS selector for the behavior field on standalone paragraph forms.
    */
   private static function standaloneBehaviorSelector(): string {
-    return ':input[name="' . self::FIELD_BEHAVIOR . '"]';
+    return ':input[name="' . self::FIELD_BEHAVIOR . '[0][value]"]';
   }
 
   /**

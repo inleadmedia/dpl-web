@@ -5,40 +5,51 @@
  * Runs after novel/show-more so link mode overrides the default expand behavior
  * when the wrapper carries data-show-all-link-config.
  */
-document.addEventListener('DOMContentLoaded', () => {
-  document
-    .querySelectorAll('[data-show-more-list-wrapper][data-show-all-link-config]')
-    .forEach((wrapper) => {
-      const url = wrapper.getAttribute('data-show-all-link-config');
-      if (!url) {
-        return;
-      }
+(function (Drupal, once) {
+  'use strict';
 
-      const button = wrapper.querySelector('[data-show-more-button]');
-      let label = 'Show all';
-      if (button) {
-        const showMoreText = button.getAttribute('data-show-more-text');
-        label = (showMoreText && showMoreText.trim()) || button.textContent.trim() || label;
-      }
+  Drupal.behaviors.eonext_event_material_show_all_link = {
+    attach(context) {
+      once(
+        'show-all-link',
+        '[data-show-more-list-wrapper][data-show-all-link-config]',
+        context,
+      ).forEach((wrapper) => {
+        const url = wrapper.getAttribute('data-show-all-link-config');
+        if (!url) {
+          return;
+        }
 
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.className = button
-        ? button.className
-        : 'filtered-event-list__button btn-primary btn-outline btn-medium';
-      anchor.textContent = label;
+        const button = wrapper.querySelector('[data-show-more-button]');
+        let label = 'Show all';
+        if (button) {
+          const showMoreText = button.getAttribute('data-show-more-text');
+          label =
+            (showMoreText && showMoreText.trim()) ||
+            button.textContent.trim() ||
+            label;
+        }
 
-      if (button) {
-        button.replaceWith(anchor);
-      } else {
-        wrapper.appendChild(anchor);
-      }
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.className = button
+          ? button.className
+          : 'filtered-event-list__button btn-primary btn-outline btn-medium';
+        anchor.textContent = label;
 
-      // Link mode navigates away; reveal all items instead of truncating.
-      wrapper
-        .querySelectorAll('[data-show-more-item].show-more__hidden')
-        .forEach((item) => {
-          item.classList.remove('show-more__hidden');
-        });
-    });
-});
+        if (button) {
+          button.replaceWith(anchor);
+        } else {
+          wrapper.appendChild(anchor);
+        }
+
+        // Link mode navigates away; reveal all items instead of truncating.
+        wrapper
+          .querySelectorAll('[data-show-more-item].show-more__hidden')
+          .forEach((item) => {
+            item.classList.remove('show-more__hidden');
+          });
+      });
+    },
+  };
+})(Drupal, once);
