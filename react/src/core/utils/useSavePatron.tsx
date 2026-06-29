@@ -10,8 +10,6 @@ import {
   useUpdateV8
 } from "../fbs/fbs";
 import { useUrls } from "./url";
-import useUserInfo from "../adgangsplatformen/useUserInfo";
-import { isAnonymous } from "./helpers/user";
 
 export interface FetchHandlers {
   onSuccess?: () => void;
@@ -28,28 +26,21 @@ interface UseSavePatron {
 
 const useSavePatron = ({ patron, fetchHandlers }: UseSavePatron) => {
   const u = useUrls();
-  const { data: userInfo } = useUserInfo({
-    enabled: !isAnonymous()
-  });
   const { mutate } = useUpdateV8();
   const queryClient = useQueryClient();
 
   const savePatron = (data: Partial<PatronSettingsV4>) => {
     const { onSuccess, onError } = fetchHandlers?.savePatron || {};
 
-    if (!patron || !userInfo) {
+    if (!patron) {
       // eslint-disable-next-line no-console
-      console.error("Patron or userInfo is not defined");
+      console.error("Patron is not defined");
       return;
     }
 
     mutate(
       {
         data: {
-          pincodeChange: {
-            pincode: userInfo.attributes.pincode,
-            libraryCardNumber: patron.patronId.toString()
-          },
           patron: {
             ...convertPatronSettingsV4toV6({
               ...patron,

@@ -3,8 +3,9 @@ name: Go / E2E tests
 on:
   pull_request:
     paths:
-      - 'go/**'
-      - '.github/workflows/go-*.yml'
+      - "go/**"
+      - "packages/**"
+      - ".github/workflows/go-*.yml"
 
 jobs:
   check:
@@ -17,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Required to retrieve git history
 

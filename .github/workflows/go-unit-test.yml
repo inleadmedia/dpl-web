@@ -5,8 +5,9 @@ name: "Go / Unit test"
 on:
   pull_request:
     paths:
-      - 'go/**'
-      - '.github/workflows/go-*.yml'
+      - "go/**"
+      - "packages/**"
+      - ".github/workflows/go-*.yml"
 
 # List of jobs
 jobs:
@@ -20,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # 👈 Required to retrieve git history
 
