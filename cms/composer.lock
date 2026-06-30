@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ed818a47d9cc4d8b50d90cd094567760",
+    "content-hash": "7cf9098943c486ea7f77b67cf7b9af3a",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -1044,27 +1044,6 @@
             "transport-options": {
                 "relative": true
             }
-        },
-        {
-            "name": "danskernesdigitalebibliotek/dpl-design-system",
-            "version": "0.0.0",
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-develop/dist-design-system.zip"
-            },
-            "type": "drupal-library"
-        },
-        {
-            "name": "danskernesdigitalebibliotek/dpl-react",
-            "version": "0.0.0-dev",
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/danskernesdigitalebibliotek/dpl-web/releases/download/branch-ddf-250-quota-fudging/dist-react.zip"
-            },
-            "require": {
-                "composer/installers": "^1.2.0"
-            },
-            "type": "drupal-library"
         },
         {
             "name": "danskernesdigitalebibliotek/fbs-client",
@@ -10195,6 +10174,37 @@
                 "source": "https://github.com/ICanBoogie/Inflector"
             },
             "time": "2023-03-12T18:39:52+00:00"
+        },
+        {
+            "name": "inleadmedia/dpl-design-system",
+            "version": "0.0.2-dev",
+            "dist": {
+                "type": "path",
+                "url": "../design-system/build",
+                "reference": "a61b259a25779345e11cf47b7a389b64d90e6003"
+            },
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "inleadmedia/dpl-react",
+            "version": "0.0.2-dev",
+            "dist": {
+                "type": "path",
+                "url": "../react/dist",
+                "reference": "60faa9ce731bf88267ee0e299be196313d389e01"
+            },
+            "require": {
+                "composer/installers": "^1.2.0"
+            },
+            "type": "drupal-library",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "jms/metadata",
@@ -23150,12 +23160,13 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "danskernesdigitalebibliotek/dpl-react": 20,
         "drupal/address_dawa": 20,
         "drupal/default_content": 15,
         "drupal/multivalue_form_element": 10,
         "drupal/openapi_rest": 5,
-        "drupal/potion": 20
+        "drupal/potion": 20,
+        "inleadmedia/dpl-design-system": 20,
+        "inleadmedia/dpl-react": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -23163,6 +23174,6 @@
         "php": "8.3.*",
         "ext-dom": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
