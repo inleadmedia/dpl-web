@@ -1305,10 +1305,8 @@
     debug "^3.1.0"
     lodash.once "^4.1.1"
 
-"@danskernesdigitalebibliotek/dpl-design-system@2026.26.0":
-  version "2026.26.0"
-  resolved "https://npm.pkg.github.com/download/@danskernesdigitalebibliotek/dpl-design-system/2026.26.0/95dc76a0682ef4b84e06068e762aac3071dd2c4a#95dc76a0682ef4b84e06068e762aac3071dd2c4a"
-  integrity sha512-CGe4Dz60ZmO36678dHXker+c3PbdyR6RIO96w1Pa8DYSG/XG/E6YhcR4Rzijmkie7GVGIJ4A0urjs9SpqDWbQQ==
+"@danskernesdigitalebibliotek/dpl-design-system@file:../design-system":
+  version "0.1.0"
 
 "@discoveryjs/json-ext@^1.1.0":
   version "1.1.0"
