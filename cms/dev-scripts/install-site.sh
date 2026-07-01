@@ -30,7 +30,7 @@ if [[ -z "$POST_INSTALL_ONLY" ]]; then
   if site_is_installed; then
     echo "Drupal site already installed, skipping drush site-install"
   else
-    drush site-install --existing-config --account-mail="dev@folkebibliotekernescms.dk" --site-mail="dev@folkebibliotekernescms.dk" -y
+    drush site-install --existing-config --account-mail="dev@inleadmedia.dk" --site-mail="dev@inleadmedia.dk" -y
   fi
 fi
 
