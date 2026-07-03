@@ -33,10 +33,32 @@ export interface SearchHeaderEntryProps
     SearchHeaderTextProps,
     GlobalEntryTextProps,
     GlobalConfigProps,
-    GlobalUrlEntryPropsInterface {}
+    GlobalUrlEntryPropsInterface {
+      isInjectionExample?: boolean;
+    }
 
-const SearchHeaderEntry: React.FC<SearchHeaderEntryProps> = () => {
-  return <SearchHeader />;
+const SearchHeaderEntry: React.FC<SearchHeaderEntryProps> = ({ isInjectionExample }) => {
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = React.useState(0);
+
+  if (isInjectionExample) {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("./SearchHeaderAutosuggestEditorialInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+  }
+
+  return <div data-current-date={ currentDate || "" }>
+    <SearchHeader />
+  </div>;
 };
 
 export default withUrls(withText(SearchHeaderEntry));
