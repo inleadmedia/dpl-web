@@ -20,22 +20,6 @@ module.exports = (_env, argv) => {
     })
   ];
 
-  if (process.env.VERSION_FILE_NAME && process.env.VERSION_FILE_VERSION) {
-    const currentTime = new Date();
-    plugins.push(
-      new VersionFile({
-        template: path.join(__dirname, ".version.json.ejs"),
-        outputFile: path.join(__dirname, "dist/version.json"),
-        name: process.env.VERSION_FILE_NAME,
-        version: process.env.VERSION_FILE_VERSION,
-        currentTime, // Required
-        // We intentionally do not use any information from package.json but
-        // VersionFile requires that we provide it.
-        packageFile: path.join(__dirname, "package.json")
-      })
-    );
-  }
-
   // Add environment variables to webpack in development mode
   if (!production) {
     const variables = getWebPackEnvVariables();
@@ -55,7 +39,7 @@ module.exports = (_env, argv) => {
     mode: argv.mode,
     devtool: production ? "source-map" : "inline-source-map",
     optimization: {
-      runtimeChunk: "single",
+      runtimeChunk: false,
       splitChunks: false,
       // Enable tree-shaking to remove unused Lodash methods
       usedExports: true
