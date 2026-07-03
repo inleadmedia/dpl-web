@@ -25,7 +25,6 @@
     height: 100% !important;
   }
 
-
   &__search-item {
     width: 20%;
     min-height: max(260px, 100%);
@@ -94,7 +93,7 @@
       display: initial;
     }
   }
-//  material
+  //  material
 
   &__material {
     background-color: #fff;
@@ -144,6 +143,8 @@
   }
 }
 
-.disclosure:has(.autosuggest__editorial-suggestions-materials):not(:has(.autosuggest-editorial--material-results)) {
+.disclosure:has(.autosuggest__editorial-suggestions-materials):not(
+    :has(.autosuggest-editorial--material-results)
+  ) {
   display: none;
 }

@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-standalone-modules
 dev
 cypress/videos/apps
 cypress/screenshots/apps
