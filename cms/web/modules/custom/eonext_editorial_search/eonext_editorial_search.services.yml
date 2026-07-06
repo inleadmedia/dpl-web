@@ -19,3 +19,8 @@ services:
     class: Drupal\eonext_editorial_search\EventSubscriber\EditorialSearchTaxonomyFacetSubscriber
     tags:
       - { name: event_subscriber }
+
+  eonext_editorial_search.published_filter_subscriber:
+    class: Drupal\eonext_editorial_search\EventSubscriber\EditorialSearchPublishedFilterSubscriber
+    tags:
+      - { name: event_subscriber }

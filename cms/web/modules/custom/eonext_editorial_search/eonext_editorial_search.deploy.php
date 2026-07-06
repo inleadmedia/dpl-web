@@ -109,3 +109,12 @@ function eonext_editorial_search_deploy_index_past_events(): string {
 
   return eonext_editorial_search_ensure_event_has_upcoming_indexing();
 }
+
+/**
+ * Excludes unpublished content from the editorial search index and facet counts.
+ */
+function eonext_editorial_search_deploy_exclude_unpublished_from_index(): string {
+  _eonext_editorial_search_load_install();
+
+  return eonext_editorial_search_ensure_published_content_indexing();
+}

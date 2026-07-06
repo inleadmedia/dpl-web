@@ -17,6 +17,7 @@ function eonext_editorial_search_install(): void {
   eonext_editorial_search_ensure_editorial_event_date_processor();
   eonext_editorial_search_ensure_editorial_content_indexing();
   eonext_editorial_search_ensure_event_has_upcoming_indexing();
+  eonext_editorial_search_ensure_published_content_indexing();
 }
 
 /**
@@ -456,6 +457,65 @@ function eonext_editorial_search_exclude_go_articles_from_index(): string {
 
   if ($messages === []) {
     return 'GO articles are already excluded from index content_events.';
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Excludes unpublished content from the editorial search index and facet counts.
+ */
+function eonext_editorial_search_update_9009(): string {
+  return eonext_editorial_search_ensure_published_content_indexing();
+}
+
+/**
+ * Enables published-only indexing and removes unpublished items from the index.
+ */
+function eonext_editorial_search_ensure_published_content_indexing(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; unpublished content was not excluded.';
+  }
+
+  $messages = [];
+  $processors = $index->getProcessors();
+  if (!isset($processors['editorial_published_content'])) {
+    $processor = \Drupal::service('search_api.plugin_helper')
+      ->createProcessorPlugin($index, 'editorial_published_content');
+    $index->addProcessor($processor);
+    $index->save();
+    $messages[] = 'Enabled editorial published content processor on index content_events.';
+  }
+
+  if ($index->getField('status') === NULL) {
+    if ($messages === []) {
+      return 'Editorial published content indexing is already configured on index content_events.';
+    }
+
+    return implode(' ', $messages);
+  }
+
+  $query = $index->query();
+  $query->addCondition('status', FALSE);
+  $query->range(0, 10000);
+  $results = $query->execute();
+
+  $item_ids = [];
+  foreach ($results->getResultItems() as $item) {
+    $item_ids[] = $item->getId();
+  }
+
+  if ($item_ids !== []) {
+    $index->getServerInstance()->deleteItems($index, $item_ids);
+    $messages[] = sprintf(
+      'Removed %d unpublished item(s) from index content_events.',
+      count($item_ids),
+    );
+  }
+
+  if ($messages === []) {
+    return 'Editorial published content indexing is already configured on index content_events.';
   }
 
   return implode(' ', $messages);
