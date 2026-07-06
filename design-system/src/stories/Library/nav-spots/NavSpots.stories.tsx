@@ -12,6 +12,8 @@ const teaser = (
     title="Digital læselyst"
     subtitle="Find inspiration, tips og værktøjer til hvordan dit barn kommer videre med læsningen."
     media={media}
+    url="#"
+    buttonLabel="Læs mere"
   />
 );
 
@@ -20,6 +22,8 @@ const teaserNoImage = (
     title="Digital læselyst"
     subtitle="Find inspiration, tips og værktøjer til hvordan dit barn kommer videre med læsningen."
     placeholderText="Mangler billede"
+    url="#"
+    buttonLabel="Læs mere"
   />
 );
 
