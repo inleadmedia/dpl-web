@@ -6,7 +6,6 @@ use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Cache\CacheableResponse;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
-use Drupal\Core\Url;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\file\FileInterface;
 use Drupal\image\Plugin\Field\FieldType\ImageItem;
@@ -77,6 +76,9 @@ final class EditorialSearchResource extends ResourceBase {
    *   f[]         - Facet filters (same as /search/web), e.g. f[]=content_type:article.
    *   entity_type - Entity filter (node, eventseries).
    *   show_past_events - Include past event series (1 to enable).
+   *   sort_by     - Sort field (applied when q is provided): relevance (default), sort_date, or sort_title.
+   *   sort_order  - Sort direction: ASC or DESC (defaults: DESC for relevance/date,
+   *                 ASC for title).
    */
   public function get(Request $request): Response {
     $search = $request->query->get('q');
@@ -140,6 +142,7 @@ final class EditorialSearchResource extends ResourceBase {
     $view->setCurrentPage($page);
     $view->setExposedInput([DplSearchSettings::EDITORIAL_QUERY_KEY => $search]);
     $this->applyFacetFiltersToRequest($request);
+    $this->applySortToRequest($request);
     $view->execute();
 
     $results = [];
@@ -221,8 +224,40 @@ final class EditorialSearchResource extends ResourceBase {
 
     $contexts[] = 'url.query_args:entity_type';
     $contexts[] = 'url.query_args:show_past_events';
+    $contexts[] = 'url.query_args:sort_by';
+    $contexts[] = 'url.query_args:sort_order';
 
     return $contexts;
+  }
+
+  /**
+   * Validates and normalizes editorial search sort query parameters.
+   *
+   * Sorting is applied by eonext_editorial_search_views_query_alter(), which
+   * reads sort_by and sort_order from the current request.
+   */
+  private function applySortToRequest(Request $request): void {
+    $allowed_fields = array_keys(eonext_editorial_search_get_sort_field_options());
+    $sort_by = $request->query->get('sort_by');
+
+    if (!is_string($sort_by) || $sort_by === '' || !in_array($sort_by, $allowed_fields, TRUE)) {
+      $sort_by = 'relevance';
+    }
+
+    $request->query->set('sort_by', $sort_by);
+
+    $sort_order = $request->query->get('sort_order');
+    if (!is_string($sort_order) || $sort_order === '') {
+      $sort_order = eonext_editorial_search_get_default_sort_order($sort_by);
+    }
+    else {
+      $sort_order = strtoupper($sort_order);
+      if (!in_array($sort_order, ['ASC', 'DESC'], TRUE)) {
+        $sort_order = eonext_editorial_search_get_default_sort_order($sort_by);
+      }
+    }
+
+    $request->query->set('sort_order', $sort_order);
   }
 
   /**
@@ -383,11 +418,7 @@ final class EditorialSearchResource extends ResourceBase {
         'tags' => [],
       ],
       'title' => $entity->label(),
-      'url' => Url::fromRoute(
-        'entity.' . $entity->getEntityTypeId() . '.canonical',
-        [$entity->getEntityTypeId() => $entity->id()],
-        ['absolute' => TRUE]
-      )->toString(),
+      'url' => $this->resolveEntityCanonicalUrl($entity),
       'created_at' => $entity->hasField('created') && !$entity->get('created')->isEmpty()
         ? date('c', (int) $entity->get('created')->getString())
         : NULL,
@@ -432,6 +463,25 @@ final class EditorialSearchResource extends ResourceBase {
     }
 
     return $data;
+  }
+
+  /**
+   * Builds an absolute canonical URL for an editorial search result.
+   *
+   * Uses dpl_go outbound path processing when Lagoon routes are configured.
+   * Falls back to the current request host when the CMS domain cannot be
+   * resolved (e.g. local environments without LAGOON_ROUTE).
+   */
+  private function resolveEntityCanonicalUrl(ContentEntityInterface $entity): string {
+    try {
+      return $entity->toUrl('canonical', ['absolute' => TRUE])->toString();
+    }
+    catch (\RuntimeException) {
+      $path = $entity->toUrl('canonical', ['path_processing' => FALSE])->toString();
+      $request = \Drupal::request();
+
+      return rtrim($request->getSchemeAndHttpHost() . $request->getBasePath(), '/') . $path;
+    }
   }
 
   /**
