@@ -1,43 +1,56 @@
 .card__media {
   box-sizing: border-box;
   background-color: var(--tint-color-120);
-  margin-bottom: $s-sm;
-}
-
-.card__tags {
-  display: flex;
-  margin-bottom: $s-sm;
-
-  @include text-ellipsis-truncation(1);
-}
-
-.card__tag {
-  @include typography($typo__byline-tags);
-}
-
-// Placing spacing and spacer line between tags.
-.card__tag + .card__tag {
-  position: relative;
-  margin-left: $s-sm;
-  padding-left: $s-sm;
-
-  &::before {
-    content: "";
-    position: absolute;
-    top: $s-xs;
-    bottom: $s-xs;
-    left: 0;
-    width: 1px;
-    background-color: $color__text-primary-black;
-  }
-}
-
-.card__tag--type {
-  color: $color__text-inactive;
+  margin-bottom: 0;
+  max-height: 235px;
 }
 
 .card__title {
-  @include typography($typo__h3);
+  font-family: $font__futura-pt;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 45px;
+  letter-spacing: 0;
+  color: #235881;
+  text-align: left;
+  opacity: 1;
+}
+
+.card__text {
+  background: #fefaf1 0% 0% no-repeat padding-box;
+  opacity: 1;
+  padding: 14px 9px 9px;
+  position: relative;
+}
+
+.card__teaser {
+  margin-top: $s-xs;
+  font-family: $font__open-sans;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0.32px;
+  color: #235881;
+  text-align: left;
+  opacity: 1;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: calc(100% - 40px);
+}
+
+.card__arrow {
+  position: absolute;
+  right: 9px;
+  bottom: -4px;
+  color: #235881;
+
+  svg {
+    width: 33px;
+    height: 23px;
+  }
 }
 
 %card-variant--default {

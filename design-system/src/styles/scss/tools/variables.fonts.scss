@@ -1,6 +1,8 @@
 $font__title: "Lora", serif;
 $font__body: "Noto Sans", sans-serif;
 $font__accent: "Gochi Hand", cursive;
+$font__futura-pt: "Futura PT", futura, sans-serif;
+$font__open-sans: "Open Sans", sans-serif;
 $font__weight--normal: 400;
 $font__weight--semi-bold: 500;
 $font__weight--bold: 700;
@@ -94,4 +96,31 @@ $font__weight--bold: 700;
     url("../fonts/gochi-hand-v19-latin-regular.woff2") format("woff2"),
     /* Chrome 36+, Opera 23+, Firefox 39+ */
       url("../fonts/gochi-hand-v19-latin-regular.woff") format("woff"); /* Chrome 5+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* futura-pt-book */
+@font-face {
+  font-display: swap;
+  font-family: "Futura PT";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/futura-pt-book.otf") format("opentype");
+}
+
+/* futura-pt-medium */
+@font-face {
+  font-display: swap;
+  font-family: "Futura PT";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/futura-pt-medium.otf") format("opentype");
+}
+
+/* open-sans-regular */
+@font-face {
+  font-display: swap;
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/open-sans-regular.ttf") format("truetype");
 }
