@@ -15,6 +15,10 @@ export default {
     imageSrc: {
       control: { type: "text" },
     },
+    backgroundColor: {
+      name: "Background color (no image only)",
+      control: { type: "color" },
+    },
     title: {
       name: "Title",
       control: { type: "text" },
@@ -44,6 +48,12 @@ export const Default = Template.bind({});
 export const NoImage = Template.bind({});
 NoImage.args = {
   imageSrc: undefined,
+};
+
+export const NoImageCustomColor = Template.bind({});
+NoImageCustomColor.args = {
+  imageSrc: undefined,
+  backgroundColor: "#235881",
 };
 
 export const NoImageOnlyTitle = Template.bind({});

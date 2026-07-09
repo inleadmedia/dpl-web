@@ -1,30 +1,43 @@
 import clsx from "clsx";
-import { FC, ReactNode } from "react";
+import { CSSProperties, FC } from "react";
 import { ReactComponent as ArrowLargeRight } from "../Arrows/icon-arrow-ui/icon-arrow-ui-large-right.svg";
 
 type BannerType = {
   link: string;
   title: string;
-  imageSrc?: ReactNode;
+  imageSrc?: string;
   description?: string;
+  /** Any valid CSS color. Applies only when `imageSrc` is not provided. */
+  backgroundColor?: string;
 };
 
-const Banner: FC<BannerType> = ({ link, imageSrc, title, description }) => {
-  const backgroundImageStyle = imageSrc
+const Banner: FC<BannerType> = ({
+  link,
+  imageSrc,
+  title,
+  description,
+  backgroundColor,
+}) => {
+  const hasImage = Boolean(imageSrc);
+
+  const style: CSSProperties | undefined = hasImage
     ? { backgroundImage: `url(${imageSrc})` }
-    : {};
+    : backgroundColor
+      ? { backgroundColor }
+      : undefined;
+
   return (
     <a
       href={link}
-      className={clsx(`banner arrow__hover--right-large`, {
-        "banner--has-image": imageSrc,
+      className={clsx("banner", "arrow__hover--right-large", {
+        "banner--has-image": hasImage,
       })}
-      style={backgroundImageStyle}
+      style={style}
     >
       <div className="banner__content-wrapper">
         <div
           className={clsx("banner__content", {
-            "banner__content--has-image": imageSrc,
+            "banner__content--has-image": hasImage,
           })}
         >
           {title && (
