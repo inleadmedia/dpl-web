@@ -31,6 +31,7 @@ const ImageCredited: FC<ImageCreditedProps> = ({
                   backgroundImage: `url(${alternativeSrc.src})`,
                 }}
                 data-card-style={alternativeSrc.name}
+                key={alternativeSrc.src}
               />
             ))}
 
