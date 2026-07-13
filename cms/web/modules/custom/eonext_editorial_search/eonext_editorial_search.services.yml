@@ -7,6 +7,10 @@ services:
     parent: logger.channel_base
     arguments: ['eonext_editorial_search']
 
+  Drupal\eonext_editorial_search\ComplexSearchClient:
+    arguments:
+      $logger: '@logger.channel.eonext_editorial_search'
+
   Drupal\eonext_editorial_search\ArticleMaterialSync:
     arguments:
       $logger: '@logger.channel.eonext_editorial_search'

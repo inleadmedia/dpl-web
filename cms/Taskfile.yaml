@@ -120,7 +120,7 @@ tasks:
     desc: Clean install the instance
     cmds:
       - task -t Taskfile.yaml drupal:update
-      - ${DRUSH_EXEC} site-install --existing-config -y
+      - ${DRUSH_EXEC} site-install --existing-config --account-mail="dev@folkebibliotekernescms.dk" --site-mail="dev@folkebibliotekernescms.dk" -y
       - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
       - task -t Taskfile.yaml drupal:locale
       - task -t Taskfile.yaml drupal:cache-clear

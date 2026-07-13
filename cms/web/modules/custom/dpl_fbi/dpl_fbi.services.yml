@@ -3,15 +3,7 @@ services:
   _defaults:
     autowire: true
 
-  logger.channel.dpl_fbi:
-    parent: logger.channel_base
-    arguments: ['dpl_fbi']
-
   Drupal\dpl_fbi\Fbi: {}
-
-  Drupal\dpl_fbi\ComplexSearchClient:
-    arguments:
-      $logger: '@logger.channel.dpl_fbi'
 
   Drupal\dpl_fbi\SailorEndpointConfig: {}
 

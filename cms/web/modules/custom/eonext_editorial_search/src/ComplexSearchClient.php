@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Drupal\dpl_fbi;
+namespace Drupal\eonext_editorial_search;
 
+use Drupal\dpl_fbi\Fbi;
 use Drupal\dpl_library_agency\Branch\BranchRepositoryInterface;
 use Drupal\dpl_library_agency\BranchSettings;
 use Drupal\dpl_library_token\LibraryTokenHandler;
