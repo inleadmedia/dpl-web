@@ -1,0 +1,10 @@
+lokale:
+  css:
+    theme:
+      css/lokale.css: {}
+  js:
+    js/lokale-row.js: {}
+    js/lokale-terms-dialog.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

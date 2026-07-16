@@ -29,6 +29,34 @@ function dpl_paragraphs_preprocess_paragraph(array &$variables): void {
 }
 
 /**
+ * Implements hook_preprocess_HOOK() for field_nav_spots_content on paragraphs.
+ *
+ * Passes nav spot paragraph settings to each referenced content render array.
+ */
+function dpl_paragraphs_preprocess_field__paragraph__field_nav_spots_content(array &$variables): void {
+  $paragraph = $variables['element']['#object'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'nav_spots_manual') {
+    return;
+  }
+
+  $button_label = $paragraph->get('field_nav_spot_button_label')->value ?? '';
+  $image_alignment = $paragraph->get('field_nav_spot_image_alignment')->value ?? 'left';
+  $background_color = '';
+  if (!$paragraph->get('field_nav_spot_background_color')->isEmpty()) {
+    $background_color = $paragraph->get('field_nav_spot_background_color')->first()->color ?? '';
+  }
+
+  foreach ($variables['items'] as &$item) {
+    if (!isset($item['content']) || !is_array($item['content'])) {
+      continue;
+    }
+    $item['content']['#nav_spot_button_label'] = $button_label;
+    $item['content']['#nav_spot_image_alignment'] = $image_alignment;
+    $item['content']['#nav_spot_background_color'] = $background_color;
+  }
+}
+
+/**
  * Implements hook_preprocess_paragraph__TYPE() for paragraph--links.html.twig.
  *
  * Prepares variables for paragraph--links.html.twig template.

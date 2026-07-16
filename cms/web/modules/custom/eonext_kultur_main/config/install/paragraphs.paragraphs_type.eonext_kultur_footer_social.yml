@@ -1,0 +1,19 @@
+uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_kultur_main
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      content_elements: content_elements
+id: eonext_kultur_footer_social
+label: 'Kultur footer social'
+icon_uuid: null
+icon_default: null
+description: 'Editable social call-out shown in the site footer (managed on the front page).'
+behavior_plugins: {  }

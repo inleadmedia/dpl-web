@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.eonext_kultur_locale_listing.field_locale_heading
+    - paragraphs.paragraphs_type.eonext_kultur_locale_listing
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: paragraph.eonext_kultur_locale_listing.default
+targetEntityType: paragraph
+bundle: eonext_kultur_locale_listing
+mode: default
+content:
+  field_locale_heading:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

@@ -276,3 +276,105 @@ function dpl_paragraphs_deploy_migrate_material_amount(): string {
 
   return "Migrated amount-field for $updated_count paragraphs.";
 }
+
+/**
+ * Ensure nav spot paragraph field revision tables have the expected schema.
+ *
+ * Image alignment and background color share a revision table. If the table was
+ * created before both fields existed, it may be missing the color columns.
+ */
+function dpl_paragraphs_deploy_fix_nav_spot_field_schema(): string {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+  $revision_table = 'paragraph_r__e3b0c44298';
+
+  if (!$schema->tableExists($revision_table)) {
+    return 'Nav spot revision table not found; no schema fix needed.';
+  }
+
+  $changes = [];
+
+  if ($schema->fieldExists($revision_table, 'field_nav_spot_image_alignment_value')) {
+    $database->query("ALTER TABLE {" . $revision_table . "} MODIFY {field_nav_spot_image_alignment_value} VARCHAR(255) NULL DEFAULT NULL");
+    $changes[] = 'image alignment column set to nullable';
+  }
+
+  if (!$schema->fieldExists($revision_table, 'field_nav_spot_background_color_color')) {
+    $schema->addField($revision_table, 'field_nav_spot_background_color_color', [
+      'type' => 'varchar',
+      'length' => 7,
+      'not null' => FALSE,
+    ]);
+    $changes[] = 'background color column added';
+  }
+
+  if (!$schema->fieldExists($revision_table, 'field_nav_spot_background_color_opacity')) {
+    $schema->addField($revision_table, 'field_nav_spot_background_color_opacity', [
+      'type' => 'float',
+      'size' => 'tiny',
+      'not null' => FALSE,
+    ]);
+    $changes[] = 'background opacity column added';
+  }
+
+  if (empty($changes)) {
+    return 'Nav spot revision table schema already correct.';
+  }
+
+  return 'Nav spot revision table schema fixed: ' . implode(', ', $changes) . '.';
+}
+
+/**
+ * Refreshes the installed schema snapshot for the nav spot paragraph fields.
+ *
+ * These fields were originally created by writing config directly to
+ * storage rather than through the Entity API, which meant Drupal's
+ * "last installed schema" repository (a separate snapshot from live config,
+ * used by SqlContentEntityStorage to resolve dedicated table names) ended up
+ * with copies of the field storage definitions that were missing a UUID.
+ * That caused `hash(): Passing null to parameter #2` deprecation notices
+ * every time paragraph storage was initialized, because
+ * getUniqueStorageIdentifier() returned NULL for those stale definitions.
+ *
+ * This re-syncs the installed schema snapshot from the current (correct)
+ * field storage config so the deprecation stops appearing on any
+ * environment that still has the stale snapshot.
+ */
+function dpl_paragraphs_deploy_fix_nav_spot_field_uuids(): string {
+  $field_names = [
+    'field_nav_spot_button_label',
+    'field_nav_spot_image_alignment',
+    'field_nav_spot_background_color',
+  ];
+
+  $field_manager = \Drupal::service('entity_field.manager');
+  $schema_repository = \Drupal::service('entity.last_installed_schema.repository');
+
+  $field_manager->clearCachedFieldDefinitions();
+  $current_definitions = $field_manager->getFieldStorageDefinitions('paragraph');
+  $installed_definitions = $schema_repository->getLastInstalledFieldStorageDefinitions('paragraph');
+
+  $fixed = [];
+  foreach ($field_names as $field_name) {
+    $installed = $installed_definitions[$field_name] ?? NULL;
+    $current = $current_definitions[$field_name] ?? NULL;
+
+    if (!$current) {
+      continue;
+    }
+
+    if ($installed && $installed->getUniqueStorageIdentifier()) {
+      // Already has a valid UUID; nothing to fix.
+      continue;
+    }
+
+    $schema_repository->setLastInstalledFieldStorageDefinition($current);
+    $fixed[] = $field_name;
+  }
+
+  if (empty($fixed)) {
+    return 'Nav spot field installed schema already correct.';
+  }
+
+  return 'Refreshed installed schema snapshot for: ' . implode(', ', $fixed) . '.';
+}

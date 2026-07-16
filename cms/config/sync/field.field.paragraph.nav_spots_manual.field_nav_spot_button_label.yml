@@ -1,0 +1,19 @@
+uuid: 52247f1e-9685-430a-bb3c-14ab2ef33466
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_nav_spot_button_label
+    - paragraphs.paragraphs_type.nav_spots_manual
+id: paragraph.nav_spots_manual.field_nav_spot_button_label
+field_name: field_nav_spot_button_label
+entity_type: paragraph
+bundle: nav_spots_manual
+label: 'Button label'
+description: 'Button text for nav spots in this paragraph. Defaults to "Læs mere" when empty.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

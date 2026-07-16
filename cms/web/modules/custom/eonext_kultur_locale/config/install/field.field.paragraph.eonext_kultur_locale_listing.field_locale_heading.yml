@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_locale_heading
+    - paragraphs.paragraphs_type.eonext_kultur_locale_listing
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: paragraph.eonext_kultur_locale_listing.field_locale_heading
+field_name: field_locale_heading
+entity_type: paragraph
+bundle: eonext_kultur_locale_listing
+label: Heading
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,22 @@
+uuid: 8eb0605d-e400-459b-a81e-49c29968c9b9
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_nav_spot_background_color
+    - paragraphs.paragraphs_type.nav_spots_manual
+  module:
+    - color_field
+id: paragraph.nav_spots_manual.field_nav_spot_background_color
+field_name: field_nav_spot_background_color
+entity_type: paragraph
+bundle: nav_spots_manual
+label: 'Background color'
+description: 'Background color for nav spots in this paragraph.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  opacity: 0
+field_type: color_field_type

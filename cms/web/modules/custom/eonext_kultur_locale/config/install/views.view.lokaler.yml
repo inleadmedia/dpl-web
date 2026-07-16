@@ -1,0 +1,112 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.row
+    - node.type.lokale
+  module:
+    - node
+    - user
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: lokaler
+label: Lokaler
+module: views
+description: 'Bookable venues rendered as full-width rows.'
+tag: ''
+base_table: node_field_data
+base_field: nid
+display:
+  default:
+    id: default
+    display_title: Default
+    display_plugin: default
+    position: 0
+    display_options:
+      title: Lokaler
+      fields: {  }
+      pager:
+        type: none
+        options:
+          offset: 0
+      access:
+        type: none
+        options: {  }
+      cache:
+        type: tag
+        options: {  }
+      empty:
+        area:
+          id: area
+          table: views
+          field: area
+          plugin_id: text
+          empty: true
+          content:
+            value: 'Ingen lokaler fundet.'
+            format: basic_html
+      sorts:
+        created:
+          id: created
+          table: node_field_data
+          field: created
+          entity_type: node
+          entity_field: created
+          plugin_id: date
+          order: ASC
+      arguments: {  }
+      filters:
+        status:
+          id: status
+          table: node_field_data
+          field: status
+          entity_type: node
+          entity_field: status
+          plugin_id: boolean
+          value: '1'
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            lokale: lokale
+      style:
+        type: default
+        options:
+          row_class: lokaler__item
+          default_row_class: true
+      row:
+        type: 'entity:node'
+        options:
+          view_mode: row
+      query:
+        type: views_query
+        options:
+          disable_sql_rewrite: false
+      css_class: lokaler
+      header: {  }
+      footer: {  }
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+      tags: {  }
+  embed_1:
+    id: embed_1
+    display_title: Embed
+    display_plugin: embed
+    position: 1
+    display_options:
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+      tags: {  }

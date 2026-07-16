@@ -1,0 +1,23 @@
+{#
+/**
+ * @file
+ * Booking terms dialog for lokale displays.
+ */
+#}
+{% if use_terms_modal %}
+  <dialog class="dialog ek-lokale-terms-dialog" id="ek-lokale-terms-{{ node_id }}" data-lokale-terms-dialog aria-labelledby="ek-lokale-terms-title-{{ node_id }}">
+    <div class="dialog__top-bar">
+      <button type="button" class="dialog__close-button" data-lokale-terms-close aria-label="{{ 'Close dialog'|t }}">
+        {% if dialog_close_icon %}
+          <img src="{{ dialog_close_icon }}" alt="" width="16" height="16" loading="lazy">
+        {% else %}
+          <span aria-hidden="true">&times;</span>
+        {% endif %}
+      </button>
+    </div>
+    <div class="ek-lokale-terms-dialog__body">
+      <h3 class="ek-lokale-terms-dialog__title" id="ek-lokale-terms-title-{{ node_id }}">{{ 'Bookingbetingelser'|t }}</h3>
+      <div class="ek-lokale-terms-dialog__content">{{ terms_content|raw }}</div>
+    </div>
+  </dialog>
+{% endif %}

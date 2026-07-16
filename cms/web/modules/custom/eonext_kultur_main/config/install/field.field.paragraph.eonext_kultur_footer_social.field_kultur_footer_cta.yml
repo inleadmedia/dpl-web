@@ -1,0 +1,22 @@
+uuid: 3456789a-bcde-f012-3456-789abcdef012
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_footer_cta
+    - paragraphs.paragraphs_type.eonext_kultur_footer_social
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.eonext_kultur_footer_social.field_kultur_footer_cta
+field_name: field_kultur_footer_cta
+entity_type: paragraph
+bundle: eonext_kultur_footer_social
+label: 'Call to action'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

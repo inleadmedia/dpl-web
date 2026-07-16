@@ -1,0 +1,7 @@
+services:
+  eonext_kultur_main.footer_social_loader:
+    class: Drupal\eonext_kultur_main\FooterSocialLoader
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@path_alias.manager'

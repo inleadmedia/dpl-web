@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: node.row
+label: 'Row (venue listing)'
+description: null
+targetEntityType: node
+cache: true

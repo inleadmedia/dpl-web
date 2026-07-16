@@ -1,0 +1,27 @@
+{#
+/**
+ * @file
+ * Booking/contact actions for lokale displays.
+ */
+#}
+<div class="ek-lokale-actions">
+  {% if booking_mode == 'contact' %}
+    {% if contact_url %}
+      <a class="ek-lokale-actions__btn ek-lokale-actions__btn--outline" href="{{ contact_url }}">{{ 'Kontakt'|t }}</a>
+    {% endif %}
+  {% else %}
+    {% if use_terms_modal %}
+      <button type="button" class="ek-lokale-actions__terms" data-lokale-terms-open data-dialog-id="ek-lokale-terms-{{ node_id }}">{{ 'Bookingbetingelser'|t }}</button>
+    {% elseif terms_content %}
+      <details class="ek-lokale-actions__terms-details">
+        <summary class="ek-lokale-actions__terms">{{ 'Bookingbetingelser'|t }}</summary>
+        <div class="ek-lokale-actions__terms-content">{{ terms_content|raw }}</div>
+      </details>
+    {% elseif terms_url %}
+      <a class="ek-lokale-actions__terms" href="{{ terms_url }}">{{ 'Bookingbetingelser'|t }}</a>
+    {% endif %}
+    {% if booking_url %}
+      <a class="ek-lokale-actions__btn ek-lokale-actions__btn--solid" href="{{ booking_url }}" target="_blank" rel="noopener">{{ 'Book'|t }}</a>
+    {% endif %}
+  {% endif %}
+</div>

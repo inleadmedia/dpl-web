@@ -1,0 +1,200 @@
+/**
+ * Kulturnat-inspired footer and typography overrides.
+ */
+
+:root {
+  --ek-navy: #235881;
+  --ek-teal: #089aa7;
+  --ek-orange: #d4761c;
+  --ek-cream: #fefaf1;
+  --ek-white: #fff;
+  --ek-font-body: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ek-font-heading: "Futura PT", "Futura", "Century Gothic", "Trebuchet MS", "Open Sans", sans-serif;
+  --font-body: var(--ek-font-body);
+}
+
+/* Body copy — Open Sans is active now. */
+body,
+.text-body-large,
+.text-body-medium-regular,
+.text-body-medium-medium,
+.text-body-small-regular,
+.text-body-small-medium {
+  font-family: var(--ek-font-body) !important;
+}
+
+/* Kulturnat logos (header uses novel markup; footer uses ek-footer). */
+.ek-logo {
+  display: block;
+  width: auto;
+  height: 52px;
+}
+
+.header__logo-desktop .logo__description,
+.header__menu-navigation-logo .logo__description {
+  display: none;
+}
+
+/* Hide library patron utilities — kulturnat is not a lending library site. */
+.header__button-responsive-switch > *:last-child,
+.header__advanced-desktop {
+  display: none !important;
+}
+
+.ek-footer__logo {
+  display: block;
+  width: auto;
+  max-width: 190px;
+  height: auto;
+}
+
+/* Headings — Futura PT when the Adobe Fonts kit is added; Open Sans until then. */
+[class*="text-header"],
+.article-header__title,
+.campaign__title,
+.event-description__title,
+.content-list-item__title,
+.material-description__heading,
+.material-content__heading,
+.list-reservation__header,
+.list-materials__content__header,
+.infomedia-headline,
+.infomedia-hedline {
+  font-family: var(--ek-font-heading) !important;
+}
+
+.ek-footer__social {
+  padding: 3rem 1rem;
+  text-align: center;
+  background-color: var(--ek-cream);
+  border-top: 3px solid var(--ek-orange);
+}
+
+.ek-footer__social-title {
+  margin: 0 0 1rem;
+  font-family: var(--ek-font-heading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--ek-navy);
+  text-transform: uppercase;
+}
+
+.ek-footer__social-text {
+  max-width: 40rem;
+  margin: 0 auto 0.75rem;
+  color: var(--ek-navy);
+  line-height: 1.6;
+}
+
+.ek-footer__social-cta {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ek-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.ek-footer__hashtag {
+  margin: 0 0 1.25rem;
+  font-weight: 600;
+  color: var(--ek-navy);
+}
+
+.ek-footer__social-icons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.ek-footer__social-band-icon {
+  display: inline-flex;
+  color: var(--ek-teal);
+  text-decoration: none;
+}
+
+.ek-footer__social-band-icon:hover,
+.ek-footer__social-band-icon:focus {
+  opacity: 0.8;
+}
+
+.ek-footer__main {
+  padding: 2.5rem 1rem;
+  color: var(--ek-white);
+  background-color: var(--ek-teal);
+}
+
+.ek-footer__inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2rem;
+  max-width: 1140px;
+  margin-inline: auto;
+}
+
+.ek-footer__col-title {
+  margin: 0 0 1rem;
+  font-family: var(--ek-font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ek-white);
+  text-transform: uppercase;
+}
+
+.ek-footer__content,
+.ek-footer__content a {
+  color: var(--ek-white);
+  line-height: 1.7;
+}
+
+.ek-footer__content a {
+  text-decoration: underline;
+}
+
+.ek-footer__content ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.ek-footer__content li + li {
+  margin-top: 0.35rem;
+}
+
+.ek-footer__col-social {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.ek-footer__social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--ek-teal);
+  background-color: var(--ek-white);
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+.ek-footer__social-icon:hover,
+.ek-footer__social-icon:focus {
+  opacity: 0.85;
+}
+
+.ek-footer__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  max-width: 1140px;
+  padding: 0;
+  margin: 2rem auto 0;
+  list-style: none;
+}
+
+.ek-footer__secondary a {
+  color: var(--ek-white);
+  text-decoration: underline;
+}

@@ -1,0 +1,38 @@
+{#
+/**
+ * @file
+ * Lokale (venue) full detail page.
+ */
+#}
+<article class="ek-lokale-detail">
+  <div class="ek-lokale-detail__inner">
+    <header class="ek-lokale-detail__header">
+      <h1 class="ek-lokale-detail__title">{{ name }}</h1>
+      {% if booking_mode == 'contact' and contact_text %}
+        <p class="ek-lokale-detail__meta">{{ contact_text }}</p>
+      {% elseif capacity_text %}
+        <p class="ek-lokale-detail__meta">{{ capacity_text }}</p>
+      {% endif %}
+    </header>
+
+    <div class="ek-lokale-detail__grid">
+      <div class="ek-lokale-detail__media">
+        {% include '@eonext_kultur_locale/eonext-kultur-locale-carousel.html.twig' with {
+          images: images,
+          name: name,
+        } only %}
+      </div>
+
+      <div class="ek-lokale-detail__body">
+        {% if description %}
+          <div class="ek-lokale-detail__desc">{{ description|raw }}</div>
+        {% endif %}
+        <div class="ek-lokale-detail__actions">
+          {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include '@eonext_kultur_locale/eonext-kultur-locale-terms-dialog.html.twig' %}
+</article>

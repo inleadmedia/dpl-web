@@ -1,0 +1,136 @@
+<?php
+
+/**
+ * @file
+ * EO Next Kultur Locale module hooks.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Render\Element;
+use Drupal\eonext_kultur_locale\LokaleConstants;
+use Drupal\eonext_kultur_locale\LokaleViewBuilder;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
+
+/**
+ * Implements hook_preprocess_HOOK() for field.
+ */
+function eonext_kultur_locale_preprocess_node(array &$variables): void {
+  /** @var \Drupal\node\NodeInterface|null $node */
+  $node = $variables['node'] ?? NULL;
+  $view_mode = $variables['view_mode'] ?? '';
+  if (!$node instanceof NodeInterface || $node->bundle() !== LokaleConstants::NODE_BUNDLE || !in_array($view_mode, ['row', 'full'], TRUE)) {
+    return;
+  }
+
+  $variables['lokale'] = LokaleViewBuilder::build($node);
+  $variables['#attached']['library'][] = 'eonext_kultur_locale/lokale';
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for field.
+ */
+function eonext_kultur_locale_preprocess_field(array &$variables): void {
+  if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
+    return;
+  }
+
+  foreach ($variables['items'] as &$item) {
+    $paragraph = _eonext_kultur_locale_item_paragraph($item);
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== LokaleConstants::PARAGRAPH_BUNDLE) {
+      continue;
+    }
+
+    $item['attributes']['class'][] = 'paragraphs__item';
+    $item['attributes']['class'][] = 'paragraphs';
+    $item['attributes']['class'][] = 'paragraphs__item--' . LokaleConstants::PARAGRAPH_BUNDLE;
+
+    $item['content'] = [
+      '#theme' => 'eonext_kultur_locale_listing',
+      '#paragraph' => $paragraph,
+      '#heading' => $paragraph->hasField('field_locale_heading') && !$paragraph->get('field_locale_heading')->isEmpty()
+        ? $paragraph->get('field_locale_heading')->value : '',
+      '#view' => views_embed_view(LokaleConstants::VIEW_ID, LokaleConstants::VIEW_DISPLAY),
+      '#attached' => [
+        'library' => ['eonext_kultur_locale/lokale'],
+      ],
+      '#cache' => [
+        'tags' => ['node_list:' . LokaleConstants::NODE_BUNDLE],
+      ],
+    ];
+  }
+}
+
+/**
+ * Resolve the paragraph entity from a field item render array.
+ */
+function _eonext_kultur_locale_item_paragraph(array $item): ?ParagraphInterface {
+  $content = $item['content'] ?? [];
+  $candidates = [
+    $content['#paragraph'] ?? NULL,
+    $content['#entity'] ?? NULL,
+    $content[0]['#paragraph'] ?? NULL,
+    $content[0]['#entity'] ?? NULL,
+  ];
+
+  foreach ($candidates as $candidate) {
+    if ($candidate instanceof ParagraphInterface) {
+      return $candidate;
+    }
+  }
+
+  if (is_array($content)) {
+    $paragraph = Element::children($content, TRUE);
+    foreach ($paragraph as $child) {
+      if (isset($content[$child]['#paragraph']) && $content[$child]['#paragraph'] instanceof ParagraphInterface) {
+        return $content[$child]['#paragraph'];
+      }
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_kultur_locale_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'node__lokale__row' => [
+      'base hook' => 'node',
+      'template' => 'node--lokale--row',
+    ],
+    'node__lokale__full' => [
+      'base hook' => 'node',
+      'template' => 'node--lokale--full',
+    ],
+    'eonext_kultur_locale_listing' => [
+      'variables' => [
+        'heading' => NULL,
+        'view' => NULL,
+      ],
+      'template' => 'eonext-kultur-locale-listing',
+    ],
+    'eonext_kultur_locale_row' => [
+      'variables' => [
+        'node_id' => NULL,
+        'url' => NULL,
+        'name' => NULL,
+        'images' => [],
+        'capacity_text' => NULL,
+        'description' => NULL,
+        'booking_mode' => 'book',
+        'booking_url' => NULL,
+        'terms_url' => NULL,
+        'terms_content' => NULL,
+        'use_terms_modal' => FALSE,
+        'dialog_close_icon' => NULL,
+        'contact_url' => NULL,
+        'contact_text' => NULL,
+      ],
+      'template' => 'eonext-kultur-locale-row',
+    ],
+  ];
+}

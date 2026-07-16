@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * EO NEXT Kultur subtheme hooks.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_preprocess_HOOK() for page.
+ */
+function eonext_kultur_preprocess_page(array &$variables): void {
+  // dpl_footer only provides this for the novel theme directly.
+  $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
+  $variables['#cache']['tags'][] = 'dpl_footer';
+
+  $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
+  $logo_title = theme_get_setting('logo_title') ?? 'Korsør Kulturhus';
+  $logo_src = base_path() . $theme_path . '/assets/images/logo.png';
+  $footer_logo_src = base_path() . $theme_path . '/assets/images/logo-white.png';
+
+  $variables['logo'] = [
+    '#theme' => 'novel_logo',
+    '#title' => $logo_title,
+    '#place' => theme_get_setting('logo_place') ?? '',
+    '#logo_img_enable' => 1,
+    '#image' => [
+      '#type' => 'html_tag',
+      '#tag' => 'img',
+      '#attributes' => [
+        'src' => $logo_src,
+        'alt' => $logo_title,
+        'class' => ['ek-logo'],
+      ],
+    ],
+  ];
+
+  $variables['footer_logo'] = [
+    '#type' => 'html_tag',
+    '#tag' => 'img',
+    '#attributes' => [
+      'src' => $footer_logo_src,
+      'alt' => $logo_title,
+      'class' => ['ek-footer__logo'],
+    ],
+  ];
+}

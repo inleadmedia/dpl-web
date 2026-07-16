@@ -33,6 +33,8 @@ dependencies:
     - paragraphs.paragraphs_type.user_registration_section
     - paragraphs.paragraphs_type.video
     - paragraphs.paragraphs_type.webform
+    - paragraphs.paragraphs_type.eonext_kultur_footer_social
+    - paragraphs.paragraphs_type.eonext_kultur_locale_listing
   module:
     - entity_reference_revisions
 id: node.page.field_paragraphs
@@ -77,6 +79,8 @@ settings:
       user_registration_linklist: user_registration_linklist
       webform: webform
       share_buttons: share_buttons
+      eonext_kultur_footer_social: eonext_kultur_footer_social
+      eonext_kultur_locale_listing: eonext_kultur_locale_listing
     negate: 0
     target_bundles_drag_drop:
       accordion:
@@ -177,6 +181,12 @@ settings:
         enabled: true
       share_buttons:
         weight: 73
+        enabled: true
+      eonext_kultur_footer_social:
+        weight: 80
+        enabled: true
+      eonext_kultur_locale_listing:
+        weight: 81
         enabled: true
       simple_links:
         weight: 60

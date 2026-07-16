@@ -1,0 +1,40 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.row
+    - field.field.node.lokale.field_booking_mode
+    - field.field.node.lokale.field_booking_betingelser
+    - field.field.node.lokale.field_booking_terms
+    - field.field.node.lokale.field_booking_url
+    - field.field.node.lokale.field_capacity
+    - field.field.node.lokale.field_contact
+    - field.field.node.lokale.field_description
+    - field.field.node.lokale.field_images
+    - field.field.node.lokale.field_size_m2
+    - node.type.lokale
+  module:
+    - user
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: node.lokale.row
+targetEntityType: node
+bundle: lokale
+mode: row
+content:
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_booking_mode: true
+  field_booking_betingelser: true
+  field_booking_terms: true
+  field_booking_url: true
+  field_capacity: true
+  field_contact: true
+  field_description: true
+  field_images: true
+  field_size_m2: true

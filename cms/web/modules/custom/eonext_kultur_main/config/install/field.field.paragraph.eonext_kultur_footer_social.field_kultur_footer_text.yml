@@ -1,0 +1,27 @@
+uuid: 23456789-abcd-ef01-2345-6789abcdef01
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_footer_text
+    - filter.format.basic
+    - paragraphs.paragraphs_type.eonext_kultur_footer_social
+  module:
+    - text
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.eonext_kultur_footer_social.field_kultur_footer_text
+field_name: field_kultur_footer_text
+entity_type: paragraph
+bundle: eonext_kultur_footer_social
+label: Text
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic
+field_type: text_long

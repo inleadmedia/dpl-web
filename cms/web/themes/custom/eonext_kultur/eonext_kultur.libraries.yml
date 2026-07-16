@@ -1,0 +1,19 @@
+# Web fonts for kulturnat-inspired typography.
+# - Open Sans: loaded now as body font and Futura fallback.
+# - Futura PT: add your Adobe Fonts (Typekit) kit URL below when ready, e.g.:
+#     https://use.typekit.net/XXXXXXX.css
+fonts:
+  css:
+    theme:
+      'https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap':
+        { type: external, minified: true }
+      # 'https://use.typekit.net/XXXXXXX.css':
+      #   { type: external, minified: true }
+
+chrome:
+  css:
+    theme:
+      css/eonext-kultur.css: {}
+  dependencies:
+    - novel/base
+    - eonext_kultur/fonts

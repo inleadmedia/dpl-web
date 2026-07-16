@@ -1,0 +1,11 @@
+name: 'EO Next Kultur Main'
+type: module
+description: 'Kulturhus homepage content and editable footer social band paragraph.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:link
+  - drupal:text
+  - paragraphs:paragraphs
+  - dpl_footer:dpl_footer

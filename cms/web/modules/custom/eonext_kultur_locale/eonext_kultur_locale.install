@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for EO Next Kultur Locale.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Config\FileStorage;
+use Drupal\eonext_kultur_locale\LokaleConstants;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_kultur_locale_install(): void {
+  _eonext_kultur_locale_enable_paragraph_on_page();
+}
+
+/**
+ * Add the Bookingbetingelser content field to existing sites.
+ */
+function eonext_kultur_locale_update_9001(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.node.field_booking_betingelser',
+    'field.field.node.lokale.field_booking_betingelser',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  foreach ([
+    'core.entity_form_display.node.lokale.default',
+    'core.entity_view_display.node.lokale.default',
+    'core.entity_view_display.node.lokale.row',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Enable the lokaler listing paragraph on page nodes.
+ */
+function _eonext_kultur_locale_enable_paragraph_on_page(): void {
+  $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
+  if (!$field instanceof FieldConfig) {
+    return;
+  }
+
+  $settings = $field->getSetting('handler_settings');
+  $settings['target_bundles'][LokaleConstants::PARAGRAPH_BUNDLE] = LokaleConstants::PARAGRAPH_BUNDLE;
+  $settings['target_bundles_drag_drop'][LokaleConstants::PARAGRAPH_BUNDLE] = [
+    'weight' => 81,
+    'enabled' => TRUE,
+  ];
+  $field->setSetting('handler_settings', $settings);
+  $field->save();
+}

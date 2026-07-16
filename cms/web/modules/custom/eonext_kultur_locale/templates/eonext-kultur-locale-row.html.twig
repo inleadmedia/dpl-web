@@ -1,0 +1,49 @@
+{#
+/**
+ * @file
+ * A single bookable venue row.
+ */
+#}
+<article class="ek-lokale-row">
+  <div class="ek-lokale-row__media">
+    {% include '@eonext_kultur_locale/eonext-kultur-locale-carousel.html.twig' with {
+      images: images,
+      name: name,
+      url: url,
+    } only %}
+  </div>
+
+  <div class="ek-lokale-row__body">
+    <h2 class="ek-lokale-row__name">
+      {% if url %}
+        <a href="{{ url }}">{{ name }}</a>
+      {% else %}
+        {{ name }}
+      {% endif %}
+    </h2>
+
+    {% if booking_mode == 'contact' %}
+      {% if contact_text %}
+        <p class="ek-lokale-row__contact-text">{{ contact_text }}</p>
+      {% endif %}
+      {% if description %}
+        <div class="ek-lokale-row__desc">{{ description|raw }}</div>
+      {% endif %}
+      <div class="ek-lokale-row__actions">
+        {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
+      </div>
+    {% else %}
+      {% if capacity_text %}
+        <p class="ek-lokale-row__capacity">{{ capacity_text }}</p>
+      {% endif %}
+      {% if description %}
+        <div class="ek-lokale-row__desc">{{ description|raw }}</div>
+      {% endif %}
+      <div class="ek-lokale-row__actions">
+        {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% include '@eonext_kultur_locale/eonext-kultur-locale-terms-dialog.html.twig' %}
+</article>

@@ -1,0 +1,22 @@
+uuid: 456789ab-cdef-0123-4567-89abcdef0123
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_footer_hashtag
+    - paragraphs.paragraphs_type.eonext_kultur_footer_social
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.eonext_kultur_footer_social.field_kultur_footer_hashtag
+field_name: field_kultur_footer_hashtag
+entity_type: paragraph
+bundle: eonext_kultur_footer_social
+label: Hashtag
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

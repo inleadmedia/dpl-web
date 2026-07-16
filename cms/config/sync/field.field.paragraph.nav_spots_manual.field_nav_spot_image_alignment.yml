@@ -1,0 +1,21 @@
+uuid: ddfe3621-fc28-4052-a084-0b949478c4fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_nav_spot_image_alignment
+    - paragraphs.paragraphs_type.nav_spots_manual
+id: paragraph.nav_spots_manual.field_nav_spot_image_alignment
+field_name: field_nav_spot_image_alignment
+entity_type: paragraph
+bundle: nav_spots_manual
+label: 'Image alignment'
+description: 'Image position for nav spots in this paragraph (left or right).'
+required: false
+translatable: true
+default_value:
+  -
+    value: left
+default_value_callback: ''
+settings: {  }
+field_type: list_string

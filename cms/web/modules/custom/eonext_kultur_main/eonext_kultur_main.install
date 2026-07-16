@@ -1,0 +1,97 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for EO Next Kultur Main.
+ */
+
+declare(strict_types=1);
+
+use Drupal\eonext_kultur_main\FooterSocialLoader;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\Entity\Paragraph;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_kultur_main_install(): void {
+  _eonext_kultur_main_enable_paragraph_on_page();
+  _eonext_kultur_main_attach_footer_social_to_frontpage();
+}
+
+/**
+ * Enable the footer social paragraph on page nodes.
+ */
+function _eonext_kultur_main_enable_paragraph_on_page(): void {
+  $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
+  if (!$field instanceof FieldConfig) {
+    return;
+  }
+
+  $settings = $field->getSetting('handler_settings');
+  $settings['target_bundles'][FooterSocialLoader::PARAGRAPH_BUNDLE] = FooterSocialLoader::PARAGRAPH_BUNDLE;
+  $settings['target_bundles_drag_drop'][FooterSocialLoader::PARAGRAPH_BUNDLE] = [
+    'weight' => 80,
+    'enabled' => TRUE,
+  ];
+  $field->setSetting('handler_settings', $settings);
+  $field->save();
+}
+
+/**
+ * Attach a default footer social paragraph to the front page.
+ */
+function _eonext_kultur_main_attach_footer_social_to_frontpage(): void {
+  $node = _eonext_kultur_main_load_frontpage_node();
+  if (!$node instanceof NodeInterface || !$node->hasField('field_paragraphs')) {
+    return;
+  }
+
+  foreach ($node->get('field_paragraphs')->referencedEntities() as $paragraph) {
+    if ($paragraph instanceof Paragraph && $paragraph->bundle() === FooterSocialLoader::PARAGRAPH_BUNDLE) {
+      return;
+    }
+  }
+
+  $paragraph = Paragraph::create([
+    'type' => FooterSocialLoader::PARAGRAPH_BUNDLE,
+    'field_kultur_footer_title' => 'Følg os på de sociale medier',
+    'field_kultur_footer_text' => [
+      'value' => 'Følg med i husets liv på vores sociale medier, hvor vi løbende deler nyheder, events og glimt fra hverdagen.',
+      'format' => 'basic',
+    ],
+    'field_kultur_footer_cta' => 'Del dine oplevelser på Kulturhusets Instagram',
+    'field_kultur_footer_hashtag' => '#korsørkulturhus',
+    'field_kultur_footer_facebook' => [
+      'uri' => 'https://www.facebook.com/',
+      'title' => '',
+    ],
+    'field_kultur_footer_instagram' => [
+      'uri' => 'https://www.instagram.com/',
+      'title' => '',
+    ],
+  ]);
+  $paragraph->save();
+
+  $node->get('field_paragraphs')->appendItem($paragraph);
+  $node->save();
+}
+
+/**
+ * Load the configured front page node.
+ */
+function _eonext_kultur_main_load_frontpage_node(): ?NodeInterface {
+  $front = \Drupal::config('system.site')->get('page.front');
+  if (!is_string($front) || $front === '') {
+    return NULL;
+  }
+
+  $internalPath = \Drupal::service('path_alias.manager')->getPathByAlias($front);
+  if (!preg_match('/^\/node\/(\d+)$/', $internalPath, $matches)) {
+    return NULL;
+  }
+
+  $node = \Drupal::entityTypeManager()->getStorage('node')->load($matches[1]);
+  return $node instanceof NodeInterface ? $node : NULL;
+}

@@ -1,0 +1,13 @@
+name: EO NEXT Kultur
+type: theme
+description: 'Novel subtheme with custom footer.'
+core_version_requirement: ^10 || ^11
+base theme: novel
+libraries:
+  - novel/base
+  - eonext_kultur/fonts
+  - eonext_kultur/chrome
+regions:
+  header: Header
+  content: Content
+  footer: Footer

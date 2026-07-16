@@ -1,0 +1,25 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_booking_mode
+    - node.type.lokale
+  module:
+    - options
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: node.lokale.field_booking_mode
+field_name: field_booking_mode
+entity_type: node
+bundle: lokale
+label: 'Booking mode'
+description: ''
+required: true
+translatable: true
+default_value:
+  -
+    value: book
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - eonext_kultur_locale
+name: Lokale
+type: lokale
+description: 'A bookable venue/room at Korsør Kulturhus.'
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: false

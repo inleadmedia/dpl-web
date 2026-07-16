@@ -3,6 +3,9 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_background_color
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_button_label
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_image_alignment
     - field.field.paragraph.nav_spots_manual.field_nav_spots_content
     - paragraphs.paragraphs_type.nav_spots_manual
   module:
@@ -57,4 +60,7 @@ content:
     weight: 0
     region: content
 hidden:
+  field_nav_spot_background_color: true
+  field_nav_spot_button_label: true
+  field_nav_spot_image_alignment: true
   search_api_excerpt: true

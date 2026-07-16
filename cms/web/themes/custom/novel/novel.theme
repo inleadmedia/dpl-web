@@ -456,3 +456,64 @@ function novel_preprocess_media(array &$variables): void {
     $variables['download_url'] = $url;
   }
 }
+
+/**
+ * Applies nav spot settings from the parent paragraph render element.
+ *
+ * @param mixed[] $variables
+ *   Theme variables for a nav spot entity template.
+ */
+function novel_apply_nav_spot_settings(array &$variables): void {
+  $element = $variables['elements'] ?? [];
+  if (!empty($element['#nav_spot_button_label'])) {
+    $variables['button_label'] = $element['#nav_spot_button_label'];
+  }
+  if (!empty($element['#nav_spot_image_alignment'])) {
+    $variables['image_alignment'] = $element['#nav_spot_image_alignment'];
+  }
+  if (!empty($element['#nav_spot_background_color'])) {
+    $variables['background_color'] = $element['#nav_spot_background_color'];
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for node templates.
+ *
+ * @param mixed[] $variables
+ *   The variables for the theme hook.
+ */
+function novel_preprocess_node(array &$variables): void {
+  if (($variables['view_mode'] ?? '') !== 'nav_spot') {
+    return;
+  }
+
+  novel_apply_nav_spot_settings($variables);
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for eventinstance templates.
+ *
+ * @param mixed[] $variables
+ *   The variables for the theme hook.
+ */
+function novel_preprocess_eventinstance(array &$variables): void {
+  if (($variables['view_mode'] ?? '') !== 'nav_spot') {
+    return;
+  }
+
+  novel_apply_nav_spot_settings($variables);
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for eventseries templates.
+ *
+ * @param mixed[] $variables
+ *   The variables for the theme hook.
+ */
+function novel_preprocess_eventseries(array &$variables): void {
+  if (($variables['view_mode'] ?? '') !== 'nav_spot') {
+    return;
+  }
+
+  novel_apply_nav_spot_settings($variables);
+}

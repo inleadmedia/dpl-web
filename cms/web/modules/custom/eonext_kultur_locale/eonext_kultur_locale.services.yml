@@ -1,0 +1,7 @@
+services:
+  eonext_kultur_locale.dialog_availability:
+    class: Drupal\eonext_kultur_locale\DialogAvailability
+    arguments:
+      - '@theme_handler'
+      - '@extension.list.theme'
+      - '@theme.manager'

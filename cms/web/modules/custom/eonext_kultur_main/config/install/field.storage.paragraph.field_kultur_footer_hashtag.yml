@@ -1,0 +1,24 @@
+uuid: e1f2a3b4-c5d6-7890-ef12-345678901234
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.field_kultur_footer_hashtag
+field_name: field_kultur_footer_hashtag
+entity_type: paragraph
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

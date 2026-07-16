@@ -3,10 +3,15 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_background_color
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_button_label
+    - field.field.paragraph.nav_spots_manual.field_nav_spot_image_alignment
     - field.field.paragraph.nav_spots_manual.field_nav_spots_content
     - paragraphs.paragraphs_type.nav_spots_manual
   module:
+    - color_field
     - dynamic_entity_reference
+    - options
 id: paragraph.nav_spots_manual.default
 targetEntityType: paragraph
 bundle: nav_spots_manual
@@ -21,6 +26,27 @@ content:
       match_limit: 10
       size: 40
       placeholder: ''
+    third_party_settings: {  }
+  field_nav_spot_button_label:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_nav_spot_image_alignment:
+    type: options_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_nav_spot_background_color:
+    type: color_field_widget_box
+    weight: 3
+    region: content
+    settings:
+      default_colors: ''
     third_party_settings: {  }
 hidden:
   created: true

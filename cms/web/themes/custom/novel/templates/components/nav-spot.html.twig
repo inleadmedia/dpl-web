@@ -1,13 +1,14 @@
 {%
   set classes = [
-  'nav-spot',
-  'arrow__hover--right-large',
-  has_media ? 'nav-spot--has-media' : 'nav-spot--has-no-media',
-]
+    'nav-spot',
+    image_alignment|default('left') == 'right' ? 'nav-spot--image-right',
+    has_media ? 'nav-spot--has-media' : 'nav-spot--has-no-media',
+  ]
 %}
 
-<article {{ attributes.addClass(classes).setAttribute('data-variant', variant) }}>
-  <a href="{{ url }}" class="nav-spot__content">
+<article{{ attributes.addClass(classes).setAttribute('data-variant', variant|default('')) }}{% if background_color|default('') %} style="background-color: {{ background_color }};"{% endif %}>
+  <div class="nav-spot__content">
+    {% if has_media %}
     <figure class="nav-spot__media">
       {{ include('@novel/components/media-container.html.twig'
         , {
@@ -17,6 +18,7 @@
         placeholder_text: teaser_text,
       }, false) }}
     </figure>
+    {% endif %}
 
     <div class="nav-spot__text">
       <h2 class="nav-spot__title">{{ title }}</h2>
@@ -25,7 +27,9 @@
         <p class="nav-spot__subtitle">{{ subtitle }}</p>
       {% endif %}
 
-      {{ source(baseIconPath ~ '/arrow-ui/icon-arrow-ui-large-right.svg') }}
+      <div class="nav-spot__button">
+        <a href="{{ url }}" class="nav-spot__button-link">{{ button_label|default('Læs mere'|t) }}</a>
+      </div>
     </div>
-  </a>
+  </div>
 </article>

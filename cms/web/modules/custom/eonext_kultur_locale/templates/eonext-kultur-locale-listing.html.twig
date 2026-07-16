@@ -1,0 +1,16 @@
+{#
+/**
+ * @file
+ * Lokaler listing paragraph wrapper.
+ */
+#}
+<section class="ek-lokaler-listing">
+  <div class="ek-lokaler-listing__inner">
+    {% if heading %}
+      <h2 class="ek-lokaler-listing__heading">{{ heading }}</h2>
+    {% endif %}
+    <div class="ek-lokaler-listing__view">
+      {{ view }}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,14 @@
+name: 'EO Next Kultur Locale'
+type: module
+description: 'Bookable venue (lokale) content type, listing view, and page paragraph.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:views
+  - drupal:text
+  - drupal:link
+  - drupal:image
+  - drupal:field
+  - drupal:options
+  - paragraphs:paragraphs

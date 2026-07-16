@@ -1,0 +1,37 @@
+{#
+/**
+ * @file
+ * Shared lokale image carousel.
+ *
+ * Variables: images[], name, url (optional link target for the gallery)
+ */
+#}
+<div class="ek-lokale-carousel" data-lokale-carousel>
+  {% if url %}
+    <a href="{{ url }}" class="ek-lokale-carousel__link" aria-label="{{ name }}">
+  {% endif %}
+  <div class="ek-lokale-carousel__track" data-lokale-track>
+    {% for image in images %}
+      <div class="ek-lokale-carousel__slide">
+        <img class="ek-lokale-carousel__img" src="{{ image.src }}" alt="{{ image.alt|default(name) }}" loading="lazy">
+      </div>
+    {% endfor %}
+  </div>
+  {% if url %}
+    </a>
+  {% endif %}
+  {% if images|length > 1 %}
+    <button type="button" class="ek-lokale-carousel__nav ek-lokale-carousel__nav--prev" data-lokale-prev aria-label="{{ 'Previous image'|t }}">
+      <span aria-hidden="true">&lsaquo;</span>
+    </button>
+    <button type="button" class="ek-lokale-carousel__nav ek-lokale-carousel__nav--next" data-lokale-next aria-label="{{ 'Next image'|t }}">
+      <span aria-hidden="true">&rsaquo;</span>
+    </button>
+    <span class="ek-lokale-carousel__swipe-hint" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 11l-3 3 3 3" />
+        <path d="M4 14h9a4 4 0 0 0 0-8H8" />
+      </svg>
+    </span>
+  {% endif %}
+</div>

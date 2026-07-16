@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: node.field_booking_mode
+field_name: field_booking_mode
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: book
+      label: 'Book online'
+    -
+      value: contact
+      label: 'Contact only'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

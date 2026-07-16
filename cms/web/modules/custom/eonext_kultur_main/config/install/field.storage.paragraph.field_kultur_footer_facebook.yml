@@ -1,0 +1,22 @@
+uuid: f1a2b3c4-d5e6-7890-f123-456789012345
+langcode: en
+status: true
+dependencies:
+  module:
+    - link
+    - paragraphs
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.field_kultur_footer_facebook
+field_name: field_kultur_footer_facebook
+entity_type: paragraph
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
