@@ -1,0 +1,16 @@
+name: 'EO Next Kultur Events'
+type: module
+description: 'Grid events listing with extended filters for /arrangementer.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - eonext_kultur_main:eonext_kultur_main
+  - eonext_editorial_search:eonext_editorial_search
+  - dpl_event:dpl_event
+  - recurring_events:recurring_events
+  - dpl_search:dpl_search
+  - search_api:search_api
+  - facets:facets
+  - better_exposed_filters:better_exposed_filters
+  - views_infinite_scroll:views_infinite_scroll
+  - field_inheritance:field_inheritance

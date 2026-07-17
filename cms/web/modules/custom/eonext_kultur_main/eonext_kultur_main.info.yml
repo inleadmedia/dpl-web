@@ -14,3 +14,5 @@ dependencies:
   - recurring_events:recurring_events
   - dpl_event:dpl_event
   - dpl_footer:dpl_footer
+  - dpl_search:dpl_search
+  - eonext_editorial_search:eonext_editorial_search

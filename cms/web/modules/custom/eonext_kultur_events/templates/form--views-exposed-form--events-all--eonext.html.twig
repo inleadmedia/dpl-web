@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * Exposed filters toolbar for kultur events listing.
+ */
+#}
+<form{{ attributes.addClass('eonext-kultur-events__toolbar-form') }}>
+  <div class="eonext-kultur-events__toolbar">
+    {% if element.search_api_fulltext %}
+      <div class="js-form-item form-item form-type-textfield js-form-type-textfield form-item-search-api-fulltext js-form-item-search-api-fulltext">
+        <label for="{{ element.search_api_fulltext['#id'] }}" class="input-label">{{ 'Søg'|t({}, {'context': 'eonext_kultur_events'}) }}</label>
+        {{ element.search_api_fulltext }}
+      </div>
+    {% endif %}
+    {% if element.date_wrapper %}
+      {{ element.date_wrapper }}
+    {% endif %}
+    {% if element.actions %}
+      {{ element.actions }}
+    {% endif %}
+  </div>
+</form>

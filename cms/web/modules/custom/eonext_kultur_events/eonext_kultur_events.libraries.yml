@@ -1,0 +1,14 @@
+events-listing:
+  css:
+    theme:
+      css/eonext-kultur-events.css: {}
+  js:
+    js/kultur-events-facets.js: {}
+    js/kultur-events-facets-ajax.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+    - facets/drupal.facets.checkbox-widget
+    - views/views.ajax
+    - eonext_kultur/chrome

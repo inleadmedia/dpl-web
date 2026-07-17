@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+use Drupal\dpl_search\DplSearchSettings;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -19,6 +20,99 @@ use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
+
+/**
+ * Implements hook_preprocess_HOOK() for page.
+ *
+ * Use the editorial search header form instead of the React material header.
+ */
+function eonext_kultur_main_preprocess_page(array &$variables): void {
+  $loader = \Drupal::service('eonext_kultur_main.footer_social_loader');
+  $socialUrls = $loader->getSocialUrls();
+  if (!isset($variables['footer_settings']) || !is_array($variables['footer_settings'])) {
+    $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
+  }
+
+  if ($socialUrls['facebook']) {
+    $variables['footer_settings']['facebook'] = $socialUrls['facebook'];
+  }
+  if ($socialUrls['instagram']) {
+    $variables['footer_settings']['instagram'] = $socialUrls['instagram'];
+  }
+
+  $editorial_route = 'view.' . DplSearchSettings::EDITORIAL_VIEW_ID . '.page';
+  $route_name = \Drupal::routeMatch()->getRouteName();
+
+  if ($route_name !== $editorial_route && isset($variables['search'])) {
+    $variables['search']['header'] = [
+      '#theme' => 'dpl_search_header',
+      '#form_route' => $editorial_route,
+      '#default_input' => \Drupal::request()->query->get(DplSearchSettings::EDITORIAL_QUERY_KEY, ''),
+    ];
+  }
+
+  $header = $variables['search']['header'] ?? NULL;
+  if (isset($variables['search']) && is_array($header) && ($header['#theme'] ?? '') === 'dpl_search_header') {
+    _eonext_kultur_main_attach_editorial_search_overlay($variables);
+  }
+}
+
+/**
+ * Attach editorial autosuggest assets for the native search header.
+ *
+ * @param mixed[] $element
+ *   A render array (typically the page variables array).
+ */
+function _eonext_kultur_main_attach_editorial_search_overlay(array &$element): void {
+  if (!\Drupal::moduleHandler()->moduleExists('eonext_editorial_search')) {
+    return;
+  }
+
+  $enabled = (bool) (\Drupal::config('eonext_editorial_search.settings')
+    ->get('enable_editorial_search') ?? TRUE);
+  if (!$enabled) {
+    return;
+  }
+
+  $element['#attached']['library'][] = 'eonext_editorial_search/react-integration';
+  $element['#attached']['drupalSettings']['eonextEditorialSearch'] = [
+    'enabled' => TRUE,
+    'relatedPageSize' => 20,
+    'autosuggestLimit' => 7,
+    'searchResultLimit' => 5,
+    'searchResultFilters' => [
+      'content_type:article',
+      'content_type:page',
+      'content_type:default',
+    ],
+    'materialRelatedFilters' => [
+      'content_type:article',
+    ],
+    'dateLocale' => 'da-DK',
+    'icons' => [
+      'base' => eonext_editorial_search_get_base_icon_path(),
+    ],
+    'translations' => [
+      'Artikel' => (string) t('Artikel', [], ['context' => 'eonext_editorial_search']),
+      'Event' => (string) t('Event', [], ['context' => 'eonext_editorial_search']),
+      'E-Resource' => (string) t('E-Resource', [], ['context' => 'eonext_editorial_search']),
+      'relatedContentText' => (string) t('Related content', [], ['context' => 'DPL related content']),
+    ],
+  ];
+  $element['#attached']['html_head'][] = [
+    [
+      '#type' => 'html_tag',
+      '#tag' => 'span',
+      '#attributes' => [
+        'data-eonext-editorial-overlay' => 'true',
+        'hidden' => 'hidden',
+        'aria-hidden' => 'true',
+      ],
+    ],
+    'eonext_kultur_main_editorial_overlay_flag',
+  ];
+  $element['#cache']['tags'][] = 'config:eonext_editorial_search.settings';
+}
 
 /**
  * Implements hook_theme().
@@ -90,26 +184,6 @@ function eonext_kultur_main_theme(): array {
       'template' => 'article-slide',
     ],
   ];
-}
-
-/**
- * Implements hook_preprocess_HOOK() for page.
- */
-function eonext_kultur_main_preprocess_page(array &$variables): void {
-  $loader = \Drupal::service('eonext_kultur_main.footer_social_loader');
-  $variables['footer_social'] = $loader->buildRenderArray();
-
-  $socialUrls = $loader->getSocialUrls();
-  if (!isset($variables['footer_settings']) || !is_array($variables['footer_settings'])) {
-    $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
-  }
-
-  if ($socialUrls['facebook']) {
-    $variables['footer_settings']['facebook'] = $socialUrls['facebook'];
-  }
-  if ($socialUrls['instagram']) {
-    $variables['footer_settings']['instagram'] = $socialUrls['instagram'];
-  }
 }
 
 /**

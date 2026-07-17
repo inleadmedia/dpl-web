@@ -1,0 +1,51 @@
+{# Cache logic duplicated from facets module parent template. #}
+{% if cache_hash %}
+  <!-- facets cacheable metadata
+    hash: {{ cache_hash }}
+  {% if cache_contexts %}
+    contexts: {{ cache_contexts }}
+  {%- endif %}
+  {% if cache_tags %}
+    tags: {{ cache_tags }}
+  {%- endif %}
+  {% if cache_max_age %}
+    max age: {{ cache_max_age }}
+  {%- endif %}
+  -->
+{%- endif %}
+
+{% set facet_group_id = 'filter-group-events-' ~ facet.id|upper %}
+{% set is_free_facet = facet.id == 'event_is_free' %}
+
+<li class="eonext-kultur-events__facet-group eonext-search-facet-group{{ is_free_facet ? ' eonext-kultur-events__facet-group--free-toggle' : '' }}">
+  <span class="eonext-kultur-events__facet-label eonext-search-facet-group__label">{{ facet.label }}</span>
+
+  {% if items or empty %}
+    {%- if items -%}
+      <ul
+        id="{{ facet_group_id }}"
+        {{ attributes.addClass([
+          'eonext-kultur-events__facet-options',
+          'eonext-search-facet-group__content',
+          'facets-widget-' ~ facet.widget.type,
+          'item-list__' ~ facet.widget.type,
+          'facet-checkboxes',
+          is_free_facet ? 'eonext-kultur-events__facet-options--toggle',
+        ]) }}
+      >
+        {%- for item in items -%}
+          <li{{ item.attributes.addClass([
+            'eonext-kultur-events__facet-option',
+            'eonext-search-facet-group__item',
+            'facet-item',
+            is_free_facet ? 'eonext-kultur-events__facet-option--toggle',
+          ]) }}>{{ item.value }}</li>
+        {%- endfor -%}
+      </ul>
+    {%- else -%}
+      <div class="eonext-kultur-events__facet-options eonext-kultur-events__facet-options--empty eonext-search-facet-group__content">
+        <span class="eonext-kultur-events__facet-empty">{{ 'No options available'|t({}, {'context': 'eonext_kultur_events'}) }}</span>
+      </div>
+    {%- endif -%}
+  {% endif %}
+</li>

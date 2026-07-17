@@ -118,6 +118,10 @@ body,
   opacity: 0.8;
 }
 
+.ek-footer {
+  margin-top: 3rem;
+}
+
 .ek-footer__main {
   padding: 2.5rem 1rem;
   color: var(--ek-white);

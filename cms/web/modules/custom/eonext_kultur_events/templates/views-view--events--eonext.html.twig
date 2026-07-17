@@ -1,0 +1,68 @@
+{% set classes = [
+  dom_id ? 'js-view-dom-id-' ~ dom_id,
+  'content-list-page',
+  'eonext-kultur-events',
+] %}
+<div{{ attributes.addClass(classes) }}>
+  {% if view.getTitle() %}
+    {{ title_prefix }}
+    <h1 class="content-list-page__heading">{{ view.getTitle() }}</h1>
+    {{ title_suffix }}
+  {% endif %}
+
+  {{ header }}
+  {{ attachment_before }}
+
+  <div class="eonext-kultur-events__layout">
+    <div class="eonext-kultur-events__filters">
+      <div class="eonext-kultur-events__filters-panel is-expanded">
+        <button
+          type="button"
+          class="eonext-kultur-events__filters-toggle"
+          aria-expanded="true"
+          aria-controls="eonext-kultur-events-filters-content"
+        >
+          <span class="eonext-kultur-events__filters-toggle-label">{{ 'Filters'|t({}, {'context': 'eonext_kultur_events'}) }}</span>
+          <span class="eonext-kultur-events__filters-toggle-icon" aria-hidden="true"></span>
+        </button>
+
+        <div id="eonext-kultur-events-filters-content" class="eonext-kultur-events__filters-panel-content">
+          {% if exposed %}
+            <div class="eonext-kultur-events__filters-row eonext-kultur-events__filters-row--search">
+              {{ exposed }}
+            </div>
+          {% endif %}
+          <div class="eonext-kultur-events__filters-row eonext-kultur-events__filters-row--facet eonext-kultur-events__filters-row--free-toggle">
+            {{ drupal_block('facet_block:event_is_free') }}
+          </div>
+          <div class="eonext-kultur-events__filters-row eonext-kultur-events__filters-row--facet">
+            {{ drupal_block('facet_block:event_screen_names') }}
+          </div>
+          <div class="eonext-kultur-events__filters-row eonext-kultur-events__filters-row--facet">
+            {{ drupal_block('facet_block:event_categories') }}
+          </div>
+          <div class="eonext-kultur-events__filters-row eonext-kultur-events__filters-row--facet">
+            {{ drupal_block('facet_block:event_tags') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="eonext-kultur-events__results">
+      {% if rows -%}
+        {{ rows }}
+      {% elseif empty -%}
+        <div class="empty-view">
+          {{ empty }}
+        </div>
+      {% endif %}
+
+      {{ pager }}
+    </section>
+  </div>
+
+  {{ attachment_after }}
+  {{ more }}
+  {{ footer }}
+  {{ feed_icons }}
+</div>

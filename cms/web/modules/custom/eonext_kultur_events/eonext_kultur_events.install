@@ -1,0 +1,343 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for EO Next Kultur Events.
+ */
+
+declare(strict_types=1);
+
+use Drupal\eonext_kultur_events\EventsConstants;
+use Drupal\search_api\Entity\Index;
+use Drupal\search_api\IndexInterface;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_kultur_events_install(): void {
+  eonext_kultur_events_ensure_free_processor();
+  eonext_kultur_events_ensure_index_fields();
+  eonext_kultur_events_configure_events_view();
+  eonext_kultur_events_configure_facet_weights();
+  eonext_kultur_events_reindex();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eonext_kultur_events_uninstall(): void {
+  foreach (['event_tags', 'event_screen_names', 'event_categories', 'event_is_free'] as $facet_id) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    $facet?->delete();
+  }
+
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
+  foreach (['event_screen_names', 'event_is_free'] as $field_id) {
+    $fields = $index->getFields();
+    if (isset($fields[$field_id])) {
+      $index->removeField($field_id);
+    }
+  }
+
+  $processor = $index->getProcessorIfAvailable('event_is_free');
+  if ($processor !== NULL) {
+    $index->removeProcessor('event_is_free');
+  }
+
+  $index->save();
+}
+
+/**
+ * Adds kultur facet fields to the events Search API index.
+ */
+function eonext_kultur_events_ensure_index_fields(): void {
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $definitions = [
+    'event_screen_names' => [
+      'label' => 'Event target group',
+      'property_path' => 'event_screen_names',
+      'type' => 'integer',
+      'datasource_id' => 'entity:eventinstance',
+    ],
+    'event_is_free' => [
+      'label' => 'Event is free',
+      'property_path' => 'aggregated_field',
+      'type' => 'boolean',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ],
+  ];
+
+  $changed = FALSE;
+  foreach ($definitions as $field_id => $definition) {
+    if ($index->getField($field_id) !== NULL) {
+      continue;
+    }
+
+    $field = $fields_helper->createField($index, $field_id, $definition);
+    $index->addField($field);
+    $changed = TRUE;
+  }
+
+  if ($changed) {
+    $index->save();
+  }
+}
+
+/**
+ * Ensures the event_is_free processor is enabled on the events index.
+ */
+function eonext_kultur_events_ensure_free_processor(): void {
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
+  $processor_settings = $index->get('processor_settings') ?? [];
+  unset($processor_settings['event_is_free']);
+  $index->set('processor_settings', $processor_settings);
+
+  if ($index->getProcessorIfAvailable('event_is_free') !== NULL) {
+    return;
+  }
+
+  \Drupal::service('plugin.manager.search_api.processor')->clearCachedDefinitions();
+
+  $processor = \Drupal::getContainer()
+    ->get('search_api.plugin_helper')
+    ->createProcessorPlugin($index, 'event_is_free');
+  $index->addProcessor($processor);
+  $index->save();
+}
+
+/**
+ * Updates the events view for card grid and date range filter.
+ */
+function eonext_kultur_events_configure_events_view(): void {
+  $config = \Drupal::configFactory()->getEditable('views.view.events');
+  if ($config->isNew()) {
+    return;
+  }
+
+  $display = $config->get('display');
+  if (!is_array($display)) {
+    return;
+  }
+
+  $display['default']['display_options']['row']['options']['view_modes']['entity:eventinstance']['default'] = EventsConstants::CARD_VIEW_MODE;
+  $display['default']['display_options']['use_ajax'] = TRUE;
+  $display['default']['display_options']['query']['options']['preserve_facet_query_args'] = TRUE;
+
+  $filters = $display['default']['display_options']['filters'] ?? [];
+  $filters['date'] = [
+    'id' => 'date',
+    'table' => 'search_api_index_events',
+    'field' => 'date',
+    'relationship' => 'none',
+    'group_type' => 'group',
+    'admin_label' => '',
+    'plugin_id' => 'search_api_date',
+    'operator' => 'between',
+    'value' => [
+      'min' => '',
+      'max' => '',
+      'value' => '',
+      'type' => 'date',
+    ],
+    'group' => 1,
+    'exposed' => TRUE,
+    'expose' => [
+      'operator_id' => 'date_op',
+      'label' => 'Date',
+      'description' => '',
+      'use_operator' => FALSE,
+      'operator' => 'date_op',
+      'operator_limit_selection' => FALSE,
+      'operator_list' => [],
+      'identifier' => 'date',
+      'required' => FALSE,
+      'remember' => FALSE,
+      'multiple' => FALSE,
+      'remember_roles' => [
+        'authenticated' => 'authenticated',
+        'anonymous' => '0',
+      ],
+      'min_placeholder' => 'From',
+      'max_placeholder' => 'To',
+      'placeholder' => '',
+    ],
+    'is_grouped' => FALSE,
+    'group_info' => [
+      'label' => '',
+      'description' => '',
+      'identifier' => '',
+      'optional' => TRUE,
+      'widget' => 'select',
+      'multiple' => FALSE,
+      'remember' => FALSE,
+      'default_group' => 'All',
+      'default_group_multiple' => [],
+      'group_items' => [],
+    ],
+  ];
+
+  $display['default']['display_options']['filters'] = $filters;
+
+  $bef = $display['default']['display_options']['exposed_form']['options']['bef']['filter'] ?? [];
+  $bef['date'] = [
+    'plugin_id' => 'bef_datepicker',
+    'advanced' => [
+      'placeholder_text' => '',
+      'rewrite' => [
+        'filter_rewrite_values' => '',
+        'filter_rewrite_values_key' => FALSE,
+      ],
+      'collapsible' => FALSE,
+      'collapsible_disable_automatic_open' => FALSE,
+      'is_secondary' => FALSE,
+      'hide_label' => FALSE,
+    ],
+    'options_show_only_used' => FALSE,
+    'options_show_only_used_filtered' => FALSE,
+    'options_hide_when_empty' => FALSE,
+    'options_show_items_count' => FALSE,
+  ];
+  $display['default']['display_options']['exposed_form']['options']['bef']['filter'] = $bef;
+
+  $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
+  foreach (['config:facets.facet.event_tags', 'config:facets.facet.event_screen_names', 'config:facets.facet.event_categories', 'config:facets.facet.event_is_free'] as $tag) {
+    if (!in_array($tag, $cache_tags, TRUE)) {
+      $cache_tags[] = $tag;
+    }
+  }
+  $display['all']['cache_metadata']['tags'] = $cache_tags;
+
+  $config->set('display', $display)->save();
+}
+
+/**
+ * Updates existing facet weights for the kultur events layout.
+ */
+function eonext_kultur_events_configure_facet_weights(): void {
+  $weights = [
+    'event_is_free' => 1,
+    'event_screen_names' => 2,
+    'event_categories' => 3,
+    'event_tags' => 4,
+  ];
+
+  foreach ($weights as $facet_id => $weight) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+    $facet->setWeight($weight);
+    if ($facet_id === 'event_categories') {
+      $facet->set('name', 'Category');
+      $facet->setWidget('checkbox', [
+        'show_numbers' => TRUE,
+        'soft_limit' => 0,
+        'soft_limit_settings' => [
+          'show_less_label' => 'Show less',
+          'show_more_label' => 'Show more',
+        ],
+        'show_reset_link' => FALSE,
+        'hide_reset_when_no_selection' => FALSE,
+        'reset_text' => 'Show all',
+      ]);
+    }
+    $facet->save();
+  }
+
+  eonext_kultur_events_disable_active_facet_reorder();
+}
+
+/**
+ * Disables "sort by active state" so selected facets stay in place.
+ */
+function eonext_kultur_events_disable_active_facet_reorder(): void {
+  foreach (['event_categories', 'event_screen_names', 'event_tags', 'event_is_free'] as $facet_id) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+
+    $processors = $facet->get('processor_configs') ?? [];
+    if (!isset($processors['active_widget_order'])) {
+      continue;
+    }
+
+    unset($processors['active_widget_order']);
+    $facet->set('processor_configs', $processors);
+    $facet->save();
+  }
+}
+
+/**
+ * Reindexes the events Search API index.
+ */
+function eonext_kultur_events_reindex(): void {
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
+  $index->reindex();
+  $index->indexItems();
+}
+
+/**
+ * Enables BEF date pickers on the kultur events exposed date filter.
+ */
+function eonext_kultur_events_update_9001(): void {
+  eonext_kultur_events_configure_events_view();
+}
+
+/**
+ * Ensures category facet config and filter layout are up to date.
+ */
+function eonext_kultur_events_update_9002(): void {
+  eonext_kultur_events_configure_facet_weights();
+  eonext_kultur_events_configure_events_view();
+}
+
+/**
+ * Adds ticket categories to Place2Book events missing ticket data.
+ */
+function eonext_kultur_events_update_9003(): string {
+  $backfill = new \Drupal\eonext_kultur_events\Place2BookTicketBackfill(
+    \Drupal::entityTypeManager()
+  );
+  $summary = $backfill->run();
+  eonext_kultur_events_reindex();
+
+  return implode(' ', $summary['messages']);
+}
+
+/**
+ * Ensures kultur events view AJAX settings remain enabled.
+ */
+function eonext_kultur_events_update_9004(): void {
+  eonext_kultur_events_configure_events_view();
+}
+
+/**
+ * Keeps selected facet options in their original order.
+ */
+function eonext_kultur_events_update_9005(): void {
+  eonext_kultur_events_disable_active_facet_reorder();
+}

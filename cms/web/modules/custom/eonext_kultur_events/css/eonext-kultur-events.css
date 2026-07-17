@@ -1,0 +1,684 @@
+/* Flat CSS – do not use SCSS nesting in this file. */
+
+.eonext-kultur-events__layout {
+  max-width: 1156px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+.content-list-page.eonext-kultur-events .content-list-page__heading {
+  max-width: 1156px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+/* Top filter bar */
+.eonext-kultur-events__filters {
+  margin-bottom: 32px;
+}
+
+.eonext-kultur-events__filters-panel {
+  border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+  background-color: var(--c-text-primary-white, #fff);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.eonext-kultur-events__filters-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 16px 24px;
+  border: none;
+  background: var(--c-global-primary, #f6f5f0);
+  color: var(--c-text-primary-black, #000);
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.eonext-kultur-events__filters-toggle-label {
+  text-align: left;
+}
+
+.eonext-kultur-events__filters-toggle-icon {
+  position: relative;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.eonext-kultur-events__filters-toggle-icon::before,
+.eonext-kultur-events__filters-toggle-icon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
+}
+
+.eonext-kultur-events__filters-toggle-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.eonext-kultur-events__filters-panel.is-expanded .eonext-kultur-events__filters-toggle-icon::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.eonext-kultur-events__filters-panel-content {
+  display: none;
+  padding: 20px 24px;
+  box-sizing: border-box;
+}
+
+.eonext-kultur-events__filters-panel.is-expanded .eonext-kultur-events__filters-panel-content {
+  display: block;
+}
+
+.eonext-kultur-events__filters-panel-content .eonext-kultur-events__filters-row--search + .eonext-kultur-events__filters-row--facet {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+}
+
+.eonext-kultur-events__filters-row--facet {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+}
+
+.eonext-kultur-events__filters-row--facet:empty {
+  display: none;
+}
+
+.eonext-kultur-events__filters-row--free-toggle:not(:has(.eonext-kultur-events__facet-option--toggle)) {
+  display: none;
+}
+
+.eonext-kultur-events__filters-row--search + .eonext-kultur-events__filters-row--facet:first-of-type {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+}
+
+/* Search + date toolbar */
+.eonext-kultur-events__filters-row--search {
+  width: 100%;
+}
+
+.eonext-kultur-events__toolbar-form {
+  display: block;
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.eonext-kultur-events__toolbar-form:focus-within {
+  outline: none;
+}
+
+.eonext-kultur-events__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.eonext-kultur-events__toolbar .form-item-search-api-fulltext,
+.eonext-kultur-events__toolbar .form-item-date-min,
+.eonext-kultur-events__toolbar .form-item-date-max {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  margin: 0;
+}
+
+.eonext-kultur-events__toolbar .form-item-search-api-fulltext {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.eonext-kultur-events__toolbar .search-full-text__input,
+.eonext-kultur-events__toolbar .form-item-date-min input,
+.eonext-kultur-events__toolbar .form-item-date-max input,
+.eonext-kultur-events__toolbar .bef-datepicker,
+.eonext-kultur-events__toolbar .form-text,
+.eonext-kultur-events__toolbar .form-date {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+  border-radius: 0;
+  box-sizing: border-box;
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  line-height: 24px;
+  background: var(--c-text-primary-white, #fff);
+  box-shadow: none;
+}
+
+.eonext-kultur-events__toolbar .search-full-text__input:focus,
+.eonext-kultur-events__toolbar .search-full-text__input:focus-visible,
+.eonext-kultur-events__toolbar .form-item-date-min input:focus,
+.eonext-kultur-events__toolbar .form-item-date-min input:focus-visible,
+.eonext-kultur-events__toolbar .form-item-date-max input:focus,
+.eonext-kultur-events__toolbar .form-item-date-max input:focus-visible,
+.eonext-kultur-events__toolbar .bef-datepicker:focus,
+.eonext-kultur-events__toolbar .bef-datepicker:focus-visible {
+  outline: none;
+  border-color: var(--c-text-primary-black, #000);
+}
+
+.eonext-kultur-events__toolbar input[type="date"] {
+  appearance: auto;
+}
+
+.eonext-kultur-events__toolbar [data-drupal-selector="edit-date-wrapper"] {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.eonext-kultur-events__toolbar fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-inline-size: auto;
+}
+
+.eonext-kultur-events__toolbar .fieldset-legend,
+.eonext-kultur-events__toolbar fieldset > legend {
+  display: none;
+}
+
+.eonext-kultur-events__toolbar .fieldset-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.eonext-kultur-events__toolbar .form-item-search-api-fulltext label,
+.eonext-kultur-events__toolbar .form-item-date-min label,
+.eonext-kultur-events__toolbar .form-item-date-max label,
+.eonext-kultur-events__toolbar .input-label {
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--c-text-secondary-gray, #484848);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eonext-kultur-events__toolbar .form-actions {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.eonext-kultur-events__toolbar .form-actions input[type="submit"],
+.eonext-kultur-events__toolbar .eonext-kultur-events__submit {
+  height: 40px;
+  min-height: 40px;
+  padding: 8px 20px;
+  border: 1px solid var(--c-text-primary-black, #000);
+  background: var(--c-text-primary-black, #000);
+  color: var(--c-text-primary-white, #fff);
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  cursor: pointer;
+  border-radius: 0;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.eonext-kultur-events__filters-row--facet .block-facet-block {
+  margin: 0;
+}
+
+.eonext-kultur-events__filters-row--facet .block-facet-block > h2 {
+  display: none;
+}
+
+.eonext-kultur-events__filters-row--facet .item-list__checkbox {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.eonext-kultur-events__facet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .eonext-kultur-events__facet-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.eonext-kultur-events__facet-label {
+  flex: 0 0 auto;
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--c-text-secondary-gray, #484848);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding-top: 4px;
+}
+
+@media (min-width: 640px) {
+  .eonext-kultur-events__facet-label {
+    min-width: 120px;
+  }
+}
+
+.eonext-kultur-events__facet-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.eonext-kultur-events__facet-options--solo {
+  padding-top: 0;
+}
+
+.eonext-kultur-events__facet-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+}
+
+.eonext-kultur-events__facet-option.is-facet-item-hidden {
+  display: none;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox {
+  position: relative;
+}
+
+.eonext-kultur-events__facet-option a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--c-text-primary-black, #000);
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  line-height: 18px;
+  padding: 4px 0;
+}
+
+.eonext-kultur-events__facet-option:hover {
+  background-color: transparent;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__input {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__icon {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--c-global-tertiary-2, #707070);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__icon svg {
+  position: absolute;
+  top: 3px;
+  left: 2px;
+  fill: none;
+  stroke: var(--c-text-primary-white, #fff);
+  stroke-dasharray: 16px;
+  stroke-dashoffset: 16px;
+  transition: all 0.3s ease;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__input:checked + .eonext-checkbox__label .eonext-checkbox__icon,
+.eonext-kultur-events__facet-option .eonext-checkbox__icon.is-checked {
+  background: var(--c-text-secondary-gray, #484848);
+  border-color: var(--c-text-secondary-gray, #484848);
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__input:checked + .eonext-checkbox__label .eonext-checkbox__icon svg,
+.eonext-kultur-events__facet-option .eonext-checkbox__icon.is-checked svg {
+  stroke-dashoffset: 0;
+}
+
+.eonext-kultur-events__facet-option .eonext-checkbox__text {
+  line-height: 18px;
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  color: var(--c-text-primary-black, #000);
+}
+
+.eonext-kultur-events__facet-options--empty {
+  padding-top: 4px;
+}
+
+.eonext-kultur-events__facet-empty {
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--c-text-secondary-gray, #484848);
+  font-style: italic;
+}
+
+/* Free events toggle inside filter panel */
+.eonext-kultur-events__facet-group--free-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.eonext-kultur-events__facet-group--free-toggle .eonext-kultur-events__facet-options--toggle {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: 0;
+}
+
+.eonext-kultur-events__facet-group--free-toggle .eonext-kultur-events__facet-option--toggle {
+  min-height: 32px;
+}
+
+.eonext-kultur-events__facet-option--toggle a,
+.eonext-kultur-events__facet-option--toggle .eonext-kultur-events__free-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  text-decoration: none;
+  color: var(--c-text-primary-black, #000);
+  padding: 0;
+  cursor: pointer;
+}
+
+.eonext-kultur-events__free-toggle__switch {
+  position: relative;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--c-global-tertiary-1, #dbdbdb);
+  transition: background-color 0.2s ease;
+}
+
+.eonext-kultur-events__free-toggle__switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c-text-primary-white, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.eonext-kultur-events__facet-option--toggle a.is-active .eonext-kultur-events__free-toggle__switch,
+.eonext-kultur-events__free-toggle.is-active .eonext-kultur-events__free-toggle__switch {
+  background: var(--c-text-primary-black, #000);
+}
+
+.eonext-kultur-events__facet-option--toggle a.is-active .eonext-kultur-events__free-toggle__switch::after,
+.eonext-kultur-events__free-toggle.is-active .eonext-kultur-events__free-toggle__switch::after {
+  transform: translateX(20px);
+}
+
+.eonext-kultur-events__free-toggle__text {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+
+.eonext-kultur-events__facet-group .eonext-search-facet-group__view-all {
+  flex: 0 0 100%;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--c-text-secondary-gray, #484848);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@media (min-width: 640px) {
+  .eonext-kultur-events__facet-group .eonext-search-facet-group__view-all {
+    flex: 0 0 auto;
+    width: auto;
+    align-self: center;
+    margin-left: 8px;
+  }
+}
+
+/* Results grid */
+.eonext-kultur-events__results {
+  width: 100%;
+  min-width: 0;
+}
+
+.eonext-kultur-events__grid-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  align-items: stretch;
+}
+
+@media (min-width: 640px) {
+  .eonext-kultur-events__grid-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .eonext-kultur-events__grid-results {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.eonext-kultur-events__grid-item {
+  display: flex;
+  min-width: 0;
+}
+
+/* Event grid cards */
+.eonext-kultur-event-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--c-text-primary-white, #fff);
+}
+
+.eonext-kultur-event-card__link {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.eonext-kultur-event-card__media {
+  position: relative;
+  flex: 0 0 auto;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: var(--ek-navy, #235881);
+}
+
+.eonext-kultur-event-card__media .media-container,
+.eonext-kultur-event-card__media .image-credited,
+.eonext-kultur-event-card__media .image-credited__image {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.eonext-kultur-event-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eonext-kultur-event-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-height: 9.5rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.eonext-kultur-event-card__title {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--ek-font-heading, "Futura PT", sans-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ek-navy, #235881);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.eonext-kultur-event-card__tagline {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--ek-teal, #089aa7);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.eonext-kultur-event-card__footer {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.eonext-kultur-event-card__date {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--ek-navy, #235881);
+}
+
+.eonext-kultur-event-card__cta {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  min-width: 6.5rem;
+  padding: 0.5rem 0.875rem;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ek-teal, #089aa7);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--c-text-primary-white, #fff);
+  border: 1px solid var(--ek-teal, #089aa7);
+}
+
+.eonext-kultur-event-card__link:hover .eonext-kultur-event-card__cta,
+.eonext-kultur-event-card__link:focus-visible .eonext-kultur-event-card__cta {
+  color: var(--c-text-primary-white, #fff);
+  background: var(--ek-teal, #089aa7);
+}
+
+@media (min-width: 640px) {
+  .eonext-kultur-event-card__title {
+    font-size: 1.25rem;
+  }
+}
