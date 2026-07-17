@@ -1,0 +1,14 @@
+{% set hero_items = [] %}
+{% set relations_items = [] %}
+
+{{ include('@eonext_kultur_events/eonext-kultur-event-detail.html.twig', {
+  attributes: attributes,
+  detail: event_detail,
+  baseIconPath: baseIconPath,
+  description: content.event_description,
+  tags: content.event_tags.0 ? content.event_tags : null,
+  branch: content.branch.0 ? content.branch : null,
+  partners: content.event_partners.0 ? content.event_partners : null,
+  paragraphs: content.event_paragraphs,
+  event_instances: event_instances|default(null),
+}, false) }}

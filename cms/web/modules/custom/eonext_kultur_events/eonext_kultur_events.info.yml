@@ -14,3 +14,4 @@ dependencies:
   - better_exposed_filters:better_exposed_filters
   - views_infinite_scroll:views_infinite_scroll
   - field_inheritance:field_inheritance
+  - datetime:datetime

@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eventseries.field_publication_date
+    - recurring_events.eventseries_type.default
+  module:
+    - datetime
+id: eventseries.default.field_publication_date
+field_name: field_publication_date
+entity_type: eventseries
+bundle: default
+label: 'Publication date'
+description: 'The date this event was published on the website.'
+required: false
+translatable: false
+default_value:
+  -
+    default_date_type: now
+    default_date: now
+default_value_callback: ''
+settings: {  }
+field_type: datetime

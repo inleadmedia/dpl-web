@@ -12,3 +12,15 @@ events-listing:
     - facets/drupal.facets.checkbox-widget
     - views/views.ajax
     - eonext_kultur/chrome
+
+event-detail:
+  css:
+    theme:
+      css/eonext-kultur-event-detail.css: {}
+  js:
+    js/kultur-event-related-slider.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - novel/slider
+    - eonext_kultur/chrome

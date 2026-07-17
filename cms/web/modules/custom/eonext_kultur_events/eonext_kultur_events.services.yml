@@ -1,0 +1,6 @@
+services:
+  eonext_kultur_events.event_detail_builder:
+    class: Drupal\eonext_kultur_events\EventDetailBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'

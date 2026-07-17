@@ -1,0 +1,27 @@
+{%
+  set instancelike_content = {
+    date: formatted_date,
+    event_address: content.field_event_address_gsearch,
+    event_categories: content.field_categories,
+    event_description: content.field_description,
+    event_image: content.field_event_image,
+    event_link: content.field_event_link,
+    event_paragraphs: content.field_event_paragraphs,
+    event_location: content.field_event_location,
+    event_place: content.field_event_place,
+    event_state: content.field_event_state,
+    event_ticket_categories: content.field_ticket_categories,
+    event_tags: content.field_tags,
+    event_partners: content.field_event_partners,
+    branch: content.field_branch,
+    event_teaser_text: content.field_teaser_text,
+  }
+%}
+
+{{ include('@eonext_kultur_events/eventinstance--full.html.twig', {
+  content: content|merge(instancelike_content),
+  attributes: attributes,
+  event_detail: event_detail,
+  baseIconPath: baseIconPath,
+  event_instances: event_instances|default(null),
+}) }}

@@ -510,6 +510,3 @@ function eonext_editorial_search_ensure_published_content_indexing(): string {
 
   return implode(' ', $messages);
 }
-
-/**
- * Renames the content type facet label shown in the editorial search sidebar.

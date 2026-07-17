@@ -7,6 +7,10 @@
 
 declare(strict_types=1);
 
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\eonext_kultur_events\EventsConstants;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
@@ -19,6 +23,7 @@ function eonext_kultur_events_install(): void {
   eonext_kultur_events_ensure_index_fields();
   eonext_kultur_events_configure_events_view();
   eonext_kultur_events_configure_facet_weights();
+  eonext_kultur_events_ensure_publication_date_field();
   eonext_kultur_events_reindex();
 }
 
@@ -340,4 +345,110 @@ function eonext_kultur_events_update_9004(): void {
  */
 function eonext_kultur_events_update_9005(): void {
   eonext_kultur_events_disable_active_facet_reorder();
+}
+
+/**
+ * Adds publication date field to event series and instances.
+ */
+function eonext_kultur_events_update_9006(): void {
+  eonext_kultur_events_ensure_publication_date_field();
+}
+
+/**
+ * Removes unused instance-level publication date inheritance config.
+ */
+function eonext_kultur_events_update_9007(): void {
+  $inheritance = \Drupal::entityTypeManager()
+    ->getStorage('field_inheritance')
+    ->load('eventinstance_default_field_publication_date');
+  $inheritance?->delete();
+
+  eonext_kultur_events_configure_publication_date_form_display();
+}
+
+/**
+ * Creates publication date field on event series and the backend form widget.
+ */
+function eonext_kultur_events_ensure_publication_date_field(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_events');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.eventseries.field_publication_date',
+    'field.field.eventseries.default.field_publication_date',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  eonext_kultur_events_configure_publication_date_form_display();
+}
+
+/**
+ * Adds the publication date widget to the event series edit form.
+ */
+function eonext_kultur_events_configure_publication_date_form_display(): void {
+  if (!FieldConfig::loadByName('eventseries', 'default', 'field_publication_date')) {
+    return;
+  }
+
+  $config = \Drupal::configFactory()->getEditable('core.entity_form_display.eventseries.default.default');
+  if ($config->isNew()) {
+    return;
+  }
+
+  $data = $config->getRawData();
+  $dependency = 'field.field.eventseries.default.field_publication_date';
+  $dependencies = $data['dependencies']['config'] ?? [];
+  if (!in_array($dependency, $dependencies, TRUE)) {
+    $data['dependencies']['config'][] = $dependency;
+  }
+
+  $data['content']['field_publication_date'] = [
+    'type' => 'datetime_default',
+    'weight' => 0,
+    'region' => 'content',
+    'settings' => [],
+    'third_party_settings' => [],
+  ];
+
+  $field_groups = $data['third_party_settings']['field_group'] ?? [];
+  if (!isset($field_groups['group_publication'])) {
+    $field_groups['group_publication'] = [
+      'children' => [
+        'field_publication_date',
+      ],
+      'label' => 'Publication',
+      'region' => 'content',
+      'parent_name' => '',
+      'weight' => 19,
+      'format_type' => 'details_sidebar',
+      'format_settings' => [
+        'classes' => '',
+        'show_empty_fields' => FALSE,
+        'id' => '',
+        'open' => TRUE,
+        'description' => '',
+        'required_fields' => TRUE,
+        'weight' => 0,
+      ],
+    ];
+    $data['third_party_settings']['field_group'] = $field_groups;
+  }
+
+  $config->setData($data);
+  $config->save(TRUE);
 }
