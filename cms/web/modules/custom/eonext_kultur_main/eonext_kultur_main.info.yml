@@ -1,11 +1,16 @@
 name: 'EO Next Kultur Main'
 type: module
-description: 'Kulturhus homepage content and editable footer social band paragraph.'
+description: 'Kulturhus homepage content, hero content slider, and editable footer social band paragraph.'
 package: Custom
 core_version_requirement: ^10 || ^11
 dependencies:
   - drupal:node
   - drupal:link
   - drupal:text
+  - drupal:media
+  - drupal:options
   - paragraphs:paragraphs
+  - dynamic_entity_reference:dynamic_entity_reference
+  - recurring_events:recurring_events
+  - dpl_event:dpl_event
   - dpl_footer:dpl_footer

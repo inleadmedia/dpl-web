@@ -1,0 +1,17 @@
+<article class="ek-article-slide">
+  <a href="{{ url }}" class="ek-article-slide__link">
+    <div class="ek-article-slide__media">
+      {% if image %}
+        {{ image }}
+      {% endif %}
+    </div>
+
+    <div class="ek-article-slide__body">
+      <h3 class="ek-article-slide__title">{{ title }}</h3>
+      {% if teaser_text %}
+        <p class="ek-article-slide__teaser">{{ teaser_text }}</p>
+      {% endif %}
+      <span class="ek-article-slide__arrow" aria-hidden="true">→</span>
+    </div>
+  </a>
+</article>

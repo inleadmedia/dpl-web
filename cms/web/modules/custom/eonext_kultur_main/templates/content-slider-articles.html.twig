@@ -1,0 +1,28 @@
+{{ attach_library('eonext_kultur/articles-slider') }}
+
+<div class="ek-articles-slider{{ full_width ? ' ek-articles-slider--full-width' : '' }}" data-items-per-view="{{ items_per_view|default(2) }}" style="--ek-article-items-visible: {{ items_per_view|default(2) }}">
+  <div class="ek-articles-slider__brand">
+    {% if logo_url %}
+      <img class="ek-articles-slider__logo" src="{{ logo_url }}" alt="" width="120" height="120" loading="lazy">
+    {% endif %}
+    <h2 class="ek-articles-slider__label">{{ label|default('Artikler'|t) }}</h2>
+    {% if articles_overview_url %}
+      <a class="ek-articles-slider__overview" href="{{ articles_overview_url }}">{{ 'Se alle artikler'|t }}</a>
+    {% endif %}
+  </div>
+
+  <div class="ek-articles-slider__carousel">
+    <div class="ek-articles-slider__viewport">
+      <ul class="ek-articles-slider__wrapper">
+        {% for item in items %}
+          <li class="ek-articles-slider__slide">
+            {{- item.content -}}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p class="ek-articles-slider__hint" aria-hidden="true">
+      <span class="ek-articles-slider__hint-icon">↔</span>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,26 @@
+uuid: d4e5f6a7-b8c9-0123-defa-456789012345
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.hero_slide
+    - node.type.article
+  enforced:
+    module:
+      - eonext_kultur_main
+id: node.article.hero_slide
+targetEntityType: node
+bundle: article
+mode: hero_slide
+content: {  }
+hidden:
+  body: true
+  field_branch: true
+  field_categories: true
+  field_paragraphs: true
+  field_publication_date: true
+  field_teaser_image: true
+  field_teaser_text: true
+  langcode: true
+  links: true
+  search_api_excerpt: true

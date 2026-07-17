@@ -1,0 +1,26 @@
+uuid: f6a7b8c9-d0e1-2345-fabc-678901234567
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_nspot_full_width
+    - paragraphs.paragraphs_type.nav_spots_manual
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.nav_spots_manual.field_kultur_nspot_full_width
+field_name: field_kultur_nspot_full_width
+entity_type: paragraph
+bundle: nav_spots_manual
+label: 'Full width'
+description: 'When enabled, the nav spot spans the full viewport width.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

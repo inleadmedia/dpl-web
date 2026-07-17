@@ -1,0 +1,13 @@
+{% if kultur_nav_spot_display_mode|default('normal') == 'normal' %}
+  {{ include('@novel/components/nav-spots.html.twig', {
+    attributes: attributes,
+    items: items,
+  }, false) }}
+{% else %}
+  {{ include('@eonext_kultur/components/nav-spots.html.twig', {
+    attributes: attributes,
+    items: items,
+    display_mode: kultur_nav_spot_display_mode,
+    full_width: kultur_nav_spot_full_width|default(false),
+  }, false) }}
+{% endif %}

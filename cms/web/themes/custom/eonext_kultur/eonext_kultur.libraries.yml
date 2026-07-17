@@ -17,3 +17,26 @@ chrome:
   dependencies:
     - novel/base
     - eonext_kultur/fonts
+
+hero-slider:
+  js:
+    js/init-hero-slider.js: {}
+  dependencies:
+    - novel/swiper
+
+articles-slider:
+  js:
+    js/init-articles-slider.js: {}
+  css:
+    theme:
+      css/eonext-kultur.css: {}
+  dependencies:
+    - novel/swiper
+    - eonext_kultur/chrome
+
+nav-spot:
+  css:
+    theme:
+      css/eonext-kultur.css: {}
+  dependencies:
+    - eonext_kultur/chrome

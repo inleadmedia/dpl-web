@@ -1,0 +1,32 @@
+uuid: f1a2b3c4-d5e6-7890-abcd-ef1234567890
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.box
+    - node.type.page
+  enforced:
+    module:
+      - eonext_kultur_main
+id: node.page.box
+targetEntityType: node
+bundle: page
+mode: box
+content: {  }
+hidden:
+  body: true
+  field_branch: true
+  field_breadcrumb_parent: true
+  field_canonical_url: true
+  field_display_titles: true
+  field_hero_title: true
+  field_paragraphs: true
+  field_publication_date: true
+  field_subtitle: true
+  field_tags: true
+  field_teaser_image: true
+  field_teaser_text: true
+  langcode: true
+  links: true
+  preview_token: true
+  search_api_excerpt: true

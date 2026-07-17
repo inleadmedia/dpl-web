@@ -1,0 +1,13 @@
+<article class="ek-box">
+  <a href="{{ url }}" class="ek-box__link">
+    {% if image %}
+      <div class="ek-box__media" aria-hidden="true">
+        {{ image }}
+      </div>
+    {% endif %}
+
+    <div class="ek-box__overlay">
+      <h3 class="ek-box__title">{{ title }}</h3>
+    </div>
+  </a>
+</article>

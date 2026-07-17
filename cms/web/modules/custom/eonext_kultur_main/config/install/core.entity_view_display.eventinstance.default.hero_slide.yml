@@ -1,0 +1,65 @@
+uuid: b2c3d4e5-f6a7-8901-bcde-f23456789012
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.eventinstance.hero_slide
+    - recurring_events.eventinstance_type.default
+  enforced:
+    module:
+      - eonext_kultur_main
+id: eventinstance.default.hero_slide
+targetEntityType: eventinstance
+bundle: default
+mode: hero_slide
+content: {  }
+hidden:
+  body: true
+  branch: true
+  date: true
+  description: true
+  event_address: true
+  event_all_day: true
+  event_categories: true
+  event_description: true
+  event_image: true
+  event_link: true
+  event_location: true
+  event_location_type: true
+  event_non_branch_location: true
+  event_paragraphs: true
+  event_partners: true
+  event_place: true
+  event_state: true
+  event_tags: true
+  event_teaser_image: true
+  event_teaser_text: true
+  event_ticket_capacity: true
+  event_ticket_categories: true
+  event_title: true
+  eventseries_id: true
+  field_branch: true
+  field_categories: true
+  field_description: true
+  field_event_address: true
+  field_event_address_gsearch: true
+  field_event_all_day: true
+  field_event_image: true
+  field_event_link: true
+  field_event_location: true
+  field_event_location_type: true
+  field_event_non_branch_location: true
+  field_event_paragraphs: true
+  field_event_partners: true
+  field_event_place: true
+  field_event_state: true
+  field_event_title: true
+  field_external_admin_link: true
+  field_screen_names: true
+  field_tags: true
+  field_teaser_image: true
+  field_teaser_text: true
+  field_ticket_capacity: true
+  field_ticket_categories: true
+  search_api_excerpt: true
+  title: true

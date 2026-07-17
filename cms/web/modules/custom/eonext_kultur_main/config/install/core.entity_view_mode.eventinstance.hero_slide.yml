@@ -1,0 +1,14 @@
+uuid: 7a1c9d3e-5f2b-4b8a-9e1d-2c4f6a8b0d3e
+langcode: en
+status: true
+dependencies:
+  module:
+    - recurring_events
+  enforced:
+    module:
+      - eonext_kultur_main
+id: eventinstance.hero_slide
+label: 'Hero slide'
+description: ''
+targetEntityType: eventinstance
+cache: true

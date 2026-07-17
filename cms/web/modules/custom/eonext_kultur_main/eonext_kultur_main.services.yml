@@ -5,3 +5,17 @@ services:
       - '@entity_type.manager'
       - '@config.factory'
       - '@path_alias.manager'
+  eonext_kultur_main.hero_slide_builder:
+    class: Drupal\eonext_kultur_main\HeroSlideBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@string_translation'
+  eonext_kultur_main.box_builder:
+    class: Drupal\eonext_kultur_main\BoxBuilder
+    arguments:
+      - '@entity_type.manager'
+  eonext_kultur_main.article_slide_builder:
+    class: Drupal\eonext_kultur_main\ArticleSlideBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@date.formatter'

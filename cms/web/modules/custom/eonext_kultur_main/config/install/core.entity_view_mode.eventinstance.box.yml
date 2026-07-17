@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - recurring_events
+  enforced:
+    module:
+      - eonext_kultur_main
+id: eventinstance.box
+label: Box
+description: 'Image-backed navigation box for the Kultur Nav Grid.'
+targetEntityType: eventinstance
+cache: true

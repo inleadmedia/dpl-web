@@ -1,0 +1,14 @@
+uuid: 4b8e2f1a-9c3d-4a7e-b2f1-8d6e5c4a3b2f
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.hero
+label: Hero
+description: 'Full-width hero carousel for frontpage content slider.'
+targetEntityType: paragraph
+cache: true

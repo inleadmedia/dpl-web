@@ -1,0 +1,26 @@
+uuid: f5a6b7c8-d9e0-1234-abcd-56789abcdef0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_slider_full_width
+    - paragraphs.paragraphs_type.content_slider
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.content_slider.field_kultur_slider_full_width
+field_name: field_kultur_slider_full_width
+entity_type: paragraph
+bundle: content_slider
+label: 'Full width'
+description: 'Break out of the page container to span the full viewport width.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

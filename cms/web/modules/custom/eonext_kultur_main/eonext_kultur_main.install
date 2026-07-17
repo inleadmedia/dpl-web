@@ -2,22 +2,25 @@
 
 /**
  * @file
- * Install, update and uninstall functions for EO Next Kultur Main.
+ * Install functions for EO Next Kultur Main.
  */
 
 declare(strict_types=1);
 
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
+use Drupal\eonext_kultur_main\NavGridSettings;
+use Drupal\eonext_kultur_main\NavSpotSettings;
 use Drupal\field\Entity\FieldConfig;
-use Drupal\node\NodeInterface;
-use Drupal\paragraphs\Entity\Paragraph;
 
 /**
  * Implements hook_install().
  */
 function eonext_kultur_main_install(): void {
   _eonext_kultur_main_enable_paragraph_on_page();
-  _eonext_kultur_main_attach_footer_social_to_frontpage();
+  _eonext_kultur_main_configure_paragraph_form_displays();
 }
 
 /**
@@ -40,58 +43,90 @@ function _eonext_kultur_main_enable_paragraph_on_page(): void {
 }
 
 /**
- * Attach a default footer social paragraph to the front page.
+ * Wire Korsør display fields into paragraph edit forms and hide from default view.
  */
-function _eonext_kultur_main_attach_footer_social_to_frontpage(): void {
-  $node = _eonext_kultur_main_load_frontpage_node();
-  if (!$node instanceof NodeInterface || !$node->hasField('field_paragraphs')) {
-    return;
+function _eonext_kultur_main_configure_paragraph_form_displays(): void {
+  $content_slider_form = EntityFormDisplay::load('paragraph.content_slider.default');
+  if ($content_slider_form instanceof EntityFormDisplay) {
+    $content_slider_form
+      ->setComponent(ContentSliderSettings::DISPLAY_MODE_FIELD, [
+        'type' => 'options_select',
+        'weight' => -10,
+        'region' => 'content',
+        'settings' => [],
+      ])
+      ->setComponent(ContentSliderSettings::ITEMS_PER_VIEW_FIELD, [
+        'type' => 'number',
+        'weight' => -9,
+        'region' => 'content',
+        'settings' => [
+          'placeholder' => '',
+        ],
+      ])
+      ->setComponent(ContentSliderSettings::FULL_WIDTH_FIELD, [
+        'type' => 'boolean_checkbox',
+        'weight' => -8,
+        'region' => 'content',
+        'settings' => [
+          'display_label' => TRUE,
+        ],
+      ])
+      ->save();
   }
 
-  foreach ($node->get('field_paragraphs')->referencedEntities() as $paragraph) {
-    if ($paragraph instanceof Paragraph && $paragraph->bundle() === FooterSocialLoader::PARAGRAPH_BUNDLE) {
-      return;
-    }
+  $content_slider_view = EntityViewDisplay::load('paragraph.content_slider.default');
+  if ($content_slider_view instanceof EntityViewDisplay) {
+    $content_slider_view
+      ->removeComponent(ContentSliderSettings::DISPLAY_MODE_FIELD)
+      ->removeComponent(ContentSliderSettings::ITEMS_PER_VIEW_FIELD)
+      ->removeComponent(ContentSliderSettings::FULL_WIDTH_FIELD)
+      ->save();
   }
 
-  $paragraph = Paragraph::create([
-    'type' => FooterSocialLoader::PARAGRAPH_BUNDLE,
-    'field_kultur_footer_title' => 'Følg os på de sociale medier',
-    'field_kultur_footer_text' => [
-      'value' => 'Følg med i husets liv på vores sociale medier, hvor vi løbende deler nyheder, events og glimt fra hverdagen.',
-      'format' => 'basic',
-    ],
-    'field_kultur_footer_cta' => 'Del dine oplevelser på Kulturhusets Instagram',
-    'field_kultur_footer_hashtag' => '#korsørkulturhus',
-    'field_kultur_footer_facebook' => [
-      'uri' => 'https://www.facebook.com/',
-      'title' => '',
-    ],
-    'field_kultur_footer_instagram' => [
-      'uri' => 'https://www.instagram.com/',
-      'title' => '',
-    ],
-  ]);
-  $paragraph->save();
-
-  $node->get('field_paragraphs')->appendItem($paragraph);
-  $node->save();
-}
-
-/**
- * Load the configured front page node.
- */
-function _eonext_kultur_main_load_frontpage_node(): ?NodeInterface {
-  $front = \Drupal::config('system.site')->get('page.front');
-  if (!is_string($front) || $front === '') {
-    return NULL;
+  $nav_grid_form = EntityFormDisplay::load('paragraph.nav_grid_manual.default');
+  if ($nav_grid_form instanceof EntityFormDisplay) {
+    $nav_grid_form
+      ->setComponent(NavGridSettings::DISPLAY_MODE_FIELD, [
+        'type' => 'options_select',
+        'weight' => -10,
+        'region' => 'content',
+        'settings' => [],
+      ])
+      ->save();
   }
 
-  $internalPath = \Drupal::service('path_alias.manager')->getPathByAlias($front);
-  if (!preg_match('/^\/node\/(\d+)$/', $internalPath, $matches)) {
-    return NULL;
+  $nav_grid_view = EntityViewDisplay::load('paragraph.nav_grid_manual.default');
+  if ($nav_grid_view instanceof EntityViewDisplay) {
+    $nav_grid_view
+      ->removeComponent(NavGridSettings::DISPLAY_MODE_FIELD)
+      ->save();
   }
 
-  $node = \Drupal::entityTypeManager()->getStorage('node')->load($matches[1]);
-  return $node instanceof NodeInterface ? $node : NULL;
+  $nav_spot_form = EntityFormDisplay::load('paragraph.nav_spots_manual.default');
+  if ($nav_spot_form instanceof EntityFormDisplay) {
+    $nav_spot_form
+      ->setComponent(NavSpotSettings::DISPLAY_MODE_FIELD, [
+        'type' => 'options_select',
+        'weight' => -11,
+        'region' => 'content',
+        'settings' => [],
+      ])
+      ->setComponent(NavSpotSettings::FULL_WIDTH_FIELD, [
+        'type' => 'boolean_checkbox',
+        'weight' => -10,
+        'region' => 'content',
+        'settings' => [
+          'display_label' => TRUE,
+        ],
+      ])
+      ->save();
+  }
+
+  $nav_spot_view = EntityViewDisplay::load('paragraph.nav_spots_manual.default');
+  if ($nav_spot_view instanceof EntityViewDisplay) {
+    $nav_spot_view
+      ->removeComponent(NavSpotSettings::DISPLAY_MODE_FIELD)
+      ->removeComponent(NavSpotSettings::FULL_WIDTH_FIELD)
+      ->save();
+  }
 }

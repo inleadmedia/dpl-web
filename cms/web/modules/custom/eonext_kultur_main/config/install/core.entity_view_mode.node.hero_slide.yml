@@ -1,0 +1,14 @@
+uuid: 9c3e1f5a-7b4d-6d0c-1a3f-4e607c0d2f5a
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+  enforced:
+    module:
+      - eonext_kultur_main
+id: node.hero_slide
+label: 'Hero slide'
+description: ''
+targetEntityType: node
+cache: true
