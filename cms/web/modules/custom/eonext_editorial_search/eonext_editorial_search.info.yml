@@ -15,4 +15,5 @@ dependencies:
   - dpl_search:dpl_search
   - dpl_fbi:dpl_fbi
   - dpl_library_agency:dpl_library_agency
+  - dpl_library_token:dpl_library_token
   - dpl_event:dpl_event

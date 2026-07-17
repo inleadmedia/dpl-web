@@ -2,30 +2,112 @@
 
 /**
  * @file
- * Install and update hooks for EO Next Editorial Search.
+ * Install hooks for EO Next Editorial Search.
  */
 
+use Drupal\eonext_editorial_search\ArticleMaterialSync;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
+use Drupal\user\Entity\Role;
+
+function _eonext_editorial_search_grant_rest_permissions(): void {
+  $permission = 'restful get eonext_editorial_search:editorial_search';
+
+  foreach (['anonymous', 'authenticated'] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role === NULL || $role->hasPermission($permission)) {
+      continue;
+    }
+
+    $role->grantPermission($permission);
+    $role->save();
+  }
+}
+
+function _eonext_editorial_search_revoke_rest_permissions(): void {
+  $permission = 'restful get eonext_editorial_search:editorial_search';
+
+  foreach (['anonymous', 'authenticated'] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role === NULL || !$role->hasPermission($permission)) {
+      continue;
+    }
+
+    $role->revokePermission($permission);
+    $role->save();
+  }
+}
+
+function _eonext_editorial_search_ensure_settings(): void {
+  $config = \Drupal::configFactory()->getEditable('eonext_editorial_search.settings');
+  if ($config->get('enable_editorial_search') === NULL) {
+    $config->set('enable_editorial_search', TRUE)->save();
+  }
+}
+
+/**
+ * Queues field_material sync for all articles when the field is available.
+ *
+ * @return int
+ *   Number of articles queued.
+ */
+function _eonext_editorial_search_enqueue_article_material_sync(): int {
+  if (!\Drupal::entityTypeManager()->getStorage('field_storage_config')->load('node.field_material')) {
+    return 0;
+  }
+
+  /** @var \Drupal\eonext_editorial_search\ArticleMaterialSync $sync */
+  $sync = \Drupal::service(ArticleMaterialSync::class);
+  $count = $sync->enqueueAllArticles();
+
+  if ($count > 0) {
+    \Drupal::logger('eonext_editorial_search')->notice(
+      'Queued field_material sync for @count article(s). Process with cron or: drush queue:run @queue',
+      [
+        '@count' => $count,
+        '@queue' => ArticleMaterialSync::QUEUE_NAME,
+      ],
+    );
+  }
+
+  return $count;
+}
 
 /**
  * Implements hook_install().
  */
 function eonext_editorial_search_install(): void {
+  _eonext_editorial_search_ensure_settings();
   eonext_editorial_search_ensure_facet_index_fields();
   eonext_editorial_search_ensure_sort_index_fields();
   eonext_editorial_search_ensure_editorial_event_date_processor();
   eonext_editorial_search_ensure_editorial_content_indexing();
   eonext_editorial_search_ensure_event_has_upcoming_indexing();
+  eonext_editorial_search_exclude_go_articles_from_index();
   eonext_editorial_search_ensure_published_content_indexing();
+  _eonext_editorial_search_grant_rest_permissions();
+  _eonext_editorial_search_enqueue_article_material_sync();
 }
 
 /**
- * Adds missing Search API fields required by editorial search facets.
- *
- * Facets fail with InvalidQueryTypeException when the index is missing the
- * configured field_identifier (e.g. content_type).
+ * Implements hook_uninstall().
  */
+function eonext_editorial_search_uninstall(): void {
+  _eonext_editorial_search_revoke_rest_permissions();
+
+  foreach (['editorial_categories', 'editorial_content_type', 'editorial_tags'] as $facet_id) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    $facet?->delete();
+  }
+
+  $facet_source = \Drupal::entityTypeManager()
+    ->getStorage('facets_facet_source')
+    ->load('search_api:views_page__editorial_search__page');
+  $facet_source?->delete();
+
+  \Drupal::configFactory()->getEditable('eonext_editorial_search.settings')->delete();
+}
+
 function eonext_editorial_search_ensure_facet_index_fields(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -113,9 +195,6 @@ function eonext_editorial_search_ensure_facet_index_fields(): string {
   );
 }
 
-/**
- * Adds missing Search API fields required for editorial search sorting.
- */
 function eonext_editorial_search_ensure_sort_index_fields(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -176,16 +255,10 @@ function eonext_editorial_search_ensure_sort_index_fields(): string {
   );
 }
 
-/**
- * Removes expired event series from the editorial search index.
- */
 function eonext_editorial_search_remove_expired_event_series_from_index(): string {
   return 'Past events are indexed for editorial search; expired event cleanup is no longer performed.';
 }
 
-/**
- * Adds editorial content field and processor to the search index.
- */
 function eonext_editorial_search_ensure_editorial_content_indexing(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -255,9 +328,6 @@ function eonext_editorial_search_ensure_editorial_content_indexing(): string {
   return implode(' ', $messages);
 }
 
-/**
- * Ensures the editorial event date processor is enabled on the search index.
- */
 function eonext_editorial_search_ensure_editorial_event_date_processor(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -277,70 +347,6 @@ function eonext_editorial_search_ensure_editorial_event_date_processor(): string
   return 'Enabled editorial event date processor on index content_events. Re-index with: drush search-api:index content_events';
 }
 
-/**
- * Updates sort_date configuration and enables editorial event date indexing.
- */
-function eonext_editorial_search_update_9002(): string {
-  $messages = [
-    eonext_editorial_search_ensure_editorial_event_date_processor(),
-  ];
-
-  $index = Index::load('content_events');
-  if ($index instanceof IndexInterface) {
-    $sort_date = $index->getField('sort_date');
-    if ($sort_date) {
-      $configuration = $sort_date->getConfiguration();
-      $configuration['fields'] = ['entity:node/created'];
-      $sort_date->setConfiguration($configuration);
-      $index->save();
-      $messages[] = 'Updated sort_date on index content_events to use node created dates and upcoming event dates for events.';
-    }
-    else {
-      $messages[] = eonext_editorial_search_ensure_sort_index_fields();
-    }
-  }
-
-  return implode(' ', $messages);
-}
-
-/**
- * Ensures editorial event date processor is enabled after skipped update hooks.
- */
-function eonext_editorial_search_update_9004(): string {
-  return eonext_editorial_search_update_9002();
-}
-
-/**
- * Removes stale expired event series left in the editorial search index.
- */
-function eonext_editorial_search_update_9005(): string {
-  return eonext_editorial_search_remove_expired_event_series_from_index();
-}
-
-/**
- * Indexes full editorial content (body text, materials, etc.) for search.
- */
-function eonext_editorial_search_update_9006(): string {
-  return eonext_editorial_search_ensure_editorial_content_indexing();
-}
-
-/**
- * Excludes GO articles from the editorial search index and removes stale items.
- */
-function eonext_editorial_search_update_9007(): string {
-  return eonext_editorial_search_exclude_go_articles_from_index();
-}
-
-/**
- * Indexes past events and adds event_has_upcoming for editorial search filtering.
- */
-function eonext_editorial_search_update_9008(): string {
-  return eonext_editorial_search_ensure_event_has_upcoming_indexing();
-}
-
-/**
- * Adds event_has_upcoming field and marks the index for re-indexing.
- */
 function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -380,9 +386,6 @@ function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
   return implode(' ', $messages);
 }
 
-/**
- * Excludes GO articles from the editorial search index and removes stale items.
- */
 function eonext_editorial_search_exclude_go_articles_from_index(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -406,8 +409,6 @@ function eonext_editorial_search_exclude_go_articles_from_index(): string {
     $messages[] = 'Excluded go_article from index content_events.';
   }
 
-  // The content_type field is added by eonext_editorial_search install/update hooks
-  // and may not exist yet when deploy hooks run before other editorial hooks.
   if (!$index->getField('content_type')) {
     $messages[] = eonext_editorial_search_ensure_facet_index_fields();
     $index = Index::load('content_events');
@@ -461,17 +462,6 @@ function eonext_editorial_search_exclude_go_articles_from_index(): string {
 
   return implode(' ', $messages);
 }
-
-/**
- * Excludes unpublished content from the editorial search index and facet counts.
- */
-function eonext_editorial_search_update_9009(): string {
-  return eonext_editorial_search_ensure_published_content_indexing();
-}
-
-/**
- * Enables published-only indexing and removes unpublished items from the index.
- */
 function eonext_editorial_search_ensure_published_content_indexing(): string {
   $index = Index::load('content_events');
   if (!$index instanceof IndexInterface) {
@@ -523,22 +513,3 @@ function eonext_editorial_search_ensure_published_content_indexing(): string {
 
 /**
  * Renames the content type facet label shown in the editorial search sidebar.
- */
-function eonext_editorial_search_update_9001(): string {
-  $facet = \Drupal::entityTypeManager()
-    ->getStorage('facets_facet')
-    ->load('editorial_content_type');
-
-  if (!$facet) {
-    return 'Facet editorial_content_type was not found.';
-  }
-
-  if ($facet->getName() === 'Type') {
-    return 'Facet editorial_content_type label is already Type.';
-  }
-
-  $facet->set('name', 'Type');
-  $facet->save();
-
-  return 'Renamed editorial_content_type facet label to Type.';
-}

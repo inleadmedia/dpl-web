@@ -7,8 +7,6 @@
 
 declare(strict_types=1);
 
-use Drupal\eonext_editorial_search\ArticleMaterialSync;
-
 /**
  * Loads install-time helpers for deploy hooks.
  */
@@ -32,14 +30,14 @@ function eonext_editorial_search_deploy_ensure_search_index_fields(): string {
  * Populates field_material on existing articles from material grid paragraphs.
  */
 function eonext_editorial_search_deploy_sync_article_materials(): string {
-  /** @var \Drupal\eonext_editorial_search\ArticleMaterialSync $sync */
-  $sync = \Drupal::service(ArticleMaterialSync::class);
-  $count = $sync->enqueueAllArticles();
+  _eonext_editorial_search_load_install();
+
+  $count = _eonext_editorial_search_enqueue_article_material_sync();
 
   return sprintf(
     'Queued field_material sync for %d article(s). Process with: drush queue:run %s',
     $count,
-    ArticleMaterialSync::QUEUE_NAME,
+    \Drupal\eonext_editorial_search\ArticleMaterialSync::QUEUE_NAME,
   );
 }
 

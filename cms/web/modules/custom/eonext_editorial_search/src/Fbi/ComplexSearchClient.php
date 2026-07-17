@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Drupal\eonext_editorial_search;
+namespace Drupal\eonext_editorial_search\Fbi;
 
 use Drupal\dpl_fbi\Fbi;
 use Drupal\dpl_library_agency\Branch\BranchRepositoryInterface;
@@ -13,6 +13,10 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Client for FBI complexSearch GraphQL queries.
+ *
+ * Lives inside this module (rather than dpl_fbi) so the editorial search
+ * feature ships self-contained; it consumes the public dpl_fbi / library
+ * services via dependency injection without modifying those modules.
  */
 final class ComplexSearchClient {
 

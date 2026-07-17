@@ -6,6 +6,10 @@ dependencies:
     - node.type.article
   module:
     - dpl_fbi
+    - eonext_editorial_search
+  enforced:
+    module:
+      - eonext_editorial_search
 id: node.article.field_material
 field_name: field_material
 entity_type: node

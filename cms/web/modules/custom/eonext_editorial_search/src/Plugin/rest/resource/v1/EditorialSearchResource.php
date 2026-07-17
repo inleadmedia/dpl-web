@@ -97,7 +97,6 @@ final class EditorialSearchResource extends ResourceBase {
     if (!empty($material) && is_string($material)) {
       $editorial_nids = $this->findArticleNidsByMaterial($material);
 
-      // Return the editorials directly when no fulltext query is provided.
       if (empty($search) || !is_string($search)) {
         $paged_nids = array_slice($editorial_nids, $page * $page_size, $page_size);
         $material_editorials = \Drupal::entityTypeManager()

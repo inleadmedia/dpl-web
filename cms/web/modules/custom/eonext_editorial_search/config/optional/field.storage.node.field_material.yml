@@ -3,7 +3,11 @@ status: true
 dependencies:
   module:
     - dpl_fbi
+    - eonext_editorial_search
     - node
+  enforced:
+    module:
+      - eonext_editorial_search
 id: node.field_material
 field_name: field_material
 entity_type: node

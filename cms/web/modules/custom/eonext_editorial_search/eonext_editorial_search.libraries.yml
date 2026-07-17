@@ -11,3 +11,12 @@ editorial-search:
     - core/once
     - facets/drupal.facets.checkbox-widget
     - views/views.ajax
+
+react-integration:
+  css:
+    theme:
+      css/editorial.css: {}
+  js:
+    js/editorial.bundle.js: { preprocess: false, minified: true, attributes: { defer: true } }
+  dependencies:
+    - core/drupalSettings

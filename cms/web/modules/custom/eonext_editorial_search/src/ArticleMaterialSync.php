@@ -7,7 +7,7 @@ namespace Drupal\eonext_editorial_search;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Queue\QueueWorkerManagerInterface;
 use Drupal\Core\Queue\SuspendQueueException;
-use Drupal\eonext_editorial_search\ComplexSearchClient;
+use Drupal\eonext_editorial_search\Fbi\ComplexSearchClient;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 use Psr\Log\LoggerInterface;

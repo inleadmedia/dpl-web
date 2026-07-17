@@ -7,7 +7,7 @@ services:
     parent: logger.channel_base
     arguments: ['eonext_editorial_search']
 
-  Drupal\eonext_editorial_search\ComplexSearchClient:
+  Drupal\eonext_editorial_search\Fbi\ComplexSearchClient:
     arguments:
       $logger: '@logger.channel.eonext_editorial_search'
 
