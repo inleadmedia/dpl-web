@@ -5,12 +5,21 @@ import { ReactComponent as ArrowSmallRight } from "../Arrows/icon-arrow-ui/icon-
 
 type CardProps = {
   variant?: string;
+  typeTag?: string;
+  dateTag?: string;
   title?: string;
   image?: ReactNode;
   placeholderText?: string;
 };
 
-const Card: FC<CardProps> = ({ variant, image, placeholderText, title }) => {
+const Card: FC<CardProps> = ({
+  variant,
+  image,
+  placeholderText,
+  title,
+  typeTag,
+  dateTag,
+}) => {
   const classes = clsx("card", {
     "card--has-no-media": !image,
     "card--has-media": !!image,
@@ -23,12 +32,18 @@ const Card: FC<CardProps> = ({ variant, image, placeholderText, title }) => {
           <MediaContainer placeholderText={placeholderText} media={image} />
         </div>
         <div className="card__text">
+          {(typeTag || dateTag) && (
+            <div className="card__tags">
+              {typeTag ? (
+                <span className="card__tag card__tag--type">{typeTag}</span>
+              ) : null}
+              {dateTag ? <span className="card__tag">{dateTag}</span> : null}
+            </div>
+          )}
           <h3 className="card__title">{title}</h3>
           {placeholderText ? (
             <p className="card__teaser">{placeholderText}</p>
-          ) : (
-            ""
-          )}
+          ) : null}
           <div className="card__arrow" aria-hidden="true">
             <ArrowSmallRight />
           </div>
