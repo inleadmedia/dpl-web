@@ -1,0 +1,18 @@
+{% set overlay_teaser = teaser_text|default('') ?: subtitle|default('') %}
+
+<article{{ attributes.addClass('nav-teaser', 'nav-teaser--has-background-image') }}>
+  <a href="{{ url }}">
+    {% if background_image_url|default('') %}
+      <div class="nav-teaser__background" style="background-image: url('{{ background_image_url }}');" aria-hidden="true"></div>
+    {% endif %}
+    <div class="nav-teaser__overlay">
+      <div class="nav-teaser__overlay-content">
+        <h3 class="nav-teaser__title">{{ title }}</h3>
+        {% if overlay_teaser %}
+          <p class="nav-teaser__teaser">{{ overlay_teaser }}</p>
+        {% endif %}
+      </div>
+      {{ source(baseIconPath ~ '/arrow-ui/icon-arrow-ui-nav.svg') }}
+    </div>
+  </a>
+</article>

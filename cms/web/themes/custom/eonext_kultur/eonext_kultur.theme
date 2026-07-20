@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Drupal\eonext_kultur_main\BannerSettings;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\paragraphs\ParagraphInterface;
 
 /**
@@ -48,6 +49,27 @@ function eonext_kultur_preprocess_page(array &$variables): void {
       'class' => ['ek-footer__logo'],
     ],
   ];
+}
+
+/**
+ * Applies EONEXT-321 nav teaser variables from a referenced content entity.
+ *
+ * @param mixed[] $variables
+ *   Theme variables for a nav teaser entity template.
+ */
+function _eonext_kultur_apply_nav_teaser_variables(array &$variables, EntityInterface $entity): void {
+  $nav_teaser = \Drupal::service('eonext_kultur_main.nav_teaser_builder')->build($entity);
+  if ($nav_teaser === []) {
+    return;
+  }
+
+  $variables['nav_teaser_title'] = $nav_teaser['title'] ?? '';
+  $variables['nav_teaser_subtitle'] = $nav_teaser['subtitle'] ?? '';
+  $variables['nav_teaser_teaser_text'] = $nav_teaser['teaser_text'] ?? '';
+  $variables['nav_teaser_background_image_url'] = $nav_teaser['background_image_url'] ?? '';
+  if (!empty($nav_teaser['url'])) {
+    $variables['nav_teaser_url'] = $nav_teaser['url'];
+  }
 }
 
 /**
@@ -115,7 +137,14 @@ function _eonext_kultur_set_nav_spot_subtitle(array &$variables, \Drupal\Core\En
  * Implements hook_preprocess_HOOK() for node templates.
  */
 function eonext_kultur_preprocess_node(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'nav_spot') {
+  $view_mode = $variables['view_mode'] ?? '';
+
+  if ($view_mode === 'nav_teaser' && isset($variables['node'])) {
+    _eonext_kultur_apply_nav_teaser_variables($variables, $variables['node']);
+    return;
+  }
+
+  if ($view_mode !== 'nav_spot') {
     return;
   }
 
@@ -130,6 +159,13 @@ function eonext_kultur_preprocess_node(array &$variables): void {
  */
 function eonext_kultur_preprocess_eventinstance(array &$variables): void {
   $view_mode = $variables['view_mode'] ?? '';
+
+  if ($view_mode === 'nav_teaser') {
+    if (isset($variables['eventinstance'])) {
+      _eonext_kultur_apply_nav_teaser_variables($variables, $variables['eventinstance']);
+    }
+    return;
+  }
 
   if ($view_mode === 'nav_spot') {
     _eonext_kultur_apply_nav_spot_settings($variables);
@@ -169,7 +205,14 @@ function eonext_kultur_theme_suggestions_input_alter(array &$suggestions, array 
  * Implements hook_preprocess_HOOK() for eventseries templates.
  */
 function eonext_kultur_preprocess_eventseries(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'nav_spot') {
+  $view_mode = $variables['view_mode'] ?? '';
+
+  if ($view_mode === 'nav_teaser' && isset($variables['eventseries'])) {
+    _eonext_kultur_apply_nav_teaser_variables($variables, $variables['eventseries']);
+    return;
+  }
+
+  if ($view_mode !== 'nav_spot') {
     return;
   }
 

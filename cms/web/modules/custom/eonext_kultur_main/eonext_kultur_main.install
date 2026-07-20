@@ -13,7 +13,6 @@ use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
-use Drupal\eonext_kultur_main\NavGridSettings;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 
@@ -82,25 +81,6 @@ function _eonext_kultur_main_configure_paragraph_form_displays(): void {
       ->removeComponent(ContentSliderSettings::DISPLAY_MODE_FIELD)
       ->removeComponent(ContentSliderSettings::ITEMS_PER_VIEW_FIELD)
       ->removeComponent(ContentSliderSettings::FULL_WIDTH_FIELD)
-      ->save();
-  }
-
-  $nav_grid_form = EntityFormDisplay::load('paragraph.nav_grid_manual.default');
-  if ($nav_grid_form instanceof EntityFormDisplay) {
-    $nav_grid_form
-      ->setComponent(NavGridSettings::DISPLAY_MODE_FIELD, [
-        'type' => 'options_select',
-        'weight' => -10,
-        'region' => 'content',
-        'settings' => [],
-      ])
-      ->save();
-  }
-
-  $nav_grid_view = EntityViewDisplay::load('paragraph.nav_grid_manual.default');
-  if ($nav_grid_view instanceof EntityViewDisplay) {
-    $nav_grid_view
-      ->removeComponent(NavGridSettings::DISPLAY_MODE_FIELD)
       ->save();
   }
 
@@ -226,4 +206,46 @@ function _eonext_kultur_main_ensure_banner_background_color_field(): void {
       FieldConfig::create($data)->save();
     }
   }
+}
+
+/**
+ * Remove deprecated nav grid display mode field and legacy box view modes.
+ */
+function eonext_kultur_main_update_9016(): string {
+  return _eonext_kultur_main_remove_nav_grid_display_mode_field();
+}
+
+/**
+ * Removes nav grid display mode from existing sites.
+ */
+function _eonext_kultur_main_remove_nav_grid_display_mode_field(): string {
+  $field_name = 'field_kultur_grid_display_mode';
+  $messages = [];
+
+  $form_display = EntityFormDisplay::load('paragraph.nav_grid_manual.default');
+  if ($form_display instanceof EntityFormDisplay) {
+    $form_display->removeComponent($field_name);
+    $form_display->save();
+    $messages[] = 'Removed nav grid display mode from the paragraph edit form.';
+  }
+
+  $view_display = EntityViewDisplay::load('paragraph.nav_grid_manual.default');
+  if ($view_display instanceof EntityViewDisplay) {
+    $view_display->removeComponent($field_name);
+    $view_display->save();
+  }
+
+  $field = FieldConfig::loadByName('paragraph', 'nav_grid_manual', $field_name);
+  if ($field instanceof FieldConfig) {
+    $field->delete();
+    $messages[] = "Deleted {$field_name} field config.";
+  }
+
+  $storage = FieldStorageConfig::loadByName('paragraph', $field_name);
+  if ($storage instanceof FieldStorageConfig) {
+    $storage->delete();
+    $messages[] = "Deleted {$field_name} field storage.";
+  }
+
+  return implode(' ', $messages);
 }

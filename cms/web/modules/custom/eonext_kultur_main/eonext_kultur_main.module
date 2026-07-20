@@ -14,7 +14,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
-use Drupal\eonext_kultur_main\NavGridSettings;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 use Drupal\recurring_events\Entity\EventInstance;
@@ -147,20 +146,6 @@ function eonext_kultur_main_theme(): array {
       ],
       'template' => 'hero-slide',
     ],
-    'box' => [
-      'variables' => [
-        'title' => NULL,
-        'url' => NULL,
-        'image' => NULL,
-      ],
-      'template' => 'box',
-    ],
-    'nav_grid_boxes' => [
-      'variables' => [
-        'items' => [],
-      ],
-      'template' => 'nav-grid-boxes',
-    ],
     'content_slider_articles' => [
       'variables' => [
         'label' => NULL,
@@ -238,24 +223,6 @@ function eonext_kultur_main_entity_view_alter(array &$build, EntityInterface $en
     && isset($build['field_content_references'])) {
     $build['field_content_references'] = _eonext_kultur_main_build_articles_slider($entity);
   }
-
-  if ($display->getMode() === 'box' || ($build['#view_mode'] ?? '') === 'box') {
-    $box = \Drupal::service('eonext_kultur_main.box_builder')->build($entity);
-    if ($box === NULL) {
-      return;
-    }
-
-    $build = [
-      '#theme' => 'box',
-      '#title' => $box['title'],
-      '#url' => $box['url'],
-      '#image' => $box['image'],
-      '#cache' => [
-        'tags' => $entity->getCacheTags(),
-        'contexts' => ['languages:language_interface'],
-      ],
-    ];
-  }
 }
 
 /**
@@ -267,35 +234,9 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
 
   if ($paragraph instanceof ParagraphInterface
     && ($variables['field_name'] ?? '') === 'field_content_references'
-    && $paragraph->bundle() === 'nav_grid_manual'
-    && NavGridSettings::isBoxesMode($paragraph)) {
-    $variables['items'] = [];
-
-    foreach ($paragraph->get('field_content_references') as $delta => $item) {
-      $referenced = $item->entity;
-      if (!$referenced instanceof EntityInterface) {
-        continue;
-      }
-
-      $box = \Drupal::service('eonext_kultur_main.box_builder')->build($referenced);
-      if ($box === NULL) {
-        continue;
-      }
-
-      $variables['items'][$delta]['content'] = [
-        '#theme' => 'box',
-        '#title' => $box['title'],
-        '#url' => $box['url'],
-        '#image' => $box['image'],
-        '#cache' => [
-          'tags' => $referenced->getCacheTags(),
-          'contexts' => ['languages:language_interface'],
-        ],
-      ];
-    }
-
+    && $paragraph->bundle() === 'nav_grid_manual') {
     $variables['theme_hook_suggestions'][] = 'field__paragraph__field_content_references__nav_grid_manual';
-    $variables['use_box_grid'] = TRUE;
+    $variables['show_subtitles'] = TRUE;
     $variables['#cache']['tags'] = array_merge(
       $variables['#cache']['tags'] ?? [],
       $paragraph->getCacheTags()

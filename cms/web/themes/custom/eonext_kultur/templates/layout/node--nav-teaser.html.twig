@@ -1,0 +1,9 @@
+{{ include('@eonext_kultur/components/nav-teaser.html.twig', {
+  attributes: attributes,
+  title: nav_teaser_title|default(label),
+  subtitle: nav_teaser_subtitle|default(''),
+  teaser_text: nav_teaser_teaser_text|default(''),
+  background_image_url: nav_teaser_background_image_url|default(''),
+  url: nav_teaser_url|default(url),
+  baseIconPath: baseIconPath,
+}, false) }}
