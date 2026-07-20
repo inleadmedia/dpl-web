@@ -12,8 +12,8 @@ use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\eonext_kultur_main\NavGridSettings;
-use Drupal\eonext_kultur_main\NavSpotSettings;
 use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Implements hook_install().
@@ -102,31 +102,55 @@ function _eonext_kultur_main_configure_paragraph_form_displays(): void {
       ->save();
   }
 
-  $nav_spot_form = EntityFormDisplay::load('paragraph.nav_spots_manual.default');
-  if ($nav_spot_form instanceof EntityFormDisplay) {
-    $nav_spot_form
-      ->setComponent(NavSpotSettings::DISPLAY_MODE_FIELD, [
-        'type' => 'options_select',
-        'weight' => -11,
-        'region' => 'content',
-        'settings' => [],
-      ])
-      ->setComponent(NavSpotSettings::FULL_WIDTH_FIELD, [
-        'type' => 'boolean_checkbox',
-        'weight' => -10,
-        'region' => 'content',
-        'settings' => [
-          'display_label' => TRUE,
-        ],
-      ])
-      ->save();
+}
+
+/**
+ * Remove deprecated nav spot display mode and full-width paragraph fields.
+ */
+function eonext_kultur_main_update_9014(): string {
+  return _eonext_kultur_main_remove_nav_spot_display_fields();
+}
+
+/**
+ * Removes nav spot display mode and full-width fields from existing sites.
+ */
+function _eonext_kultur_main_remove_nav_spot_display_fields(): string {
+  $fields = [
+    'field_kultur_nspot_display_mode',
+    'field_kultur_nspot_full_width',
+  ];
+  $messages = [];
+
+  $form_display = EntityFormDisplay::load('paragraph.nav_spots_manual.default');
+  if ($form_display instanceof EntityFormDisplay) {
+    foreach ($fields as $field_name) {
+      $form_display->removeComponent($field_name);
+    }
+    $form_display->save();
+    $messages[] = 'Removed nav spot display fields from the paragraph edit form.';
   }
 
-  $nav_spot_view = EntityViewDisplay::load('paragraph.nav_spots_manual.default');
-  if ($nav_spot_view instanceof EntityViewDisplay) {
-    $nav_spot_view
-      ->removeComponent(NavSpotSettings::DISPLAY_MODE_FIELD)
-      ->removeComponent(NavSpotSettings::FULL_WIDTH_FIELD)
-      ->save();
+  $view_display = EntityViewDisplay::load('paragraph.nav_spots_manual.default');
+  if ($view_display instanceof EntityViewDisplay) {
+    foreach ($fields as $field_name) {
+      $view_display->removeComponent($field_name);
+    }
+    $view_display->save();
   }
+
+  foreach ($fields as $field_name) {
+    $field = FieldConfig::loadByName('paragraph', 'nav_spots_manual', $field_name);
+    if ($field instanceof FieldConfig) {
+      $field->delete();
+      $messages[] = "Deleted {$field_name} field config.";
+    }
+
+    $storage = FieldStorageConfig::loadByName('paragraph', $field_name);
+    if ($storage instanceof FieldStorageConfig) {
+      $storage->delete();
+      $messages[] = "Deleted {$field_name} field storage.";
+    }
+  }
+
+  return implode(' ', $messages);
 }

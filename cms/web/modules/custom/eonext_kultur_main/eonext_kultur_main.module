@@ -15,7 +15,6 @@ use Drupal\Core\Url;
 use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\eonext_kultur_main\NavGridSettings;
-use Drupal\eonext_kultur_main\NavSpotSettings;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 use Drupal\recurring_events\Entity\EventInstance;
@@ -215,22 +214,6 @@ function eonext_kultur_main_form_alter(array &$form, FormStateInterface $form_st
       ];
     }
     return;
-  }
-
-  if (!str_starts_with($form_id, 'paragraph_nav_spots_manual_')) {
-    return;
-  }
-
-  if (isset($form[NavSpotSettings::FULL_WIDTH_FIELD]['widget'])) {
-    $form[NavSpotSettings::FULL_WIDTH_FIELD]['#states'] = [
-      'visible' => [
-        ':input[name="field_kultur_nspot_display_mode"]' => [
-          ['value' => NavSpotSettings::DISPLAY_NOTIFICATION],
-          'or',
-          ['value' => NavSpotSettings::DISPLAY_PROMO],
-        ],
-      ],
-    ];
   }
 }
 
@@ -523,23 +506,3 @@ function eonext_kultur_main_entity_update(EntityInterface $entity): void {
   }
 }
 
-/**
- * Implements hook_preprocess_HOOK() for field_nav_spots_content on paragraphs.
- */
-function eonext_kultur_main_preprocess_field__paragraph__field_nav_spots_content(array &$variables): void {
-  $paragraph = $variables['element']['#object'] ?? NULL;
-  if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'nav_spots_manual') {
-    return;
-  }
-
-  $display_mode = NavSpotSettings::getDisplayMode($paragraph);
-  $variables['kultur_nav_spot_display_mode'] = $display_mode;
-  $variables['kultur_nav_spot_full_width'] = NavSpotSettings::isFullWidth($paragraph);
-
-  foreach ($variables['items'] as &$item) {
-    if (!isset($item['content']) || !is_array($item['content'])) {
-      continue;
-    }
-    $item['content']['#nav_spot_display_mode'] = $display_mode;
-  }
-}

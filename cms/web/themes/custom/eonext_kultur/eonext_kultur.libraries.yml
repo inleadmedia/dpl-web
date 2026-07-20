@@ -33,10 +33,3 @@ articles-slider:
   dependencies:
     - novel/swiper
     - eonext_kultur/chrome
-
-nav-spot:
-  css:
-    theme:
-      css/eonext-kultur.css: {}
-  dependencies:
-    - eonext_kultur/chrome

@@ -7,8 +7,6 @@
 
 declare(strict_types=1);
 
-use Drupal\eonext_kultur_main\NavSpotSettings;
-
 /**
  * Implements hook_preprocess_HOOK() for page.
  */
@@ -67,24 +65,30 @@ function _eonext_kultur_apply_nav_spot_settings(array &$variables): void {
     $variables['background_color'] = $element['#nav_spot_background_color'];
   }
 
-  $display_mode = (string) ($element['#nav_spot_display_mode'] ?? '');
-  if ($display_mode === NavSpotSettings::DISPLAY_NOTIFICATION) {
-    $variables['variant'] = 'large';
-    $variables['style'] = 'notification';
+  $variables['variant'] = 'large';
+}
+
+/**
+ * Sets plain-text subtitle for nav spot entity templates.
+ *
+ * @param mixed[] $variables
+ *   Theme variables for a nav spot entity template.
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ *   The referenced content entity.
+ */
+function _eonext_kultur_set_nav_spot_subtitle(array &$variables, \Drupal\Core\Entity\EntityInterface $entity): void {
+  if ($entity->hasField('field_subtitle') && !$entity->get('field_subtitle')->isEmpty()) {
+    $variables['nav_spot_subtitle'] = (string) $entity->get('field_subtitle')->value;
+    return;
   }
-  elseif ($display_mode === NavSpotSettings::DISPLAY_PROMO) {
-    $variables['variant'] = 'promo';
-    $variables['style'] = 'promo';
-  }
-  else {
-    $background_color = trim((string) ($variables['background_color'] ?? ''));
-    if ($background_color === '') {
-      $variables['variant'] = 'large';
-      $variables['style'] = 'notification';
-    }
-    else {
-      $variables['variant'] = 'promo';
-      $variables['style'] = 'promo';
+
+  if ($entity->hasField('field_teaser_text') && !$entity->get('field_teaser_text')->isEmpty()) {
+    $value = $entity->get('field_teaser_text')->value ?? '';
+    if (is_string($value)) {
+      $text = trim(strip_tags($value));
+      if ($text !== '') {
+        $variables['nav_spot_subtitle'] = $text;
+      }
     }
   }
 }
@@ -98,6 +102,9 @@ function eonext_kultur_preprocess_node(array &$variables): void {
   }
 
   _eonext_kultur_apply_nav_spot_settings($variables);
+  if (isset($variables['node'])) {
+    _eonext_kultur_set_nav_spot_subtitle($variables, $variables['node']);
+  }
 }
 
 /**
@@ -149,20 +156,7 @@ function eonext_kultur_preprocess_eventseries(array &$variables): void {
   }
 
   _eonext_kultur_apply_nav_spot_settings($variables);
-}
-
-/**
- * Implements hook_preprocess_HOOK() for nav_spots_manual paragraphs.
- */
-function eonext_kultur_preprocess_paragraph__nav_spots_manual(array &$variables): void {
-  $paragraph = $variables['paragraph'] ?? NULL;
-  if (!$paragraph instanceof \Drupal\paragraphs\ParagraphInterface) {
-    return;
+  if (isset($variables['eventseries'])) {
+    _eonext_kultur_set_nav_spot_subtitle($variables, $variables['eventseries']);
   }
-
-  if (!NavSpotSettings::isKulturMode($paragraph)) {
-    return;
-  }
-
-  $variables['#attached']['library'][] = 'eonext_kultur/nav-spot';
 }

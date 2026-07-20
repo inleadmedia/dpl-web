@@ -1,15 +1,13 @@
-{{ include('@eonext_kultur/components/nav-spot.html.twig', {
+{{ include('@novel/components/nav-spot.html.twig', {
   attributes: attributes,
   title: label,
   has_media: (content.field_teaser_image.0),
-  body: content.field_teaser_text,
-  subtitle: content.field_subtitle.0,
+  teaser_text: content.field_teaser_text,
+  subtitle: nav_spot_subtitle|default(content.field_subtitle.0),
   media: content.field_teaser_image,
-  placeholder_text: content.field_teaser_text,
   url: url,
   button_label: button_label|default(''),
   image_alignment: image_alignment|default('left'),
   background_color: background_color|default(''),
   variant: variant|default(''),
-  style: style|default(''),
 }, false) }}
