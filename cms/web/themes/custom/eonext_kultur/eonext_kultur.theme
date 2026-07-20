@@ -7,6 +7,9 @@
 
 declare(strict_types=1);
 
+use Drupal\eonext_kultur_main\BannerSettings;
+use Drupal\paragraphs\ParagraphInterface;
+
 /**
  * Implements hook_preprocess_HOOK() for page.
  */
@@ -45,6 +48,21 @@ function eonext_kultur_preprocess_page(array &$variables): void {
       'class' => ['ek-footer__logo'],
     ],
   ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for banner paragraphs.
+ */
+function eonext_kultur_preprocess_paragraph__banner(array &$variables): void {
+  $paragraph = $variables['paragraph'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  $background_color = BannerSettings::getBackgroundColor($paragraph);
+  if ($background_color !== '') {
+    $variables['banner_background_color'] = $background_color;
+  }
 }
 
 /**

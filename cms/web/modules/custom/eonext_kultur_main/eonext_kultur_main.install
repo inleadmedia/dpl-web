@@ -7,8 +7,10 @@
 
 declare(strict_types=1);
 
+use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
+use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\eonext_kultur_main\NavGridSettings;
@@ -102,6 +104,38 @@ function _eonext_kultur_main_configure_paragraph_form_displays(): void {
       ->save();
   }
 
+  _eonext_kultur_main_configure_banner_form_display();
+}
+
+/**
+ * Wire banner background color into the paragraph edit form.
+ */
+function _eonext_kultur_main_configure_banner_form_display(): void {
+  if (!FieldConfig::loadByName('paragraph', 'banner', BannerSettings::BACKGROUND_COLOR_FIELD)) {
+    return;
+  }
+
+  $banner_form = EntityFormDisplay::load('paragraph.banner.default');
+  if ($banner_form instanceof EntityFormDisplay) {
+    $banner_form
+      ->setComponent(BannerSettings::BACKGROUND_COLOR_FIELD, [
+        'type' => 'color_field_widget_box',
+        'weight' => 4,
+        'region' => 'content',
+        'settings' => [
+          'default_colors' => '',
+        ],
+      ])
+      ->save();
+  }
+
+  $banner_view = EntityViewDisplay::load('paragraph.banner.default');
+  if ($banner_view instanceof EntityViewDisplay) {
+    $banner_view
+      ->removeComponent(BannerSettings::BACKGROUND_COLOR_FIELD)
+      ->save();
+  }
+
 }
 
 /**
@@ -153,4 +187,43 @@ function _eonext_kultur_main_remove_nav_spot_display_fields(): string {
   }
 
   return implode(' ', $messages);
+}
+
+/**
+ * Add banner background color field for image-less banners (EONEXT-320).
+ */
+function eonext_kultur_main_update_9015(): string {
+  _eonext_kultur_main_ensure_banner_background_color_field();
+  _eonext_kultur_main_configure_banner_form_display();
+
+  return 'Banner background color field is available on banner paragraphs.';
+}
+
+/**
+ * Creates the banner background color field from module install config.
+ */
+function _eonext_kultur_main_ensure_banner_background_color_field(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_kultur_banner_bg_color',
+    'field.field.paragraph.banner.field_kultur_banner_bg_color',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
 }

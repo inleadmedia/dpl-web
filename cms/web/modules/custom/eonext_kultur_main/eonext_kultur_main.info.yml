@@ -9,6 +9,7 @@ dependencies:
   - drupal:text
   - drupal:media
   - drupal:options
+  - color_field:color_field
   - paragraphs:paragraphs
   - dynamic_entity_reference:dynamic_entity_reference
   - recurring_events:recurring_events

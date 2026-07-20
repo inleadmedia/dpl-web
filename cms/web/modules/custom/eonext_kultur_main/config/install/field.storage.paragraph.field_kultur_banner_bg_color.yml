@@ -1,0 +1,20 @@
+uuid: 9e6f4c3d-1a0b-4e5f-c4d3-2b1a0f9e8d7c
+langcode: en
+status: true
+dependencies:
+  module:
+    - color_field
+    - paragraphs
+id: paragraph.field_kultur_banner_bg_color
+field_name: field_kultur_banner_bg_color
+entity_type: paragraph
+type: color_field_type
+settings:
+  format: '#HEXHEX'
+module: color_field
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

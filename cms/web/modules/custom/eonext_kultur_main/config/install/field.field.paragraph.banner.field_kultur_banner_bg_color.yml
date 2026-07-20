@@ -1,0 +1,22 @@
+uuid: af705d4e-2b1c-4f60-d5e4-3c2b1a0f9e8d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_banner_bg_color
+    - paragraphs.paragraphs_type.banner
+  module:
+    - color_field
+id: paragraph.banner.field_kultur_banner_bg_color
+field_name: field_kultur_banner_bg_color
+entity_type: paragraph
+bundle: banner
+label: 'Background color'
+description: 'Background color when no banner image is selected.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  opacity: 0
+field_type: color_field_type
