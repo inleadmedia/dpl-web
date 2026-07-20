@@ -1,0 +1,47 @@
+{%
+  set classes = [
+    'card',
+    'card--' ~ variant|default('x-large'),
+    has_media ? 'card--has-media' : 'card--has-no-media',
+  ]
+%}
+{% set teaser_plain = '' %}
+{% if teaser_text is defined %}
+  {% if teaser_text is iterable %}
+    {% set teaser_plain = teaser_text|render|striptags|trim %}
+  {% elseif teaser_text %}
+    {% set teaser_plain = teaser_text|striptags|trim %}
+  {% endif %}
+{% endif %}
+
+<article{{ attributes.addClass(classes) }}{% if variant %} data-variant="{{ variant }}"{% endif %}>
+  <a href="{{ url }}">
+    <div class="card__media">
+      {{ include('@novel/components/media-container.html.twig', {
+        attributes: create_attribute(),
+        media: media,
+        has_media: has_media,
+        placeholder_text: teaser_plain,
+      }, false) }}
+    </div>
+    <div class="card__text">
+      {% if type_tag or date_tag %}
+        <div class="card__tags">
+          {% if type_tag %}
+            <span class="card__tag card__tag--type">{{ type_tag }}</span>
+          {% endif %}
+          {% if date_tag %}
+            <span class="card__tag">{{ date_tag }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+      <h3 class="card__title">{{ title }}</h3>
+      {% if teaser_plain %}
+        <p class="card__teaser">{{ teaser_plain }}</p>
+      {% endif %}
+      <div class="card__arrow" aria-hidden="true">
+        {{ source(baseIconPath ~ '/arrow-ui/icon-arrow-ui-small-right.svg') }}
+      </div>
+    </div>
+  </a>
+</article>

@@ -10,14 +10,8 @@ declare(strict_types=1);
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
-use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
-use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
-use Drupal\recurring_events\Entity\EventInstance;
-use Drupal\recurring_events\Entity\EventSeries;
 
 /**
  * Implements hook_preprocess_HOOK() for page.
@@ -128,78 +122,7 @@ function eonext_kultur_main_theme(): array {
       ],
       'template' => 'eonext-kultur-footer-social',
     ],
-    'content_slider_hero' => [
-      'variables' => [
-        'items' => [],
-        'events_overview_url' => NULL,
-        'items_per_view' => 2,
-      ],
-      'template' => 'content-slider-hero',
-    ],
-    'hero_slide' => [
-      'variables' => [
-        'title' => NULL,
-        'tagline' => NULL,
-        'date_display' => NULL,
-        'url' => NULL,
-        'image' => NULL,
-      ],
-      'template' => 'hero-slide',
-    ],
-    'content_slider_articles' => [
-      'variables' => [
-        'label' => NULL,
-        'logo_url' => NULL,
-        'items' => [],
-        'articles_overview_url' => NULL,
-        'full_width' => TRUE,
-        'items_per_view' => 2,
-      ],
-      'template' => 'content-slider-articles',
-    ],
-    'article_slide' => [
-      'variables' => [
-        'title' => NULL,
-        'teaser_text' => NULL,
-        'date_display' => NULL,
-        'url' => NULL,
-        'image' => NULL,
-      ],
-      'template' => 'article-slide',
-    ],
   ];
-}
-
-/**
- * Implements hook_form_alter().
- */
-function eonext_kultur_main_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
-  if (str_starts_with($form_id, 'paragraph_content_slider_')) {
-    if (isset($form[ContentSliderSettings::ITEMS_PER_VIEW_FIELD]['widget'])) {
-      $form[ContentSliderSettings::ITEMS_PER_VIEW_FIELD]['#states'] = [
-        'visible' => [
-          ':input[name="field_kultur_slider_display_mode"]' => [
-            ['value' => ContentSliderSettings::DISPLAY_HERO],
-            'or',
-            ['value' => ContentSliderSettings::DISPLAY_ARTICLES],
-          ],
-        ],
-      ];
-    }
-
-    if (isset($form[ContentSliderSettings::FULL_WIDTH_FIELD]['widget'])) {
-      $form[ContentSliderSettings::FULL_WIDTH_FIELD]['#states'] = [
-        'visible' => [
-          ':input[name="field_kultur_slider_display_mode"]' => [
-            ['value' => ContentSliderSettings::DISPLAY_HERO],
-            'or',
-            ['value' => ContentSliderSettings::DISPLAY_ARTICLES],
-          ],
-        ],
-      ];
-    }
-    return;
-  }
 }
 
 /**
@@ -208,20 +131,6 @@ function eonext_kultur_main_form_alter(array &$form, FormStateInterface $form_st
 function eonext_kultur_main_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
   if ($entity->getEntityTypeId() === 'paragraph' && $entity->bundle() === FooterSocialLoader::PARAGRAPH_BUNDLE) {
     $build['#access'] = FALSE;
-  }
-
-  if ($entity instanceof ParagraphInterface
-    && $entity->bundle() === 'content_slider'
-    && $display->getMode() === 'hero'
-    && isset($build['field_content_references'])) {
-    $build['field_content_references']['#paragraph_view_mode'] = 'hero';
-  }
-
-  if ($entity instanceof ParagraphInterface
-    && $entity->bundle() === 'content_slider'
-    && ContentSliderSettings::isArticlesMode($entity)
-    && isset($build['field_content_references'])) {
-    $build['field_content_references'] = _eonext_kultur_main_build_articles_slider($entity);
   }
 }
 
@@ -242,44 +151,6 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
       $paragraph->getCacheTags()
     );
   }
-  elseif ($paragraph instanceof ParagraphInterface
-    && ($variables['field_name'] ?? '') === 'field_content_references'
-    && ContentSliderSettings::isHeroMode($paragraph)) {
-    $variables['items'] = [];
-
-    foreach ($paragraph->get('field_content_references') as $delta => $item) {
-      $referenced = $item->entity;
-      if (!$referenced instanceof EntityInterface) {
-        continue;
-      }
-
-      $entity_type = $referenced->getEntityTypeId();
-      $referenced_view_mode = 'hero_slide';
-      if (!in_array($entity_type, ['node', 'eventseries', 'eventinstance'], TRUE)) {
-        $referenced_view_mode = 'default';
-      }
-
-      $variables['items'][$delta]['content'] = \Drupal::entityTypeManager()
-        ->getViewBuilder($entity_type)
-        ->view($referenced, $referenced_view_mode);
-    }
-
-    $variables['theme_hook_suggestions'][] = 'field__paragraph__field_content_references__content_slider__hero';
-    $variables['events_overview_url'] = Url::fromUserInput('/arrangementer')->toString();
-    $variables['use_hero_slider'] = TRUE;
-    $variables['items_per_view'] = ContentSliderSettings::getItemsPerView($paragraph);
-    $variables['#cache']['tags'] = array_merge(
-      $variables['#cache']['tags'] ?? [],
-      $paragraph->getCacheTags()
-    );
-  }
-  elseif ($paragraph instanceof ParagraphInterface
-    && $paragraph->bundle() === 'content_slider'
-    && ($element['#paragraph_view_mode'] ?? '') === 'hero') {
-    $variables['theme_hook_suggestions'][] = 'field__paragraph__field_content_references__content_slider__hero';
-    $variables['events_overview_url'] = Url::fromUserInput('/arrangementer')->toString();
-  }
-
   if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
     return;
   }
@@ -290,122 +161,6 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
       unset($variables['items'][$delta]);
     }
   }
-}
-
-/**
- * Implements hook_preprocess_HOOK() for eventinstance templates.
- */
-function eonext_kultur_main_preprocess_eventinstance(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'hero_slide') {
-    return;
-  }
-
-  $entity = $variables['eventinstance'] ?? NULL;
-  if ($entity instanceof EventInstance) {
-    _eonext_kultur_main_apply_hero_slide($variables, $entity);
-  }
-}
-
-/**
- * Implements hook_preprocess_HOOK() for eventseries templates.
- */
-function eonext_kultur_main_preprocess_eventseries(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'hero_slide') {
-    return;
-  }
-
-  $entity = $variables['eventseries'] ?? NULL;
-  if ($entity instanceof EventSeries) {
-    _eonext_kultur_main_apply_hero_slide($variables, $entity);
-  }
-}
-
-/**
- * Implements hook_preprocess_HOOK() for node templates.
- */
-function eonext_kultur_main_preprocess_node(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'hero_slide') {
-    return;
-  }
-
-  $entity = $variables['node'] ?? NULL;
-  if ($entity instanceof NodeInterface) {
-    _eonext_kultur_main_apply_hero_slide($variables, $entity);
-  }
-}
-
-/**
- * Apply hero slide variables to an entity template.
- *
- * @param mixed[] $variables
- *   Template variables.
- */
-function _eonext_kultur_main_apply_hero_slide(array &$variables, EntityInterface $entity): void {
-  $slide = \Drupal::service('eonext_kultur_main.hero_slide_builder')->build($entity);
-  if ($slide === NULL) {
-    return;
-  }
-
-  $variables['hero_slide'] = $slide;
-  $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $entity->getCacheTags());
-}
-
-/**
- * Build the articles slider render array for a content slider paragraph.
- *
- * @return array<string, mixed>
- *   Render array for the articles slider theme.
- */
-function _eonext_kultur_main_build_articles_slider(ParagraphInterface $paragraph): array {
-  $items = [];
-  $builder = \Drupal::service('eonext_kultur_main.article_slide_builder');
-
-  foreach ($paragraph->get('field_content_references') as $delta => $item) {
-    $referenced = $item->entity;
-    if (!$referenced instanceof EntityInterface) {
-      continue;
-    }
-
-    $slide = $builder->build($referenced);
-    if ($slide === NULL) {
-      continue;
-    }
-
-    $items[$delta]['content'] = [
-      '#theme' => 'article_slide',
-      '#title' => $slide['title'],
-      '#teaser_text' => $slide['teaser_text'],
-      '#date_display' => $slide['date_display'],
-      '#url' => $slide['url'],
-      '#image' => $slide['image'],
-      '#cache' => [
-        'tags' => $referenced->getCacheTags(),
-        'contexts' => ['languages:language_interface'],
-      ],
-    ];
-  }
-
-  $label = 'Artikler';
-  if ($paragraph->hasField('field_title') && !$paragraph->get('field_title')->isEmpty()) {
-    $label = (string) $paragraph->get('field_title')->value;
-  }
-
-  $themePath = \Drupal::service('extension.list.theme')->getPath('eonext_kultur');
-  $logoUrl = $themePath ? '/' . $themePath . '/assets/images/logo.png' : NULL;
-
-  return [
-    '#theme' => 'content_slider_articles',
-    '#label' => $label,
-    '#logo_url' => $logoUrl,
-    '#items' => $items,
-    '#articles_overview_url' => Url::fromUserInput('/artikler')->toString(),
-    '#full_width' => ContentSliderSettings::isFullWidth($paragraph),
-    '#items_per_view' => ContentSliderSettings::getItemsPerView($paragraph),
-    '#cache' => [
-      'tags' => $paragraph->getCacheTags(),
-      'contexts' => ['languages:language_interface'],
-    ],
-  ];
 }
 
 /**

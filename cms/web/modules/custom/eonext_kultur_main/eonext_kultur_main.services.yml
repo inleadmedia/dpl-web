@@ -12,8 +12,3 @@ services:
       - '@string_translation'
   eonext_kultur_main.nav_teaser_builder:
     class: Drupal\eonext_kultur_main\NavTeaserBuilder
-  eonext_kultur_main.article_slide_builder:
-    class: Drupal\eonext_kultur_main\ArticleSlideBuilder
-    arguments:
-      - '@entity_type.manager'
-      - '@date.formatter'

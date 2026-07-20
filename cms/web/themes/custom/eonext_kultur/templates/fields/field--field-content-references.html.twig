@@ -1,19 +1,11 @@
 {% set parent_entity = element['#object'] %}
 
-{% if use_hero_slider|default(false) %}
-  {{ include('@eonext_kultur_main/content-slider-hero.html.twig', {
-    items: items,
-    events_overview_url: events_overview_url|default('/arrangementer'),
-    items_per_view: items_per_view|default(2),
-  }, false) }}
-{% else %}
-  {% if parent_entity %}
-    {% set title_field = parent_entity.hasField('field_underlined_title') ? 'field_underlined_title' : 'field_title' %}
-    {% set title = drupal_field(title_field, parent_entity.getEntityTypeId(), parent_entity.id(), 'title_display') %}
-  {% endif %}
-
-  {{ include('@novel/components/slider.html.twig', {
-    title: title,
-    items: items,
-  }, false) }}
+{% if parent_entity %}
+  {% set title_field = parent_entity.hasField('field_underlined_title') ? 'field_underlined_title' : 'field_title' %}
+  {% set title = drupal_field(title_field, parent_entity.getEntityTypeId(), parent_entity.id(), 'title_display') %}
 {% endif %}
+
+{{ include('@eonext_kultur/components/slider.html.twig', {
+  title: title,
+  items: items,
+}, false) }}

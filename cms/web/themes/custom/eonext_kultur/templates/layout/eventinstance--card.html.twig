@@ -1,0 +1,19 @@
+{% set teaser_plain = '' %}
+{% if eventinstance.event_teaser_text.value is not empty %}
+  {% set teaser_plain = eventinstance.event_teaser_text.value %}
+{% elseif eventinstance.event_description.value is not empty %}
+  {% set teaser_plain = eventinstance.event_description.value %}
+{% endif %}
+
+{{ include('@eonext_kultur/components/card.html.twig', {
+  attributes: attributes,
+  media: content.event_teaser_image,
+  variant: 'x-large',
+  has_media: (content.event_teaser_image.0),
+  teaser_text: teaser_plain,
+  type_tag: 'Event'|trans,
+  date_tag: content.date,
+  title: content.title,
+  url: url('entity.eventinstance.canonical', {eventinstance: eventinstance.id()}),
+  baseIconPath: baseIconPath,
+}, false) }}

@@ -11,7 +11,6 @@ use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\eonext_kultur_main\BannerSettings;
-use Drupal\eonext_kultur_main\ContentSliderSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -47,43 +46,6 @@ function _eonext_kultur_main_enable_paragraph_on_page(): void {
  * Wire Korsør display fields into paragraph edit forms and hide from default view.
  */
 function _eonext_kultur_main_configure_paragraph_form_displays(): void {
-  $content_slider_form = EntityFormDisplay::load('paragraph.content_slider.default');
-  if ($content_slider_form instanceof EntityFormDisplay) {
-    $content_slider_form
-      ->setComponent(ContentSliderSettings::DISPLAY_MODE_FIELD, [
-        'type' => 'options_select',
-        'weight' => -10,
-        'region' => 'content',
-        'settings' => [],
-      ])
-      ->setComponent(ContentSliderSettings::ITEMS_PER_VIEW_FIELD, [
-        'type' => 'number',
-        'weight' => -9,
-        'region' => 'content',
-        'settings' => [
-          'placeholder' => '',
-        ],
-      ])
-      ->setComponent(ContentSliderSettings::FULL_WIDTH_FIELD, [
-        'type' => 'boolean_checkbox',
-        'weight' => -8,
-        'region' => 'content',
-        'settings' => [
-          'display_label' => TRUE,
-        ],
-      ])
-      ->save();
-  }
-
-  $content_slider_view = EntityViewDisplay::load('paragraph.content_slider.default');
-  if ($content_slider_view instanceof EntityViewDisplay) {
-    $content_slider_view
-      ->removeComponent(ContentSliderSettings::DISPLAY_MODE_FIELD)
-      ->removeComponent(ContentSliderSettings::ITEMS_PER_VIEW_FIELD)
-      ->removeComponent(ContentSliderSettings::FULL_WIDTH_FIELD)
-      ->save();
-  }
-
   _eonext_kultur_main_configure_banner_form_display();
 }
 
@@ -213,6 +175,58 @@ function _eonext_kultur_main_ensure_banner_background_color_field(): void {
  */
 function eonext_kultur_main_update_9016(): string {
   return _eonext_kultur_main_remove_nav_grid_display_mode_field();
+}
+
+/**
+ * Remove deprecated content slider display settings (EONEXT-319).
+ */
+function eonext_kultur_main_update_9017(): string {
+  return _eonext_kultur_main_remove_content_slider_display_fields();
+}
+
+/**
+ * Removes content slider display mode, items-per-view, and full-width fields.
+ */
+function _eonext_kultur_main_remove_content_slider_display_fields(): string {
+  $fields = [
+    'field_kultur_slider_display_mode',
+    'field_kultur_slider_per_view',
+    'field_kultur_slider_full_width',
+  ];
+  $messages = [];
+
+  $form_display = EntityFormDisplay::load('paragraph.content_slider.default');
+  if ($form_display instanceof EntityFormDisplay) {
+    foreach ($fields as $field_name) {
+      $form_display->removeComponent($field_name);
+    }
+    $form_display->save();
+    $messages[] = 'Removed content slider display fields from the paragraph edit form.';
+  }
+
+  $view_display = EntityViewDisplay::load('paragraph.content_slider.default');
+  if ($view_display instanceof EntityViewDisplay) {
+    foreach ($fields as $field_name) {
+      $view_display->removeComponent($field_name);
+    }
+    $view_display->save();
+  }
+
+  foreach ($fields as $field_name) {
+    $field = FieldConfig::loadByName('paragraph', 'content_slider', $field_name);
+    if ($field instanceof FieldConfig) {
+      $field->delete();
+      $messages[] = "Deleted {$field_name} field config.";
+    }
+
+    $storage = FieldStorageConfig::loadByName('paragraph', $field_name);
+    if ($storage instanceof FieldStorageConfig) {
+      $storage->delete();
+      $messages[] = "Deleted {$field_name} field storage.";
+    }
+  }
+
+  return implode(' ', $messages);
 }
 
 /**
