@@ -144,11 +144,11 @@
 }
 
 .eonext-kultur-event-detail__tagline {
-  margin: 0;
+  margin: 0.75rem 0 0;
   font-family: var(--ek-font-body, "Open Sans", sans-serif);
   font-size: 1.125rem;
   line-height: 1.4;
-  color: var(--ek-teal, #089aa7);
+  color: var(--ek-navy, #235881);
 }
 
 .eonext-kultur-event-detail__ticket-btn {
@@ -182,7 +182,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.25rem 2rem;
-  margin: 0;
+  margin: 1.5rem 0 0;
 }
 
 .eonext-kultur-event-detail__meta-item {
@@ -234,21 +234,47 @@
   stroke: var(--ek-white, #fff);
 }
 
-.eonext-kultur-event-detail__description {
-  max-width: 100%;
-  margin-top: 2.5rem;
+.eonext-kultur-event-detail__body {
+  margin-top: 1.5rem;
+  padding-left: 0;
+}
+
+.eonext-kultur-event-detail__body .paragraphs {
+  margin: 0;
+  padding: 0;
+}
+
+.eonext-kultur-event-detail__body .paragraphs__item {
+  margin: 0;
+  padding-left: 0;
+}
+
+.eonext-kultur-event-detail__body .rich-text {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
   font-family: var(--ek-font-body, "Open Sans", sans-serif);
   font-size: 1.125rem;
   line-height: 1.6;
   color: var(--ek-navy, #235881);
 }
 
-.eonext-kultur-event-detail__description p {
+.eonext-kultur-event-detail__body .rich-text p {
   margin: 0 0 1rem;
 }
 
+.eonext-kultur-event-detail__body .rich-text p:last-child {
+  margin-bottom: 0;
+}
+
 .eonext-kultur-event-detail__links {
-  margin-top: 1.5rem;
+  margin: 0 0 0;
+}
+
+.eonext-kultur-event-detail__links .field {
+  margin: 0;
 }
 
 .eonext-kultur-event-detail__instances {

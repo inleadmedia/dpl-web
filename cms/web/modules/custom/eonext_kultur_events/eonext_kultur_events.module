@@ -81,7 +81,6 @@ function eonext_kultur_events_theme($existing, $type, $theme, $path): array {
         'attributes' => NULL,
         'detail' => [],
         'baseIconPath' => '',
-        'description' => NULL,
         'tags' => NULL,
         'branch' => NULL,
         'partners' => NULL,
@@ -376,13 +375,11 @@ function eonext_kultur_events_preprocess_eventseries(array &$variables): void {
  * Implements hook_preprocess_HOOK() for page.
  */
 function eonext_kultur_events_preprocess_page(array &$variables): void {
-  if (!eonext_kultur_events_is_event_detail_page() || empty($variables['related_content'])) {
+  if (!eonext_kultur_events_is_event_detail_page()) {
     return;
   }
 
-  $variables['related_content']['#prefix'] = '<div class="eonext-kultur-event-related">';
-  $variables['related_content']['#suffix'] = '</div>';
-  $variables['#attached']['library'][] = 'eonext_kultur_events/event-detail';
+  unset($variables['related_content']);
 }
 
 /**

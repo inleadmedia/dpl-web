@@ -35,9 +35,6 @@
         <div class="eonext-kultur-event-detail__header">
           <div class="eonext-kultur-event-detail__heading">
             <h2 class="eonext-kultur-event-detail__title">{{ detail.title }}</h2>
-            {% if detail.tagline %}
-              <p class="eonext-kultur-event-detail__tagline">{{ detail.tagline }}</p>
-            {% endif %}
           </div>
 
           {% if detail.ticket_url %}
@@ -46,6 +43,18 @@
             </a>
           {% endif %}
         </div>
+
+        {% if tags or branch or partners %}
+          <div class="eonext-kultur-event-detail__links">
+            {{ tags }}
+            {{ branch }}
+            {{ partners }}
+          </div>
+        {% endif %}
+
+        {% if detail.tagline %}
+          <p class="eonext-kultur-event-detail__tagline">{{ detail.tagline }}</p>
+        {% endif %}
 
         <dl class="eonext-kultur-event-detail__meta">
           {% if detail.date_display %}
@@ -102,22 +111,14 @@
             </div>
           {% endif %}
         </dl>
+
+        {% if paragraphs %}
+          <div class="eonext-kultur-event-detail__body">
+            {{ paragraphs }}
+          </div>
+        {% endif %}
       </div>
     </div>
-
-    {% if description %}
-      <div class="eonext-kultur-event-detail__description">
-        {{ description }}
-      </div>
-    {% endif %}
-
-    {% if tags or branch or partners %}
-      <div class="eonext-kultur-event-detail__links">
-        {{ tags }}
-        {{ branch }}
-        {{ partners }}
-      </div>
-    {% endif %}
   </div>
 
   {% if event_instances %}
@@ -128,6 +129,4 @@
       {% endfor %}
     </section>
   {% endif %}
-
-  {{ paragraphs }}
 </article>
