@@ -1,0 +1,19 @@
+{#
+/**
+ * @file
+ * Badge list for event detail taxonomy fields.
+ */
+#}
+{% for item in items %}
+  <span class="eonext-kultur-event-detail__badge">
+    {% if linked ?? true %}
+      {{ item.content }}
+    {% elseif item.content['#title'] %}
+      {{ item.content['#title'] }}
+    {% elseif item.content['#plain_text'] %}
+      {{ item.content['#plain_text'] }}
+    {% else %}
+      {{ item.content|render|striptags|trim }}
+    {% endif %}
+  </span>
+{% endfor %}

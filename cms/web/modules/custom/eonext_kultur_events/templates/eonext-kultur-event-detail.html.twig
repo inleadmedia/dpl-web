@@ -34,6 +34,13 @@
       <div class="eonext-kultur-event-detail__content">
         <div class="eonext-kultur-event-detail__header">
           <div class="eonext-kultur-event-detail__heading">
+            {% if tags or categories or target_group %}
+              <div class="eonext-kultur-event-detail__badges">
+                {{ tags }}
+                {{ categories }}
+                {{ target_group }}
+              </div>
+            {% endif %}
             <h2 class="eonext-kultur-event-detail__title">{{ detail.title }}</h2>
           </div>
 
@@ -44,11 +51,8 @@
           {% endif %}
         </div>
 
-        {% if tags or categories or target_group or branch or partners %}
+        {% if branch or partners %}
           <div class="eonext-kultur-event-detail__links">
-            {{ tags }}
-            {{ categories }}
-            {{ target_group }}
             {{ branch }}
             {{ partners }}
           </div>
@@ -61,55 +65,63 @@
         <dl class="eonext-kultur-event-detail__meta">
           {% if detail.date_display %}
             <div class="eonext-kultur-event-detail__meta-item">
-              <dt class="eonext-kultur-event-detail__meta-label">
-                <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
-                  {{ source(baseIconPath ~ '/collection/Calendar.svg') }}
-                </span>
-                {{ 'Dato'|t({}, {'context': 'eonext_kultur_events'}) }}
-              </dt>
-              <dd class="eonext-kultur-event-detail__meta-value">
-                <time datetime="{{ detail.datetime_attribute }}">{{ detail.date_display }}</time>
-              </dd>
+              <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
+                {{ source(baseIconPath ~ '/collection/Calendar.svg') }}
+              </span>
+              <div class="eonext-kultur-event-detail__meta-copy">
+                <dt class="eonext-kultur-event-detail__meta-label">
+                  {{ 'Dato'|t({}, {'context': 'eonext_kultur_events'}) }}
+                </dt>
+                <dd class="eonext-kultur-event-detail__meta-value">
+                  <time datetime="{{ detail.datetime_attribute }}">{{ detail.date_display }}</time>
+                </dd>
+              </div>
             </div>
           {% endif %}
 
           {% if detail.time_display %}
             <div class="eonext-kultur-event-detail__meta-item">
-              <dt class="eonext-kultur-event-detail__meta-label">
-                <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
-                  {{ source(baseIconPath ~ '/collection/icon-time.svg') }}
-                </span>
-                {{ 'Tid'|t({}, {'context': 'eonext_kultur_events'}) }}
-              </dt>
-              <dd class="eonext-kultur-event-detail__meta-value">{{ detail.time_display }}</dd>
+              <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
+                {{ source(baseIconPath ~ '/collection/icon-time.svg') }}
+              </span>
+              <div class="eonext-kultur-event-detail__meta-copy">
+                <dt class="eonext-kultur-event-detail__meta-label">
+                  {{ 'Tid'|t({}, {'context': 'eonext_kultur_events'}) }}
+                </dt>
+                <dd class="eonext-kultur-event-detail__meta-value">{{ detail.time_display }}</dd>
+              </div>
             </div>
           {% endif %}
 
           {% if detail.price_display %}
             <div class="eonext-kultur-event-detail__meta-item">
-              <dt class="eonext-kultur-event-detail__meta-label">
-                <span class="eonext-kultur-event-detail__meta-icon eonext-kultur-event-detail__meta-icon--price" aria-hidden="true">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
-                    <path d="M6 4.75H18C18.9665 4.75 19.75 5.5335 19.75 6.5V8.25H4.25V6.5C4.25 5.5335 5.0335 4.75 6 4.75Z" fill="currentColor"/>
-                    <path d="M4.25 9.75H19.75V17.5C19.75 18.4665 18.9665 19.25 18 19.25H6C5.0335 19.25 4.25 18.4665 4.25 17.5V9.75Z" fill="currentColor"/>
-                    <path d="M8.5 14.25H15.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                </span>
-                {{ 'Pris'|t({}, {'context': 'eonext_kultur_events'}) }}
-              </dt>
-              <dd class="eonext-kultur-event-detail__meta-value">{{ detail.price_display }}</dd>
+              <span class="eonext-kultur-event-detail__meta-icon eonext-kultur-event-detail__meta-icon--price" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                  <path d="M6 4.75H18C18.9665 4.75 19.75 5.5335 19.75 6.5V8.25H4.25V6.5C4.25 5.5335 5.0335 4.75 6 4.75Z" fill="currentColor"/>
+                  <path d="M4.25 9.75H19.75V17.5C19.75 18.4665 18.9665 19.25 18 19.25H6C5.0335 19.25 4.25 18.4665 4.25 17.5V9.75Z" fill="currentColor"/>
+                  <path d="M8.5 14.25H15.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <div class="eonext-kultur-event-detail__meta-copy">
+                <dt class="eonext-kultur-event-detail__meta-label">
+                  {{ 'Pris'|t({}, {'context': 'eonext_kultur_events'}) }}
+                </dt>
+                <dd class="eonext-kultur-event-detail__meta-value">{{ detail.price_display }}</dd>
+              </div>
             </div>
           {% endif %}
 
           {% if detail.location_display %}
             <div class="eonext-kultur-event-detail__meta-item">
-              <dt class="eonext-kultur-event-detail__meta-label">
-                <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
-                  {{ source(baseIconPath ~ '/collection/icon-pin.svg') }}
-                </span>
-                {{ 'Lokation'|t({}, {'context': 'eonext_kultur_events'}) }}
-              </dt>
-              <dd class="eonext-kultur-event-detail__meta-value">{{ detail.location_display }}</dd>
+              <span class="eonext-kultur-event-detail__meta-icon" aria-hidden="true">
+                {{ source(baseIconPath ~ '/collection/icon-pin.svg') }}
+              </span>
+              <div class="eonext-kultur-event-detail__meta-copy">
+                <dt class="eonext-kultur-event-detail__meta-label">
+                  {{ 'Lokation'|t({}, {'context': 'eonext_kultur_events'}) }}
+                </dt>
+                <dd class="eonext-kultur-event-detail__meta-value">{{ detail.location_display }}</dd>
+              </div>
             </div>
           {% endif %}
         </dl>
