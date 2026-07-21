@@ -41,7 +41,7 @@
       font-family: "Futura PT", sans-serif;
       font-style: normal;
       font-weight: normal;
-      font-size: 30px;
+      font-size: 25px;
       line-height: 38px;
       letter-spacing: 0;
       color: #fefaf1;
@@ -88,6 +88,10 @@
 .nav-teaser__overlay-content {
   flex: 1;
   min-width: 0;
+}
+
+.nav-teaser__overlay > svg {
+  display: none;
 }
 
 .nav-teaser__title {
