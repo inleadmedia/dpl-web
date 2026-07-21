@@ -1,0 +1,31 @@
+{{ attach_library('eonext_kultur/hero-slider') }}
+
+{% set visible_items = items_per_view|default(2) %}
+
+<div class="ek-hero-slider" data-items-per-view="{{ visible_items }}">
+  <div class="ek-hero-slider__stage">
+    <button type="button" class="ek-hero-slider__nav ek-hero-slider__nav--prev swiper-prev" aria-label="{{ 'Previous slide'|t }}">
+      <span class="ek-hero-slider__nav-icon" aria-hidden="true">&lsaquo;</span>
+    </button>
+
+    <div class="ek-hero-slider__viewport">
+      <ul class="ek-hero-slider__wrapper">
+        {% for item in items %}
+          <li class="ek-hero-slider__slide">
+            {{- item.content -}}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <button type="button" class="ek-hero-slider__nav ek-hero-slider__nav--next swiper-next" aria-label="{{ 'Next slide'|t }}">
+      <span class="ek-hero-slider__nav-icon" aria-hidden="true">&rsaquo;</span>
+    </button>
+  </div>
+
+  {% if events_overview_url %}
+    <div class="ek-hero-slider__overview">
+      <a href="{{ events_overview_url }}">{{ 'Se alle arrangementer'|t }}</a>
+    </div>
+  {% endif %}
+</div>

@@ -14,6 +14,7 @@ use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\paragraphs\ParagraphInterface;
 
 /**
  * Implements hook_install().
@@ -47,6 +48,24 @@ function _eonext_kultur_main_enable_paragraph_on_page(): void {
  */
 function _eonext_kultur_main_configure_paragraph_form_displays(): void {
   _eonext_kultur_main_configure_banner_form_display();
+  _eonext_kultur_main_configure_nav_spots_form_display();
+}
+
+/**
+ * Returns the HTML5 color widget config for paragraph background color fields.
+ *
+ * @return array<string, mixed>
+ *   Field widget component settings.
+ */
+function _eonext_kultur_main_background_color_widget(int $weight): array {
+  return [
+    'type' => 'color_field_widget_html5',
+    'weight' => $weight,
+    'region' => 'content',
+    'settings' => [
+      'default_colors' => '',
+    ],
+  ];
 }
 
 /**
@@ -60,14 +79,7 @@ function _eonext_kultur_main_configure_banner_form_display(): void {
   $banner_form = EntityFormDisplay::load('paragraph.banner.default');
   if ($banner_form instanceof EntityFormDisplay) {
     $banner_form
-      ->setComponent(BannerSettings::BACKGROUND_COLOR_FIELD, [
-        'type' => 'color_field_widget_box',
-        'weight' => 4,
-        'region' => 'content',
-        'settings' => [
-          'default_colors' => '',
-        ],
-      ])
+      ->setComponent(BannerSettings::BACKGROUND_COLOR_FIELD, _eonext_kultur_main_background_color_widget(4))
       ->save();
   }
 
@@ -78,6 +90,24 @@ function _eonext_kultur_main_configure_banner_form_display(): void {
       ->save();
   }
 
+}
+
+/**
+ * Wire nav spot background color into the paragraph edit form.
+ */
+function _eonext_kultur_main_configure_nav_spots_form_display(): void {
+  if (!FieldConfig::loadByName('paragraph', 'nav_spots_manual', 'field_nav_spot_background_color')) {
+    return;
+  }
+
+  $form_display = EntityFormDisplay::load('paragraph.nav_spots_manual.default');
+  if (!$form_display instanceof EntityFormDisplay) {
+    return;
+  }
+
+  $form_display
+    ->setComponent('field_nav_spot_background_color', _eonext_kultur_main_background_color_widget(3))
+    ->save();
 }
 
 /**
@@ -182,6 +212,156 @@ function eonext_kultur_main_update_9016(): string {
  */
 function eonext_kultur_main_update_9017(): string {
   return _eonext_kultur_main_remove_content_slider_display_fields();
+}
+
+/**
+ * Restore homepage content slider carousel view mode (EONEXT-319).
+ */
+function eonext_kultur_main_update_9018(): string {
+  return _eonext_kultur_main_restore_content_slider_carousel();
+}
+
+/**
+ * Restores carousel view mode and display selector for content slider paragraphs.
+ */
+function _eonext_kultur_main_restore_content_slider_carousel(): string {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+  $messages = [];
+
+  foreach ([
+    'core.entity_view_mode.paragraph.carousel',
+    'field.storage.paragraph.field_kultur_slider_view_mode',
+    'field.field.paragraph.content_slider.field_kultur_slider_view_mode',
+    'core.entity_view_display.paragraph.content_slider.carousel',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'core.entity_view_mode.')) {
+      if (!\Drupal::entityTypeManager()->getStorage('entity_view_mode')->load($data['id'])) {
+        \Drupal::entityTypeManager()->getStorage('entity_view_mode')->create($data)->save();
+        $messages[] = 'Created paragraph carousel view mode.';
+      }
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+        $messages[] = 'Created content slider display field storage.';
+      }
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.field.')) {
+      if (!FieldConfig::load($data['id'])) {
+        FieldConfig::create($data)->save();
+        $messages[] = 'Created content slider display field.';
+      }
+      continue;
+    }
+
+    if (!\Drupal::entityTypeManager()->getStorage('entity_view_display')->load($data['id'])) {
+      \Drupal::entityTypeManager()->getStorage('entity_view_display')->create($data)->save();
+      $messages[] = 'Created content slider carousel display.';
+    }
+  }
+
+  $form_display = EntityFormDisplay::load('paragraph.content_slider.default');
+  if ($form_display instanceof EntityFormDisplay
+    && FieldConfig::loadByName('paragraph', 'content_slider', 'field_kultur_slider_view_mode')
+    && !$form_display->getComponent('field_kultur_slider_view_mode')) {
+    $form_display->setComponent('field_kultur_slider_view_mode', [
+      'type' => 'options_select',
+      'weight' => -5,
+      'region' => 'content',
+      'settings' => [],
+      'third_party_settings' => [],
+    ]);
+    $form_display->save();
+    $messages[] = 'Added display selector to the content slider edit form.';
+  }
+
+  $backfilled = _eonext_kultur_main_backfill_content_slider_view_mode();
+  if ($backfilled > 0) {
+    $messages[] = "Set default display on {$backfilled} existing content slider paragraph(s).";
+  }
+
+  return implode(' ', $messages) ?: 'Content slider carousel is already configured.';
+}
+
+/**
+ * Backfill empty display values on existing content slider paragraphs.
+ */
+function _eonext_kultur_main_backfill_content_slider_view_mode(): int {
+  if (!FieldConfig::loadByName('paragraph', 'content_slider', 'field_kultur_slider_view_mode')) {
+    return 0;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('paragraph');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'content_slider')
+    ->execute();
+
+  $updated = 0;
+  foreach ($storage->loadMultiple($ids) as $paragraph) {
+    if (!$paragraph instanceof ParagraphInterface) {
+      continue;
+    }
+    if (!$paragraph->hasField('field_kultur_slider_view_mode')
+      || !$paragraph->get('field_kultur_slider_view_mode')->isEmpty()) {
+      continue;
+    }
+
+    $paragraph->set('field_kultur_slider_view_mode', 'default');
+    $paragraph->save();
+    $updated++;
+  }
+
+  return $updated;
+}
+
+/**
+ * Backfill display field on content sliders created before the carousel restore.
+ */
+function eonext_kultur_main_update_9019(): string {
+  $updated = _eonext_kultur_main_backfill_content_slider_view_mode();
+  return $updated > 0
+    ? "Set default display on {$updated} existing content slider paragraph(s)."
+    : 'All content slider paragraphs already have a display value.';
+}
+
+/**
+ * Allow empty display values on legacy content slider paragraphs.
+ */
+function eonext_kultur_main_update_9020(): string {
+  $field = FieldConfig::loadByName('paragraph', 'content_slider', 'field_kultur_slider_view_mode');
+  if (!$field instanceof FieldConfig) {
+    return 'Content slider display field is not installed.';
+  }
+
+  if (!$field->isRequired()) {
+    return 'Content slider display field is already optional.';
+  }
+
+  $field->setRequired(FALSE);
+  $field->save();
+
+  return 'Content slider display field no longer requires a value; empty means Default.';
+}
+
+/**
+ * Switch paragraph background color widgets from boxes to HTML5.
+ */
+function eonext_kultur_main_update_9021(): string {
+  _eonext_kultur_main_configure_banner_form_display();
+  _eonext_kultur_main_configure_nav_spots_form_display();
+
+  return 'Paragraph background color fields now use the HTML5 color widget.';
 }
 
 /**

@@ -42,7 +42,7 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_nav_spot_background_color:
-    type: color_field_widget_box
+    type: color_field_widget_html5
     weight: 3
     region: content
     settings:

@@ -1,0 +1,27 @@
+<article class="ek-hero-slide">
+  <div class="ek-hero-slide__image">
+    {% if image %}
+      <div class="ek-hero-slide__media">
+        {{ image }}
+      </div>
+    {% endif %}
+
+    <div class="ek-hero-slide__overlay">
+      <div class="ek-hero-slide__content">
+        <h2 class="ek-hero-slide__title text-header-h2">{{ title }}</h2>
+        {% if tagline %}
+          <p class="ek-hero-slide__tagline text-body-large">{{ tagline }}</p>
+        {% endif %}
+        {% if date_display %}
+          <p class="ek-hero-slide__meta">
+            <time datetime="{{ date_display }}">{{ date_display }}</time>
+          </p>
+        {% endif %}
+      </div>
+
+      {% if url %}
+        <a class="ek-hero-slide__cta btn-primary btn-filled btn-large btn-fit-content" href="{{ url }}">{{ 'LÆS MERE'|t }}</a>
+      {% endif %}
+    </div>
+  </div>
+</article>

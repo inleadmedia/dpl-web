@@ -1,0 +1,24 @@
+uuid: 5d2c9b4f-1a7e-4c0d-2b6f-4e8a1d0c9b5f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_slider_view_mode
+    - paragraphs.paragraphs_type.content_slider
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.content_slider.field_kultur_slider_view_mode
+field_name: field_kultur_slider_view_mode
+entity_type: paragraph
+bundle: content_slider
+label: Display
+description: 'Default shows the standard card slider. Carousel shows the full-width image carousel with overlay.'
+required: false
+translatable: true
+default_value:
+  -
+    value: default
+default_value_callback: ''
+settings: {  }
+field_type: list_string

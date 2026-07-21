@@ -1,0 +1,26 @@
+uuid: 4c1b8a3e-0f6d-4b9c-1a5e-3d7f0c9b8a4e
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.field_kultur_slider_view_mode
+field_name: field_kultur_slider_view_mode
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    default: Default
+    carousel: Carousel
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
