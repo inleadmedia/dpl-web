@@ -1,0 +1,17 @@
+<div class="text-small-caption horizontal-term-line">
+  <h2 class="text-label-bold">
+    {{ 'Target group'|t({}, {context: 'eonext_kultur_events'}) }}
+  </h2>
+
+  {% for item in items %}
+    <span>
+      {% if item.content['#title'] %}
+        {{ item.content['#title'] }}
+      {% elseif item.content['#plain_text'] %}
+        {{ item.content['#plain_text'] }}
+      {% else %}
+        {{ item.content }}
+      {% endif %}
+    </span>
+  {% endfor %}
+</div>

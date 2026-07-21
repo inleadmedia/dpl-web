@@ -82,6 +82,8 @@ function eonext_kultur_events_theme($existing, $type, $theme, $path): array {
         'detail' => [],
         'baseIconPath' => '',
         'tags' => NULL,
+        'categories' => NULL,
+        'target_group' => NULL,
         'branch' => NULL,
         'partners' => NULL,
         'paragraphs' => NULL,

@@ -277,6 +277,10 @@
   margin: 0;
 }
 
+.eonext-kultur-event-detail__links .horizontal-term-line + .horizontal-term-line {
+  margin-top: 0.75rem;
+}
+
 .eonext-kultur-event-detail__instances {
   max-width: 1156px;
   margin: 0 auto;

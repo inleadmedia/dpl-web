@@ -44,9 +44,11 @@
           {% endif %}
         </div>
 
-        {% if tags or branch or partners %}
+        {% if tags or categories or target_group or branch or partners %}
           <div class="eonext-kultur-event-detail__links">
             {{ tags }}
+            {{ categories }}
+            {{ target_group }}
             {{ branch }}
             {{ partners }}
           </div>
