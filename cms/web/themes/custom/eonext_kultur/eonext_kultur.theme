@@ -202,6 +202,38 @@ function eonext_kultur_theme_suggestions_input_alter(array &$suggestions, array 
 }
 
 /**
+ * Implements hook_preprocess_HOOK() for field.
+ */
+function eonext_kultur_preprocess_field(array &$variables): void {
+  if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
+    return;
+  }
+
+  foreach ($variables['items'] as &$item) {
+    if (($item['content']['#theme'] ?? '') !== 'eonext_kultur_locale_listing') {
+      continue;
+    }
+
+    $item['locale_listing'] = TRUE;
+    $variables['has_locale_listing'] = TRUE;
+
+    if (empty($item['content']['#hero_image'])) {
+      continue;
+    }
+
+    // Render hero before other paragraphs (e.g. intro text) on the same page.
+    $variables['locale_listing_hero'] = [
+      '#theme' => 'eonext_kultur_locale_listing_hero',
+      '#hero_image' => $item['content']['#hero_image'],
+      '#heading' => $item['content']['#heading'],
+      '#attached' => $item['content']['#attached'] ?? [],
+    ];
+    $item['content']['#hero_image'] = NULL;
+    $item['content']['#heading'] = NULL;
+  }
+}
+
+/**
  * Implements hook_preprocess_HOOK() for eventseries templates.
  */
 function eonext_kultur_preprocess_eventseries(array &$variables): void {

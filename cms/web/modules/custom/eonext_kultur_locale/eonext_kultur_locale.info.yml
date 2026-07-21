@@ -9,6 +9,8 @@ dependencies:
   - drupal:text
   - drupal:link
   - drupal:image
+  - drupal:media
+  - drupal:media_library
   - drupal:field
   - drupal:options
   - paragraphs:paragraphs

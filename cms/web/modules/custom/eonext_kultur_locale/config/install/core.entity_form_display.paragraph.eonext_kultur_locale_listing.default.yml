@@ -3,7 +3,10 @@ status: true
 dependencies:
   config:
     - field.field.paragraph.eonext_kultur_locale_listing.field_locale_heading
+    - field.field.paragraph.eonext_kultur_locale_listing.field_locale_hero_image
     - paragraphs.paragraphs_type.eonext_kultur_locale_listing
+  module:
+    - media_library
   enforced:
     module:
       - eonext_kultur_locale
@@ -12,9 +15,16 @@ targetEntityType: paragraph
 bundle: eonext_kultur_locale_listing
 mode: default
 content:
+  field_locale_hero_image:
+    type: media_library_widget
+    weight: 0
+    region: content
+    settings:
+      media_types: {  }
+    third_party_settings: {  }
   field_locale_heading:
     type: string_textfield
-    weight: 0
+    weight: 1
     region: content
     settings:
       size: 60

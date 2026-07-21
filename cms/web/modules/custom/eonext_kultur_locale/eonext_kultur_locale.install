@@ -77,3 +77,91 @@ function _eonext_kultur_locale_enable_paragraph_on_page(): void {
   $field->setSetting('handler_settings', $settings);
   $field->save();
 }
+
+/**
+ * Add hero image field to the lokaler listing paragraph.
+ */
+function eonext_kultur_locale_update_9002(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_locale_hero_image',
+    'field.field.paragraph.eonext_kultur_locale_listing.field_locale_hero_image',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  foreach ([
+    'core.entity_form_display.paragraph.eonext_kultur_locale_listing.default',
+    'core.entity_view_display.paragraph.eonext_kultur_locale_listing.default',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Switch lokaler listing hero image field from file upload to media.
+ */
+function eonext_kultur_locale_update_9003(): void {
+  $field = FieldConfig::loadByName('paragraph', 'eonext_kultur_locale_listing', 'field_locale_hero_image');
+  if ($field instanceof FieldConfig) {
+    $field->delete();
+  }
+
+  $storage = FieldStorageConfig::loadByName('paragraph', 'field_locale_hero_image');
+  if ($storage instanceof FieldStorageConfig) {
+    $storage->delete();
+  }
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $config_storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_locale_hero_image',
+    'field.field.paragraph.eonext_kultur_locale_listing.field_locale_hero_image',
+  ] as $config_name) {
+    $data = $config_storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  foreach ([
+    'core.entity_form_display.paragraph.eonext_kultur_locale_listing.default',
+    'core.entity_view_display.paragraph.eonext_kultur_locale_listing.default',
+  ] as $config_name) {
+    $data = $config_storage->read($config_name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
+}

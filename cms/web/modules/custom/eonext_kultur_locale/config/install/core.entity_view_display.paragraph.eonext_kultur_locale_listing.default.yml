@@ -3,6 +3,7 @@ status: true
 dependencies:
   config:
     - field.field.paragraph.eonext_kultur_locale_listing.field_locale_heading
+    - field.field.paragraph.eonext_kultur_locale_listing.field_locale_hero_image
     - paragraphs.paragraphs_type.eonext_kultur_locale_listing
   enforced:
     module:
@@ -14,3 +15,4 @@ mode: default
 content: {  }
 hidden:
   field_locale_heading: true
+  field_locale_hero_image: true

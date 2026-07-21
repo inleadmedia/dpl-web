@@ -5,8 +5,15 @@
  */
 #}
 <section class="ek-lokaler-listing">
+  {% if hero_image %}
+    {% include '@eonext_kultur_locale/eonext-kultur-locale-listing-hero.html.twig' with {
+      hero_image: hero_image,
+      heading: heading,
+    } only %}
+  {% endif %}
+
   <div class="ek-lokaler-listing__inner">
-    {% if heading %}
+    {% if heading and not hero_image %}
       <h2 class="ek-lokaler-listing__heading">{{ heading }}</h2>
     {% endif %}
     <div class="ek-lokaler-listing__view">

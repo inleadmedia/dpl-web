@@ -1,0 +1,14 @@
+{#
+/**
+ * @file
+ * Hero banner for the lokaler listing paragraph.
+ */
+#}
+<div class="ek-lokaler-listing__hero">
+  <img class="ek-lokaler-listing__hero-img" src="{{ hero_image.src }}" alt="{{ hero_image.alt|default('') }}">
+  <div class="ek-lokaler-listing__hero-inner">
+    {% if heading %}
+      <h1 class="ek-lokaler-listing__hero-title">{{ heading }}</h1>
+    {% endif %}
+  </div>
+</div>

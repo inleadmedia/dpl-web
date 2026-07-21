@@ -1,0 +1,14 @@
+<section {{ has_locale_listing|default(false) ? attributes : attributes.addClass('paragraphs') }}>
+  {% if locale_listing_hero %}
+    {{ locale_listing_hero }}
+  {% endif %}
+  {% for item in items %}
+    {% if item.locale_listing|default(false) %}
+      {{ item.content }}
+    {% else %}
+      <div {{ item.attributes }}>
+        {{ item.content }}
+      </div>
+    {% endif %}
+  {% endfor %}
+</section>

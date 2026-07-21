@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Render\Element;
 use Drupal\eonext_kultur_locale\LokaleConstants;
+use Drupal\eonext_kultur_locale\LokaleListingBuilder;
 use Drupal\eonext_kultur_locale\LokaleViewBuilder;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\NodeInterface;
@@ -43,15 +44,16 @@ function eonext_kultur_locale_preprocess_field(array &$variables): void {
       continue;
     }
 
-    $item['attributes']['class'][] = 'paragraphs__item';
-    $item['attributes']['class'][] = 'paragraphs';
-    $item['attributes']['class'][] = 'paragraphs__item--' . LokaleConstants::PARAGRAPH_BUNDLE;
+    $heading = $paragraph->hasField('field_locale_heading') && !$paragraph->get('field_locale_heading')->isEmpty()
+      ? $paragraph->get('field_locale_heading')->value : '';
+
+    $hero_image = LokaleListingBuilder::buildHeroImage($paragraph, $heading);
 
     $item['content'] = [
       '#theme' => 'eonext_kultur_locale_listing',
       '#paragraph' => $paragraph,
-      '#heading' => $paragraph->hasField('field_locale_heading') && !$paragraph->get('field_locale_heading')->isEmpty()
-        ? $paragraph->get('field_locale_heading')->value : '',
+      '#heading' => $heading,
+      '#hero_image' => $hero_image,
       '#view' => views_embed_view(LokaleConstants::VIEW_ID, LokaleConstants::VIEW_DISPLAY),
       '#attached' => [
         'library' => ['eonext_kultur_locale/lokale'],
@@ -109,9 +111,17 @@ function eonext_kultur_locale_theme(array $existing, string $type, string $theme
     'eonext_kultur_locale_listing' => [
       'variables' => [
         'heading' => NULL,
+        'hero_image' => NULL,
         'view' => NULL,
       ],
       'template' => 'eonext-kultur-locale-listing',
+    ],
+    'eonext_kultur_locale_listing_hero' => [
+      'variables' => [
+        'heading' => NULL,
+        'hero_image' => NULL,
+      ],
+      'template' => 'eonext-kultur-locale-listing-hero',
     ],
     'eonext_kultur_locale_row' => [
       'variables' => [

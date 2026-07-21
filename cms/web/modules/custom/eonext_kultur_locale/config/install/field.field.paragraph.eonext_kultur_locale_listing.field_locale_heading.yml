@@ -11,8 +11,8 @@ id: paragraph.eonext_kultur_locale_listing.field_locale_heading
 field_name: field_locale_heading
 entity_type: paragraph
 bundle: eonext_kultur_locale_listing
-label: Heading
-description: ''
+label: 'Hero title'
+description: 'Shown over the hero image, or as a page heading when no hero image is uploaded.'
 required: false
 translatable: true
 default_value: {  }
