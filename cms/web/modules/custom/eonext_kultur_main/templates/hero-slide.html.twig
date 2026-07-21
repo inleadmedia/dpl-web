@@ -8,6 +8,9 @@
 
     <div class="ek-hero-slide__overlay">
       <div class="ek-hero-slide__content">
+        {% if category %}
+          <p class="ek-hero-slide__category">{{ category }}</p>
+        {% endif %}
         <h2 class="ek-hero-slide__title text-header-h2">{{ title }}</h2>
         {% if tagline %}
           <p class="ek-hero-slide__tagline text-body-large">{{ tagline }}</p>

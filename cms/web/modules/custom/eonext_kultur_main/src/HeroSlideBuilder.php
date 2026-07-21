@@ -16,6 +16,7 @@ use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
+use Drupal\taxonomy\TermInterface;
 
 /**
  * Builds render variables for hero carousel slides.
@@ -57,6 +58,7 @@ final class HeroSlideBuilder {
 
     return [
       'title' => $eventSeries->label(),
+      'category' => $this->getCategoryLabel($eventSeries),
       'tagline' => $this->getTagline($eventSeries, 'field_description'),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $formatter->isAllDay($eventSeries))
@@ -84,6 +86,7 @@ final class HeroSlideBuilder {
 
     return [
       'title' => $eventInstance->label(),
+      'category' => $this->getCategoryLabel($eventInstance),
       'tagline' => $this->getTagline($eventInstance, 'event_description', 'field_description'),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $allDay)
@@ -101,6 +104,7 @@ final class HeroSlideBuilder {
   private function fromNode(NodeInterface $node): array {
     return [
       'title' => $node->label(),
+      'category' => $this->getCategoryLabel($node),
       'tagline' => $this->getTagline($node, 'field_teaser_text', 'body'),
       'date_display' => NULL,
       'url' => $node->toUrl()->toString(),
@@ -127,6 +131,33 @@ final class HeroSlideBuilder {
       if ($media instanceof MediaInterface) {
         return $this->entityTypeManager->getViewBuilder('media')->view($media, 'banner');
       }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Resolve the primary category label for a hero slide.
+   */
+  private function getCategoryLabel(EntityInterface $entity): ?string {
+    foreach (['event_categories', 'field_categories'] as $fieldName) {
+      if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+        continue;
+      }
+
+      foreach ($entity->get($fieldName)->referencedEntities() as $term) {
+        if ($term instanceof TermInterface) {
+          return $term->label();
+        }
+      }
+    }
+
+    if (in_array($entity->getEntityTypeId(), ['eventseries', 'eventinstance'], TRUE)) {
+      return (string) $this->t('Event');
+    }
+
+    if ($entity instanceof NodeInterface && $entity->type->entity !== NULL) {
+      return $entity->type->entity->label();
     }
 
     return NULL;

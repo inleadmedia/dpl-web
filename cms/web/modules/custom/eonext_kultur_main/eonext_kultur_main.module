@@ -137,6 +137,7 @@ function eonext_kultur_main_theme(): array {
     'hero_slide' => [
       'variables' => [
         'title' => NULL,
+        'category' => NULL,
         'tagline' => NULL,
         'date_display' => NULL,
         'url' => NULL,

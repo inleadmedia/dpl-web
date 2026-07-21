@@ -246,6 +246,7 @@ body,
 
 .ek-hero-slider__wrapper {
   display: flex;
+  align-items: stretch;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -253,13 +254,14 @@ body,
 
 .ek-hero-slider__slide {
   flex-shrink: 0;
+  display: flex;
   height: auto;
 }
 
 .ek-hero-slider__nav {
   position: absolute;
   z-index: 4;
-  top: 50%;
+  top: calc(50% - 5.5rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -268,38 +270,51 @@ body,
   padding: 0;
   color: var(--ek-white);
   cursor: pointer;
-  background: transparent;
+  background: rgb(35 88 129 / 45%);
   border: 0;
   transform: translateY(-50%);
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
 .ek-hero-slider__nav-icon {
-  font-family: var(--ek-font-heading);
-  font-size: clamp(4rem, 8vw, 6.5rem);
-  font-weight: 300;
-  line-height: 1;
+  display: block;
+  width: 24px;
+  height: 40px;
 }
 
 .ek-hero-slider__nav--prev {
-  left: clamp(0.75rem, 2vw, 2rem);
+  left: 0;
+  border-radius: 0 4px 4px 0;
 }
 
 .ek-hero-slider__nav--next {
-  right: clamp(0.75rem, 2vw, 2rem);
+  right: 0;
+  border-radius: 4px 0 0 4px;
 }
 
 .ek-hero-slider__nav:hover,
 .ek-hero-slider__nav:focus-visible {
-  opacity: 0.85;
+  background: rgb(35 88 129 / 65%);
+  opacity: 1;
+}
+
+.ek-hero-slider__nav.swiper-button-disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 .ek-hero-slide {
-  display: block;
+  display: flex;
+  flex: 1;
   width: 100%;
 }
 
 .ek-hero-slide__image {
   position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
   min-height: 500px;
   overflow: hidden;
   background: var(--ek-navy);
@@ -333,15 +348,29 @@ body,
   gap: 2rem;
   align-items: center;
   justify-content: space-between;
-  min-height: 7.5rem;
+  box-sizing: border-box;
+  height: 11rem;
+  min-height: 11rem;
+  max-height: 11rem;
   padding: 1.5rem clamp(1.5rem, 5vw, 4rem);
-  background: rgb(35 88 129 / 82%);
+  background: rgb(35 88 129 / 30%);
   backdrop-filter: blur(8px);
+}
+
+.ek-hero-slide__category {
+  margin: 0 0 0.35rem;
+  font-family: var(--ek-font-heading);
+  font-size: clamp(0.75rem, 1.2vw, 0.875rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ek-white);
 }
 
 .ek-hero-slide__content {
   flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
 }
 
 .ek-hero-slide__title {
@@ -351,6 +380,10 @@ body,
   font-weight: 700;
   line-height: 1.1;
   color: var(--ek-white) !important;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .ek-hero-slide__tagline {
@@ -358,6 +391,10 @@ body,
   font-size: clamp(1rem, 1.8vw, 1.25rem);
   line-height: 1.35;
   color: var(--ek-white);
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .ek-hero-slide__meta {
@@ -395,32 +432,72 @@ body,
 @media (min-width: 768px) {
   .ek-hero-slide__image {
     min-height: 810px;
+    height: 810px;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__image {
     min-height: 560px;
+    height: 560px;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__title {
     font-size: clamp(1.25rem, 2vw, 1.75rem) !important;
+    -webkit-line-clamp: 1;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__overlay {
-    min-height: 6.5rem;
+    height: 10.5rem;
+    min-height: 10.5rem;
+    max-height: 10.5rem;
     padding: 1.25rem 1.5rem;
+  }
+
+  .ek-hero-slider[data-items-per-view="1"] .ek-hero-slide__overlay {
+    height: 12rem;
+    min-height: 12rem;
+    max-height: 12rem;
+  }
+
+  .ek-hero-slider[data-items-per-view="1"] .ek-hero-slide__tagline {
+    -webkit-line-clamp: 3;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__cta.btn-primary.btn-filled {
     min-width: 9rem;
     padding: 0 1.25rem;
   }
+
+  .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slider__nav {
+    top: calc(50% - 5.25rem);
+  }
 }
 
 @media (max-width: 767px) {
+  .ek-hero-slide__image {
+    height: auto;
+  }
+
+  .ek-hero-slider__nav {
+    top: calc(50% - 2.5rem);
+    width: 40px;
+    height: 88px;
+  }
+
+  .ek-hero-slider__nav-icon {
+    width: 20px;
+    height: 32px;
+  }
+
+  .ek-hero-slide__title {
+    -webkit-line-clamp: 2;
+  }
+
   .ek-hero-slide__overlay {
     flex-direction: column;
     align-items: flex-start;
+    height: auto;
     min-height: auto;
+    max-height: none;
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
   }
