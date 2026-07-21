@@ -10,7 +10,6 @@ declare(strict_types=1);
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\node\NodeInterface;
@@ -251,7 +250,6 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
     && $paragraph->bundle() === 'content_slider'
     && _eonext_kultur_main_content_slider_field_uses_carousel($paragraph, $element)) {
     $variables['theme_hook_suggestions'][] = 'field__paragraph__field_content_references__content_slider__carousel';
-    $variables['events_overview_url'] = Url::fromUserInput('/arrangementer')->toString();
     $variables['items_per_view'] = 2;
     $variables['#cache']['tags'] = array_merge(
       $variables['#cache']['tags'] ?? [],

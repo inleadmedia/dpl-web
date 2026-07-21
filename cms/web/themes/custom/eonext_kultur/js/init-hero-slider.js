@@ -27,12 +27,12 @@
       wrapperClass: 'ek-hero-slider__wrapper',
       slideClass: 'ek-hero-slider__slide',
       slidesPerView: 1,
-      spaceBetween: 12,
+      spaceBetween: 0,
       loop: canLoop,
       breakpoints: {
         768: {
           slidesPerView: itemsPerView,
-          spaceBetween: 16,
+          spaceBetween: 0,
         },
       },
       navigation: {
