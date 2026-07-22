@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FC, ReactNode } from "react";
+import {FC, ReactNode, useEffect, useState} from "react";
 
 import MediaContainer from "../media-container/MediaContainer";
 import {
@@ -48,13 +48,17 @@ const NavSpot: FC<NavSpotProps> = ({
   imageAlignment = "left",
   backgroundColor,
 }) => {
-  const hasLightBackground = isLightBackgroundColor(backgroundColor);
+  const [isLightBackground, setIsLightBackground] = useState(false);
+
+  useEffect(() => {
+    setIsLightBackground(isLightBackgroundColor(backgroundColor))
+  }, [backgroundColor]);
 
   return (
     <article
       className={clsx("nav-spot", {
         "nav-spot--image-right": imageAlignment === "right",
-        "nav-spot--light-background": hasLightBackground,
+        "nav-spot--light-background": isLightBackground,
       })}
       data-variant={variant}
       style={backgroundColor ? { backgroundColor } : undefined}
