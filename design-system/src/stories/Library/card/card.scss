@@ -39,12 +39,12 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 100px);
 }
 
 .card__arrow {
   position: absolute;
-  right: 9px;
+  right: 25px;
   bottom: -4px;
   color: #235881;
 
