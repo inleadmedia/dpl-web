@@ -1,3 +1,17 @@
+//Overrides
+.swiper {
+  max-width: 1727px;
+  @include media-query__medium("min-width"){
+    height: 353px;
+  }
+
+  .card--has-media {
+    .card__media {
+      border: none;
+    }
+  }
+}
+//
 .swiper--centered .swiper-wrapper {
   width: fit-content !important;
   margin: 0 !important;
@@ -44,7 +58,11 @@
 .slider__item {
   $_card-mobile-peek: 50px;
 
-  width: fit-content !important;
+  @include media-query__small("min-width") {
+    width: fit-content !important;
+  }
+
+  width: fit-content;
   padding-left: 18px;
   padding-right: 18px;
   box-sizing: border-box;
