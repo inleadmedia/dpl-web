@@ -116,3 +116,35 @@ function eonext_editorial_search_deploy_exclude_unpublished_from_index(): string
 
   return eonext_editorial_search_ensure_published_content_indexing();
 }
+
+/**
+ * Switches editorial search results to card view mode for grid display.
+ */
+function eonext_editorial_search_deploy_card_grid_results(): string {
+  _eonext_editorial_search_load_install();
+
+  return eonext_editorial_search_configure_card_grid_view();
+}
+
+/**
+ * Adds event target group, free events facets, and date range filter.
+ */
+function eonext_editorial_search_deploy_event_search_facets(): string {
+  _eonext_editorial_search_load_install();
+
+  $messages = [
+    eonext_editorial_search_ensure_facet_index_fields(),
+    eonext_editorial_search_ensure_editorial_is_free_processor(),
+    eonext_editorial_search_ensure_event_facets(),
+    eonext_editorial_search_configure_editorial_search_view(),
+    eonext_editorial_search_configure_facet_weights(),
+  ];
+
+  $index = \Drupal\search_api\Entity\Index::load('content_events');
+  if ($index) {
+    $index->reindex();
+    $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+  }
+
+  return implode(' ', array_filter($messages));
+}

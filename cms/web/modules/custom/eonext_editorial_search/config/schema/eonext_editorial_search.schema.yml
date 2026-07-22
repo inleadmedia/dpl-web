@@ -5,3 +5,6 @@ eonext_editorial_search.settings:
     enable_editorial_search:
       type: boolean
       label: 'Enable editorial search'
+    results_display:
+      type: string
+      label: 'Search results layout'

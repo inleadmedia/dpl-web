@@ -17,27 +17,29 @@
 
 {% set facet_group_id = 'filter-group-content-' ~ facet.id|upper %}
 {% set is_active = attributes.hasClass('facet-active') %}
-{% set is_expanded = facet.id in ['editorial_content_type', 'editorial_categories'] or is_active %}
+{% set is_free_facet = facet.id == 'editorial_is_free' %}
+{% set is_expanded = facet.id in ['editorial_content_type', 'editorial_categories', 'editorial_screen_names'] or is_active %}
+{% set free_facet_expanded = is_active %}
 
-<li class="eonext-search-facet-group">
-  <button
-    type="button"
-    class="eonext-search-facet-group__header"
-    aria-expanded="{{ is_expanded ? 'true' : 'false' }}"
-    aria-controls="{{ facet_group_id }}"
-  >
-    <div class="eonext-search-facet-group__header-content">
-      <span class="eonext-search-facet-group__label">{{ facet.label }}</span>
-    </div>
-    <img
-      alt=""
-      class="eonext-search-facet-group__chevron{{ is_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
-      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+<li class="eonext-search-facet-group{{ is_free_facet ? ' eonext-editorial-search__facet-group--free-toggle' : '' }}">
+  {% if is_free_facet %}
+    <button
+      type="button"
+      class="eonext-search-facet-group__header"
+      aria-expanded="{{ free_facet_expanded ? 'true' : 'false' }}"
+      aria-controls="{{ facet_group_id }}"
     >
-  </button>
+      <div class="eonext-search-facet-group__header-content">
+        <span class="eonext-search-facet-group__label">{{ facet.label }}</span>
+      </div>
+      <img
+        alt=""
+        class="eonext-search-facet-group__chevron{{ free_facet_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
+        src="{{ baseIconPath }}/collection/ExpandMore.svg"
+      >
+    </button>
 
-  {% if items or empty %}
-    {%- if items -%}
+    {% if items %}
       <ul
         id="{{ facet_group_id }}"
         {{ attributes.addClass([
@@ -45,39 +47,94 @@
           'facets-widget-' ~ facet.widget.type,
           'item-list__' ~ facet.widget.type,
           'facet-checkboxes',
+          'eonext-editorial-search__facet-options--toggle',
         ]) }}
-        {% if not is_expanded %}hidden{% endif %}
+        {% if not free_facet_expanded %}hidden{% endif %}
       >
-        {% if facet.id == 'editorial_content_type' and editorial_search_has_matching_past_events %}
-          <li class="eonext-search-facet-group__item eonext-editorial-search__past-events">
-            <div class="eonext-checkbox">
-              <input
-                type="checkbox"
-                class="eonext-checkbox__input"
-                id="editorial-search-show-past-events"
-                data-editorial-search-show-past-events
-                value="1"
-                {{ editorial_search_show_past_events ? ' checked' : '' }}
-              >
-              <label class="eonext-checkbox__label" for="editorial-search-show-past-events">
-                <span class="eonext-checkbox__icon">
-                  <svg width="12" height="10" viewBox="0 0 12 10">
-                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-                  </svg>
-                </span>
-                <span class="eonext-checkbox__text">
-                  {{ 'Show past events'|t({}, {'context': 'eonext_editorial_search'}) }}
-                </span>
-              </label>
-            </div>
-          </li>
-        {% endif %}
         {%- for item in items -%}
-          <li{{ item.attributes.addClass(['eonext-search-facet-group__item', 'facet-item']) }}>{{ item.value }}</li>
+          <li{{ item.attributes.addClass([
+            'eonext-search-facet-group__item',
+            'facet-item',
+            'eonext-editorial-search__facet-option--toggle',
+          ]) }}>{{ item.value }}</li>
         {%- endfor -%}
       </ul>
-    {%- else -%}
-      <div class="eonext-search-facet-group__content">{{ empty }}</div>
-    {%- endif -%}
+    {% else %}
+      <ul
+        id="{{ facet_group_id }}"
+        class="eonext-search-facet-group__content facet-checkboxes eonext-editorial-search__facet-options--toggle"
+        {% if not free_facet_expanded %}hidden{% endif %}
+      >
+        <li class="eonext-search-facet-group__item eonext-editorial-search__facet-option--toggle">
+          <a href="/search/web?f%5B0%5D=free%3A1" rel="nofollow" data-drupal-facet-item-id="free-1" data-drupal-facet-item-value="1" data-drupal-facet-filter-value="free:1">
+            <span class="facet-item__value">{{ facet.label }}</span>
+          </a>
+        </li>
+      </ul>
+    {% endif %}
+  {% else %}
+    <button
+      type="button"
+      class="eonext-search-facet-group__header"
+      aria-expanded="{{ is_expanded ? 'true' : 'false' }}"
+      aria-controls="{{ facet_group_id }}"
+    >
+      <div class="eonext-search-facet-group__header-content">
+        <span class="eonext-search-facet-group__label">{{ facet.label }}</span>
+      </div>
+      <img
+        alt=""
+        class="eonext-search-facet-group__chevron{{ is_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
+        src="{{ baseIconPath }}/collection/ExpandMore.svg"
+      >
+    </button>
+
+    {% if items or empty %}
+      {%- if items -%}
+        <ul
+          id="{{ facet_group_id }}"
+          {{ attributes.addClass([
+            'eonext-search-facet-group__content',
+            'facets-widget-' ~ facet.widget.type,
+            'item-list__' ~ facet.widget.type,
+            'facet-checkboxes',
+          ]) }}
+          {% if not is_expanded %}hidden{% endif %}
+        >
+          {% if facet.id == 'editorial_content_type' and editorial_search_has_matching_past_events %}
+            <li class="eonext-search-facet-group__item eonext-editorial-search__past-events">
+              <div class="eonext-checkbox">
+                <input
+                  type="checkbox"
+                  class="eonext-checkbox__input"
+                  id="editorial-search-show-past-events"
+                  data-editorial-search-show-past-events
+                  value="1"
+                  {{ editorial_search_show_past_events ? ' checked' : '' }}
+                >
+                <label class="eonext-checkbox__label" for="editorial-search-show-past-events">
+                  <span class="eonext-checkbox__icon">
+                    <svg width="12" height="10" viewBox="0 0 12 10">
+                      <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                    </svg>
+                  </span>
+                  <span class="eonext-checkbox__text">
+                    {{ 'Show past events'|t({}, {'context': 'eonext_editorial_search'}) }}
+                  </span>
+                </label>
+              </div>
+            </li>
+          {% endif %}
+          {%- for item in items -%}
+            <li{{ item.attributes.addClass([
+              'eonext-search-facet-group__item',
+              'facet-item',
+            ]) }}>{{ item.value }}</li>
+          {%- endfor -%}
+        </ul>
+      {%- else -%}
+        <div class="eonext-search-facet-group__content">{{ empty }}</div>
+      {%- endif -%}
+    {% endif %}
   {% endif %}
 </li>

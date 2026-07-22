@@ -41,8 +41,12 @@ function _eonext_editorial_search_revoke_rest_permissions(): void {
 function _eonext_editorial_search_ensure_settings(): void {
   $config = \Drupal::configFactory()->getEditable('eonext_editorial_search.settings');
   if ($config->get('enable_editorial_search') === NULL) {
-    $config->set('enable_editorial_search', TRUE)->save();
+    $config->set('enable_editorial_search', TRUE);
   }
+  if ($config->get('results_display') === NULL) {
+    $config->set('results_display', EONEXT_EDITORIAL_SEARCH_RESULTS_DISPLAY_GRID);
+  }
+  $config->save();
 }
 
 /**
@@ -79,12 +83,15 @@ function _eonext_editorial_search_enqueue_article_material_sync(): int {
 function eonext_editorial_search_install(): void {
   _eonext_editorial_search_ensure_settings();
   eonext_editorial_search_ensure_facet_index_fields();
+  eonext_editorial_search_ensure_editorial_is_free_processor();
   eonext_editorial_search_ensure_sort_index_fields();
   eonext_editorial_search_ensure_editorial_event_date_processor();
   eonext_editorial_search_ensure_editorial_content_indexing();
   eonext_editorial_search_ensure_event_has_upcoming_indexing();
   eonext_editorial_search_exclude_go_articles_from_index();
   eonext_editorial_search_ensure_published_content_indexing();
+  eonext_editorial_search_configure_editorial_search_view();
+  eonext_editorial_search_configure_facet_weights();
   _eonext_editorial_search_grant_rest_permissions();
   _eonext_editorial_search_enqueue_article_material_sync();
 }
@@ -95,7 +102,13 @@ function eonext_editorial_search_install(): void {
 function eonext_editorial_search_uninstall(): void {
   _eonext_editorial_search_revoke_rest_permissions();
 
-  foreach (['editorial_categories', 'editorial_content_type', 'editorial_tags'] as $facet_id) {
+  foreach ([
+    'editorial_categories',
+    'editorial_content_type',
+    'editorial_is_free',
+    'editorial_screen_names',
+    'editorial_tags',
+  ] as $facet_id) {
     $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
     $facet?->delete();
   }
@@ -155,6 +168,28 @@ function eonext_editorial_search_ensure_facet_index_fields(): string {
           'entity:eventseries/field_tags',
           'entity:node/field_tags',
         ],
+      ],
+    ],
+    'editorial_screen_names' => [
+      'label' => 'Target group (events)',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:eventseries/field_screen_names',
+        ],
+      ],
+    ],
+    'editorial_is_free' => [
+      'label' => 'Free events',
+      'property_path' => 'aggregated_field',
+      'type' => 'boolean',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
       ],
     ],
   ];
@@ -509,4 +544,296 @@ function eonext_editorial_search_ensure_published_content_indexing(): string {
   }
 
   return implode(' ', $messages);
+}
+
+/**
+ * Switches editorial search results to card view mode for grid display.
+ */
+function eonext_editorial_search_configure_card_grid_view(): string {
+  $config = \Drupal::configFactory()->getEditable('eonext_editorial_search.settings');
+  if ($config->isNew()) {
+    return 'Editorial search settings were not found; results display was not configured.';
+  }
+
+  $config->set('results_display', EONEXT_EDITORIAL_SEARCH_RESULTS_DISPLAY_GRID)->save();
+
+  return 'Set editorial search results display to grid.';
+}
+
+/**
+ * Ensure editorial search layout setting exists for existing sites.
+ */
+function eonext_editorial_search_update_9010(): void {
+  _eonext_editorial_search_ensure_settings();
+}
+
+/**
+ * Adds event target group, free events facets, and date range filter.
+ */
+function eonext_editorial_search_update_9011(): string {
+  $messages = [
+    eonext_editorial_search_ensure_facet_index_fields(),
+    eonext_editorial_search_ensure_editorial_is_free_processor(),
+    eonext_editorial_search_ensure_event_facets(),
+    eonext_editorial_search_configure_editorial_search_view(),
+    eonext_editorial_search_configure_facet_weights(),
+  ];
+
+  $index = Index::load('content_events');
+  if ($index instanceof IndexInterface) {
+    $index->reindex();
+    $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+  }
+
+  return implode(' ', array_filter($messages));
+}
+
+/**
+ * Ensures the editorial_is_free processor is enabled on the content_events index.
+ */
+function eonext_editorial_search_ensure_editorial_is_free_processor(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial_is_free processor was not added.';
+  }
+
+  $processor_settings = $index->get('processor_settings') ?? [];
+  unset($processor_settings['editorial_event_is_free']);
+  $index->set('processor_settings', $processor_settings);
+
+  if ($index->getProcessorIfAvailable('editorial_event_is_free') !== NULL) {
+    return 'Editorial event is free processor already exists on index content_events.';
+  }
+
+  \Drupal::service('plugin.manager.search_api.processor')->clearCachedDefinitions();
+
+  $processor = \Drupal::getContainer()
+    ->get('search_api.plugin_helper')
+    ->createProcessorPlugin($index, 'editorial_event_is_free');
+  $index->addProcessor($processor);
+  $index->save();
+
+  return 'Enabled editorial event is free processor on index content_events.';
+}
+
+/**
+ * Creates event facet config entities when missing on existing sites.
+ */
+function eonext_editorial_search_ensure_event_facets(): string {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_editorial_search');
+  $storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  $created = [];
+
+  foreach (['editorial_is_free', 'editorial_screen_names'] as $facet_id) {
+    if ($storage->load($facet_id) !== NULL) {
+      continue;
+    }
+
+    $file = $module_path . '/config/install/facets.facet.' . $facet_id . '.yml';
+    if (!is_readable($file)) {
+      continue;
+    }
+
+    $data = \Drupal\Component\Serialization\Yaml::decode((string) file_get_contents($file));
+    if (!is_array($data)) {
+      continue;
+    }
+
+    $storage->create($data)->save();
+    $created[] = $facet_id;
+  }
+
+  if ($created === []) {
+    return 'Editorial event facets already exist.';
+  }
+
+  return sprintf('Created editorial facets: %s.', implode(', ', $created));
+}
+
+/**
+ * Configures the editorial search view for event filters and AJAX facets.
+ */
+function eonext_editorial_search_configure_editorial_search_view(): string {
+  $config = \Drupal::configFactory()->getEditable('views.view.editorial_search');
+  if ($config->isNew()) {
+    return 'Editorial search view was not found; event filters were not configured.';
+  }
+
+  $display = $config->get('display');
+  if (!is_array($display)) {
+    return 'Editorial search view display options were not found; event filters were not configured.';
+  }
+
+  $display['default']['display_options']['use_ajax'] = TRUE;
+  $display['default']['display_options']['query']['options']['preserve_facet_query_args'] = TRUE;
+
+  $display['default']['display_options']['exposed_form']['type'] = 'bef';
+  $display['default']['display_options']['exposed_form']['options']['bef']['general'] = [
+    'autosubmit' => FALSE,
+    'autosubmit_exclude_textfield' => FALSE,
+    'autosubmit_textfield_delay' => 500,
+    'autosubmit_textfield_minimum_length' => 3,
+    'autosubmit_hide' => TRUE,
+    'input_required' => FALSE,
+    'allow_secondary' => FALSE,
+    'secondary_label' => 'Advanced options',
+    'secondary_open' => FALSE,
+    'reset_button_always_show' => FALSE,
+  ];
+
+  $bef = $display['default']['display_options']['exposed_form']['options']['bef']['filter'] ?? [];
+  $bef['search_api_fulltext'] = [
+    'plugin_id' => 'default',
+    'advanced' => [
+      'placeholder_text' => '',
+      'rewrite' => [
+        'filter_rewrite_values' => '',
+        'filter_rewrite_values_key' => FALSE,
+      ],
+      'collapsible' => FALSE,
+      'collapsible_disable_automatic_open' => FALSE,
+      'is_secondary' => FALSE,
+      'hide_label' => FALSE,
+    ],
+    'options_show_only_used' => FALSE,
+    'options_show_only_used_filtered' => FALSE,
+    'options_hide_when_empty' => FALSE,
+    'options_show_items_count' => FALSE,
+  ];
+  $bef['date'] = [
+    'plugin_id' => 'bef_datepicker',
+    'advanced' => [
+      'placeholder_text' => '',
+      'rewrite' => [
+        'filter_rewrite_values' => '',
+        'filter_rewrite_values_key' => FALSE,
+      ],
+      'collapsible' => FALSE,
+      'collapsible_disable_automatic_open' => FALSE,
+      'is_secondary' => FALSE,
+      'hide_label' => TRUE,
+    ],
+    'options_show_only_used' => FALSE,
+    'options_show_only_used_filtered' => FALSE,
+    'options_hide_when_empty' => FALSE,
+    'options_show_items_count' => FALSE,
+  ];
+  $display['default']['display_options']['exposed_form']['options']['bef']['filter'] = $bef;
+
+  $filters = $display['default']['display_options']['filters'] ?? [];
+  $filters['date'] = [
+    'id' => 'date',
+    'table' => 'search_api_index_content_events',
+    'field' => 'sort_date',
+    'relationship' => 'none',
+    'group_type' => 'group',
+    'admin_label' => '',
+    'plugin_id' => 'search_api_date',
+    'operator' => 'between',
+    'value' => [
+      'min' => '',
+      'max' => '',
+      'value' => '',
+      'type' => 'date',
+    ],
+    'group' => 1,
+    'exposed' => TRUE,
+    'expose' => [
+      'operator_id' => 'date_op',
+      'label' => 'Date',
+      'description' => '',
+      'use_operator' => FALSE,
+      'operator' => 'date_op',
+      'operator_limit_selection' => FALSE,
+      'operator_list' => [],
+      'identifier' => 'date',
+      'required' => FALSE,
+      'remember' => FALSE,
+      'multiple' => FALSE,
+      'remember_roles' => [
+        'authenticated' => 'authenticated',
+        'anonymous' => '0',
+      ],
+      'min_placeholder' => 'From',
+      'max_placeholder' => 'To',
+      'placeholder' => '',
+    ],
+    'is_grouped' => FALSE,
+    'group_info' => [
+      'label' => '',
+      'description' => '',
+      'identifier' => '',
+      'optional' => TRUE,
+      'widget' => 'select',
+      'multiple' => FALSE,
+      'remember' => FALSE,
+      'default_group' => 'All',
+      'default_group_multiple' => [],
+      'group_items' => [],
+    ],
+  ];
+  $display['default']['display_options']['filters'] = $filters;
+
+  $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
+  foreach ([
+    'config:facets.facet.editorial_categories',
+    'config:facets.facet.editorial_content_type',
+    'config:facets.facet.editorial_is_free',
+    'config:facets.facet.editorial_screen_names',
+    'config:facets.facet.editorial_tags',
+  ] as $tag) {
+    if (!in_array($tag, $cache_tags, TRUE)) {
+      $cache_tags[] = $tag;
+    }
+  }
+  $display['all']['cache_metadata']['tags'] = $cache_tags;
+
+  $config->set('display', $display)->save();
+
+  return 'Configured editorial search view with event date filter and AJAX facet settings.';
+}
+
+/**
+ * Updates facet weights for the editorial search sidebar layout.
+ */
+function eonext_editorial_search_configure_facet_weights(): string {
+  $weights = [
+    'editorial_content_type' => 0,
+    'editorial_is_free' => 1,
+    'editorial_screen_names' => 2,
+    'editorial_categories' => 3,
+    'editorial_tags' => 4,
+  ];
+
+  $updated = [];
+  foreach ($weights as $facet_id => $weight) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+
+    $changed = FALSE;
+    if ((int) $facet->get('weight') !== $weight) {
+      $facet->set('weight', $weight);
+      $changed = TRUE;
+    }
+
+    if ($facet_id === 'editorial_is_free' && (int) $facet->get('min_count') !== 0) {
+      $facet->set('min_count', 0);
+      $changed = TRUE;
+    }
+
+    if (!$changed) {
+      continue;
+    }
+
+    $facet->save();
+    $updated[] = $facet_id;
+  }
+
+  if ($updated === []) {
+    return 'Editorial search facet weights are already configured.';
+  }
+
+  return sprintf('Updated editorial facet weights: %s.', implode(', ', $updated));
 }

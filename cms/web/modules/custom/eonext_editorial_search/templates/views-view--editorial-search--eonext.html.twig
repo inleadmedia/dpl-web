@@ -4,6 +4,7 @@
     dom_id ? 'js-view-dom-id-' ~ dom_id,
     'content-list-page',
     'eonext-editorial-search',
+    editorial_search_results_display|default('grid') == 'grid' ? 'eonext-editorial-search--grid' : 'eonext-editorial-search--list',
     is_tag_term_page ? 'eonext-editorial-search--tag-term',
   ]
 %}
@@ -31,6 +32,35 @@
           <div class="eonext-search-facets__container">
             <ul class="eonext-search-facets__groups">
               {{ drupal_block('facet_block:editorial_content_type') }}
+              {{ drupal_block('facet_block:editorial_screen_names') }}
+              {{ drupal_block('facet_block:editorial_is_free') }}
+              {% if editorial_search_date_filter %}
+                {% set date_filter_expanded = editorial_search_date_filter_expanded|default(false) %}
+                <li class="eonext-search-facet-group eonext-editorial-search__date-filter">
+                  <button
+                    type="button"
+                    class="eonext-search-facet-group__header"
+                    aria-expanded="{{ date_filter_expanded ? 'true' : 'false' }}"
+                    aria-controls="editorial-search-date-filter"
+                  >
+                    <div class="eonext-search-facet-group__header-content">
+                      <span class="eonext-search-facet-group__label">{{ 'Date'|t({}, {'context': 'eonext_editorial_search'}) }}</span>
+                    </div>
+                    <img
+                      alt=""
+                      class="eonext-search-facet-group__chevron{{ date_filter_expanded ? ' eonext-search-facet-group__chevron--expanded' : '' }}"
+                      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                    >
+                  </button>
+                  <div
+                    id="editorial-search-date-filter"
+                    class="eonext-search-facet-group__content eonext-editorial-search__date-filter-content"
+                    {% if not date_filter_expanded %}hidden{% endif %}
+                  >
+                    {{ editorial_search_date_filter }}
+                  </div>
+                </li>
+              {% endif %}
               {% if 'editorial_categories' not in editorial_search_hidden_facets|default([]) %}
                 {{ drupal_block('facet_block:editorial_categories') }}
               {% endif %}

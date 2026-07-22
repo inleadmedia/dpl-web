@@ -17,17 +17,25 @@
    * Restyle a facets checkbox item to match the design system.
    */
   function restyleFacetCheckbox(item) {
-    if (item.querySelector('.eonext-checkbox')) {
+    if (item.querySelector('.eonext-checkbox') || item.querySelector('.eonext-editorial-search__free-toggle')) {
       return;
     }
 
     const input = item.querySelector('input.facets-checkbox');
     const label = item.querySelector('label.form-check-label');
+    const link = item.querySelector('a[data-drupal-facet-item-id]');
 
-    if (!input || !label) {
+    if (input && label) {
+      restyleFacetInputItem(item, input, label);
       return;
     }
 
+    if (link && item.classList.contains('eonext-editorial-search__facet-option--toggle')) {
+      restyleFacetLinkToggle(item, link);
+    }
+  }
+
+  function restyleFacetInputItem(item, input, label) {
     const countElement = label.querySelector('.facet-item__count');
     let count = '';
 
@@ -66,6 +74,33 @@
       input.setAttribute('aria-describedby', countSpan.id);
       item.appendChild(countSpan);
     }
+  }
+
+  function restyleFacetLinkToggle(item, link) {
+    const isActive = link.classList.contains('is-active');
+    const valueElement = link.querySelector('.facet-item__value');
+    const countElement = link.querySelector('.facet-item__count');
+
+    if (countElement) {
+      countElement.remove();
+    }
+
+    const labelText = valueElement
+      ? valueElement.textContent.trim()
+      : link.textContent.trim();
+
+    link.innerHTML =
+      '<span class="eonext-editorial-search__free-toggle' +
+      (isActive ? ' is-active' : '') +
+      '">' +
+      '<span class="eonext-editorial-search__free-toggle__text">' +
+      labelText +
+      '</span>' +
+      '<span class="eonext-editorial-search__free-toggle__switch" aria-hidden="true"></span>' +
+      '</span>';
+    link.setAttribute('role', 'switch');
+    link.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    link.setAttribute('aria-label', labelText);
   }
 
   /**
@@ -157,8 +192,12 @@
    * Restyle facet checkboxes and apply the visible item limit.
    */
   function initFacetList(facetList) {
-    restyleFacetList(facetList);
     const facetGroup = facetList.closest('.eonext-search-facet-group');
+    if (facetGroup?.classList.contains('eonext-editorial-search__facet-group--free-toggle')) {
+      return;
+    }
+
+    restyleFacetList(facetList);
 
     if (facetGroup) {
       applyFacetItemLimit(facetGroup);
@@ -186,7 +225,13 @@
       else {
         content.removeAttribute('hidden');
         viewAllToggle?.removeAttribute('hidden');
-        initFacetList(content);
+        if (content.classList.contains('facet-checkboxes')) {
+          initFacetList(content);
+        }
+
+        if (facetGroup?.classList.contains('eonext-editorial-search__facet-group--free-toggle')) {
+          window.setTimeout(() => initFreeEventsToggle(facetGroup), 0);
+        }
       }
     }
 
@@ -251,15 +296,49 @@
     grid.insertBefore(facets, results);
   }
 
+  function initFreeEventsToggle(facetGroup) {
+    const link = facetGroup.querySelector(
+      '.eonext-editorial-search__facet-option--toggle a[data-drupal-facet-item-id]',
+    );
+
+    if (!link) {
+      return;
+    }
+
+    const item = link.closest('.eonext-editorial-search__facet-option--toggle');
+    if (item) {
+      restyleFacetLinkToggle(item, link);
+    }
+
+    if (link.dataset.editorialFreeToggleInit) {
+      return;
+    }
+
+    link.dataset.editorialFreeToggleInit = 'true';
+    link.addEventListener('click', () => {
+      const willBeActive = !link.classList.contains('is-active');
+      const toggle = link.querySelector('.eonext-editorial-search__free-toggle');
+      if (toggle) {
+        toggle.classList.toggle('is-active', willBeActive);
+      }
+      link.setAttribute('aria-checked', willBeActive ? 'true' : 'false');
+    });
+  }
+
   Drupal.behaviors.editorialSearchFacets = {
     attach(context) {
-      once('editorial-search-facet-header', '.eonext-editorial-search .eonext-search-facet-group__header', context).forEach((button) => {
+      once('editorial-search-facet-header', '.eonext-editorial-search button.eonext-search-facet-group__header', context).forEach((button) => {
         button.addEventListener('click', () => toggleFacetGroup(button));
       });
 
-      once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content.facet-checkboxes', context).forEach((facetList) => {
+      once('editorial-search-facet-checkboxes', '.eonext-editorial-search .eonext-search-facet-group__content.facet-checkboxes:not(.eonext-editorial-search__facet-options--toggle)', context).forEach((facetList) => {
         // Facets checkbox widget runs in the same attach cycle.
         window.setTimeout(() => initFacetList(facetList), 0);
+      });
+
+      const freeToggleRoot = context instanceof Element ? context : document;
+      freeToggleRoot.querySelectorAll('.eonext-editorial-search .eonext-editorial-search__facet-group--free-toggle').forEach((facetGroup) => {
+        window.setTimeout(() => initFreeEventsToggle(facetGroup), 0);
       });
 
       once('editorial-search-facets-dialog', '.eonext-editorial-search [data-editorial-search-filters-open]', context).forEach((button) => {

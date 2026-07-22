@@ -236,6 +236,61 @@
   }
 
   /**
+   * Apply date filter values to the URL and refresh the view via AJAX.
+   */
+  function applyEditorialSearchDateFilter($view) {
+    const viewElement = $view && $view.length ? $view[0] : document.querySelector('.eonext-editorial-search');
+
+    if (!viewElement) {
+      return;
+    }
+
+    const minInput = viewElement.querySelector('input[name="date[min]"]');
+    const maxInput = viewElement.querySelector('input[name="date[max]"]');
+    const url = new URL(window.location.href);
+    const minValue = minInput instanceof HTMLInputElement ? minInput.value : '';
+    const maxValue = maxInput instanceof HTMLInputElement ? maxInput.value : '';
+
+    if (minValue) {
+      url.searchParams.set('date[min]', minValue);
+    }
+    else {
+      url.searchParams.delete('date[min]');
+    }
+
+    if (maxValue) {
+      url.searchParams.set('date[max]', maxValue);
+    }
+    else {
+      url.searchParams.delete('date[max]');
+    }
+
+    url.searchParams.delete('page');
+    window.history.pushState({}, document.title, url.toString());
+
+    if (!refreshEditorialSearchView($view)) {
+      window.location = url.toString();
+    }
+  }
+
+  /**
+   * Handle editorial search date filter changes via Views AJAX.
+   */
+  function handleDateFilterChange(event) {
+    const input = event.currentTarget;
+
+    if (!(input instanceof HTMLInputElement)) {
+      return;
+    }
+
+    if (!input.closest('.eonext-editorial-search__date-filter')) {
+      return;
+    }
+
+    applyEditorialSearchDateFilter($(input).closest('.eonext-editorial-search'));
+  }
+
+  /**
    * Handle past events toggle via Views AJAX.
    */
   function handlePastEventsToggle(event) {
@@ -373,6 +428,10 @@
         checkbox.addEventListener('change', handlePastEventsToggle);
       });
 
+      once('editorial-search-date-filter', '.eonext-editorial-search__date-filter input[type="date"]', context).forEach((input) => {
+        input.addEventListener('change', handleDateFilterChange);
+      });
+
       once('editorial-search-popstate', 'html').forEach((root) => {
         root.addEventListener('popstate', () => {
           const $view = getEditorialSearchView();
@@ -391,6 +450,10 @@
 
           const $view = getEditorialSearchView();
           updatePastEventsToggle($view);
+
+          if ($view.length && Drupal.behaviors.editorialSearchFacets) {
+            Drupal.behaviors.editorialSearchFacets.attach($view[0]);
+          }
 
           if (!pendingEventSortUi) {
             return;
