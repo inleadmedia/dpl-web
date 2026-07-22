@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_kultur_locale
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      content_elements: content_elements
+id: eonext_kultur_page_hero
+label: 'Page hero'
+icon_uuid: null
+icon_default: null
+description: 'Full-width hero banner with image and title for kultur content pages.'
+behavior_plugins: {  }

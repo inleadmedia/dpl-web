@@ -1,0 +1,16 @@
+{#
+/**
+ * @file
+ * Full-width page hero with image overlay and title.
+ */
+#}
+<div class="ek-page-hero">
+  {% if hero_image %}
+    <img class="ek-page-hero__img" src="{{ hero_image.src }}" alt="{{ hero_image.alt|default('') }}">
+  {% endif %}
+  <div class="ek-page-hero__inner">
+    {% if heading %}
+      <h1 class="ek-page-hero__title">{{ heading }}</h1>
+    {% endif %}
+  </div>
+</div>

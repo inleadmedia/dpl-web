@@ -16,7 +16,8 @@ use Drupal\field\Entity\FieldStorageConfig;
  * Implements hook_install().
  */
 function eonext_kultur_locale_install(): void {
-  _eonext_kultur_locale_enable_paragraph_on_page();
+  _eonext_kultur_locale_enable_paragraph_on_page(LokaleConstants::PARAGRAPH_BUNDLE);
+  _eonext_kultur_locale_enable_paragraph_on_page(LokaleConstants::PAGE_HERO_BUNDLE);
 }
 
 /**
@@ -60,18 +61,18 @@ function eonext_kultur_locale_update_9001(): void {
 }
 
 /**
- * Enable the lokaler listing paragraph on page nodes.
+ * Enable a kultur locale paragraph bundle on page nodes.
  */
-function _eonext_kultur_locale_enable_paragraph_on_page(): void {
+function _eonext_kultur_locale_enable_paragraph_on_page(string $bundle): void {
   $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
   if (!$field instanceof FieldConfig) {
     return;
   }
 
   $settings = $field->getSetting('handler_settings');
-  $settings['target_bundles'][LokaleConstants::PARAGRAPH_BUNDLE] = LokaleConstants::PARAGRAPH_BUNDLE;
-  $settings['target_bundles_drag_drop'][LokaleConstants::PARAGRAPH_BUNDLE] = [
-    'weight' => 81,
+  $settings['target_bundles'][$bundle] = $bundle;
+  $settings['target_bundles_drag_drop'][$bundle] = [
+    'weight' => $bundle === LokaleConstants::PAGE_HERO_BUNDLE ? 82 : 81,
     'enabled' => TRUE,
   ];
   $field->setSetting('handler_settings', $settings);
@@ -164,4 +165,44 @@ function eonext_kultur_locale_update_9003(): void {
       \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
     }
   }
+}
+
+/**
+ * Add the page hero paragraph for kultur content pages.
+ */
+function eonext_kultur_locale_update_9004(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'paragraphs.paragraphs_type.eonext_kultur_page_hero',
+    'field.field.paragraph.eonext_kultur_page_hero.field_locale_hero_image',
+    'field.field.paragraph.eonext_kultur_page_hero.field_locale_heading',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'paragraphs.paragraphs_type.')) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  foreach ([
+    'core.entity_form_display.paragraph.eonext_kultur_page_hero.default',
+    'core.entity_view_display.paragraph.eonext_kultur_page_hero.default',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
+
+  _eonext_kultur_locale_enable_paragraph_on_page(LokaleConstants::PAGE_HERO_BUNDLE);
 }

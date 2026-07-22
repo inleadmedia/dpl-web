@@ -243,7 +243,20 @@ function eonext_kultur_preprocess_field(array &$variables): void {
   }
 
   foreach ($variables['items'] as &$item) {
-    if (($item['content']['#theme'] ?? '') !== 'eonext_kultur_locale_listing') {
+    $theme = $item['content']['#theme'] ?? '';
+
+    if ($theme === 'eonext_kultur_page_hero') {
+      $variables['page_hero'] = $item['content'];
+      $variables['has_page_hero'] = TRUE;
+      $item['page_hero'] = TRUE;
+      $item['content'] = [
+        '#paragraph' => $item['content']['#paragraph'] ?? NULL,
+        '#access' => FALSE,
+      ];
+      continue;
+    }
+
+    if ($theme !== 'eonext_kultur_locale_listing') {
       continue;
     }
 

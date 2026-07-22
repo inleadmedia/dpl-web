@@ -13,6 +13,8 @@ final class LokaleConstants {
 
   public const PARAGRAPH_BUNDLE = 'eonext_kultur_locale_listing';
 
+  public const PAGE_HERO_BUNDLE = 'eonext_kultur_page_hero';
+
   public const VIEW_ID = 'lokaler';
 
   public const VIEW_DISPLAY = 'embed_1';

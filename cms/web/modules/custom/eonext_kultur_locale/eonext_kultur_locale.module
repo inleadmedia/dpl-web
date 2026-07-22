@@ -40,7 +40,29 @@ function eonext_kultur_locale_preprocess_field(array &$variables): void {
 
   foreach ($variables['items'] as &$item) {
     $paragraph = _eonext_kultur_locale_item_paragraph($item);
-    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== LokaleConstants::PARAGRAPH_BUNDLE) {
+    if (!$paragraph instanceof ParagraphInterface) {
+      continue;
+    }
+
+    if ($paragraph->bundle() === LokaleConstants::PAGE_HERO_BUNDLE) {
+      $heading = $paragraph->hasField('field_locale_heading') && !$paragraph->get('field_locale_heading')->isEmpty()
+        ? $paragraph->get('field_locale_heading')->value : '';
+
+      $item['page_hero'] = TRUE;
+      $variables['has_page_hero'] = TRUE;
+      $item['content'] = [
+        '#theme' => 'eonext_kultur_page_hero',
+        '#paragraph' => $paragraph,
+        '#hero_image' => LokaleListingBuilder::buildHeroImage($paragraph, $heading),
+        '#heading' => $heading,
+        '#attached' => [
+          'library' => ['eonext_kultur_locale/lokale'],
+        ],
+      ];
+      continue;
+    }
+
+    if ($paragraph->bundle() !== LokaleConstants::PARAGRAPH_BUNDLE) {
       continue;
     }
 
@@ -122,6 +144,13 @@ function eonext_kultur_locale_theme(array $existing, string $type, string $theme
         'hero_image' => NULL,
       ],
       'template' => 'eonext-kultur-locale-listing-hero',
+    ],
+    'eonext_kultur_page_hero' => [
+      'variables' => [
+        'heading' => NULL,
+        'hero_image' => NULL,
+      ],
+      'template' => 'eonext-kultur-page-hero',
     ],
     'eonext_kultur_locale_row' => [
       'variables' => [

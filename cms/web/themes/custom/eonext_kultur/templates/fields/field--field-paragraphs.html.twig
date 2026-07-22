@@ -1,9 +1,13 @@
-<section {{ has_locale_listing|default(false) ? attributes : attributes.addClass('paragraphs') }}>
+<section {{ (has_locale_listing|default(false) or has_page_hero|default(false)) ? attributes : attributes.addClass('paragraphs') }}>
+  {% if page_hero %}
+    {{ page_hero }}
+  {% endif %}
   {% if locale_listing_hero %}
     {{ locale_listing_hero }}
   {% endif %}
   {% for item in items %}
-    {% if item.locale_listing|default(false) %}
+    {% if item.page_hero|default(false) %}
+    {% elseif item.locale_listing|default(false) %}
       {{ item.content }}
     {% else %}
       <div {{ item.attributes }}>

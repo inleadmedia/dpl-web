@@ -35,6 +35,7 @@ dependencies:
     - paragraphs.paragraphs_type.webform
     - paragraphs.paragraphs_type.eonext_kultur_footer_social
     - paragraphs.paragraphs_type.eonext_kultur_locale_listing
+    - paragraphs.paragraphs_type.eonext_kultur_page_hero
   module:
     - entity_reference_revisions
 id: node.page.field_paragraphs
@@ -81,6 +82,7 @@ settings:
       share_buttons: share_buttons
       eonext_kultur_footer_social: eonext_kultur_footer_social
       eonext_kultur_locale_listing: eonext_kultur_locale_listing
+      eonext_kultur_page_hero: eonext_kultur_page_hero
     negate: 0
     target_bundles_drag_drop:
       accordion:
@@ -187,6 +189,9 @@ settings:
         enabled: true
       eonext_kultur_locale_listing:
         weight: 81
+        enabled: true
+      eonext_kultur_page_hero:
+        weight: 82
         enabled: true
       simple_links:
         weight: 60

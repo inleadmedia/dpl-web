@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.eonext_kultur_page_hero.field_locale_heading
+    - field.field.paragraph.eonext_kultur_page_hero.field_locale_hero_image
+    - paragraphs.paragraphs_type.eonext_kultur_page_hero
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: paragraph.eonext_kultur_page_hero.default
+targetEntityType: paragraph
+bundle: eonext_kultur_page_hero
+mode: default
+content: {  }
+hidden:
+  field_locale_heading: true
+  field_locale_hero_image: true
