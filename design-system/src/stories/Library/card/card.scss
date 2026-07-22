@@ -51,6 +51,14 @@
     width: 33px;
     height: 23px;
   }
+
+  .arrow__body {
+    stroke: #235881;
+  }
+
+  .arrow__head {
+    fill: #235881;
+  }
 }
 
 %card-variant--default {
