@@ -13,6 +13,16 @@ use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 
 /**
+ * Implements hook_preprocess().
+ *
+ * Design system icons are bundled with the base novel theme.
+ */
+function eonext_kultur_preprocess(array &$variables): void {
+  $novel_path = \Drupal::service('extension.list.theme')->getPath('novel');
+  $variables['baseIconPath'] = '/' . $novel_path . '/assets/dpl-design-system/icons';
+}
+
+/**
  * Implements hook_preprocess_HOOK() for html.
  */
 function eonext_kultur_preprocess_html(array &$variables): void {
