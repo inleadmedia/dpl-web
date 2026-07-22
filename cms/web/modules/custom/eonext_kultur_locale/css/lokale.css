@@ -528,33 +528,25 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
   color: var(--ek-teal, #089aa7);
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > strong > a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 5rem;
-  height: 32px;
-  margin-top: 0.5rem;
-  padding: 0 1.25rem;
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child {
+  display: inline-block;
+  margin-top: 0.25rem;
   font-family: var(--ek-font-heading, inherit);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.03em;
+  line-height: 1.4;
   text-decoration: none;
-  text-transform: uppercase;
-  color: #fff;
-  background-color: var(--ek-teal, #089aa7);
-  border: 1px solid var(--ek-teal, #089aa7);
+  color: var(--ek-teal, #089aa7);
+  border-bottom: 2px solid var(--ek-teal, #089aa7);
+  padding-bottom: 2px;
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > strong > a:hover,
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > strong > a:focus-visible {
-  color: #fff;
-  background-color: #067a85;
-  border-color: #067a85;
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child:hover,
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child:focus-visible {
+  color: #067a85;
+  border-bottom-color: #067a85;
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > strong {
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child strong {
   font-weight: inherit;
 }
