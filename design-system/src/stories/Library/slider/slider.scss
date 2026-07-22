@@ -1,13 +1,13 @@
 //Overrides
 .swiper {
   max-width: 1727px;
-  @include media-query__medium("min-width"){
+  @include media-query__medium("min-width") {
     height: 353px;
   }
 
   .card--has-media {
     .card__media {
-      border: none;
+      border: none !important;
     }
   }
 }

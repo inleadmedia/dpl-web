@@ -14,6 +14,7 @@
   color: #235881;
   text-align: left;
   opacity: 1;
+  @include text-ellipsis-truncation(1);
 }
 
 .card__text {
