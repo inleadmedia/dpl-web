@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\dpl_search\DplSearchSettings;
 use Drupal\eonext_kultur_events\EventsConstants;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
@@ -406,12 +407,27 @@ function eonext_kultur_events_preprocess_event_detail(array &$variables, mixed $
  * Implements hook_preprocess_HOOK() for views_view.
  */
 function eonext_kultur_events_preprocess_views_view(array &$variables): void {
-  if (($variables['view']->id() ?? '') !== EventsConstants::VIEW_ID) {
+  $view = $variables['view'] ?? NULL;
+  if (!($view instanceof ViewExecutable)) {
     return;
   }
 
-  $variables['#attached']['library'][] = 'eonext_kultur_events/events-listing';
-  $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
+  if ($view->id() === EventsConstants::VIEW_ID) {
+    $variables['#attached']['library'][] = 'eonext_kultur_events/events-listing';
+    $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
+    return;
+  }
+
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID) {
+    return;
+  }
+
+  $variables['#attached']['library'][] = 'eonext_kultur_events/editorial-search';
+
+  if ($view->current_display === 'page') {
+    // Kultur web search does not link back to the material catalogue.
+    unset($variables['header']['description']);
+  }
 }
 
 /**

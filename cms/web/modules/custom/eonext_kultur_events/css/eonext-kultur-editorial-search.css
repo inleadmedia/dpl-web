@@ -1,0 +1,7 @@
+/* Flat CSS – do not use SCSS nesting in this file. */
+
+.eonext-editorial-search .card.card--has-media .card__media,
+.eonext-editorial-search .card.card--has-no-media .card__media {
+  border: none !important;
+  background-color: transparent;
+}
