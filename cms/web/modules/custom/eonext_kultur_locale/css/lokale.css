@@ -528,7 +528,7 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
   color: var(--ek-teal, #089aa7);
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child {
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > a:only-child:has(> strong) {
   display: inline-block;
   margin-top: 0.25rem;
   font-family: var(--ek-font-heading, inherit);
@@ -541,12 +541,12 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
   padding-bottom: 2px;
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child:hover,
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child:focus-visible {
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > a:only-child:has(> strong):hover,
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > a:only-child:has(> strong):focus-visible {
   color: #067a85;
   border-bottom-color: #067a85;
 }
 
-section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p:not(:first-child) > a:only-child strong {
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p > a:only-child:has(> strong) strong {
   font-weight: inherit;
 }
