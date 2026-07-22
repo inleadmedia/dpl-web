@@ -3,6 +3,7 @@
     'card',
     'card--' ~ variant|default('x-large'),
     has_media ? 'card--has-media' : 'card--has-no-media',
+    (event_category|default('') or event_date_display|default('')) ? 'card--event-search',
   ]
 %}
 {% set teaser_plain = '' %}
@@ -15,7 +16,7 @@
 {% endif %}
 
 <article{{ attributes.addClass(classes) }}{% if variant %} data-variant="{{ variant }}"{% endif %}>
-  <a href="{{ url }}">
+  <a href="{{ url }}" class="arrow__hover--right-small">
     <div class="card__media">
       {{ include('@novel/components/media-container.html.twig', {
         attributes: create_attribute(),
@@ -25,7 +26,9 @@
       }, false) }}
     </div>
     <div class="card__text">
-      {% if type_tag or date_tag %}
+      {% if event_category|default('') %}
+        <p class="card__category">{{ event_category }}</p>
+      {% elseif type_tag or date_tag %}
         <div class="card__tags">
           {% if type_tag %}
             <span class="card__tag card__tag--type">{{ type_tag }}</span>
@@ -36,6 +39,9 @@
         </div>
       {% endif %}
       <h3 class="card__title">{{ title }}</h3>
+      {% if event_date_display|default('') %}
+        <p class="card__event-date">{{ event_date_display }}</p>
+      {% endif %}
       {% if teaser_plain %}
         <p class="card__teaser">{{ teaser_plain }}</p>
       {% endif %}

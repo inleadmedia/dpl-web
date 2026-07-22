@@ -293,6 +293,17 @@ function _eonext_kultur_main_content_slider_field_uses_carousel(ParagraphInterfa
 }
 
 /**
+ * Whether the current request is rendering editorial search results.
+ */
+function _eonext_kultur_main_is_editorial_search_page(): bool {
+  if (eonext_editorial_search_is_active_view()) {
+    return TRUE;
+  }
+
+  return \Drupal::routeMatch()->getRouteName() === 'view.' . DplSearchSettings::EDITORIAL_VIEW_ID . '.page';
+}
+
+/**
  * Implements hook_preprocess_HOOK() for eventinstance templates.
  */
 function eonext_kultur_main_preprocess_eventinstance(array &$variables): void {
@@ -310,14 +321,27 @@ function eonext_kultur_main_preprocess_eventinstance(array &$variables): void {
  * Implements hook_preprocess_HOOK() for eventseries templates.
  */
 function eonext_kultur_main_preprocess_eventseries(array &$variables): void {
-  if (($variables['view_mode'] ?? '') !== 'hero_slide') {
+  $view_mode = $variables['view_mode'] ?? '';
+
+  if ($view_mode === 'hero_slide') {
+    $entity = $variables['eventseries'] ?? NULL;
+    if ($entity instanceof EventSeries) {
+      _eonext_kultur_main_apply_hero_slide($variables, $entity);
+    }
+    return;
+  }
+
+  if ($view_mode !== 'card' || !_eonext_kultur_main_is_editorial_search_page()) {
     return;
   }
 
   $entity = $variables['eventseries'] ?? NULL;
-  if ($entity instanceof EventSeries) {
-    _eonext_kultur_main_apply_hero_slide($variables, $entity);
+  if (!$entity instanceof EventSeries) {
+    return;
   }
+
+  _eonext_kultur_main_apply_hero_slide($variables, $entity);
+  $variables['#cache']['keys'][] = 'editorial_search_hero_slide';
 }
 
 /**

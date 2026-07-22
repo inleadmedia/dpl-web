@@ -5,3 +5,4 @@ dependencies:
     module:
       - eonext_editorial_search
 enable_editorial_search: true
+results_display: grid

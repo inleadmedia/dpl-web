@@ -1,0 +1,61 @@
+uuid: 7d4e5f6a-8b9c-0123-defa-345678901005
+langcode: en
+status: true
+dependencies:
+  config:
+    - search_api.index.content_events
+    - views.view.editorial_search
+  module:
+    - eonext_editorial_search
+    - facets
+    - search_api
+  enforced:
+    module:
+      - eonext_editorial_search
+id: editorial_is_free
+name: 'Free events'
+weight: 1
+min_count: 0
+missing: false
+missing_label: others
+url_alias: free
+facet_source_id: 'search_api:views_page__editorial_search__page'
+field_identifier: editorial_is_free
+query_operator: or
+hard_limit: 0
+exclude: false
+use_hierarchy: false
+keep_hierarchy_parents_active: false
+hierarchy:
+  type: taxonomy
+  config: {  }
+expand_hierarchy: false
+enable_parent_when_child_gets_disabled: true
+widget:
+  type: checkbox
+  config:
+    show_numbers: false
+    soft_limit: 0
+    soft_limit_settings:
+      show_less_label: 'Show less'
+      show_more_label: 'Show more'
+    show_reset_link: false
+    hide_reset_when_no_selection: false
+    reset_text: 'Show all'
+empty_behavior:
+  behavior: none
+only_visible_when_facet_source_is_visible: false
+show_only_one_result: false
+show_title: false
+processor_configs:
+  editorial_free_event_label:
+    processor_id: editorial_free_event_label
+    weights:
+      build: 20
+    settings: {  }
+  url_processor_handler:
+    processor_id: url_processor_handler
+    weights:
+      pre_query: 50
+      build: 15
+    settings: {  }

@@ -1,0 +1,17 @@
+{% if editorial_search_results_display|default('grid') == 'grid' %}
+  <ul class="eonext-editorial-search__grid-results">
+    {% for row in rows %}
+      <li class="eonext-editorial-search__grid-item">
+        {{ row.content }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <ul class="content-list">
+    {% for row in rows %}
+      <li class="content-list__item">
+        {{ row.content }}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

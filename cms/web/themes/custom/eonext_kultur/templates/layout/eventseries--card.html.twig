@@ -5,14 +5,28 @@
   {% set teaser_plain = eventseries.field_description.value %}
 {% endif %}
 
+{% if hero_slide|default(null) %}
+  {% set event_category = hero_slide.category %}
+  {% set event_date_display = hero_slide.date_display %}
+  {% set type_tag = null %}
+  {% set date_tag = null %}
+{% else %}
+  {% set event_category = null %}
+  {% set event_date_display = null %}
+  {% set type_tag = 'Event'|trans %}
+  {% set date_tag = formatted_date %}
+{% endif %}
+
 {{ include('@eonext_kultur/components/card.html.twig', {
   attributes: attributes,
   media: content.field_teaser_image,
   variant: 'x-large',
   has_media: (content.field_teaser_image.0),
   teaser_text: teaser_plain,
-  type_tag: 'Event'|trans,
-  date_tag: formatted_date,
+  type_tag: type_tag,
+  date_tag: date_tag,
+  event_category: event_category,
+  event_date_display: event_date_display,
   title: content.title,
   url: eventseries|entity_url.toString(),
   baseIconPath: baseIconPath,
