@@ -111,9 +111,10 @@ tasks:
         if [ "${SKIP_LANGUAGE_IMPORT}" == true ]; then
           echo "Skipping language import due to SKIP_LANGUAGE_IMPORT environment variable"
         else
+          mkdir -p web/sites/default/files/translations
           ${DRUSH_EXEC} locale-check
           ${DRUSH_EXEC} locale-update
-          ${DRUSH_EXEC} dpl_po:import-remote-config-po da https://danskernesdigitalebibliotek.github.io/dpl-cms/translations/da.config.po
+          ${DRUSH_EXEC} dpl_po:import-remote-config-po da https://danskernesdigitalebibliotek.github.io/dpl-web/cms/translations/da.config.po
         fi
 
   drupal:reset:
