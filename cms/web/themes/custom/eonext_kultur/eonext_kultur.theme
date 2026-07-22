@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Drupal\eonext_kultur_main\BannerSettings;
+use Drupal\eonext_kultur_main\ColorContrast;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
@@ -128,7 +129,13 @@ function _eonext_kultur_apply_nav_spot_settings(array &$variables): void {
     $variables['image_alignment'] = $element['#nav_spot_image_alignment'];
   }
   if (!empty($element['#nav_spot_background_color'])) {
-    $variables['background_color'] = $element['#nav_spot_background_color'];
+    $background_color = (string) $element['#nav_spot_background_color'];
+    $variables['background_color'] = $background_color;
+    $variables['light_background'] = ColorContrast::isLightNavSpotBackground($background_color);
+  }
+  else {
+    // Large nav spots default to white in design-system CSS when no color is set.
+    $variables['light_background'] = TRUE;
   }
 
   $variables['variant'] = 'large';
