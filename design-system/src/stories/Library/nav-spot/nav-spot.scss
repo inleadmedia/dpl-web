@@ -88,6 +88,21 @@ $_nav-spot-text-color: #fefaf1;
 
 .nav-spot {
   @extend %nav-spot--default;
+
+  &--light-background {
+    .nav-spot__title,
+    .nav-spot__subtitle,
+    .nav-spot__button-link {
+      color: $_nav-spot-button-color;
+    }
+
+    .nav-spot__button-link {
+      &:hover,
+      &:focus-visible {
+        color: $_nav-spot-button-color;
+      }
+    }
+  }
 }
 
 %nav-spot--large,

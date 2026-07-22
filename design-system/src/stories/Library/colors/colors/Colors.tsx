@@ -144,8 +144,8 @@ export const Colors = () => {
         <div key={index} className="internal-colors-container">
           <h1 className="text-header-h3">{color.colorTitle}</h1>
           <div className="internal-colors-wrapper">
-            {color.colorItems.map((colorItem, index) => (
-              <div key={index}>
+            {color.colorItems.map((colorItem, colorItemIndex) => (
+              <div key={colorItemIndex}>
                 <div
                   className={`internal-colors-box ${
                     colorItem.classNameBg || colorItem.className

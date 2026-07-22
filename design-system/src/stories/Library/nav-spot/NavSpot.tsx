@@ -2,6 +2,10 @@ import clsx from "clsx";
 import { FC, ReactNode } from "react";
 
 import MediaContainer from "../media-container/MediaContainer";
+import {
+  getPreferredTextColor,
+  parseColorToRgb,
+} from "../colors/color-contrast";
 
 type NavSpotImageAlignment = "left" | "right";
 
@@ -17,6 +21,22 @@ type NavSpotProps = {
   backgroundColor?: string;
 };
 
+const NAV_SPOT_DARK_TEXT = "#235881";
+const NAV_SPOT_LIGHT_TEXT = "#fefaf1";
+
+const isLightBackgroundColor = (backgroundColor?: string): boolean => {
+  if (!backgroundColor || !parseColorToRgb(backgroundColor)) {
+    return false;
+  }
+
+  return (
+    getPreferredTextColor(backgroundColor, {
+      dark: NAV_SPOT_DARK_TEXT,
+      light: NAV_SPOT_LIGHT_TEXT,
+    }) === NAV_SPOT_DARK_TEXT
+  );
+};
+
 const NavSpot: FC<NavSpotProps> = ({
   variant,
   title,
@@ -28,10 +48,13 @@ const NavSpot: FC<NavSpotProps> = ({
   imageAlignment = "left",
   backgroundColor,
 }) => {
+  const hasLightBackground = isLightBackgroundColor(backgroundColor);
+
   return (
     <article
       className={clsx("nav-spot", {
         "nav-spot--image-right": imageAlignment === "right",
+        "nav-spot--light-background": hasLightBackground,
       })}
       data-variant={variant}
       style={backgroundColor ? { backgroundColor } : undefined}
