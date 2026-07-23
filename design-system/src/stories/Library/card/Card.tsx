@@ -1,7 +1,7 @@
 import { FC, ReactNode } from "react";
 import clsx from "clsx";
 import MediaContainer from "../media-container/MediaContainer";
-import { ReactComponent as ArrowSmallRight } from "../Arrows/icon-arrow-ui/icon-arrow-ui-small-right.svg";
+import { ReactComponent as ArrowLargeRight } from "../Arrows/icon-arrow-ui/icon-arrow-ui-large-right.svg";
 
 type CardProps = {
   variant?: string;
@@ -45,7 +45,7 @@ const Card: FC<CardProps> = ({
             <p className="card__teaser">{placeholderText}</p>
           ) : null}
           <div className="card__arrow" aria-hidden="true">
-            <ArrowSmallRight />
+            <ArrowLargeRight />
           </div>
         </div>
       </a>

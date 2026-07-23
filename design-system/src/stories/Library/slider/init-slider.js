@@ -62,6 +62,42 @@ function disableKeyboardNavigation(swiper) {
   });
 }
 
+const SWIPER_MOBILE_BREAKPOINT = 768;
+
+// CSS uses `width: fit-content !important` on slides. Override that on mobile
+// so slidesPerView: 1 can take the full viewport width.
+function applyMobileFullWidthSlides(swiper) {
+  const isMobile = window.matchMedia(
+    `(max-width: ${SWIPER_MOBILE_BREAKPOINT - 1}px)`,
+  ).matches;
+
+  swiper.slides.forEach((slideEl) => {
+    const slideStyle = slideEl.style;
+    const card = slideEl.querySelector(".card");
+    const cardStyle = card ? card.style : null;
+
+    if (isMobile) {
+      slideStyle.setProperty("width", "100%", "important");
+      slideStyle.paddingLeft = "0";
+      slideStyle.paddingRight = "0";
+
+      if (cardStyle) {
+        cardStyle.maxWidth = "100%";
+        cardStyle.width = "100%";
+      }
+    } else {
+      slideStyle.removeProperty("width");
+      slideStyle.paddingLeft = "";
+      slideStyle.paddingRight = "";
+
+      if (cardStyle) {
+        cardStyle.maxWidth = "";
+        cardStyle.width = "";
+      }
+    }
+  });
+}
+
 let swiperInitialized = false;
 function initSwiper() {
   if (swiperInitialized) {
@@ -78,13 +114,30 @@ function initSwiper() {
     }
 
     const swiperInit = new window.Swiper(elementForCarousel, {
-      slidesPerView: "auto",
-      freeMode: true,
+      slidesPerView: 1,
+      spaceBetween: 0,
+      freeMode: false,
       centerInsufficientSlides: isCentered != null,
+      breakpoints: {
+        [SWIPER_MOBILE_BREAKPOINT]: {
+          slidesPerView: "auto",
+          freeMode: true,
+        },
+      },
       on: {
         afterInit: (swiper) => {
+          applyMobileFullWidthSlides(swiper);
+          swiper.update();
           swiperWrapperEventInit(swiper);
           disableKeyboardNavigation(swiper);
+        },
+        resize: (swiper) => {
+          applyMobileFullWidthSlides(swiper);
+          swiper.update();
+        },
+        breakpoint: (swiper) => {
+          applyMobileFullWidthSlides(swiper);
+          swiper.update();
         },
         transitionEnd: (swiper) => {
           disableKeyboardNavigation(swiper);

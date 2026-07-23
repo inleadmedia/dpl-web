@@ -14,6 +14,7 @@
   color: #235881;
   text-align: left;
   opacity: 1;
+  @include text-ellipsis-truncation(1);
 }
 
 .card__text {
@@ -38,18 +39,26 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 100px);
 }
 
 .card__arrow {
   position: absolute;
-  right: 9px;
+  right: 25px;
   bottom: -4px;
   color: #235881;
 
   svg {
     width: 33px;
     height: 23px;
+  }
+
+  .arrow__body {
+    stroke: #235881;
+  }
+
+  .arrow__head {
+    fill: #235881;
   }
 }
 
