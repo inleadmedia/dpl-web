@@ -37,6 +37,13 @@ final class ColorContrast {
   }
 
   /**
+   * Whether image-less banner text should use the light-background styling.
+   */
+  public static function isLightBannerBackground(string $backgroundColor): bool {
+    return self::isLightNavSpotBackground($backgroundColor);
+  }
+
+  /**
    * Converts a nav teaser overlay color to a translucent rgba() value.
    */
   public static function toNavTeaserOverlayRgba(string $color, float $opacity = self::NAV_TEASER_OVERLAY_OPACITY): ?string {

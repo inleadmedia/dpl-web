@@ -10,7 +10,7 @@
 {% set url = content.field_banner_link[0]['#url'].external ? content.field_banner_link[0]['#url'].uri : content.field_banner_link[0]['#url'].toString() %}
 {% set target = content.field_banner_link[0]['#url'].options.target|default('_self') %}
 
-<a href="{{ url }}" target="{{ target }}" class="banner arrow__hover--right-large {{ image_url ? 'banner--has-image' : '' }}"
+<a href="{{ url }}" target="{{ target }}" class="banner arrow__hover--right-large{{ image_url ? ' banner--has-image' : '' }}{{ not image_url and banner_light_background|default(false) ? ' banner--light-background' : '' }}"
   {% if image_url %}
     style="background-image: url('{{ image_url }}');"
   {% elseif banner_background_color|default('') %}

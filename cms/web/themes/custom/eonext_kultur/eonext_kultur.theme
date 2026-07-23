@@ -117,10 +117,16 @@ function eonext_kultur_preprocess_paragraph__banner(array &$variables): void {
     return;
   }
 
+  if (BannerSettings::hasBackgroundImage($paragraph)) {
+    return;
+  }
+
   $background_color = BannerSettings::getBackgroundColor($paragraph);
   if ($background_color !== '') {
     $variables['banner_background_color'] = $background_color;
   }
+
+  $variables['banner_light_background'] = BannerSettings::isLightBackground($paragraph);
 }
 
 /**

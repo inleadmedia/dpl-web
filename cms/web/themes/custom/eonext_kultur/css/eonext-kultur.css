@@ -523,3 +523,38 @@ h6,
     width: 100%;
   }
 }
+
+/* Image-less banner text/arrow contrast (EONEXT-320). */
+.banner:not(.banner--has-image) .banner__description,
+.banner:not(.banner--has-image) .banner__title {
+  color: var(--ek-cream, #fefaf1);
+}
+
+.banner:not(.banner--has-image) .banner__description + svg .arrow__body {
+  stroke: var(--ek-cream, #fefaf1);
+}
+
+.banner:not(.banner--has-image) .banner__description + svg .arrow__head {
+  fill: var(--ek-cream, #fefaf1);
+}
+
+.banner--light-background:not(.banner--has-image) .banner__description,
+.banner--light-background:not(.banner--has-image) .banner__title,
+.banner--light-background .banner__description,
+.banner--light-background .banner__title {
+  color: var(--ek-navy, #235881);
+}
+
+.banner--light-background:not(.banner--has-image) .banner__description + svg .arrow__body,
+.banner--light-background:not(.banner--has-image) .banner__title + svg .arrow__body,
+.banner--light-background .banner__description + svg .arrow__body,
+.banner--light-background .banner__title + svg .arrow__body {
+  stroke: var(--ek-navy, #235881);
+}
+
+.banner--light-background:not(.banner--has-image) .banner__description + svg .arrow__head,
+.banner--light-background:not(.banner--has-image) .banner__title + svg .arrow__head,
+.banner--light-background .banner__description + svg .arrow__head,
+.banner--light-background .banner__title + svg .arrow__head {
+  fill: var(--ek-navy, #235881);
+}
