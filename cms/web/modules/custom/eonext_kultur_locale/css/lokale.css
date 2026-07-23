@@ -481,17 +481,26 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
 
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p {
   margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h2 {
   margin: 0 0 1rem;
   font-family: var(--ek-font-heading, inherit);
-  font-size: 1.125rem;
+  font-size: 1.35rem;
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--ek-navy, #235881);
+}
+
+@media (min-width: 1024px) {
+  section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
 }
 
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h2:not(:first-of-type) {
