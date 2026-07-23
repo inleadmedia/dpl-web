@@ -32,8 +32,6 @@
           <div class="eonext-search-facets__container">
             <ul class="eonext-search-facets__groups">
               {{ drupal_block('facet_block:editorial_content_type') }}
-              {{ drupal_block('facet_block:editorial_screen_names') }}
-              {{ drupal_block('facet_block:editorial_is_free') }}
               {% if editorial_search_date_filter %}
                 {% set date_filter_expanded = editorial_search_date_filter_expanded|default(false) %}
                 <li class="eonext-search-facet-group eonext-editorial-search__date-filter">
@@ -61,6 +59,8 @@
                   </div>
                 </li>
               {% endif %}
+              {{ drupal_block('facet_block:editorial_is_free') }}
+              {{ drupal_block('facet_block:editorial_screen_names') }}
               {% if 'editorial_categories' not in editorial_search_hidden_facets|default([]) %}
                 {{ drupal_block('facet_block:editorial_categories') }}
               {% endif %}

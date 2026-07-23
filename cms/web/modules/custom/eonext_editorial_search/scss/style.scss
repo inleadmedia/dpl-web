@@ -383,18 +383,28 @@
   &__facet-group--free-toggle {
     .eonext-editorial-search__facet-options--toggle.eonext-search-facet-group__content {
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
       padding: 12px 16px 16px;
 
       &[hidden] {
         display: none;
       }
     }
+
+    .eonext-search-facet-group__item.eonext-editorial-search__facet-option--toggle {
+      justify-content: flex-start;
+      width: 100%;
+      padding: 0;
+
+      .eonext-checkbox {
+        flex: 0 1 auto;
+      }
+    }
   }
 
   &__facet-options--toggle {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -416,7 +426,7 @@
     .eonext-editorial-search__free-toggle {
       display: inline-flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: flex-start;
       text-decoration: none;
       color: var(--c-text-primary-black, #000);
       cursor: pointer;
