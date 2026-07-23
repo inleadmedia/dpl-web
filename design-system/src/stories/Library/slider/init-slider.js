@@ -63,12 +63,18 @@ function disableKeyboardNavigation(swiper) {
 }
 
 const SWIPER_MOBILE_BREAKPOINT = 768;
+const SWIPER_TABLET_BREAKPOINT = 1024;
+const SWIPER_SPACE_BETWEEN = 18;
 
-// CSS uses `width: fit-content !important` on slides. Override that on mobile
-// so slidesPerView: 1 can take the full viewport width.
-function applyMobileFullWidthSlides(swiper) {
+// CSS uses `width: fit-content !important` on desktop slides. Override that on
+// mobile/tablet so fixed slidesPerView can control slide width.
+function applyCustomWidthSlides(swiper) {
   const isMobile = window.matchMedia(
     `(max-width: ${SWIPER_MOBILE_BREAKPOINT - 1}px)`,
+  ).matches;
+
+  const isTablet = window.matchMedia(
+    `(min-width: ${SWIPER_MOBILE_BREAKPOINT}px) and (max-width: ${SWIPER_TABLET_BREAKPOINT - 1}px)`,
   ).matches;
 
   swiper.slides.forEach((slideEl) => {
@@ -76,10 +82,20 @@ function applyMobileFullWidthSlides(swiper) {
     const card = slideEl.querySelector(".card");
     const cardStyle = card ? card.style : null;
 
+    // Gaps are handled by Swiper `spaceBetween`, so clear CSS paddings.
+    slideStyle.paddingLeft = "0";
+    slideStyle.paddingRight = "0";
+
     if (isMobile) {
       slideStyle.setProperty("width", "100%", "important");
-      slideStyle.paddingLeft = "0";
-      slideStyle.paddingRight = "0";
+
+      if (cardStyle) {
+        cardStyle.maxWidth = "100%";
+        cardStyle.width = "100%";
+      }
+    } else if (isTablet) {
+      // Let Swiper calculate width for slidesPerView: 2 + spaceBetween.
+      slideStyle.removeProperty("width");
 
       if (cardStyle) {
         cardStyle.maxWidth = "100%";
@@ -87,8 +103,6 @@ function applyMobileFullWidthSlides(swiper) {
       }
     } else {
       slideStyle.removeProperty("width");
-      slideStyle.paddingLeft = "";
-      slideStyle.paddingRight = "";
 
       if (cardStyle) {
         cardStyle.maxWidth = "";
@@ -115,28 +129,34 @@ function initSwiper() {
 
     const swiperInit = new window.Swiper(elementForCarousel, {
       slidesPerView: 1,
-      spaceBetween: 0,
+      spaceBetween: SWIPER_SPACE_BETWEEN,
       freeMode: false,
       centerInsufficientSlides: isCentered != null,
       breakpoints: {
         [SWIPER_MOBILE_BREAKPOINT]: {
+          slidesPerView: 2,
+          spaceBetween: SWIPER_SPACE_BETWEEN,
+          freeMode: false,
+        },
+        [SWIPER_TABLET_BREAKPOINT]: {
           slidesPerView: "auto",
+          spaceBetween: SWIPER_SPACE_BETWEEN,
           freeMode: true,
         },
       },
       on: {
         afterInit: (swiper) => {
-          applyMobileFullWidthSlides(swiper);
+          applyCustomWidthSlides(swiper);
           swiper.update();
           swiperWrapperEventInit(swiper);
           disableKeyboardNavigation(swiper);
         },
         resize: (swiper) => {
-          applyMobileFullWidthSlides(swiper);
+          applyCustomWidthSlides(swiper);
           swiper.update();
         },
         breakpoint: (swiper) => {
-          applyMobileFullWidthSlides(swiper);
+          applyCustomWidthSlides(swiper);
           swiper.update();
         },
         transitionEnd: (swiper) => {

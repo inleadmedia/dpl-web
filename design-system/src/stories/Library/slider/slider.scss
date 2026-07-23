@@ -58,13 +58,14 @@
 .slider__item {
   $_card-mobile-peek: 50px;
 
-  @include media-query__small("min-width") {
+  // Desktop only: card width comes from content. Below medium Swiper controls width.
+  @include media-query__medium {
     width: fit-content !important;
   }
 
-  width: fit-content;
-  padding-left: 18px;
-  padding-right: 18px;
+  width: auto;
+  padding-left: 0;
+  padding-right: 0;
   box-sizing: border-box;
   display: flex !important;
   height: auto !important;
@@ -95,13 +96,6 @@
 
 .swiper-slide > article {
   flex: 1;
-}
-
-@media (min-width: 1200px) {
-  .slider__item {
-    padding-left: 41px;
-    padding-right: 41px;
-  }
 }
 
 .swiper:not(.swiper--centered) .slider__item {
