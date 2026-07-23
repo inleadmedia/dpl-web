@@ -31,6 +31,7 @@ import { isPeriodical, shouldShowMaterialAvailabilityText } from "./helper";
 import { first } from "lodash";
 import { hasCorrectMaterialType } from "./material-buttons/helper";
 import { ManifestationMaterialType } from "../../core/utils/types/material-type";
+import { QuickLoanText } from "./QuickLoanText";
 
 interface MaterialHeaderProps {
   wid: WorkId;
@@ -44,6 +45,7 @@ interface MaterialHeaderProps {
   isAvailable: boolean | null;
 }
 
+const withQuickLoanInfo = document.querySelector("[data-material-quick-loan-info]")?.getAttribute("data-material-quick-loan-info") === "true";
 const MaterialHeader: React.FC<MaterialHeaderProps> = ({
   work: {
     creators,
@@ -141,6 +143,7 @@ const MaterialHeader: React.FC<MaterialHeaderProps> = ({
                 setSelectedManifestations={setSelectedManifestations}
               />
             )}
+            { withQuickLoanInfo ? <QuickLoanText manifestations={ selectedManifestations } /> : null }
           </div>
           {/* The CTA buttons apparently only make sense on a global work */}
           {!isGlobalMaterial && (

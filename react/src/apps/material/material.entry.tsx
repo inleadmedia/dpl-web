@@ -237,6 +237,7 @@ export interface MaterialEntryProps
     MappArgs,
     EditionSwitchModalArgs {
   wid: WorkId;
+  isInjectionExample?: boolean;
 }
 
 /*
@@ -306,11 +307,32 @@ export interface MaterialEntryProps
   }
 */
 
-const WrappedMaterialEntry: React.FC<MaterialEntryProps> = ({ wid }) => {
+const WrappedMaterialEntry: React.FC<MaterialEntryProps> = ({ wid, isInjectionExample }) => {
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = React.useState(0);
+
   useSetSmoothScroll();
+
+  if (isInjectionExample) {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("../../components/material/QuickLoanTextInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+  }
+
   return (
     <GuardedApp app="material">
-      <Material wid={wid} />
+      <div data-current-date={ currentDate || "" }>
+        <Material wid={wid} />
+      </div>
     </GuardedApp>
   );
 };
