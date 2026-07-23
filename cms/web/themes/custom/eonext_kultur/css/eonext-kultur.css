@@ -287,10 +287,10 @@ h6,
   padding: 0;
   color: var(--ek-white);
   cursor: pointer;
-  background: rgb(35 88 129 / 45%);
+  background: transparent;
   border: 0;
   transform: translateY(-50%);
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .ek-hero-slider__nav-icon {
@@ -311,8 +311,8 @@ h6,
 
 .ek-hero-slider__nav:hover,
 .ek-hero-slider__nav:focus-visible {
-  background: rgb(35 88 129 / 65%);
-  opacity: 1;
+  background: transparent;
+  opacity: 0.85;
 }
 
 .ek-hero-slider__nav.swiper-button-disabled {
