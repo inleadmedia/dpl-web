@@ -1,0 +1,15 @@
+uuid: 5f757094-d3db-4dca-b02e-a1641fd5c676
+langcode: en
+status: true
+dependencies: {  }
+name: e_resource_landing
+label: 'E-resource landing'
+effects:
+  e2f9a63f-66e5-4734-a27c-6b0bc1ded784:
+    uuid: e2f9a63f-66e5-4734-a27c-6b0bc1ded784
+    id: image_scale_and_crop
+    weight: 1
+    data:
+      width: 452
+      height: 340
+      anchor: center-center

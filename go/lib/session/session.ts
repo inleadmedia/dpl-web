@@ -1,16 +1,18 @@
 import { add, isPast, sub } from "date-fns"
-import { IronSession, getIronSession } from "iron-session"
+import { IronSession, SessionOptions, getIronSession } from "iron-session"
 import { unstable_rethrow } from "next/navigation"
 import { NextResponse, connection } from "next/server"
 
-import { getEnv, getServerEnv } from "../config/env"
+import { getEnv, getServerEnv } from "@/lib/config/env"
+import { getBaseURL } from "@/lib/config/getBaseURL"
+
 import goConfig from "../config/goConfig"
 import { loadPatronServerSide } from "../helpers/fbs"
 import { isBuildingGoApp } from "../helpers/next-phase"
 import { userIsAnonymous } from "../helpers/user"
 import { TSessionType, TUniloginTokenSet } from "../types/session"
 
-export const getSessionOptions = async () => {
+export const getSessionOptions = (): SessionOptions => {
   const sessionSecret = getServerEnv("GO_SESSION_SECRET")
 
   return {
@@ -22,6 +24,9 @@ export const getSessionOptions = async () => {
     },
     // TODO: Decide on the session ttl.
     ttl: 60 * 60 * 24 * 7, // 1 week
+    chunking: {
+      enabled: true,
+    },
   }
 }
 
@@ -63,7 +68,7 @@ export const defaultSession: TSessionData = {
 }
 
 export async function getSession(): Promise<IronSession<TSessionData>> {
-  // If we are buikding the go app, we will use the default session to simulate an anonymous user.
+  // If we are building the go app, we will use the default session to simulate an anonymous user.
   if (isBuildingGoApp()) {
     return defaultSession as IronSession<TSessionData>
   }
@@ -142,7 +147,7 @@ export const setAdgangsplatformenUserTokenOnSession = async (
   session.adgangsplatformenUserToken = token.token
   session.expires = new Date(token.expire.timestamp * 1000)
   const cookieStore = await cookies()
-  cookieStore.set(goConfig("auth.cookie-names.session-type"), "adgansplatformen")
+  cookieStore.set(goConfig("auth.cookie-names.session-type"), "adgangsplatformen")
 }
 
 export const saveAdgangsplatformenSession = async (
@@ -290,9 +295,7 @@ export const destroySessionAndRedirectToFrontPage = async (session: IronSession<
 }
 
 export const redirectToFrontPageAndReloadSession = async () => {
-  const appUrl = new URL(getEnv("APP_URL"))
-
-  return NextResponse.redirect(`${appUrl.toString()}?reload-session=true`)
+  return NextResponse.redirect(`${getBaseURL()}?reload-session=true`)
 }
 
 export const sessionHasPKCECodeVerifier = (session: IronSession<TSessionData>) => {

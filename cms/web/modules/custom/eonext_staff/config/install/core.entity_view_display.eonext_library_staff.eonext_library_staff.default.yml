@@ -1,0 +1,85 @@
+uuid: 461ceb97-17e5-4cb6-a48c-e30421cf611d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.eonext_library_staff.eonext_library_staff.field_branch
+    - field.field.eonext_library_staff.eonext_library_staff.field_department
+    - field.field.eonext_library_staff.eonext_library_staff.field_email
+    - field.field.eonext_library_staff.eonext_library_staff.field_forename
+    - field.field.eonext_library_staff.eonext_library_staff.field_image
+    - field.field.eonext_library_staff.eonext_library_staff.field_phone
+    - field.field.eonext_library_staff.eonext_library_staff.field_position
+    - field.field.eonext_library_staff.eonext_library_staff.field_surname
+  module:
+    - eonext_staff
+id: eonext_library_staff.eonext_library_staff.default
+targetEntityType: eonext_library_staff
+bundle: eonext_library_staff
+mode: default
+content:
+  field_branch:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_department:
+    type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_email:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_forename:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_image:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_phone:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_position:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_surname:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+hidden:
+  search_api_excerpt: true

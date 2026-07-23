@@ -7,6 +7,7 @@
   box-sizing: border-box;
   border: 1px solid $color__global-tertiary-1;
   cursor: pointer;
+  height: 235px;
 
   > a {
     display: block;
@@ -14,6 +15,7 @@
     height: 100%;
     padding: $s-md;
     text-decoration: none;
+    position: relative;
 
     @include media-query__medium {
       padding: $s-xl $s-2xl;
@@ -23,6 +25,73 @@
       padding: $s-2xl $s-3xl;
     }
   }
+
+  &--has-background-image {
+    border: 0;
+
+    > a {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0;
+      aspect-ratio: 16 / 9;
+    }
+
+    .nav-teaser__title {
+      font-family: "Futura PT", sans-serif;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 25px;
+      line-height: 38px;
+      letter-spacing: 0;
+      color: #fefaf1;
+      text-align: left;
+      text-transform: uppercase;
+      opacity: 1;
+      margin-bottom: $s-xs;
+    }
+
+    .nav-teaser__teaser {
+      margin-bottom: 0;
+      color: $color__text-primary-white;
+    }
+
+    .nav-teaser > a > svg {
+      flex-shrink: 0;
+      color: $color__text-primary-white;
+    }
+  }
+}
+
+.nav-teaser__background {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  z-index: 0;
+}
+
+.nav-teaser__overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: $s-md;
+  width: 100%;
+  padding: $s-md $s-xl;
+  background-color: hsl(var(--identity-color), 0.85);
+  box-sizing: border-box;
+}
+
+.nav-teaser__overlay-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-teaser__overlay > svg {
+  display: none;
 }
 
 .nav-teaser__title {
@@ -32,5 +101,9 @@
 }
 
 .nav-teaser__subtitle {
+  margin-bottom: $s-lg;
+}
+
+.nav-teaser__teaser {
   margin-bottom: $s-lg;
 }

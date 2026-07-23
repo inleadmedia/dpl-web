@@ -1,0 +1,15 @@
+uuid: 4d1ec38d-2644-48e2-9f58-d2c639631f88
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories: {  }
+id: marketing_script
+label: 'Marketing script'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

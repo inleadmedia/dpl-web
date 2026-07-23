@@ -62,6 +62,9 @@ vars:
   CYPRESS_BASE_PORT:
     sh: docker compose port varnish 8080 2>/dev/null | cut -d ":" -f2
   CYPRESS_HOST_LOCAL: "http://localhost:{{ .CYPRESS_BASE_PORT }}"
+  CYPRESS_WIREMOCK_PORT:
+    sh: docker compose port wiremock 80 2>/dev/null | cut -d ":" -f2
+  CYPRESS_WIREMOCK_LOCAL: "http://localhost:{{ .CYPRESS_WIREMOCK_PORT }}"
 
 tasks:
   ghcr:login:
@@ -217,18 +220,6 @@ tasks:
       # Show a one-time login to the local site(s).
       - task dev:cli -- drush user-login
       - task dev:bnfcli -- drush user-login
-
-  dev:openid:configure:
-    desc: Set openid connect settings based on .env variables. And run cron.
-    cmds:
-      - task dev:cli -- ./dev-scripts/cli-set-openid-settings.sh
-      - task dev:run-cron
-
-  dev:unilogin:configure:
-    desc: Set Unilogin settings based on .env variables.
-    cmds:
-      - task dev:cli -- ./dev-scripts/cli-set-unilogin-settings.sh
-      - task dev:cache:clear:all
 
   dev:run-cron:
     desc: Run cron in the container
@@ -507,6 +498,7 @@ tasks:
       - ci:cypress:webmaster
       - ci:cypress:opening-hours
       - ci:cypress:paragraphs
+      - ci:cypress:campaigns
 
   ci:cypress:run:
     cmds:
@@ -568,9 +560,29 @@ tasks:
     env:
       SPEC_PATH: "cypress/e2e/paragraphs/*.ts"
 
+  # The campaign tests take an extraordinarly long time. To speed up the
+  # GitHub Actions, we've split these out to run in parallel.
+  ci:cypress:campaigns:
+    desc: Run Cypress tests for campaigns.
+    deps: [ci:wiremock:create-mappings]
+    cmds:
+      - task ci:cypress:run
+    env:
+      SPEC_PATH: "cypress/e2e/campaigns/*.ts"
+
+  # The events tests take an extraordinarly long time. To speed up the
+  # GitHub Actions, we've split these out to run in parallel.
+  ci:cypress:events:
+    desc: Run Cypress tests for events.
+    deps: [ci:wiremock:create-mappings]
+    cmds:
+      - task ci:cypress:run
+    env:
+      SPEC_PATH: "cypress/e2e/events/*.ts"
+
   ci:cypress:local:
     desc: Run Cypress functional tests locally
-    deps: [ci:wiremock:create-mappings]
+    deps: [ci:wiremock:create-mappings, ci:local]
     cmds:
       - yarn install --frozen-lockfile
       - task dev:cli -- drush user:password $CYPRESS_DRUPAL_USERNAME $CYPRESS_DRUPAL_PASSWORD
@@ -578,6 +590,7 @@ tasks:
     env:
       DOCKER_COMPOSE_FILES: "{{ .DOCKER_COMPOSE_FILES_CI }}"
       CYPRESS_BASE_URL: http://localhost:{{ .CYPRESS_BASE_PORT }}
+      CYPRESS_WIREMOCK_URL: "{{ .CYPRESS_WIREMOCK_LOCAL }}"
       CYPRESS_DRUPAL_USERNAME: admin
       CYPRESS_DRUPAL_PASSWORD: admin
 

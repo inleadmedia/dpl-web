@@ -1,0 +1,185 @@
+
+.eventinstance-full .hero__visual-inner {
+  position: relative;
+}
+.eventseries-full .hero__visual-inner {
+  position: relative;
+}
+
+/* Position relative for list views */
+.eonext-event-status .media-container {
+  position: relative;
+}
+
+/* Keep status tag on the left when ribbon is present */
+[data-ribbon-label] .status {
+  left: 10px !important;
+  right: auto !important;
+}
+
+/* Mobile adjustments - ensure status doesn't overlap with ribbon */
+@media (max-width: 768px) {
+  [data-ribbon-label] .status {
+    left: 5px !important;
+    right: auto !important;
+    max-width: calc(100% - 160px); /* Leave space for ribbon */
+  }
+}
+
+.ribbon {
+  width: 150px;
+  height: 150px;
+  overflow: hidden;
+  position: absolute;
+  z-index: 1;
+}
+.ribbon::before,
+.ribbon::after {
+  position: absolute;
+  z-index: -1;
+  content: '';
+  display: block;
+}
+.ribbon span {
+  position: absolute;
+  display: block;
+  width: 225px;
+  padding: 15px 0;
+  background-color: #3498db;
+  box-shadow: 0 5px 10px rgba(0,0,0,.4);
+  color: #fff;
+  font: 700 14px/1 'Lato', sans-serif;
+  text-shadow: 0 1px 1px rgba(0,0,0,.2);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* top left*/
+.ribbon-top-left::before,
+.ribbon-top-left::after {
+  border-top-color: transparent;
+  border-left-color: transparent;
+}
+.ribbon-top-left::before {
+  top: 0;
+  right: 0;
+}
+.ribbon-top-left::after {
+  bottom: 0;
+  left: 0;
+}
+.ribbon-top-left span {
+  right: -25px;
+  top: 30px;
+  transform: rotate(-45deg);
+}
+
+/* top right*/
+.ribbon-top-right {
+  top: -10px;
+  right: -10px;
+}
+.ribbon-top-right::before,
+.ribbon-top-right::after {
+  border-top-color: transparent;
+  border-right-color: transparent;
+}
+.ribbon-top-right::before {
+  top: 0;
+  left: 0;
+}
+.ribbon-top-right::after {
+  bottom: 0;
+  right: 0;
+}
+.ribbon-top-right span {
+  left: -20px;
+  top: 40px;
+  transform: rotate(45deg);
+}
+
+/* bottom left*/
+.ribbon-bottom-left {
+  bottom: -10px;
+  left: -10px;
+}
+.ribbon-bottom-left::before,
+.ribbon-bottom-left::after {
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+.ribbon-bottom-left::before {
+  bottom: 0;
+  right: 0;
+}
+.ribbon-bottom-left::after {
+  top: 0;
+  left: 0;
+}
+.ribbon-bottom-left span {
+  right: -25px;
+  bottom: 30px;
+  transform: rotate(225deg);
+}
+
+/* bottom right*/
+.ribbon-bottom-right {
+  bottom: -10px;
+  right: -10px;
+}
+.ribbon-bottom-right::before,
+.ribbon-bottom-right::after {
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+.ribbon-bottom-right::before {
+  bottom: 0;
+  left: 0;
+}
+.ribbon-bottom-right::after {
+  top: 0;
+  right: 0;
+}
+.ribbon-bottom-right span {
+  left: -25px;
+  bottom: 30px;
+  transform: rotate(-225deg);
+}
+
+/* badge */
+.badge {
+  color: white;
+  display: inline-block;
+  padding: .25em .4em;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+  white-space: nowrap;
+  border-radius: .25rem;
+  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  margin-left: 1rem;
+  vertical-align: middle;
+  margin-bottom: 5px;
+}
+
+
+/* Full event page - desktop only */
+@media (min-width: 769px) {
+  .eventinstance-full .ribbon,
+  .eventseries-full .ribbon {
+    width: 300px !important;
+    height: 300px !important;
+  }
+
+  .eventinstance-full .ribbon-top-right span,
+  .eventseries-full .ribbon-top-right span {
+    left: -50px;
+    top: 114px;
+  }
+
+  .eventinstance-full .ribbon span,
+  .eventseries-full .ribbon span {
+    width: 436px;
+  }
+}

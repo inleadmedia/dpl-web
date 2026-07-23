@@ -1,0 +1,26 @@
+---
+services:
+  _defaults:
+    autowire: true
+
+  logger.channel.eonext_editorial_search:
+    parent: logger.channel_base
+    arguments: ['eonext_editorial_search']
+
+  Drupal\eonext_editorial_search\ArticleMaterialSync:
+    arguments:
+      $logger: '@logger.channel.eonext_editorial_search'
+
+  Drupal\eonext_editorial_search\EditorialContentExtractor: ~
+
+  Drupal\eonext_editorial_search\EditorialEventSortDateResolver: ~
+
+  eonext_editorial_search.taxonomy_facet_subscriber:
+    class: Drupal\eonext_editorial_search\EventSubscriber\EditorialSearchTaxonomyFacetSubscriber
+    tags:
+      - { name: event_subscriber }
+
+  eonext_editorial_search.published_filter_subscriber:
+    class: Drupal\eonext_editorial_search\EventSubscriber\EditorialSearchPublishedFilterSubscriber
+    tags:
+      - { name: event_subscriber }

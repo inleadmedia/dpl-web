@@ -1,0 +1,4 @@
+administer eonext ext fields:
+  title: 'Extended fields settings'
+  description: 'Configure additional fields in item overview.'
+  restrict access: true

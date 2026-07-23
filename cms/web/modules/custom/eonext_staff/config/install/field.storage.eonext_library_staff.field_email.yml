@@ -1,0 +1,18 @@
+uuid: 5ade61fd-71b5-4e76-b27e-5291c3768bf5
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+id: eonext_library_staff.field_email
+field_name: field_email
+entity_type: eonext_library_staff
+type: email
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

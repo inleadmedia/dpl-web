@@ -7,6 +7,8 @@ export default {
   argTypes: {
     title: { control: "text" },
     subtitle: { control: "text" },
+    teaserText: { control: "text" },
+    backgroundImageSrc: { control: "text" },
   },
   args: {
     title: "Læseklub for børn",
@@ -23,6 +25,24 @@ export default {
 
 const Template: StoryFn<typeof NavTeaser> = (args) => <NavTeaser {...args} />;
 
-const Teaser = Template.bind({});
+export const Teaser = Template.bind({});
 
-export { Teaser };
+export const WithTeaserText = Template.bind({});
+WithTeaserText.args = {
+  teaserText:
+    "Find inspiration til læsning, aktiviteter og arrangementer for hele familien.",
+};
+
+export const WithBackgroundImage = Template.bind({});
+WithBackgroundImage.args = {
+  backgroundImageSrc: "images/campaign_cover.jpg",
+  title: "Værksteder i huset",
+};
+
+export const WithBackgroundImageAndTeaserText = Template.bind({});
+WithBackgroundImageAndTeaserText.args = {
+  backgroundImageSrc: "images/campaign_cover.jpg",
+  title: "Værksteder i huset",
+  teaserText:
+    "Deltag i kreative værksteder og oplev nye fællesskaber i biblioteket.",
+};

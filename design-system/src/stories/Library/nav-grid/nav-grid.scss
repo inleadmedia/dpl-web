@@ -3,7 +3,8 @@
 }
 
 .nav-grid--simple {
-  .nav-teaser__subtitle {
+  .nav-teaser__subtitle,
+  .nav-teaser__teaser {
     display: none;
   }
 }
@@ -31,7 +32,7 @@
 
 .nav-grid__items {
   display: grid;
-  grid-gap: 1px;
+  grid-gap: 37px;
 
   grid-template-columns: 1fr;
 

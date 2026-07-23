@@ -1,0 +1,20 @@
+uuid: 4fb85be0-cb07-495a-b4b7-857a28f2419b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eonext_library_staff.field_forename
+  module:
+    - eonext_staff
+id: eonext_library_staff.eonext_library_staff.field_forename
+field_name: field_forename
+entity_type: eonext_library_staff
+bundle: eonext_library_staff
+label: Forename
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

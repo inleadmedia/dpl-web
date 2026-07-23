@@ -1,0 +1,19 @@
+uuid: 913d3378-dc51-4153-9368-3945c8e956b4
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_opening_hours
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      content_elements: content_elements
+id: eonext_opening_hours
+label: 'EO Next Opening hours'
+icon_uuid: null
+icon_default: null
+description: 'This is a paragraph for displaying the opening hours for all branches.'
+behavior_plugins: {  }

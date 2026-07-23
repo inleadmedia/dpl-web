@@ -1,0 +1,4 @@
+administer eonext service banner:
+  title: 'Administer service banner'
+  description: 'Configure and publish the service banner.'
+  restrict access: TRUE

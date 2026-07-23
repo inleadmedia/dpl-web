@@ -1,0 +1,19 @@
+uuid: 827e2162-e2fd-4b64-bac0-adc417b24738
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+    - telephone
+id: eonext_library_staff.field_phone
+field_name: field_phone
+entity_type: eonext_library_staff
+type: telephone
+settings: {  }
+module: telephone
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

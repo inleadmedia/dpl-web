@@ -20,11 +20,12 @@ const Banner: FC<BannerType> = ({
 }) => {
   const hasImage = Boolean(imageSrc);
 
-  const style: CSSProperties | undefined = hasImage
-    ? { backgroundImage: `url(${imageSrc})` }
-    : backgroundColor
-      ? { backgroundColor }
-      : undefined;
+  let style: CSSProperties | undefined;
+  if (hasImage) {
+    style = { backgroundImage: `url(${imageSrc})` };
+  } else if (backgroundColor) {
+    style = { backgroundColor };
+  }
 
   return (
     <a
@@ -44,7 +45,6 @@ const Banner: FC<BannerType> = ({
             <h2
               className="banner__title"
               // We need to be able to replicate our WYSIWYG field in Drupal that makes it possible to underline (<u>) words.
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: title }}
             />
           )}

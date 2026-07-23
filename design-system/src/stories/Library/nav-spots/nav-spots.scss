@@ -1,5 +1,6 @@
 .nav-spots {
   @include layout-container($block-max-width__large, 0);
+  max-width: 1636px;
 }
 
 .nav-spots--count-1 {

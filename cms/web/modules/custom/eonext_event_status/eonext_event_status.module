@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * @file
+ * Provides a module to add a ribbon to event instances and series.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\eonext_mobilesearch\Mobilesearch\DTO\MobilesearchEntityInterface;
+
+
+/**
+ * Implements hook_preprocess_eventinstance().
+ */
+function eonext_event_status_preprocess_eventinstance(array &$variables) {
+
+  // Get the event instance from the variables.
+  $eventInstance = $variables['elements']['#eventinstance'];
+
+  $ribbon = \Drupal::service('eonext_event_status.ribbon')
+    ->getRibbon($eventInstance->get('eventseries_id')->entity, $eventInstance);
+
+  if (!empty($ribbon)) {
+    eonext_event_status_add_ribbon($variables, $ribbon['text'], $ribbon['color']);
+  }
+}
+
+/**
+ * Implements hook_preprocess_eventseries().
+ */
+function eonext_event_status_preprocess_eventseries(array &$variables) {
+
+  $ribbon = \Drupal::service('eonext_event_status.ribbon')
+    ->getRibbon($variables['elements']['#eventseries']);
+
+  if (!empty($ribbon)) {
+    eonext_event_status_add_ribbon($variables, $ribbon['text'], $ribbon['color']);
+  }
+}
+
+/**
+ * Implements hook_mobilesearch_push_alter().
+ */
+function eonext_event_status_mobilesearch_push_alter(MobilesearchEntityInterface $payload, EntityInterface $entity): void {
+
+  if ($entity->getEntityTypeId() === 'eventinstance') {
+    $fields = $payload->getFields();
+
+    $ribbon = \Drupal::service('eonext_event_status.ribbon')
+      ->getRibbon($entity->get('eventseries_id')->entity, $entity);
+
+    if (!empty($ribbon)) {
+
+      $fields['field_ding_event_status_label'] = [
+        'name' => 'Label',
+        'value' => $ribbon['text'],
+        'attr' => [],
+      ];
+
+      $fields['field_ding_event_status_color'] = [
+        'name' => 'Color',
+        'value' => $ribbon['color'],
+        'attr' => [],
+      ];
+
+      $payload->setFields($fields);
+    }
+  }
+
+}
+
+/**
+ * Add a ribbon to the event instance or series.
+ *
+ * @param array $variables
+ *   The variables for the event instance or series.
+ * @param string $ribbonText
+ *   The text to display on the ribbon.
+ * @param string $ribbonColor
+ *   The color of the ribbon.
+ */
+function eonext_event_status_add_ribbon(array &$variables, $ribbonText, $ribbonColor) {
+
+  if (empty($ribbonText)) {
+    return;
+  }
+
+  $variables['attributes']['class'][] = 'eonext-event-status';
+  $variables['attributes']['data-ribbon-label'] = $ribbonText;
+  // Default to black if no color is set.
+  $variables['attributes']['data-ribbon-color'] = $ribbonColor;
+  // Add the library for the event status.
+  $variables['#attached']['library'][] = 'eonext_event_status/event-status';
+}
+
+/**
+ * Implements hook_rest_resource_alter().
+ */
+function eonext_event_status_rest_resource_alter(&$definitions) {
+
+  if (isset($definitions['event'])) {
+    $definitions['event']['class'] = 'Drupal\\eonext_event_status\\Plugin\\rest\\resource\\EventResource';
+  }
+
+  if (isset($definitions['events'])) {
+    $definitions['events']['class'] = 'Drupal\\eonext_event_status\\Plugin\\rest\\resource\\EventsResource';
+  }
+}

@@ -1,0 +1,6 @@
+name: EO Next Extended Fields
+description: 'Enrich items with custom data fields.'
+type: module
+core_version_requirement: ^10
+package: 'EO next'
+configure: eonext_ext_fields.settings

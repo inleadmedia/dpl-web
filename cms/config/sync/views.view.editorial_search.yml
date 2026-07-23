@@ -254,7 +254,6 @@ display:
             'entity:node':
               ':default': list_teaser
               article: list_teaser
-              go_article: list_teaser
               go_category: list_teaser
               go_page: list_teaser
               page: list_teaser

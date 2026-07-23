@@ -1,0 +1,6 @@
+eonext_branch_opening_hours.node_bare:
+  path: "/node/{node}/opening-hours-bare"
+  defaults:
+    _controller: '\Drupal\eonext_branch_opening_hours\Controller\BareOpeningHoursEditorController::content'
+  requirements:
+    _custom_access: '\Drupal\eonext_branch_opening_hours\Controller\BareOpeningHoursEditorController::access'

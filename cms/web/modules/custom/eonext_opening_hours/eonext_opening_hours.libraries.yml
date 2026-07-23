@@ -1,0 +1,4 @@
+general:
+  css:
+    theme:
+      css/eonext_opening_hours.css: {}

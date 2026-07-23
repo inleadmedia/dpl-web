@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * BIBDK Subject Hierarchy logic.
+ */
+
+use Drupal\eonext_bibdk_sh\Form\BibdkSettingsForm;
+
+/**
+ * Implements hook_cron().
+ */
+function eonext_bibdk_sh_cron() {
+  $request_time = \Drupal::time()->getCurrentTime();
+
+  $config = \Drupal::configFactory()->get(BibdkSettingsForm::CONFIG_ID);
+  $threshold = $config->get('cron_interval') * 24 * 60 * 60;
+
+  /** @var \Drupal\Core\State\State $state_manager */
+  $state_manager = \Drupal::service('state');
+
+  /** @var \Drupal\eonext_bibdk_sh\Services\BibdkMetadataFetcher $fetcher_service */
+  $fetcher_service = \Drupal::service('eonext.bibdk_sh.metadata');
+
+  $cron_last = $state_manager->get('eonext_bibdk_sh_cron_last');
+  if (!$cron_last || $request_time > ($cron_last + $threshold) || !$fetcher_service->bibdkHierarchyFileExists()) {
+    $fetcher_service->getBibdkMetadata();
+
+    $state_manager->set('eonext_bibdk_sh_cron_last', $request_time);
+  }
+}

@@ -408,6 +408,30 @@ class GeneralSettingsForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
+    $form['use_lms_user_api'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Use LMS user API', [], ['context' => 'eonext']),
+      '#default_value' => $config->get('use_lms_user_api') ?? FALSE,
+    ];
+
+    $form['show_search_branch_selection'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show branch selection on searchbox', [], ['context' => 'eonext']),
+      '#default_value' => $config->get('show_search_branch_selection') ?? FALSE,
+    ];
+
+    $form['show_cicero_lms_search_sorting'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show search sorting for Cicero LMS consumer', [], ['context' => 'eonext']),
+      '#default_value' => $config->get('show_cicero_lms_search_sorting') ?? FALSE,
+    ];
+
+    $form['search_lazy_types_loading'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable search lazy loading (search optimization)', [], ['context' => 'eonext']),
+      '#default_value' => $config->get('search_lazy_types_loading') ?? FALSE,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -472,6 +496,10 @@ class GeneralSettingsForm extends ConfigFormBase {
       ->set('search_infobox_content', $form_state->getValue('search_infobox_content'))
       ->set('search_infobox_button_label', $form_state->getValue('search_infobox_button_label'))
       ->set('search_infobox_button_url', $form_state->getValue('search_infobox_button_url'))
+      ->set('use_lms_user_api', $form_state->getValue('use_lms_user_api'))
+      ->set('show_search_branch_selection', $form_state->getValue('show_search_branch_selection'))
+      ->set('show_cicero_lms_search_sorting', $form_state->getValue('show_cicero_lms_search_sorting'))
+      ->set('search_lazy_types_loading', $form_state->getValue('search_lazy_types_loading'))
       ->save();
 
     $this->branchSettings->setExcludedAvailabilityBranches(array_filter($form_state->getValue('availability')));
