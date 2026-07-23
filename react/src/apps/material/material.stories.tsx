@@ -901,7 +901,7 @@ const meta: Meta<typeof MaterialEntry> = {
     searchUrl: "/search",
     materialUrl: "/work/:workid",
     advancedSearchUrl: "/advancedsearch",
-    wid: "work-of:870970-basis:141399357",
+    wid: "work-of:870970-basis:140058203",
     agencyIdConfig: "710100",
     localSubjectsAgencyIdsConfig: "",
     smsNotificationsForReservationsEnabledConfig: "1",

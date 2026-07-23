@@ -322,7 +322,7 @@ const WrappedMaterialEntry: React.FC<MaterialEntryProps> = ({ wid, isInjectionEx
       }
 
       // @ts-ignore-next-line
-      import("./KviklanAvailabilityCheckInjection.jsx").then(() => {
+      import("../../components/material/QuickLoanTextInjection.jsx").then(() => {
         setCurrentDate(Date.now());
       });
     }, []);
