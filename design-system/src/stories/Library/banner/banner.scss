@@ -13,7 +13,11 @@ $_banner-height-medium: 810px;
   text-decoration: none;
   box-sizing: border-box;
   background-color: $color__global-secondary;
-  min-height: $_banner-height-small;
+  height: 353px;
+
+  @include media-query__medium ("min-width") {
+    max-width: 1636px;
+  }
 
   &--has-image {
     background-repeat: no-repeat;
@@ -21,10 +25,6 @@ $_banner-height-medium: 810px;
     background-size: cover;
     height: 100%;
     width: 100%;
-  }
-
-  @include media-query__small {
-    min-height: $_banner-height-medium;
   }
 }
 
