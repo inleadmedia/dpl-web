@@ -9,6 +9,7 @@ export default {
     subtitle: { control: "text" },
     teaserText: { control: "text" },
     backgroundImageSrc: { control: "text" },
+    overlayBackgroundColor: { control: "color" },
   },
   args: {
     title: "Læseklub for børn",
@@ -45,4 +46,22 @@ WithBackgroundImageAndTeaserText.args = {
   title: "Værksteder i huset",
   teaserText:
     "Deltag i kreative værksteder og oplev nye fællesskaber i biblioteket.",
+};
+
+export const WithCustomOverlayColor = Template.bind({});
+WithCustomOverlayColor.args = {
+  backgroundImageSrc: "images/campaign_cover.jpg",
+  title: "Værksteder i huset",
+  teaserText:
+    "Deltag i kreative værksteder og oplev nye fællesskaber i biblioteket.",
+  overlayBackgroundColor: "#235881",
+};
+
+export const WithLightOverlayColor = Template.bind({});
+WithLightOverlayColor.args = {
+  backgroundImageSrc: "images/campaign_cover.jpg",
+  title: "Værksteder i huset",
+  teaserText:
+    "Deltag i kreative værksteder og oplev nye fællesskaber i biblioteket.",
+  overlayBackgroundColor: "#FEFAF1",
 };
