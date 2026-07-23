@@ -56,6 +56,12 @@ NoImageCustomColor.args = {
   backgroundColor: "#235881",
 };
 
+export const NoImageLightBackground = Template.bind({});
+NoImageLightBackground.args = {
+  imageSrc: undefined,
+  backgroundColor: "#FEFAF1",
+};
+
 export const NoImageOnlyTitle = Template.bind({});
 NoImageOnlyTitle.args = {
   title: "Title <u>uden</u> billede",
