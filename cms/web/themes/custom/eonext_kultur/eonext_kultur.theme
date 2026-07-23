@@ -90,12 +90,21 @@ function _eonext_kultur_apply_nav_teaser_variables(array &$variables, EntityInte
     return;
   }
 
+  $element = $variables['elements'] ?? [];
+
   $variables['nav_teaser_title'] = $nav_teaser['title'] ?? '';
   $variables['nav_teaser_subtitle'] = $nav_teaser['subtitle'] ?? '';
   $variables['nav_teaser_teaser_text'] = $nav_teaser['teaser_text'] ?? '';
   $variables['nav_teaser_background_image_url'] = $nav_teaser['background_image_url'] ?? '';
   if (!empty($nav_teaser['url'])) {
     $variables['nav_teaser_url'] = $nav_teaser['url'];
+  }
+
+  if (!empty($element['#nav_teaser_overlay_background_color'])) {
+    $overlay_color = (string) $element['#nav_teaser_overlay_background_color'];
+    $variables['nav_teaser_overlay_background_color'] = $overlay_color;
+    $variables['nav_teaser_overlay_background_rgba'] = ColorContrast::toNavTeaserOverlayRgba($overlay_color);
+    $variables['light_background'] = ColorContrast::isLightNavTeaserBackground($overlay_color);
   }
 }
 

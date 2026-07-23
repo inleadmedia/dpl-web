@@ -241,6 +241,7 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
     && $paragraph->bundle() === 'nav_grid_manual') {
     $variables['theme_hook_suggestions'][] = 'field__paragraph__field_content_references__nav_grid_manual';
     $variables['show_subtitles'] = TRUE;
+    _eonext_kultur_main_apply_nav_grid_overlay_color($variables, $paragraph);
     $variables['#cache']['tags'] = array_merge(
       $variables['#cache']['tags'] ?? [],
       $paragraph->getCacheTags()
@@ -290,6 +291,31 @@ function _eonext_kultur_main_content_slider_field_uses_carousel(ParagraphInterfa
   }
 
   return _eonext_kultur_main_content_slider_uses_carousel($paragraph);
+}
+
+/**
+ * Passes the nav grid overlay color to each referenced content render array.
+ *
+ * @param mixed[] $variables
+ *   Field preprocess variables.
+ */
+function _eonext_kultur_main_apply_nav_grid_overlay_color(array &$variables, ParagraphInterface $paragraph): void {
+  if (!$paragraph->hasField('field_nav_grid_overlay_color')
+    || $paragraph->get('field_nav_grid_overlay_color')->isEmpty()) {
+    return;
+  }
+
+  $overlay_color = $paragraph->get('field_nav_grid_overlay_color')->first()->color ?? '';
+  if (!is_string($overlay_color) || $overlay_color === '') {
+    return;
+  }
+
+  foreach ($variables['items'] as &$item) {
+    if (!isset($item['content']) || !is_array($item['content'])) {
+      continue;
+    }
+    $item['content']['#nav_teaser_overlay_background_color'] = $overlay_color;
+  }
 }
 
 /**

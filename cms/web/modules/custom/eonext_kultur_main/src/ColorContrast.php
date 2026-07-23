@@ -13,6 +13,8 @@ final class ColorContrast {
 
   private const NAV_SPOT_LIGHT_TEXT = '#fefaf1';
 
+  private const NAV_TEASER_OVERLAY_OPACITY = 0.3;
+
   /**
    * Whether nav spot text should use the light-background styling.
    */
@@ -25,6 +27,33 @@ final class ColorContrast {
       'dark' => self::NAV_SPOT_DARK_TEXT,
       'light' => self::NAV_SPOT_LIGHT_TEXT,
     ]) === self::NAV_SPOT_DARK_TEXT;
+  }
+
+  /**
+   * Whether nav teaser overlay text should use the light-background styling.
+   */
+  public static function isLightNavTeaserBackground(string $backgroundColor): bool {
+    return self::isLightNavSpotBackground($backgroundColor);
+  }
+
+  /**
+   * Converts a nav teaser overlay color to a translucent rgba() value.
+   */
+  public static function toNavTeaserOverlayRgba(string $color, float $opacity = self::NAV_TEASER_OVERLAY_OPACITY): ?string {
+    $rgb = self::parseColorToRgb($color);
+    if ($rgb === NULL) {
+      return NULL;
+    }
+
+    $opacity = max(0.0, min(1.0, $opacity));
+
+    return sprintf(
+      'rgba(%d, %d, %d, %s)',
+      $rgb['r'],
+      $rgb['g'],
+      $rgb['b'],
+      rtrim(rtrim(sprintf('%.2f', $opacity), '0'), '.') ?: '0'
+    );
   }
 
   /**

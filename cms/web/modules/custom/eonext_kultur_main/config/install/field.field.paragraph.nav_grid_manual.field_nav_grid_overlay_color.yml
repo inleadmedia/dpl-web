@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_nav_grid_overlay_color
+    - paragraphs.paragraphs_type.nav_grid_manual
+  module:
+    - color_field
+id: paragraph.nav_grid_manual.field_nav_grid_overlay_color
+field_name: field_nav_grid_overlay_color
+entity_type: paragraph
+bundle: nav_grid_manual
+label: 'Overlay color'
+description: 'Overlay background color for all nav grid windows. Title and teaser text come from each referenced content item.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  opacity: 0
+field_type: color_field_type

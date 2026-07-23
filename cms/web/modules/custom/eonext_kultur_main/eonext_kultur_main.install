@@ -49,6 +49,7 @@ function _eonext_kultur_main_enable_paragraph_on_page(): void {
 function _eonext_kultur_main_configure_paragraph_form_displays(): void {
   _eonext_kultur_main_configure_banner_form_display();
   _eonext_kultur_main_configure_nav_spots_form_display();
+  _eonext_kultur_main_configure_nav_grid_form_display();
 }
 
 /**
@@ -108,6 +109,31 @@ function _eonext_kultur_main_configure_nav_spots_form_display(): void {
   $form_display
     ->setComponent('field_nav_spot_background_color', _eonext_kultur_main_background_color_widget(3))
     ->save();
+}
+
+/**
+ * Wire nav grid overlay color into the paragraph edit form.
+ */
+function _eonext_kultur_main_configure_nav_grid_form_display(): void {
+  if (!FieldConfig::loadByName('paragraph', 'nav_grid_manual', 'field_nav_grid_overlay_color')) {
+    return;
+  }
+
+  $form_display = EntityFormDisplay::load('paragraph.nav_grid_manual.default');
+  if (!$form_display instanceof EntityFormDisplay) {
+    return;
+  }
+
+  $form_display
+    ->setComponent('field_nav_grid_overlay_color', _eonext_kultur_main_background_color_widget(3))
+    ->save();
+
+  $view_display = EntityViewDisplay::load('paragraph.nav_grid_manual.default');
+  if ($view_display instanceof EntityViewDisplay) {
+    $view_display
+      ->removeComponent('field_nav_grid_overlay_color')
+      ->save();
+  }
 }
 
 /**
@@ -442,4 +468,143 @@ function _eonext_kultur_main_remove_nav_grid_display_mode_field(): string {
   }
 
   return implode(' ', $messages);
+}
+
+/**
+ * Add per-window nav teaser override fields to nav grid paragraphs (EONEXT-321).
+ */
+function eonext_kultur_main_update_9022(): string {
+  _eonext_kultur_main_ensure_nav_grid_teaser_override_fields();
+  _eonext_kultur_main_configure_nav_grid_form_display();
+
+  return 'Nav grid window title, teaser text, and overlay color fields are available.';
+}
+
+/**
+ * Replace per-window nav grid fields with one shared overlay color (EONEXT-321).
+ */
+function eonext_kultur_main_update_9023(): string {
+  return _eonext_kultur_main_migrate_nav_grid_overlay_color_field();
+}
+
+/**
+ * Creates nav grid per-window override fields from module install config.
+ */
+function _eonext_kultur_main_ensure_nav_grid_teaser_override_fields(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_nav_teaser_title',
+    'field.storage.paragraph.field_nav_teaser_teaser_text',
+    'field.storage.paragraph.field_nav_teaser_overlay_color',
+    'field.field.paragraph.nav_grid_manual.field_nav_teaser_title',
+    'field.field.paragraph.nav_grid_manual.field_nav_teaser_teaser_text',
+    'field.field.paragraph.nav_grid_manual.field_nav_teaser_overlay_color',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+}
+
+/**
+ * Migrates legacy per-window nav grid fields to one shared overlay color field.
+ */
+function _eonext_kultur_main_migrate_nav_grid_overlay_color_field(): string {
+  $messages = [];
+  $saved_colors = [];
+
+  if (FieldConfig::loadByName('paragraph', 'nav_grid_manual', 'field_nav_teaser_overlay_color')) {
+    $paragraphs = \Drupal::entityTypeManager()
+      ->getStorage('paragraph')
+      ->loadByProperties(['type' => 'nav_grid_manual']);
+    foreach ($paragraphs as $paragraph) {
+      if (!$paragraph instanceof ParagraphInterface || $paragraph->get('field_nav_teaser_overlay_color')->isEmpty()) {
+        continue;
+      }
+      $color = $paragraph->get('field_nav_teaser_overlay_color')->first()->color ?? '';
+      if (is_string($color) && $color !== '') {
+        $saved_colors[$paragraph->id()] = $color;
+      }
+    }
+  }
+
+  _eonext_kultur_main_ensure_nav_grid_overlay_color_field();
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  if ($saved_colors !== [] && FieldConfig::loadByName('paragraph', 'nav_grid_manual', 'field_nav_grid_overlay_color')) {
+    $paragraphs = \Drupal::entityTypeManager()->getStorage('paragraph')->loadMultiple(array_keys($saved_colors));
+    foreach ($paragraphs as $paragraph) {
+      if (!$paragraph instanceof ParagraphInterface) {
+        continue;
+      }
+      $paragraph->set('field_nav_grid_overlay_color', ['color' => $saved_colors[$paragraph->id()]]);
+      $paragraph->save();
+    }
+    $messages[] = 'Migrated overlay colors from legacy per-window fields.';
+  }
+
+  foreach ([
+    'field_nav_teaser_title',
+    'field_nav_teaser_teaser_text',
+    'field_nav_teaser_overlay_color',
+  ] as $field_name) {
+    $field = FieldConfig::loadByName('paragraph', 'nav_grid_manual', $field_name);
+    if ($field instanceof FieldConfig) {
+      $field->delete();
+      $messages[] = "Deleted {$field_name}.";
+    }
+
+    $storage = FieldStorageConfig::loadByName('paragraph', $field_name);
+    if ($storage instanceof FieldStorageConfig) {
+      $storage->delete();
+    }
+  }
+
+  _eonext_kultur_main_configure_nav_grid_form_display();
+  $messages[] = 'Nav grid now uses one shared overlay color field for all windows.';
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Creates the shared nav grid overlay color field from module install config.
+ */
+function _eonext_kultur_main_ensure_nav_grid_overlay_color_field(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_nav_grid_overlay_color',
+    'field.field.paragraph.nav_grid_manual.field_nav_grid_overlay_color',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
 }

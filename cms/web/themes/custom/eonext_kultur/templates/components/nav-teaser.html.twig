@@ -1,11 +1,18 @@
 {% set overlay_teaser = teaser_text|default('') ?: subtitle|default('') %}
+{%
+  set classes = [
+    'nav-teaser',
+    'nav-teaser--has-background-image',
+    light_background|default(false) ? 'nav-teaser--light-background',
+  ]
+%}
 
-<article{{ attributes.addClass('nav-teaser', 'nav-teaser--has-background-image') }}>
+<article{{ attributes.addClass(classes) }}>
   <a href="{{ url }}">
     {% if background_image_url|default('') %}
       <div class="nav-teaser__background" style="background-image: url('{{ background_image_url }}');" aria-hidden="true"></div>
     {% endif %}
-    <div class="nav-teaser__overlay">
+    <div class="nav-teaser__overlay"{% if overlay_background_rgba|default('') %} style="background-color: {{ overlay_background_rgba }};"{% endif %}>
       <div class="nav-teaser__overlay-content">
         <h3 class="nav-teaser__title">{{ title }}</h3>
         {% if overlay_teaser %}
