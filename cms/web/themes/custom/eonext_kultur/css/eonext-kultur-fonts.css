@@ -1,0 +1,28 @@
+/**
+ * Self-hosted Futura PT for kulturnat typography.
+ * Open Sans is loaded via Google Fonts in eonext_kultur.libraries.yml.
+ */
+
+@font-face {
+  font-display: swap;
+  font-family: "Futura PT";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/futura-pt-book.otf") format("opentype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Futura PT";
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/futura-pt-medium.otf") format("opentype");
+}
+
+@font-face {
+  font-display: swap;
+  font-family: "Futura PT";
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/futura-pt-medium.otf") format("opentype");
+}

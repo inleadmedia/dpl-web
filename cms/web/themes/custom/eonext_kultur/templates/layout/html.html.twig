@@ -1,0 +1,32 @@
+{#
+/**
+ * @file
+ * Kultur theme override: preload kulturnat fonts instead of default DPL stack.
+ */
+#}
+{%
+  set body_classes = [
+    logged_in ? 'user-logged-in',
+  ]
+%}
+<!DOCTYPE html>
+<html{{ html_attributes }}>
+    <head>
+    <head-placeholder token="{{ placeholder_token }}">
+    <title>{{ head_title|safe_join(' | ') }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="/themes/custom/eonext_kultur/fonts/futura-pt-book.otf" as="font" type="font/otf" crossorigin="anonymous"/>
+    <css-placeholder token="{{ placeholder_token }}">
+    <js-placeholder token="{{ placeholder_token }}">
+  </head>
+  <body{{ attributes.addClass(body_classes) }}>
+    <a href="#main-content" class="visually-hidden focusable">
+      {{ 'Skip to main content'|t }}
+    </a>
+    {{ page_top }}
+    {{ page }}
+    {{ page_bottom }}
+    <js-bottom-placeholder token="{{ placeholder_token }}">
+  </body>
+</html>

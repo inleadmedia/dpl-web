@@ -9,17 +9,33 @@
   --ek-cream: #fefaf1;
   --ek-white: #fff;
   --ek-font-body: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --ek-font-heading: "Futura PT", "Futura", "Century Gothic", "Trebuchet MS", "Open Sans", sans-serif;
+  --ek-font-heading: "Futura PT", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
   --font-body: var(--ek-font-body);
 }
 
-/* Body copy — Open Sans is active now. */
-body,
-.text-body-large,
-.text-body-medium-regular,
-.text-body-medium-medium,
-.text-body-small-regular,
-.text-body-small-medium {
+/* Global typography — Open Sans body, Futura PT headings. */
+body {
+  font-family: var(--ek-font-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[class*="text-header"] {
+  font-family: var(--ek-font-heading) !important;
+}
+
+[class*="text-body"],
+[class*="text-button"],
+[class*="text-links"],
+[class*="text-tags"],
+[class*="text-label"],
+[class*="text-small-caption"],
+.text-subtitle,
+.rich-text {
   font-family: var(--ek-font-body) !important;
 }
 
@@ -48,8 +64,7 @@ body,
   height: auto;
 }
 
-/* Headings — Futura PT when the Adobe Fonts kit is added; Open Sans until then. */
-[class*="text-header"],
+/* Component titles compiled with the default DPL title stack (Lora). */
 .article-header__title,
 .campaign__title,
 .event-description__title,
@@ -59,7 +74,9 @@ body,
 .list-reservation__header,
 .list-materials__content__header,
 .infomedia-headline,
-.infomedia-hedline {
+.infomedia-hedline,
+.card-list-item__title,
+.nav-spot__title {
   font-family: var(--ek-font-heading) !important;
 }
 
@@ -270,10 +287,10 @@ body,
   padding: 0;
   color: var(--ek-white);
   cursor: pointer;
-  background: rgb(35 88 129 / 45%);
+  background: transparent;
   border: 0;
   transform: translateY(-50%);
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .ek-hero-slider__nav-icon {
@@ -294,8 +311,8 @@ body,
 
 .ek-hero-slider__nav:hover,
 .ek-hero-slider__nav:focus-visible {
-  background: rgb(35 88 129 / 65%);
-  opacity: 1;
+  background: transparent;
+  opacity: 0.85;
 }
 
 .ek-hero-slider__nav.swiper-button-disabled {

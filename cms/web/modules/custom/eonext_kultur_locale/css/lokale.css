@@ -150,11 +150,11 @@ section:has(.ek-lokaler-listing) .paragraphs__item--text_body .rich-text p:last-
   color: var(--ek-white, #fff);
   cursor: pointer;
   appearance: none;
-  background: rgb(35 88 129 / 45%);
+  background: transparent;
   border: 0;
   box-shadow: none;
   transform: translateY(-50%);
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 .ek-lokale-carousel__nav-icon {
@@ -182,8 +182,8 @@ section:has(.ek-lokaler-listing) .paragraphs__item--text_body .rich-text p:last-
 .ek-lokale-carousel__nav:hover,
 .ek-lokale-carousel__nav:focus-visible {
   color: var(--ek-white, #fff);
-  background: rgb(35 88 129 / 65%);
-  opacity: 1;
+  background: transparent;
+  opacity: 0.85;
 }
 
 @media (max-width: 767.98px) {
