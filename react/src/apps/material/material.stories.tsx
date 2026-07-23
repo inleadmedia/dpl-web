@@ -1384,3 +1384,12 @@ export const ContentsRaw: Story = {
     wid: "work-of:150086-netmusik:00795041726629"
   }
 };
+
+export const KviklanAvailability: Story = {
+  name: "Kviklan availability Inlead injection",
+  args: {
+    ...Default.args,
+    wid: "work-of:870970-basis:140058203",
+    isInjectionExample: true
+  }
+};

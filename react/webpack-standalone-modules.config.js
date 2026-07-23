@@ -31,7 +31,8 @@ module.exports = (_env, argv) => {
   return {
     entry: {
       "search-result-autosuggest-editorial-injection": "./src/apps/search-result/SearchResultAutosuggestEditorialInjection.jsx",
-      "search-header-autosuggest-editorial-injection": "./src/apps/search-header/SearchHeaderAutosuggestEditorialInjection.jsx"
+      "search-header-autosuggest-editorial-injection": "./src/apps/search-header/SearchHeaderAutosuggestEditorialInjection.jsx",
+      "kviklan-availability-check-injection": "./src/apps/material/KviklanAvailabilityCheckInjection.jsx"
     },
     output: {
       filename: "[name].js",
