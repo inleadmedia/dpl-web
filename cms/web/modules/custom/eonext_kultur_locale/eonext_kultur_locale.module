@@ -163,6 +163,7 @@ function eonext_kultur_locale_theme(array $existing, string $type, string $theme
         'booking_mode' => 'book',
         'booking_url' => NULL,
         'terms_url' => NULL,
+        'terms_text' => NULL,
         'contact_url' => NULL,
         'contact_text' => NULL,
       ],

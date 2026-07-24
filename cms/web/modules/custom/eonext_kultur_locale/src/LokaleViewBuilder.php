@@ -75,6 +75,7 @@ final class LokaleViewBuilder {
         ? $node->get('field_booking_mode')->value : 'book',
       'booking_url' => $booking['url'],
       'terms_url' => $terms['url'],
+      'terms_text' => $terms['title'] ?: (string) t('Bookingbetingelser'),
       'contact_url' => $contact['url'],
       'contact_text' => $contact['title'] ?: (string) t('Mere info om lån og kontakt'),
     ];
