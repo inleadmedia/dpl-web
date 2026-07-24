@@ -651,6 +651,29 @@ function eonext_editorial_search_ensure_event_facets(): string {
 }
 
 /**
+ * Removes the orphan "all" display created by older install hooks.
+ *
+ * @param array<string, mixed> $display
+ *   The editorial search view display configuration.
+ *
+ * @return bool
+ *   TRUE when an orphan display was removed.
+ */
+function _eonext_editorial_search_remove_orphan_all_display(array &$display): bool {
+  if (!isset($display['all'])) {
+    return FALSE;
+  }
+
+  if (!empty($display['all']['display_plugin'])) {
+    return FALSE;
+  }
+
+  unset($display['all']);
+
+  return TRUE;
+}
+
+/**
  * Configures the editorial search view for event filters and AJAX facets.
  */
 function eonext_editorial_search_configure_editorial_search_view(): string {
@@ -789,10 +812,7 @@ function eonext_editorial_search_configure_editorial_search_view(): string {
   }
   $display[$page_display_id]['cache_metadata']['tags'] = $cache_tags;
 
-  // Older versions mistakenly wrote cache tags to a non-existent "all" display.
-  if (isset($display['all']) && empty($display['all']['display_plugin'])) {
-    unset($display['all']);
-  }
+  _eonext_editorial_search_remove_orphan_all_display($display);
 
   $config->set('display', $display)->save();
 
@@ -849,4 +869,27 @@ function eonext_editorial_search_configure_facet_weights(): string {
  */
 function eonext_editorial_search_update_9012(): string {
   return eonext_editorial_search_configure_editorial_search_view();
+}
+
+/**
+ * Removes the orphan "all" display from the editorial search view.
+ */
+function eonext_editorial_search_update_9013(): string {
+  $config = \Drupal::configFactory()->getEditable('views.view.editorial_search');
+  if ($config->isNew()) {
+    return 'Editorial search view was not found; orphan display was not removed.';
+  }
+
+  $display = $config->get('display');
+  if (!is_array($display)) {
+    return 'Editorial search view display options were not found; orphan display was not removed.';
+  }
+
+  if (!_eonext_editorial_search_remove_orphan_all_display($display)) {
+    return 'Editorial search view orphan "all" display was not present.';
+  }
+
+  $config->set('display', $display)->save();
+
+  return 'Removed orphan "all" display from editorial search view.';
 }
