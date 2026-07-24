@@ -94,8 +94,18 @@ function eonext_editorial_search_apply_results_display_to_view(ViewExecutable $v
     return;
   }
 
-  $row['options']['view_modes'] = eonext_editorial_search_get_results_view_modes();
+  $view_modes = eonext_editorial_search_get_results_view_modes();
+  $row['options']['view_modes'] = $view_modes;
   $handler->setOption('row', $row);
+
+  // Row plugins can be initialized before display options are updated.
+  if ($view->display_handler !== NULL) {
+    $view->initStyle();
+    $row_plugin = $view->display_handler->getPlugin('row');
+    if ($row_plugin !== NULL) {
+      $row_plugin->options['view_modes'] = $view_modes;
+    }
+  }
 }
 
 function eonext_editorial_search_has_matching_past_events(): bool {
@@ -283,6 +293,18 @@ function eonext_editorial_search_is_active_view(): bool {
 }
 
 /**
+ * Implements hook_views_pre_build().
+ */
+function eonext_editorial_search_views_pre_build(ViewExecutable $view): void {
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID) {
+    return;
+  }
+
+  \Drupal::request()->attributes->set(EONEXT_EDITORIAL_SEARCH_ACTIVE_REQUEST_ATTRIBUTE, TRUE);
+  eonext_editorial_search_apply_results_display_to_view($view);
+}
+
+/**
  * Implements hook_views_pre_view().
  */
 function eonext_editorial_search_views_pre_view(ViewExecutable $view, $display_id, array &$args): void {
@@ -291,7 +313,19 @@ function eonext_editorial_search_views_pre_view(ViewExecutable $view, $display_i
   }
 
   \Drupal::request()->attributes->set(EONEXT_EDITORIAL_SEARCH_ACTIVE_REQUEST_ATTRIBUTE, TRUE);
-  eonext_editorial_search_apply_results_display_to_view($view, $display_id);
+  eonext_editorial_search_apply_results_display_to_view($view, is_string($display_id) ? $display_id : NULL);
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function eonext_editorial_search_views_pre_render(ViewExecutable $view): void {
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID) {
+    return;
+  }
+
+  \Drupal::request()->attributes->set(EONEXT_EDITORIAL_SEARCH_ACTIVE_REQUEST_ATTRIBUTE, TRUE);
+  eonext_editorial_search_apply_results_display_to_view($view);
 }
 
 /**
