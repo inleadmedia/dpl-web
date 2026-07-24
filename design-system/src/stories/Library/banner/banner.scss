@@ -13,10 +13,11 @@ $_banner-height-medium: 810px;
   text-decoration: none;
   box-sizing: border-box;
   background-color: $color__global-secondary;
-  height: 353px;
+
 
   @include media-query__medium ("min-width") {
     max-width: 1636px;
+    height: 353px;
   }
 
   &--has-image {
@@ -50,7 +51,6 @@ $_banner-height-medium: 810px;
   text-align: center;
   padding: $s-xl;
   margin: 0 auto;
-  max-width: $_banner-content-max-width-medium;
 
   &--has-image {
     padding: $s-xl;
@@ -64,16 +64,66 @@ $_banner-height-medium: 810px;
   @include media-query__small {
     gap: $s-lg;
     padding: calc($s-2xl + 6px);
-    max-width: $_banner-content-max-width-medium;
   }
 }
 
 .banner__title {
-  @include typography($typo__h2);
+  font-family: $font__futura-pt;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 50px;
+  line-height: 55px;
+  letter-spacing: 0;
+  color: #235881;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 1;
   @include u-extending-underline-style;
 }
 
 .banner__description {
-  @include typography($typo__body-placeholder);
-  line-height: 160%;
+  font-family: $font__open-sans;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 27px;
+  letter-spacing: 0.4px;
+  color: #235881;
+  text-align: center;
+  opacity: 1;
+}
+
+.banner:not(.banner--has-image) {
+  .banner__description,
+  .banner__title {
+    color: #fefaf1;
+  }
+
+  .banner__description + svg {
+    .arrow__body {
+      stroke: #fefaf1;
+    }
+
+    .arrow__head {
+      fill: #fefaf1;
+    }
+  }
+}
+
+.banner--light-background:not(.banner--has-image),
+.banner--light-background {
+  .banner__description, .banner__title {
+    color: #235881;
+  }
+
+  .banner__description + svg,
+  .banner__title + svg {
+    .arrow__body {
+      stroke: #235881;
+    }
+
+    .arrow__head {
+      fill: #235881;
+    }
+  }
 }
