@@ -51,6 +51,14 @@ h6,
   display: none;
 }
 
+/* Header navigation uses DPL menu classes without text-body-* utilities. */
+.header__menu-navigation-link,
+.header-sidebar-nav .header__menu-navigation-link,
+.header__button-text {
+  font-family: var(--ek-font-heading) !important;
+  text-transform: uppercase;
+}
+
 /* Hide library patron utilities — kulturnat is not a lending library site. */
 .header__button-responsive-switch > *:last-child,
 .header__advanced-desktop {
