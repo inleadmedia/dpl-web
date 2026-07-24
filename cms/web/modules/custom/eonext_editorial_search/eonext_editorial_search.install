@@ -774,7 +774,8 @@ function eonext_editorial_search_configure_editorial_search_view(): string {
   ];
   $display['default']['display_options']['filters'] = $filters;
 
-  $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
+  $page_display_id = 'page';
+  $cache_tags = $display[$page_display_id]['cache_metadata']['tags'] ?? [];
   foreach ([
     'config:facets.facet.editorial_categories',
     'config:facets.facet.editorial_content_type',
@@ -786,7 +787,12 @@ function eonext_editorial_search_configure_editorial_search_view(): string {
       $cache_tags[] = $tag;
     }
   }
-  $display['all']['cache_metadata']['tags'] = $cache_tags;
+  $display[$page_display_id]['cache_metadata']['tags'] = $cache_tags;
+
+  // Older versions mistakenly wrote cache tags to a non-existent "all" display.
+  if (isset($display['all']) && empty($display['all']['display_plugin'])) {
+    unset($display['all']);
+  }
 
   $config->set('display', $display)->save();
 
@@ -836,4 +842,11 @@ function eonext_editorial_search_configure_facet_weights(): string {
   }
 
   return sprintf('Updated editorial facet weights: %s.', implode(', ', $updated));
+}
+
+/**
+ * Fixes editorial search view cache tags on the page display.
+ */
+function eonext_editorial_search_update_9012(): string {
+  return eonext_editorial_search_configure_editorial_search_view();
 }
