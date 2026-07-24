@@ -117,9 +117,9 @@ h6,
   font-family: var(--ek-font-body) !important;
 }
 
-/* Article page — brand navy instead of DPL grey link/body text. */
-.article .rich-text,
-.article .rich-text :where(p, li, td, th, blockquote) {
+/* Content pages (articles + basic pages) — brand navy and body typography. */
+article .rich-text,
+article .rich-text :where(p, li, td, th, blockquote, h2, h3, h4) {
   color: var(--ek-navy);
 }
 
@@ -128,20 +128,67 @@ h6,
 .article-header__info,
 .article-header__author,
 .article-header__date,
-.article .link-tag,
+article .link-tag,
 .article_header--tags .text-label-bold {
   color: var(--ek-navy);
 }
 
-.article .rich-text a,
-.article .rich-text a:hover {
+article .rich-text a,
+article .rich-text a:hover {
   color: var(--ek-navy);
   text-decoration-color: var(--ek-navy);
 }
 
-.article .link-tag,
+article .link-tag,
 .article-header__author {
   color: var(--ek-navy) !important;
+}
+
+article .rich-text {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+article .rich-text :where(p, li) {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+article .rich-text h2,
+article .rich-text h3 {
+  font-family: var(--ek-font-heading) !important;
+  font-size: 24px !important;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+article .rich-text ul,
+article .rich-text ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+article .rich-text ul {
+  list-style-type: disc;
+}
+
+article .rich-text ol {
+  list-style-type: decimal;
+}
+
+article .rich-text ul > li,
+article .rich-text ol > li {
+  position: static;
+  margin: 0 0 0.25rem;
+  padding-left: 0;
+  padding-bottom: 0;
+  list-style: inherit;
+}
+
+article .rich-text ul > li::before,
+article .rich-text ol > li::before {
+  content: none;
+  display: none;
 }
 
 .ek-footer__social {
