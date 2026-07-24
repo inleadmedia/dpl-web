@@ -1,11 +1,11 @@
-{% set is_tag_term_page = 'editorial_tags' in editorial_search_hidden_facets|default([]) %}
+{% set is_term_page = ('editorial_tags' in editorial_search_hidden_facets|default([])) or ('editorial_categories' in editorial_search_hidden_facets|default([])) %}
 {%
   set classes = [
     dom_id ? 'js-view-dom-id-' ~ dom_id,
     'content-list-page',
     'eonext-editorial-search',
     editorial_search_results_display|default('grid') == 'grid' ? 'eonext-editorial-search--grid' : 'eonext-editorial-search--list',
-    is_tag_term_page ? 'eonext-editorial-search--tag-term',
+    is_term_page ? 'eonext-editorial-search--term-page',
   ]
 %}
 <div{{ attributes.addClass(classes) }}>
