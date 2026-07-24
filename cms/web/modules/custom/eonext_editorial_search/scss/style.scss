@@ -335,7 +335,7 @@
       height: auto;
       margin: 0;
       padding: 0;
-      font-family: var(--font-body, "Noto Sans", sans-serif);
+      font-family: var(--font-body, "Open Sans", sans-serif);
       font-size: 12px;
       font-weight: 600;
       line-height: 16px;
@@ -358,7 +358,7 @@
       padding: 8px 10px;
       border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
       border-radius: 0;
-      font-family: var(--font-body, "Noto Sans", sans-serif);
+      font-family: var(--font-body, "Open Sans", sans-serif);
       font-size: 14px;
       line-height: 24px;
       background: var(--c-text-primary-white, #fff);
@@ -525,7 +525,7 @@
   }
 
   &__label {
-    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-family: var(--font-body, "Open Sans", sans-serif);
     font-size: 14px;
     font-weight: 500;
     line-height: 24px;
@@ -663,7 +663,7 @@
     .eonext-checkbox__text {
       padding-left: 8px;
       line-height: 18px;
-      font-family: var(--font-body, "Noto Sans", sans-serif);
+      font-family: var(--font-body, "Open Sans", sans-serif);
       font-size: 14px;
       color: var(--c-text-primary-black, #000);
 
@@ -674,7 +674,7 @@
   }
 
   &__item-count {
-    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-family: var(--font-body, "Open Sans", sans-serif);
     font-size: 14px;
     line-height: 24px;
     color: var(--c-text-primary-black, #000);
@@ -688,7 +688,7 @@
     padding: 4px 16px 12px;
     border: none;
     background: none;
-    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-family: var(--font-body, "Open Sans", sans-serif);
     font-size: 14px;
     line-height: 24px;
     color: var(--c-text-secondary-gray, #484848);
@@ -709,7 +709,7 @@
 
 .eonext-search__sort-select {
   &__label {
-    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-family: var(--font-body, "Open Sans", sans-serif);
     font-size: 14px;
     font-weight: 500;
     line-height: 24px;
@@ -723,7 +723,7 @@
   }
 
   &__select {
-    font-family: var(--font-body, "Noto Sans", sans-serif);
+    font-family: var(--font-body, "Open Sans", sans-serif);
     font-size: 14px;
     font-weight: 500;
     line-height: 24px;

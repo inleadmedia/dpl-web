@@ -1,5 +1,5 @@
 .eonext-opening-hours {
-  font-family: "Noto Sans",sans-serif;
+  font-family: var(--font-body, "Open Sans", sans-serif);
   max-width: 1056px;
   margin-left: auto;
   margin-right: auto;
@@ -46,7 +46,7 @@
 .eonext-opening-hours .branches-link {
   font-size: 16px;
   line-height: 160%;
-  font-family: "Noto Sans", sans-serif;
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-style: normal;
   font-weight: 400;
   text-decoration: none;

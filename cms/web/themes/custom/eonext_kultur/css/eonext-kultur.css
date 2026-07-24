@@ -11,6 +11,7 @@
   --ek-font-body: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ek-font-heading: "Futura PT", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
   --font-body: var(--ek-font-body);
+  --font-title: var(--ek-font-heading);
 }
 
 /* Global typography — Open Sans body, Futura PT headings. */
@@ -74,6 +75,7 @@ h6,
 
 /* Component titles compiled with the default DPL title stack (Lora). */
 .article-header__title,
+.banner__title,
 .campaign__title,
 .event-description__title,
 .content-list-item__title,
@@ -84,8 +86,62 @@ h6,
 .infomedia-headline,
 .infomedia-hedline,
 .card-list-item__title,
-.nav-spot__title {
+.nav-spot__title,
+.eonext-editorial-overlay__heading {
   font-family: var(--ek-font-heading) !important;
+}
+
+/* DPL body stack on components without text-body-* utilities (Noto Sans). */
+.article-header__subtitle,
+.article-header__info,
+.article-header__author,
+.article-header__back-link,
+.article-header__date,
+.banner__description,
+.link-tag,
+.logo__description,
+.breadcrumb,
+.breadcrumb > *,
+.media-container__placeholder-text,
+.material-card__description,
+.tag,
+.tag--large,
+.dropdown__select,
+.dropdown__option,
+.dropdown__footnote,
+.status-label,
+.eonext-editorial-overlay,
+.eonext-opening-hours,
+.eonext-opening-hours .branches-link,
+.eonext-library-staff {
+  font-family: var(--ek-font-body) !important;
+}
+
+/* Article page — brand navy instead of DPL grey link/body text. */
+.article .rich-text,
+.article .rich-text :where(p, li, td, th, blockquote) {
+  color: var(--ek-navy);
+}
+
+.article-header__title,
+.article-header__subtitle,
+.article-header__info,
+.article-header__author,
+.article-header__date,
+.article .link-tag,
+.article_header--tags .text-label-bold {
+  color: var(--ek-navy);
+}
+
+.article .rich-text a,
+.article .rich-text a:hover {
+  color: var(--ek-navy);
+  text-decoration-color: var(--ek-navy);
+}
+
+.article .link-tag,
+.article-header__author {
+  color: var(--ek-navy) !important;
 }
 
 .ek-footer__social {

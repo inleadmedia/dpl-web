@@ -9,7 +9,7 @@
 }
 
 @mixin editorial-column-heading {
-  font-family: "Lora", serif;
+  font-family: var(--font-title, var(--ek-font-heading, "Futura PT", sans-serif));
   font-style: normal;
   font-weight: 400;
   font-size: 24px;
@@ -21,7 +21,7 @@
 
 .eonext-editorial-overlay {
   z-index: 1001;
-  font-family: "Noto Sans", sans-serif;
+  font-family: var(--font-body, var(--ek-font-body, "Open Sans", sans-serif));
   background-color: rgba(0, 0, 0, 0.05);
   border-left: 1px solid #dbdbdb;
   box-sizing: border-box;

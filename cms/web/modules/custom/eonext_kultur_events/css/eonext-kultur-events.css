@@ -40,7 +40,7 @@
   border: none;
   background: var(--c-global-primary, #f6f5f0);
   color: var(--c-text-primary-black, #000);
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   font-weight: 600;
   line-height: 24px;
@@ -171,7 +171,7 @@
   border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
   border-radius: 0;
   box-sizing: border-box;
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   line-height: 24px;
   background: var(--c-text-primary-white, #fff);
@@ -224,7 +224,7 @@
 .eonext-kultur-events__toolbar .form-item-date-min label,
 .eonext-kultur-events__toolbar .form-item-date-max label,
 .eonext-kultur-events__toolbar .input-label {
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
@@ -246,7 +246,7 @@
   border: 1px solid var(--c-text-primary-black, #000);
   background: var(--c-text-primary-black, #000);
   color: var(--c-text-primary-white, #fff);
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   font-weight: 500;
   line-height: 24px;
@@ -289,7 +289,7 @@
 
 .eonext-kultur-events__facet-label {
   flex: 0 0 auto;
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 12px;
   font-weight: 600;
   line-height: 24px;
@@ -345,7 +345,7 @@
   gap: 8px;
   text-decoration: none;
   color: var(--c-text-primary-black, #000);
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   line-height: 18px;
   padding: 4px 0;
@@ -410,7 +410,7 @@
 
 .eonext-kultur-events__facet-option .eonext-checkbox__text {
   line-height: 18px;
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   color: var(--c-text-primary-black, #000);
 }
@@ -420,7 +420,7 @@
 }
 
 .eonext-kultur-events__facet-empty {
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   line-height: 24px;
   color: var(--c-text-secondary-gray, #484848);
@@ -505,7 +505,7 @@
   padding: 0;
   border: none;
   background: none;
-  font-family: var(--font-body, "Noto Sans", sans-serif);
+  font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
   line-height: 24px;
   color: var(--c-text-secondary-gray, #484848);
