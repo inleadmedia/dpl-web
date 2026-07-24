@@ -24,21 +24,24 @@ const isAutosuggestOpen = (): boolean =>
 const getSiteHeader = (): HTMLElement | null =>
   document.querySelector<HTMLElement>("header.header");
 
-const resetAutosuggestBackdrop = (backdrop: HTMLElement): void => {
+const resetBackdropClip = (backdrop: HTMLElement): void => {
   backdrop.style.removeProperty("top");
   backdrop.style.removeProperty("height");
   backdrop.style.removeProperty("bottom");
 };
 
-const clipAutosuggestBackdropBelowHeader = (): void => {
-  const backdrop = document.querySelector<HTMLElement>(".autosuggest-backdrop");
+const clipBackdropBelowHeader = (
+  selector: string,
+  isActive: boolean
+): void => {
+  const backdrop = document.querySelector<HTMLElement>(selector);
   const header = getSiteHeader();
   if (!backdrop) {
     return;
   }
 
-  if (!isAutosuggestOpen() || !header) {
-    resetAutosuggestBackdrop(backdrop);
+  if (!isActive || !header) {
+    resetBackdropClip(backdrop);
     return;
   }
 
@@ -46,6 +49,21 @@ const clipAutosuggestBackdropBelowHeader = (): void => {
   backdrop.style.top = `${top}px`;
   backdrop.style.height = `calc(100% - ${top}px)`;
   backdrop.style.bottom = "auto";
+};
+
+const clipAutosuggestBackdropBelowHeader = (): void => {
+  clipBackdropBelowHeader(".autosuggest-backdrop", isAutosuggestOpen());
+
+  const editorialBackdrop = document.querySelector<HTMLElement>(
+    ".eonext-editorial-overlay-backdrop"
+  );
+  const editorialOpen = editorialBackdrop?.classList.contains(
+    "eonext-editorial-overlay-backdrop--open"
+  );
+  clipBackdropBelowHeader(
+    ".eonext-editorial-overlay-backdrop",
+    !!editorialOpen
+  );
 };
 
 const AutosuggestOverlay: React.FC<Props> = ({ input, limit, filter }) => {
@@ -174,7 +192,13 @@ const AutosuggestOverlay: React.FC<Props> = ({ input, limit, filter }) => {
       window.removeEventListener("scroll", onLayoutChange, true);
       const backdrop = document.querySelector<HTMLElement>(".autosuggest-backdrop");
       if (backdrop) {
-        resetAutosuggestBackdrop(backdrop);
+        resetBackdropClip(backdrop);
+      }
+      const editorialBackdrop = document.querySelector<HTMLElement>(
+        ".eonext-editorial-overlay-backdrop"
+      );
+      if (editorialBackdrop) {
+        resetBackdropClip(editorialBackdrop);
       }
     };
   }, [nativeOpen, rect]);
@@ -259,12 +283,17 @@ const AutosuggestOverlay: React.FC<Props> = ({ input, limit, filter }) => {
         }
     : { display: "none" };
 
+  const standaloneBackdropActive =
+    !nativeOpen && inputFocused && query.length >= MIN_QUERY_LENGTH;
+
   return (
     <>
-      {editorialOnly && visible ? (
+      {standaloneBackdropActive ? (
         <div
           aria-hidden
-          className="eonext-editorial-overlay-backdrop eonext-editorial-overlay-backdrop--open"
+          className={`eonext-editorial-overlay-backdrop${
+            visible ? " eonext-editorial-overlay-backdrop--open" : ""
+          }`}
           onClick={() => {
             input.blur();
             setInputFocused(false);
