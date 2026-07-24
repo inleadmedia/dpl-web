@@ -64,16 +64,6 @@ final class LokaleViewBuilder {
     $terms = $link('field_booking_terms');
     $contact = $link('field_contact');
 
-    $terms_content = '';
-    if ($node->hasField('field_booking_betingelser') && !$node->get('field_booking_betingelser')->isEmpty()) {
-      $item = $node->get('field_booking_betingelser')->first();
-      $terms_content = check_markup($item->value, self::resolveTextFormat($item->format ?? ''));
-    }
-
-    $dialog_available = \Drupal::service('eonext_kultur_locale.dialog_availability')->isAvailable();
-    $theme = \Drupal::theme()->getActiveTheme();
-    $icon_path = '/' . $theme->getPath() . '/assets/dpl-design-system/icons/collection/CloseLarge.svg';
-
     return [
       'node_id' => $node->id(),
       'url' => $node->toUrl()->toString(),
@@ -85,9 +75,6 @@ final class LokaleViewBuilder {
         ? $node->get('field_booking_mode')->value : 'book',
       'booking_url' => $booking['url'],
       'terms_url' => $terms['url'],
-      'terms_content' => $terms_content,
-      'use_terms_modal' => $terms_content !== '' && $dialog_available,
-      'dialog_close_icon' => $icon_path,
       'contact_url' => $contact['url'],
       'contact_text' => $contact['title'] ?: (string) t('Mere info om lån og kontakt'),
     ];

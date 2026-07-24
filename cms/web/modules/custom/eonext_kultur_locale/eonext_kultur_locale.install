@@ -206,3 +206,60 @@ function eonext_kultur_locale_update_9004(): void {
 
   _eonext_kultur_locale_enable_paragraph_on_page(LokaleConstants::PAGE_HERO_BUNDLE);
 }
+
+/**
+ * Use Bookingbetingelser link field instead of the terms dialog.
+ */
+function eonext_kultur_locale_update_9005(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  $form_display = $storage->read('core.entity_form_display.node.lokale.default');
+  if ($form_display) {
+    \Drupal::configFactory()->getEditable('core.entity_form_display.node.lokale.default')
+      ->setData($form_display)
+      ->save(TRUE);
+  }
+
+  $field = $storage->read('field.field.node.lokale.field_booking_terms');
+  if ($field && ($config = FieldConfig::load($field['id']))) {
+    $config->set('label', $field['label']);
+    $config->set('description', $field['description']);
+    $config->save();
+  }
+
+  $default_terms_uri = 'internal:/bookingbetingelser';
+  $nodes = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
+    'type' => LokaleConstants::NODE_BUNDLE,
+  ]);
+
+  foreach ($nodes as $node) {
+    if (!$node->hasField('field_booking_terms')) {
+      continue;
+    }
+
+    $terms = $node->get('field_booking_terms');
+    $needs_default = $terms->isEmpty();
+    if (!$needs_default) {
+      $url = $terms->first()->getUrl()->toString();
+      $needs_default = $url === '/' || $url === '';
+    }
+
+    if (!$needs_default) {
+      continue;
+    }
+
+    $node->set('field_booking_terms', [
+      'uri' => $default_terms_uri,
+      'title' => '',
+    ]);
+    $node->save();
+  }
+}
+
+/**
+ * Use Bookingbetingelser link field instead of the terms dialog.
+ */
+function eonext_kultur_locale_update_9007(): void {
+  eonext_kultur_locale_update_9005();
+}

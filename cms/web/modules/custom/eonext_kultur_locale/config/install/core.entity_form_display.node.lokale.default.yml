@@ -47,7 +47,7 @@ content:
     third_party_settings: {  }
   field_booking_terms:
     type: link_default
-    weight: 7
+    weight: 6
     region: content
     settings:
       placeholder_url: ''
@@ -131,5 +131,6 @@ content:
       placeholder: ''
     third_party_settings: {  }
 hidden:
+  field_booking_betingelser: true
   promote: true
   sticky: true

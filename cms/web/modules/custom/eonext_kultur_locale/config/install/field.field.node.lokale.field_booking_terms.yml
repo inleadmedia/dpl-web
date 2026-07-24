@@ -13,8 +13,8 @@ id: node.lokale.field_booking_terms
 field_name: field_booking_terms
 entity_type: node
 bundle: lokale
-label: 'Booking terms URL'
-description: ''
+label: 'Bookingbetingelser link'
+description: 'Link for the Bookingbetingelser action on this venue row.'
 required: false
 translatable: true
 default_value: {  }
