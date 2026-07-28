@@ -1,0 +1,4 @@
+general:
+  css:
+    theme:
+      css/eonext_library_staff.min.css: {}

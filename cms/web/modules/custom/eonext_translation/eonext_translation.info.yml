@@ -1,0 +1,7 @@
+name: 'EO Next Translation'
+type: module
+description: 'Manages the site translation'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:config_translation

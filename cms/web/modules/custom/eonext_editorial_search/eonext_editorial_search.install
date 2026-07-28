@@ -1,0 +1,484 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for EO Next Editorial Search.
+ */
+
+use Drupal\search_api\Entity\Index;
+use Drupal\search_api\IndexInterface;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_editorial_search_install(): void {
+  eonext_editorial_search_ensure_facet_index_fields();
+  eonext_editorial_search_ensure_sort_index_fields();
+  eonext_editorial_search_ensure_editorial_event_date_processor();
+  eonext_editorial_search_ensure_editorial_content_indexing();
+  eonext_editorial_search_ensure_event_has_upcoming_indexing();
+}
+
+/**
+ * Adds missing Search API fields required by editorial search facets.
+ *
+ * Facets fail with InvalidQueryTypeException when the index is missing the
+ * configured field_identifier (e.g. content_type).
+ */
+function eonext_editorial_search_ensure_facet_index_fields(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial facet fields were not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $field_definitions = [
+    'content_type' => [
+      'label' => 'Content type',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:node/type',
+          'entity:eventseries/type',
+        ],
+      ],
+    ],
+    'categories' => [
+      'label' => 'Categories (Aggregrated)',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:eventseries/field_categories',
+          'entity:node/field_categories',
+        ],
+      ],
+    ],
+    'tags' => [
+      'label' => 'Tags (Aggregrated)',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:eventseries/field_tags',
+          'entity:node/field_tags',
+        ],
+      ],
+    ],
+  ];
+
+  $added_fields = [];
+  foreach ($field_definitions as $field_id => $field_info) {
+    if ($index->getField($field_id)) {
+      continue;
+    }
+
+    $field = $fields_helper->createField($index, $field_id, $field_info);
+    $index->addField($field);
+    $added_fields[] = $field_id;
+  }
+
+  if ($added_fields === []) {
+    return 'Editorial search facet fields already exist on index content_events.';
+  }
+
+  $ignorecase = $index->getProcessorIfAvailable('ignorecase');
+  if ($ignorecase) {
+    $configuration = $ignorecase->getConfiguration();
+    $ignorecase_fields = $configuration['fields'] ?? [];
+    foreach ($added_fields as $field_id) {
+      if (!in_array($field_id, $ignorecase_fields, TRUE)) {
+        $ignorecase_fields[] = $field_id;
+      }
+    }
+    $configuration['fields'] = $ignorecase_fields;
+    $ignorecase->setConfiguration($configuration);
+  }
+
+  $index->save();
+
+  return sprintf(
+    'Added Search API fields (%s) to index content_events. Re-index with: drush search-api:index content_events',
+    implode(', ', $added_fields),
+  );
+}
+
+/**
+ * Adds missing Search API fields required for editorial search sorting.
+ */
+function eonext_editorial_search_ensure_sort_index_fields(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial sort fields were not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $field_definitions = [
+    'sort_date' => [
+      'label' => 'Sort date',
+      'property_path' => 'aggregated_field',
+      'type' => 'date',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:node/created',
+        ],
+      ],
+    ],
+    'sort_title' => [
+      'label' => 'Sort title',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [
+          'entity:node/title',
+          'entity:eventseries/title',
+        ],
+      ],
+    ],
+  ];
+
+  $added_fields = [];
+  foreach ($field_definitions as $field_id => $field_info) {
+    if ($index->getField($field_id)) {
+      continue;
+    }
+
+    $field = $fields_helper->createField($index, $field_id, $field_info);
+    $index->addField($field);
+    $added_fields[] = $field_id;
+  }
+
+  if ($added_fields === []) {
+    return 'Editorial search sort fields already exist on index content_events.';
+  }
+
+  $index->save();
+
+  return sprintf(
+    'Added Search API sort fields (%s) to index content_events. Re-index with: drush search-api:index content_events',
+    implode(', ', $added_fields),
+  );
+}
+
+/**
+ * Removes expired event series from the editorial search index.
+ */
+function eonext_editorial_search_remove_expired_event_series_from_index(): string {
+  return 'Past events are indexed for editorial search; expired event cleanup is no longer performed.';
+}
+
+/**
+ * Adds editorial content field and processor to the search index.
+ */
+function eonext_editorial_search_ensure_editorial_content_indexing(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial content indexing was not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $messages = [];
+  $added_fields = [];
+
+  if (!$index->getField('editorial_content')) {
+    $field = $fields_helper->createField($index, 'editorial_content', [
+      'label' => 'Editorial content',
+      'property_path' => 'aggregated_field',
+      'type' => 'text',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ]);
+    $index->addField($field);
+    $added_fields[] = 'editorial_content';
+  }
+
+  $processors = $index->getProcessors();
+  if (!isset($processors['editorial_content'])) {
+    $processor = \Drupal::service('search_api.plugin_helper')
+      ->createProcessorPlugin($index, 'editorial_content');
+    $index->addProcessor($processor);
+    $messages[] = 'Enabled editorial content processor on index content_events.';
+  }
+
+  if ($added_fields !== [] || $messages !== []) {
+    $ignorecase = $index->getProcessorIfAvailable('ignorecase');
+    if ($ignorecase) {
+      $configuration = $ignorecase->getConfiguration();
+      $ignorecase_fields = $configuration['fields'] ?? [];
+      foreach ($added_fields as $field_id) {
+        if (!in_array($field_id, $ignorecase_fields, TRUE)) {
+          $ignorecase_fields[] = $field_id;
+        }
+      }
+      $configuration['fields'] = $ignorecase_fields;
+      $ignorecase->setConfiguration($configuration);
+    }
+
+    $index->save();
+    $index->reindex();
+  }
+
+  if ($added_fields !== []) {
+    $messages[] = sprintf(
+      'Added Search API fields (%s) to index content_events.',
+      implode(', ', $added_fields),
+    );
+  }
+
+  if ($messages === []) {
+    return 'Editorial content indexing is already configured on index content_events.';
+  }
+
+  $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Ensures the editorial event date processor is enabled on the search index.
+ */
+function eonext_editorial_search_ensure_editorial_event_date_processor(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; editorial event date processor was not added.';
+  }
+
+  $processors = $index->getProcessors();
+  if (isset($processors['editorial_event_date'])) {
+    return 'Editorial event date processor is already enabled on index content_events.';
+  }
+
+  $processor = \Drupal::service('search_api.plugin_helper')
+    ->createProcessorPlugin($index, 'editorial_event_date');
+  $index->addProcessor($processor);
+  $index->save();
+
+  return 'Enabled editorial event date processor on index content_events. Re-index with: drush search-api:index content_events';
+}
+
+/**
+ * Updates sort_date configuration and enables editorial event date indexing.
+ */
+function eonext_editorial_search_update_9002(): string {
+  $messages = [
+    eonext_editorial_search_ensure_editorial_event_date_processor(),
+  ];
+
+  $index = Index::load('content_events');
+  if ($index instanceof IndexInterface) {
+    $sort_date = $index->getField('sort_date');
+    if ($sort_date) {
+      $configuration = $sort_date->getConfiguration();
+      $configuration['fields'] = ['entity:node/created'];
+      $sort_date->setConfiguration($configuration);
+      $index->save();
+      $messages[] = 'Updated sort_date on index content_events to use node created dates and upcoming event dates for events.';
+    }
+    else {
+      $messages[] = eonext_editorial_search_ensure_sort_index_fields();
+    }
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Ensures editorial event date processor is enabled after skipped update hooks.
+ */
+function eonext_editorial_search_update_9004(): string {
+  return eonext_editorial_search_update_9002();
+}
+
+/**
+ * Removes stale expired event series left in the editorial search index.
+ */
+function eonext_editorial_search_update_9005(): string {
+  return eonext_editorial_search_remove_expired_event_series_from_index();
+}
+
+/**
+ * Indexes full editorial content (body text, materials, etc.) for search.
+ */
+function eonext_editorial_search_update_9006(): string {
+  return eonext_editorial_search_ensure_editorial_content_indexing();
+}
+
+/**
+ * Excludes GO articles from the editorial search index and removes stale items.
+ */
+function eonext_editorial_search_update_9007(): string {
+  return eonext_editorial_search_exclude_go_articles_from_index();
+}
+
+/**
+ * Indexes past events and adds event_has_upcoming for editorial search filtering.
+ */
+function eonext_editorial_search_update_9008(): string {
+  return eonext_editorial_search_ensure_event_has_upcoming_indexing();
+}
+
+/**
+ * Adds event_has_upcoming field and marks the index for re-indexing.
+ */
+function eonext_editorial_search_ensure_event_has_upcoming_indexing(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; event_has_upcoming was not added.';
+  }
+
+  /** @var \Drupal\search_api\Utility\FieldsHelperInterface $fields_helper */
+  $fields_helper = \Drupal::service('search_api.fields_helper');
+
+  $messages = [];
+
+  if (!$index->getField('event_has_upcoming')) {
+    $field = $fields_helper->createField($index, 'event_has_upcoming', [
+      'label' => 'Event has upcoming instances',
+      'property_path' => 'aggregated_field',
+      'type' => 'boolean',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ]);
+    $index->addField($field);
+    $messages[] = 'Added event_has_upcoming field to index content_events.';
+  }
+
+  if ($messages !== []) {
+    $index->save();
+    $index->reindex();
+    $messages[] = 'Marked index content_events for re-indexing. Run: drush search-api:index content_events';
+  }
+
+  if ($messages === []) {
+    return 'Event upcoming indexing is already configured on index content_events.';
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Excludes GO articles from the editorial search index and removes stale items.
+ */
+function eonext_editorial_search_exclude_go_articles_from_index(): string {
+  $index = Index::load('content_events');
+  if (!$index instanceof IndexInterface) {
+    return 'Search API index content_events was not found; GO articles were not excluded.';
+  }
+
+  $messages = [];
+  $datasource_settings = $index->get('datasource_settings');
+  $node_settings = $datasource_settings['entity:node'] ?? [];
+  $bundles = $node_settings['bundles'] ?? [];
+  $excluded_bundles = $bundles['selected'] ?? [];
+
+  if (!in_array('go_article', $excluded_bundles, TRUE)) {
+    $excluded_bundles[] = 'go_article';
+    sort($excluded_bundles);
+    $bundles['selected'] = $excluded_bundles;
+    $bundles['default'] = $bundles['default'] ?? TRUE;
+    $datasource_settings['entity:node'] = $bundles;
+    $index->set('datasource_settings', $datasource_settings);
+    $index->save();
+    $messages[] = 'Excluded go_article from index content_events.';
+  }
+
+  // The content_type field is added by eonext_editorial_search install/update hooks
+  // and may not exist yet when deploy hooks run before other editorial hooks.
+  if (!$index->getField('content_type')) {
+    $messages[] = eonext_editorial_search_ensure_facet_index_fields();
+    $index = Index::load('content_events');
+    if (!$index instanceof IndexInterface || !$index->getField('content_type')) {
+      $messages[] = 'Skipped removing indexed GO articles because content_type is not configured on index content_events.';
+    }
+  }
+
+  if ($index instanceof IndexInterface && $index->getField('content_type')) {
+    $query = $index->query();
+    $query->addCondition('content_type', 'go_article');
+    $query->range(0, 10000);
+    $results = $query->execute();
+
+    $item_ids = [];
+    foreach ($results->getResultItems() as $item) {
+      $item_ids[] = $item->getId();
+    }
+
+    if ($item_ids !== []) {
+      $index->getServerInstance()->deleteItems($index, $item_ids);
+      $messages[] = sprintf(
+        'Removed %d GO article(s) from index content_events.',
+        count($item_ids),
+      );
+    }
+  }
+
+  $facet = \Drupal::entityTypeManager()
+    ->getStorage('facets_facet')
+    ->load('editorial_content_type');
+
+  if ($facet) {
+    $processors = $facet->get('processor_configs');
+    $replacements = $processors['replace']['settings']['replacements'] ?? '';
+    if (str_contains($replacements, 'go_article|GO Article')) {
+      $processors['replace']['settings']['replacements'] = str_replace(
+        "go_article|GO Article\r\n",
+        '',
+        $replacements,
+      );
+      $facet->set('processor_configs', $processors);
+      $facet->save();
+      $messages[] = 'Removed GO Article from editorial_content_type facet labels.';
+    }
+  }
+
+  if ($messages === []) {
+    return 'GO articles are already excluded from index content_events.';
+  }
+
+  return implode(' ', $messages);
+}
+
+/**
+ * Renames the content type facet label shown in the editorial search sidebar.
+ */
+function eonext_editorial_search_update_9001(): string {
+  $facet = \Drupal::entityTypeManager()
+    ->getStorage('facets_facet')
+    ->load('editorial_content_type');
+
+  if (!$facet) {
+    return 'Facet editorial_content_type was not found.';
+  }
+
+  if ($facet->getName() === 'Type') {
+    return 'Facet editorial_content_type label is already Type.';
+  }
+
+  $facet->set('name', 'Type');
+  $facet->save();
+
+  return 'Renamed editorial_content_type facet label to Type.';
+}

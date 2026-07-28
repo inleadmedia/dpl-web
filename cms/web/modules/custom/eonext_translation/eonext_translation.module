@@ -1,0 +1,333 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for EO Next Translation module.
+ */
+
+use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Render\Markup;
+use Drupal\eonext_translation\Form\TranslationSettingsForm;
+use Drupal\eonext_translation\TranslationService;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
+
+/**
+ * Implements hook_page_attachments().
+ */
+function eonext_translation_page_attachments(array &$attachments): void {
+  $config = \Drupal::config('eonext_translation.settings');
+
+  // Get current language code.
+  $current_language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+
+  // Get language-specific custom locale config.
+  $custom_locale_config = $config->get('custom_locale_config_' . $current_language);
+
+  if (!empty($custom_locale_config)) {
+    $attachments['#attached']['html_head'][] = [
+      [
+        '#tag' => 'script',
+        '#value' => Markup::create($custom_locale_config),
+        '#weight' => -100,
+      ],
+      'eonext_translation_custom_locale',
+    ];
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function eonext_translation_preprocess_html(array &$variables): void {
+
+  $translation_settings = \Drupal::config('eonext_translation.settings');
+  $translation_type = $translation_settings->get('translation_type');
+
+  $variables['attributes']['data-eonext-translation-type'] = $translation_type;
+
+  if (TranslationSettingsForm::TRANSLATION_TYPE_DRUPAL_TRANSLATE === $translation_type) {
+    $languageLinks = \Drupal::service('eonext_translation.service')->getLanguageLinks();
+    $variables['attributes']['data-eonext-translation-languages'] = json_encode($languageLinks);
+  }
+
+  $translate_footer = \Drupal::config('eonext_translation.footer')->get('translate_footer');
+  $footer_settings = \Drupal::service('eonext_translation.service')->getFooterSettings();
+
+  if ($translate_footer) {
+    $variables['attributes']['data-eonext-footer'] = json_encode($footer_settings);
+  }
+
+  // Add content related classes and attributes.
+  $current_node = \Drupal::routeMatch()->getParameter('node');
+
+  if (
+    $current_node instanceof NodeInterface &&
+    in_array($current_node->bundle(), ['branch', 'page', 'article'])
+    ) {
+
+    $branch_node = NULL;
+    if ($current_node->hasField('field_branch')) {
+      $branch_node = $current_node->get('field_branch')->entity;
+    }
+    elseif ($current_node->bundle() === 'branch') {
+      $branch_node = $current_node;
+    }
+
+    TranslationService::addBranchAttributes($variables, $branch_node);
+  }
+  else {
+    TranslationService::addBranchAttributes($variables);
+  }
+
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function eonext_translation_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
+  if ($form_id === 'dpl_footer_form') {
+    // Add a new submit handler to the footer form.
+    $form['#submit'][] = 'eonext_translation_footer_form_submit';
+  }
+}
+
+/**
+ * Submit handler for the footer form.
+ */
+function eonext_translation_footer_form_submit(array &$form, FormStateInterface $form_state): void {
+  \Drupal::service('eonext_translation.service')->saveFooterToConfig();
+}
+
+/**
+ * Implements hook_preprocess_dpl_react_app().
+ */
+function eonext_translation_preprocess_dpl_react_app(array &$variables): void {
+  $current_language = \Drupal::languageManager()->getCurrentLanguage();
+  $languages = \Drupal::languageManager()->getLanguages();
+  $language_prefix = $current_language->getId();
+
+  // Fix branches-config links to use correct language.
+  _eonext_translation_fix_branches_config($variables, $current_language);
+
+  // Fix internal URLs to use correct language prefix.
+  $url_attributes = [
+    'data-menu-sign-up-url',
+    'data-view-fees-and-compensation-rates-url',
+    'data-delete-patron-url',
+    'data-zero-hits-search-url',
+  ];
+
+  foreach ($url_attributes as $attribute) {
+    if (isset($variables['attributes'][$attribute])) {
+      $variables['attributes'][$attribute] = _eonext_translation_add_language_prefix(
+        $variables['attributes'][$attribute],
+        $language_prefix,
+        $languages
+      );
+    }
+  }
+}
+
+/**
+ * Fixes branch configuration links to use the correct language.
+ *
+ * @param array &$variables
+ *   The variables array from the preprocess function.
+ * @param \Drupal\Core\Language\LanguageInterface $current_language
+ *   The current language.
+ */
+function _eonext_translation_fix_branches_config(array &$variables, LanguageInterface $current_language): void {
+  if (!isset($variables['attributes']['data-branches-config'])) {
+    return;
+  }
+
+  $branches = json_decode($variables['attributes']['data-branches-config'], TRUE);
+  if ($branches === NULL || !is_array($branches)) {
+    return;
+  }
+
+  // Load all branch nodes and index by title for quick lookup.
+  $branch_nodes = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->loadByProperties(['type' => 'branch']);
+
+  $nodes_by_title = [];
+  foreach ($branch_nodes as $node) {
+    if ($node instanceof NodeInterface) {
+      $nodes_by_title[$node->getTitle()] = $node;
+    }
+  }
+
+  // Update branch links with current language.
+  foreach ($branches as &$branch) {
+    if (isset($branch['title'], $nodes_by_title[$branch['title']])) {
+      $node = $nodes_by_title[$branch['title']];
+      $url = $node->toUrl('canonical', ['language' => $current_language]);
+      $branch['link'] = $url->toString();
+    }
+  }
+
+  $variables['attributes']['data-branches-config'] = json_encode($branches);
+}
+
+/**
+ * Adds language prefix to an internal URL if not already present.
+ *
+ * @param string $url
+ *   The URL to process.
+ * @param string $language_prefix
+ *   The language prefix to add.
+ * @param array $languages
+ *   Array of available languages.
+ *
+ * @return string
+ *   The URL with language prefix if applicable.
+ */
+function _eonext_translation_add_language_prefix(string $url, string $language_prefix, array $languages): string {
+  // Only process internal URLs that start with /.
+  if (empty($url) || substr($url, 0, 1) !== '/') {
+    return $url;
+  }
+
+  // Check if URL already has a language prefix.
+  foreach ($languages as $language) {
+    if (strpos($url, '/' . $language->getId() . '/') === 0) {
+      return $url;
+    }
+  }
+
+  // Add language prefix.
+  return '/' . $language_prefix . $url;
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function eonext_translation_preprocess_page(array &$variables): void {
+
+  $translate_footer = \Drupal::config('eonext_translation.footer')->get('translate_footer');
+
+  if ($translate_footer) {
+    $variables['footer_settings'] = \Drupal::service('eonext_translation.service')->getFooterSettings();
+  }
+
+  if (isset($variables['breadcrumb'])) {
+    $current_language = \Drupal::languageManager()->getCurrentLanguage();
+    $links = $variables['breadcrumb']->getLinks();
+    foreach ($links as $link) {
+      $url = $link->getUrl();
+      $url->setOption('language', $current_language);
+      $entity = $url->getOptions()['entity'] ?? NULL;
+      if ($entity instanceof ContentEntityBase) {
+        // Get the entity label for current language.
+        if ($entity->hasTranslation($current_language->getId())) {
+          $entity = $entity->getTranslation($current_language->getId());
+          $link->setText($entity->label());
+        }
+      }
+    }
+  }
+
+  // Fix opening hours sidebar branches config links to use correct language.
+  $current_language = \Drupal::languageManager()->getCurrentLanguage();
+
+  if (isset($variables['opening_hours_sidebar_large']['#data']['opening-hours-sidebar-branches-config'])) {
+    foreach ($variables['opening_hours_sidebar_large']['#data']['opening-hours-sidebar-branches-config'] as &$branch) {
+      // The branch_id here is the node ID.
+      if (isset($branch['branch_id'])) {
+        $node = \Drupal::entityTypeManager()->getStorage('node')->load($branch['branch_id']);
+        if ($node instanceof NodeInterface) {
+          // Regenerate the URL with the current language.
+          $url = $node->toUrl('canonical', ['language' => $current_language]);
+          $branch['link'] = $url->toString();
+        }
+      }
+    }
+  }
+  if (isset($variables['opening_hours_sidebar_small']['#data']['opening-hours-sidebar-branches-config'])) {
+    foreach ($variables['opening_hours_sidebar_small']['#data']['opening-hours-sidebar-branches-config'] as &$branch) {
+      // The branch_id here is the node ID.
+      if (isset($branch['branch_id'])) {
+        $node = \Drupal::entityTypeManager()->getStorage('node')->load($branch['branch_id']);
+        if ($node instanceof NodeInterface) {
+          // Regenerate the URL with the current language.
+          $url = $node->toUrl('canonical', ['language' => $current_language]);
+          $branch['link'] = $url->toString();
+        }
+      }
+    }
+  }
+
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function eonext_translation_preprocess_field(&$variables) {
+  if ($variables['field_type'] === 'address') {
+    $country = $variables['items'][0]['content']['country']['#value'] ?? '';
+    if ($country) {
+      $variables['items'][0]['content']['country']['#value'] = t($country);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for nav grid manual field template.
+ */
+function eonext_translation_preprocess_field__paragraph__field_content_references__nav_grid_manual(array &$variables): void {
+  $paragraph = $variables['element']['#object'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  $langcode = \Drupal::languageManager()
+    ->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)
+    ->getId();
+
+  if ($paragraph->hasTranslation($langcode)) {
+    $variables['element']['#object'] = $paragraph->getTranslation($langcode);
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info_alter().
+ */
+function eonext_translation_entity_base_field_info_alter(&$fields, EntityTypeInterface $entity_type) {
+  // Set add the langcode field to the hidden region for event series.
+  if ($entity_type->id() == 'eventseries' && !empty($fields['langcode'])) {
+    $fields['langcode']->setDisplayOptions('form', ['region' => 'hidden']);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function eonext_translation_entity_update(EntityInterface $entity) {
+
+  if ($entity->getEntityTypeId() === 'eventseries') {
+
+    $entityLanguage = $entity->language()->getId();
+
+    // Find the event instances that are related to this event series.
+    $eventInstances = \Drupal::service('entity_type.manager')
+      ->getStorage('eventinstance')
+      ->loadByProperties(['eventseries_id' => $entity->id()]);
+
+    // Create the translation of the event instances.
+    foreach ($eventInstances as $eventInstance) {
+      if (!$eventInstance->hasTranslation($entityLanguage)) {
+        $translation = $eventInstance->addTranslation($entityLanguage);
+        // Set the series ID and save.
+        $translation->set('eventseries_id', $entity->id());
+        $translation->save();
+      }
+    }
+  }
+
+}

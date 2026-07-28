@@ -1,0 +1,8 @@
+name: 'EO Next Data Fixes'
+type: module
+description: 'One-time data migration and fix deploy hooks for content managed in upstream modules.'
+package: 'EO next'
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:paragraphs
+  - dpl_fbi:dpl_fbi

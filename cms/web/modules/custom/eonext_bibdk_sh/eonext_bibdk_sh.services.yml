@@ -1,0 +1,7 @@
+services:
+  eonext.bibdk_sh.metadata:
+    class: Drupal\eonext_bibdk_sh\Services\BibdkMetadataFetcher
+    arguments:
+      - '@http_client'
+      - '@file_system'
+      - '@logger.factory'

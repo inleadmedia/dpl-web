@@ -212,6 +212,18 @@ jobs:
     with:
       id: paragraphs
 
+  CypressCampaigns:
+    name: CMS / Cypress campaigns tests
+    uses: ./.github/workflows/cms-cypress-workflow.yml
+    with:
+      id: campaigns
+
+  CypressEvents:
+    name: CMS / Cypress events tests
+    uses: ./.github/workflows/cms-cypress-workflow.yml
+    with:
+      id: events
+
   MarkdownLint:
     name: CMS / Lint Markdown
     runs-on: ubuntu-latest
@@ -374,7 +386,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
-        run: task ci:reset
+        run: task ci:reset:clean
       - name: Export configuration
         run: task dev:cli -- drush config-export -y
       - name: Check for uncommited configuration after install

@@ -1,0 +1,9 @@
+core:
+  css:
+    theme:
+      css/style.min.css: {}
+  js:
+    js/eresource.js: {}
+  dependencies:
+    - core/drupal
+    - core/once

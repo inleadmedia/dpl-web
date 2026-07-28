@@ -1,0 +1,30 @@
+uuid: 00731133-0fa2-49d2-981c-f4e8d43d245a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eonext_library_staff.field_branch
+    - node.type.branch
+  module:
+    - eonext_staff
+id: eonext_library_staff.eonext_library_staff.field_branch
+field_name: field_branch
+entity_type: eonext_library_staff
+bundle: eonext_library_staff
+label: Branch
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      branch: branch
+    sort:
+      field: title
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

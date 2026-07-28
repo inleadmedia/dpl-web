@@ -1,0 +1,15 @@
+{
+  "name": "eresources",
+  "version": "1.0.0",
+  "description": "Style for eResources",
+  "scripts": {
+    "start": "node app.js",
+    "scss-dev": "node-sass scss/style.scss css/eonext_library_staff.min.css --output-style expanded",
+    "scss": "node-sass scss/style.scss css/eonext_library_staff.min.css --output-style compressed"
+  },
+  "dependencies": {
+    "globule": "^1.3.4",
+    "node-sass": "^9.0.0",
+    "uglify-js": "^3.17.4"
+  }
+}

@@ -1,0 +1,10 @@
+name: 'EO Next Branch Ordering'
+type: module
+description: 'Provides configuration for custom branch ordering in the library agency.'
+core_version_requirement: ^9 || ^10 || ^11
+package: EO Next
+version: '1.0.0'
+dependencies:
+  - drupal:dpl_library_agency
+  - drupal:dpl_react
+  - drupal:dpl_react_apps

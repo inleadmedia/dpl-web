@@ -25,9 +25,9 @@ function hexToHSL(H: string) {
   const cmin: any = Math.min(r, g, b);
   const cmax = Math.max(r, g, b);
   const delta = cmax - cmin;
-  let h = 0;
-  let s = 0;
-  let l = 0;
+  let h;
+  let s;
+  let l;
 
   if (delta === 0) h = 0;
   else if (cmax === r) h = ((g - b) / delta) % 6;
@@ -101,12 +101,12 @@ export const IdentityColor = ({ identityColor }: IdentityColorProps) => {
 
   return (
     <div>
-      {colorClasses.map((color) => (
-        <div className="internal-colors-container">
+      {colorClasses.map((color, index) => (
+        <div key={index} className="internal-colors-container">
           <h1 className="text-header-h3">{color.colorTitle}</h1>
           <div className="internal-colors-wrapper">
-            {color.colorItems.map((colorItem) => (
-              <div>
+            {color.colorItems.map((colorItem, index) => (
+              <div key={index}>
                 <div
                   className={`internal-colors-box ${
                     colorItem.classNameBg || colorItem.className

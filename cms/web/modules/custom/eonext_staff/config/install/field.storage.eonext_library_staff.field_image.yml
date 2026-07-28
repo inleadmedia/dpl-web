@@ -1,0 +1,20 @@
+uuid: 6d8888c1-47a3-4209-b1e9-8fb7ed869e31
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+    - media
+id: eonext_library_staff.field_image
+field_name: field_image
+entity_type: eonext_library_staff
+type: entity_reference
+settings:
+  target_type: media
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

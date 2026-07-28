@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_servicebanner
+    - serialization
+    - user
+id: eonext_servicebanner.service_banner
+plugin_id: 'eonext_servicebanner:service_banner'
+granularity: resource
+configuration:
+  methods:
+    - GET
+  formats:
+    - json
+  authentication:
+    - cookie

@@ -1,0 +1,9 @@
+eonext.bibdk_sh_settings:
+  path: '/admin/config/eonext/bibdk-sh'
+  defaults:
+    _title: 'BIBDK Subject Hierarchy Settings'
+    _form: '\Drupal\eonext_bibdk_sh\Form\BibdkSettingsForm'
+  requirements:
+    _permission: 'access eonext bibdk sh settings'
+  options:
+    _admin_route: TRUE

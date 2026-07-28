@@ -12,6 +12,7 @@ use Drupal\dpl_library_agency\GeneralSettings;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\node\NodeForm;
 use Drupal\node\NodeInterface;
+use Drupal\dpl_react_apps\Controller\DplReactAppsController;
 
 /**
  * Implements hook_dpl_protected_nodes_get_protected_nodes().
@@ -120,3 +121,37 @@ function dpl_library_agency_validate_branch_node(array &$form, FormStateInterfac
   }
 
 }
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function dpl_library_agency_preprocess_html(array &$variables): void {
+  $config = \Drupal::config('dpl_library_agency.general_settings');
+  if ($config->get('use_lms_user_api')) {
+    $variables['attributes']['data-lms-user-api-enabled'] = 'true';
+  }
+  if ($config->get('show_search_branch_selection')) {
+    $variables['attributes']['data-show-search-branch-selection'] = 'true';
+
+    // Build configurations for blacklisted search branches and all branches.
+    $branchSettings = \Drupal::service('dpl_library_agency.branch_settings');
+    $blacklistedSearchBranchesConfig = DplReactAppsController::buildBranchesListProp($branchSettings->getExcludedSearchBranches());
+    $variables['attributes']['data-blacklisted-search-branches-config'] = $blacklistedSearchBranchesConfig;
+  }
+  if ($config->get('show_cicero_lms_search_sorting')) {
+    $variables['attributes']['data-show-search-sorting'] = 'true';
+  }
+  if ($config->get('search_lazy_types_loading')) {
+    $variables['attributes']['data-search-lazy-types-loading'] = 'true';
+  }
+}
+
+/**
+ * Implements hook_dpl_react_apps_data().
+ */
+function dpl_library_agency_dpl_react_apps_data(array &$data): void {
+  $data['texts'] += [
+    'search-in-all-branches' => t('Search in all branches'),
+  ];
+}
+

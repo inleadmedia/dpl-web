@@ -1,0 +1,21 @@
+uuid: 8d9326e5-07c9-43d9-a572-4b3a8adb64a2
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+id: eonext_library_staff.field_forename
+field_name: field_forename
+entity_type: eonext_library_staff
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

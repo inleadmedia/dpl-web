@@ -1,0 +1,6 @@
+eonext_advanced_search.settings:
+  title: 'Advanced search'
+  description: Advanced search settings
+  route_name: eonext.advanced_search_settings
+  parent: dpl_library_agency.settings
+  weight: -99

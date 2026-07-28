@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the eonext_servicebanner module.
+ */
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Grants service banner administration permission to relevant roles.
+ */
+function _eonext_servicebanner_grant_admin_permissions(): void {
+  $permission = 'administer eonext service banner';
+
+  foreach (['administrator', 'editor'] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role === NULL || $role->hasPermission($permission)) {
+      continue;
+    }
+
+    $role->grantPermission($permission);
+    $role->save();
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function eonext_servicebanner_install(): void {
+  _eonext_servicebanner_grant_admin_permissions();
+}
+
+/**
+ * Grant service banner permission to administrator and editor roles.
+ */
+function eonext_servicebanner_update_9001(): void {
+  _eonext_servicebanner_grant_admin_permissions();
+}

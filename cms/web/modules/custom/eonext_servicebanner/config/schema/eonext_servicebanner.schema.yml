@@ -1,0 +1,25 @@
+eonext_servicebanner.settings:
+  type: config_object
+  label: 'Service banner settings'
+  mapping:
+    langcode:
+      type: langcode
+      label: 'Language code'
+    enabled:
+      type: boolean
+      label: 'Banner enabled'
+    unpublish_on:
+      type: string
+      label: 'Auto-unpublish date/time (ISO 8601)'
+    title:
+      type: string
+      label: 'Banner title'
+    body:
+      type: string
+      label: 'Banner body text'
+    url:
+      type: string
+      label: 'Banner link URL'
+    url_text:
+      type: string
+      label: 'Banner link text'

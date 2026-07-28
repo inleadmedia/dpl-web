@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file
+ */
+
+use Drupal\eonext_ext_fields\Form\AdditionalFieldsSettingsForm;
+
+/**
+ * @file
+ * Extended fields module logic.
+ */
+
+/**
+ *
+ */
+function eonext_ext_fields_preprocess_dpl_react_app(array &$variables): void {
+  $additional_fields_config = \Drupal::service('config.factory')
+    ->get(AdditionalFieldsSettingsForm::CONFIG_ID);
+
+  if (in_array($variables['name'], ['material', 'search-result'])) {
+    $json_input = $additional_fields_config->get('additional_fields');
+    if ('material' === $variables['name'] && !empty($json_input)) {
+      $decoded_json = json_decode($json_input, TRUE);
+      if ($decoded_json !== NULL) {
+        /* @phpstan-ignore-next-line  */
+        $variables['attributes']['data-eonext-ext-fields'] = json_encode($decoded_json);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function eonext_ext_fields_preprocess_html(array &$variables): void {
+  $additional_fields_config = \Drupal::service('config.factory')
+    ->get(AdditionalFieldsSettingsForm::CONFIG_ID);
+
+  $cover_override_path = $additional_fields_config->get('cover_override') ?? '';
+  if (!empty($cover_override_path)) {
+    $variables['attributes']['data-eonext-ext-covers'] = $cover_override_path;
+  }
+
+  $blacklisted_loans = $additional_fields_config->get('block_loans') ?? '';
+
+  if (!empty($blacklisted_loans)) {
+    $variables['attributes']['data-blacklisted-reservation-groups'] = $blacklisted_loans;
+  }
+}
+
+/**
+ * Implements hook_dpl_react_apps_data().
+ */
+function eonext_ext_fields_dpl_react_apps_data(array &$data): void {
+
+  $text_fields = \Drupal::service('config.factory')
+    ->get(AdditionalFieldsSettingsForm::CONFIG_ID)
+    ->get('text_fields');
+
+  if (empty($text_fields)) {
+    return;
+  }
+
+  // Parse the JSON string.
+  $decoded_json = json_decode($text_fields, TRUE);
+
+  if ($decoded_json === NULL || !is_array($decoded_json)) {
+    return;
+  }
+
+  foreach ($decoded_json as $key => $value) {
+    // Transform CamelCase to kebab-case. And remove Text suffix.
+    $keyAttribute = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $key));
+    $keyAttribute = str_replace('-text', '', $keyAttribute);
+    $data['texts'][$keyAttribute] = t($value);
+  }
+}

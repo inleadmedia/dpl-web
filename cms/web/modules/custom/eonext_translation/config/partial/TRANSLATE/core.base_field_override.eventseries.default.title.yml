@@ -1,0 +1,18 @@
+uuid: 22c62aa8-3faa-4003-a792-f0ab481836b2
+langcode: en
+status: true
+dependencies:
+  config:
+    - recurring_events.eventseries_type.default
+id: eventseries.default.title
+field_name: title
+entity_type: eventseries
+bundle: default
+label: Title
+description: 'The title of the event entity.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

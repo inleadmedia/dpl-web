@@ -1,0 +1,5 @@
+name: 'EO Next Event Status'
+type: module
+description: 'Module which gives possibility to editors to set custom status on event nodes, which further will be displayed as a &quot;ribbon&quot; or &quot;badge&quot; in the frontend.'
+package: EO next
+core_version_requirement: ^10 || ^11

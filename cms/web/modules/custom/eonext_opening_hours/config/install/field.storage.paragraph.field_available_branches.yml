@@ -1,0 +1,23 @@
+uuid: 4eaee11b-5a3e-4ed2-99f7-10f8feb46eba
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - paragraphs
+  enforced:
+    module:
+      - eonext_opening_hours
+id: paragraph.field_available_branches
+field_name: field_available_branches
+entity_type: paragraph
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

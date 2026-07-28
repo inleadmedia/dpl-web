@@ -1,0 +1,20 @@
+entity.eonext_library_staff.settings:
+  path: '/admin/structure/eonext-library-staff'
+  defaults:
+    _form: '\Drupal\eonext_staff\Form\LibraryStaffSettingsForm'
+    _title: 'Library Staff'
+  requirements:
+    _permission: 'administer eonext_library_staff'
+
+entity.eonext_library_staff.edit_form:
+  path: '/user/{user}/edit/staff'
+  defaults:
+    _entity_form: 'eonext_library_staff.edit'
+    _title: 'Staff'
+  requirements:
+    _access: 'TRUE'
+  options:
+    parameters:
+      user:
+        type: 'entity:user'
+    _admin_route: TRUE

@@ -1,0 +1,22 @@
+uuid: c63c01af-4991-445a-9a4a-df1601efbff3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eventinstance.field_ribbon_color
+    - recurring_events.eventinstance_type.default
+  module:
+    - color_field
+id: eventinstance.default.field_ribbon_color
+field_name: field_ribbon_color
+entity_type: eventinstance
+bundle: default
+label: 'Ribbon Color'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  opacity: 0
+field_type: color_field_type

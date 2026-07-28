@@ -36,6 +36,9 @@ interface EditorialSuggestion {
   teaser_text?: string;
 };
 
+// See the same option at the `apps/search-header/search-header.tsx` file;
+const minimalAutosuggestCharacters = 1;
+
 const AutosuggestEditorialSearchResult: React.FC<EditorialSuggestion> = ({ title, url, created_at, image, teaser_text }) => {
   const t = useText();
 
