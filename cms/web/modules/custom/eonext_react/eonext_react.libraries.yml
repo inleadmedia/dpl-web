@@ -1,0 +1,10 @@
+# Provides window.InleadReactInjector, which hooks into the React instance of
+# the main dpl-react bundle. Standalone injection libraries depend on this
+# instead of bundling their own copy: the injector is a global singleton.
+hook_to_react:
+  js:
+    js/hook-to-react.js:
+      preprocess: false
+      weight: -17
+  dependencies:
+    - dpl_react/base

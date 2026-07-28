@@ -1,0 +1,9 @@
+eonext_react.settings:
+  path: '/admin/config/eonext/react'
+  defaults:
+    _title: 'React settings'
+    _form: '\Drupal\eonext_react\Form\ReactSettingsForm'
+  requirements:
+    _permission: 'administer eonext react javascript'
+  options:
+    _admin_route: TRUE

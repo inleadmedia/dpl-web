@@ -1,0 +1,8 @@
+type: module
+name: EO NEXT Quick loan
+description: 'Toggles the quick loan (Kviklån) data attribute on the material page.'
+package: EO next
+core_version_requirement: ^10 || ^11
+dependencies:
+  - dpl_react_apps:dpl_react_apps
+configure: eonext_quickloan.settings

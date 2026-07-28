@@ -1,0 +1,8 @@
+services:
+  eonext_react.injected_javascript:
+    class: Drupal\eonext_react\InjectedJavascript
+    arguments:
+      - '@file_system'
+      - '@file_url_generator'
+      - '@library.discovery'
+      - '@asset.query_string'

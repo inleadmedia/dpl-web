@@ -1,0 +1,9 @@
+eonext_quickloan.settings:
+  path: '/admin/config/eonext/quick-loan'
+  defaults:
+    _title: 'Quick loan settings'
+    _form: '\Drupal\eonext_quickloan\Form\QuickLoanSettingsForm'
+  requirements:
+    _permission: 'administer eonext quick loan'
+  options:
+    _admin_route: TRUE

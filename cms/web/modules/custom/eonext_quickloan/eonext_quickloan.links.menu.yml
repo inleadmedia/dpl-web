@@ -1,0 +1,6 @@
+eonext_quickloan.settings:
+  title: 'Quick loan'
+  description: 'Configure quick loan (Kviklån) information on the material page.'
+  route_name: eonext_quickloan.settings
+  parent: dpl_library_agency.settings
+  weight: 10
