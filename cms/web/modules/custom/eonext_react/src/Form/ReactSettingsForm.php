@@ -65,6 +65,22 @@ class ReactSettingsForm extends ConfigFormBase {
       ]);
     }
 
+    $form['order'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('When to run'),
+      '#options' => [
+        InjectedJavascript::ORDER_BEFORE_MOUNT => $this->t('Before mount.js, while the React apps have not been mounted yet'),
+        InjectedJavascript::ORDER_AFTER_MOUNT => $this->t('After mount.js, once the React apps are mounted'),
+      ],
+      '#config_target' => InjectedJavascript::CONFIG_ID . ':order',
+    ];
+
+    $form['hook_to_react'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Load hook-to-react.js'),
+      '#config_target' => InjectedJavascript::CONFIG_ID . ':hook_to_react',
+    ];
+
     return $form;
   }
 

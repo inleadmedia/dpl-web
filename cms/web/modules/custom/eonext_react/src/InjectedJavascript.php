@@ -4,6 +4,7 @@ namespace Drupal\eonext_react;
 
 use Drupal\Core\Asset\AssetQueryStringInterface;
 use Drupal\Core\Asset\LibraryDiscoveryInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\File\FileExists;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\File\FileUrlGeneratorInterface;
@@ -22,15 +23,26 @@ class InjectedJavascript {
 
   public const LIBRARY = 'eonext_react/injected_javascript';
 
+  public const HOOK_LIBRARY = 'eonext_react/hook_to_react';
+
+  public const ORDER_BEFORE_MOUNT = 'before';
+
+  public const ORDER_AFTER_MOUNT = 'after';
+
   private const DIRECTORY = 'public://eonext_react';
 
   private const FILENAME = 'injected.js';
+
+  private const WEIGHT_BEFORE_MOUNT = -17;
+
+  private const WEIGHT_AFTER_MOUNT = -15;
 
   public function __construct(
     protected readonly FileSystemInterface $fileSystem,
     protected readonly FileUrlGeneratorInterface $fileUrlGenerator,
     protected readonly LibraryDiscoveryInterface $libraryDiscovery,
     protected readonly AssetQueryStringInterface $assetQueryString,
+    protected readonly ConfigFactoryInterface $configFactory,
   ) {}
 
   /**
@@ -55,6 +67,40 @@ class InjectedJavascript {
       return NULL;
     }
     return $this->fileUrlGenerator->generateString($this->getUri());
+  }
+
+  /**
+   * Returns whether hook-to-react.js should be loaded alongside the snippet.
+   */
+  public function usesHookToReact(): bool {
+    $enabled = $this->configFactory->get(self::CONFIG_ID)->get('hook_to_react');
+    return $enabled === NULL ? TRUE : (bool) $enabled;
+  }
+
+  /**
+   * Returns whether the snippet runs before or after mount.js.
+   */
+  public function getOrder(): string {
+    $order = $this->configFactory->get(self::CONFIG_ID)->get('order');
+    return $order === self::ORDER_AFTER_MOUNT
+      ? self::ORDER_AFTER_MOUNT
+      : self::ORDER_BEFORE_MOUNT;
+  }
+
+  /**
+   * Returns the asset weight that realises the configured order.
+   */
+  public function getWeight(): int {
+    return $this->getOrder() === self::ORDER_AFTER_MOUNT
+      ? self::WEIGHT_AFTER_MOUNT
+      : self::WEIGHT_BEFORE_MOUNT;
+  }
+
+  /**
+   * Returns the libraries the snippet has to be loaded after.
+   */
+  public function getLibraryDependencies(): array {
+    return $this->usesHookToReact() ? [self::HOOK_LIBRARY] : ['dpl_react/base'];
   }
 
   /**

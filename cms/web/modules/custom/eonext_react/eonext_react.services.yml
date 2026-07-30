@@ -6,3 +6,4 @@ services:
       - '@file_url_generator'
       - '@library.discovery'
       - '@asset.query_string'
+      - '@config.factory'

@@ -11,7 +11,10 @@ use Drupal\eonext_react\InjectedJavascript;
  * Implements hook_library_info_build().
  */
 function eonext_react_library_info_build(): array {
-  $path = \Drupal::service('eonext_react.injected_javascript')->getPath();
+  /** @var \Drupal\eonext_react\InjectedJavascript $injected */
+  $injected = \Drupal::service('eonext_react.injected_javascript');
+  $path = $injected->getPath();
+
   if (!$path) {
     return [];
   }
@@ -21,14 +24,10 @@ function eonext_react_library_info_build(): array {
       'js' => [
         $path => [
           'preprocess' => FALSE,
-          // Loads after the dpl-react webpack runtime and before the apps are
-          // mounted, which is the window a standalone bundle needs.
-          'weight' => -16,
+          'weight' => $injected->getWeight(),
         ],
       ],
-      'dependencies' => [
-        'eonext_react/hook_to_react',
-      ],
+      'dependencies' => $injected->getLibraryDependencies(),
     ],
   ];
 }

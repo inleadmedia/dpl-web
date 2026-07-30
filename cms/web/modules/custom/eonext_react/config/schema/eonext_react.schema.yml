@@ -8,3 +8,9 @@ eonext_react.settings:
     javascript:
       type: text
       label: 'JavaScript injected into non-administrative pages'
+    hook_to_react:
+      type: boolean
+      label: 'Load hook-to-react.js alongside the injected JavaScript'
+    order:
+      type: string
+      label: 'Whether the injected JavaScript runs before or after mount.js'
