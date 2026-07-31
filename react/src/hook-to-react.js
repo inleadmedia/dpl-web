@@ -7,6 +7,51 @@
     constructor() {
       this._reactPackage;
       this._instantiatedInjections = [];
+      this._packagesList = {};
+      this._unwrappedPackages = {};
+    }
+
+    getUnwrappedPackage(key) {
+      return this._unwrappedPackages[key];
+    }
+
+    unwrapPackages(unwrapPackageMethod) {
+      Object.keys(this._packagesList).forEach(packageKey => {
+        this.unwrapPackage(this._packagesList[packageKey], unwrapPackageMethod);
+      });
+    }
+
+    unwrapPackage(_package, unwrapPackageMethod) {
+      if (!_package || typeof _package !== "object")
+        return;
+
+      /* Clone of the _package is required for dev mode */
+      if ("__STORYBOOK_STORY_STORE__" in window)
+        _package = Object.assign({}, _package);
+
+      Object.keys(_package).forEach(minifiedKey => {
+        if (!_package[minifiedKey] || !_package[minifiedKey].toString)
+          return;
+
+        let unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+        if (unwrapped) {
+          _package[unwrapped.methodKey] = _package[minifiedKey];
+          _package[unwrapped.methodKey].minifiedKey = minifiedKey;
+
+          this._unwrappedPackages[unwrapped.packageKey] = _package;
+        }
+      });
+    }
+
+    findPackage(validator) {
+      let foundPackageKey = Object.keys(this._packagesList).find(packageKey => {
+        return this._packagesList[packageKey]
+          && typeof this._packagesList[packageKey] === "object"
+          && validator(this._packagesList[packageKey]);
+      });
+
+      if (foundPackageKey)
+        return this._packagesList[foundPackageKey];
     }
 
     setInjectionToReactLibrary(reactPackage) {
@@ -125,22 +170,20 @@
       ["inlead_hook"], {
         inlead_hook(e, a, _import) {
           // Search for react package at webpackChunks
-          var reactPackage;
-          globalThis.webpackChunk_danskernesdigitalebibliotek_dpl_react.some((bundle) => {
-            var bundlePackages = bundle[1];
-            Object.keys(bundlePackages).some((packageKey) => {
+
+          globalThis.webpackChunk_danskernesdigitalebibliotek_dpl_react.forEach((bundle) => {
+            Object.keys(bundle[1]).forEach((packageKey) => {
               var _package = _import(packageKey);
               if (!_package)
                 return;
 
-              // Validate package exports to make sure that the react package
-              if (_package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react."))
-                reactPackage = _package;
-
-              return reactPackage;
+              window.InleadReactInjector._packagesList[packageKey] = _package;
             });
+          });
 
-            return reactPackage;
+          var reactPackage = window.InleadReactInjector.findPackage((_package) => {
+            // Validate package exports to make sure that the react package
+            return _package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react.");
           });
 
           if (!reactPackage)
