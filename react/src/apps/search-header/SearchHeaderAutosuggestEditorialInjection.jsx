@@ -1,9 +1,59 @@
 // The `hook-to-react.js` is mandatory, it will be used at standalone mode when connected to page via a built file.
 import "../../hook-to-react.js";
-import AutosuggestEditorial from "../../components/autosuggest-editorial/autosuggest-editorial";
-import { useText } from "../../core/utils/text";
+// `lodash`, `core/utils/helpers/date` and `core/fetchers/helpers` is allowed to import
+// into package because it does not use the app context
+import { omitBy } from "lodash";
+import { formatCustomDateString } from "../../core/utils/helpers/date";
+import { getServiceUrlWithParams } from "../../core/fetchers/helpers";
+
+import AutosuggestEditorialCostructor from "../../components/autosuggest-editorial/autosuggest-editorial-constructor.jsx";
 
 if (window.InleadReactInjector) {
+  window.InleadReactInjector.unwrapPackages((stringifiedMethod) => {
+    if (stringifiedMethod.includes("The translation store is broken."))
+      return { methodKey: "useText", packageKey: "core/utils/text.tsx" };
+
+    if (stringifiedMethod.includes("Service base url for ")) {
+      return {
+        methodKey: "getServiceBaseUrl",
+        packageKey: "core/utils/reduxMiddleware/extractServiceBaseUrls.tsx"
+      };
+    }
+  }, (objectMethod) => {
+    const isServiceUrlKeys = Object.keys(objectMethod).some(key => {
+      return [
+        "fbsBaseUrl",
+        "publizonBaseUrl",
+        "dplCmsBaseUrl",
+        "coverBaseUrl"
+      ].includes(objectMethod[key]);
+    });
+
+    if (isServiceUrlKeys) {
+      return {
+        methodKey: "serviceUrlKeys",
+        packageKey: "core/utils/reduxMiddleware/extractServiceBaseUrls.tsx"
+      };
+    }
+  });
+
+  const { getServiceBaseUrl, serviceUrlKeys } = window.InleadReactInjector.getUnwrappedPackage("core/utils/reduxMiddleware/extractServiceBaseUrls.tsx");
+
+  const _useText = window.InleadReactInjector.getUnwrappedPackage("core/utils/text.tsx").useText;
+  // useText with optional translate;
+  const useText = function useText() {
+    const t = _useText();
+
+    return function(string, options) {
+      try {
+        return t(string, options);
+      } catch (_) {
+        return string;
+      }
+    }
+  };
+
+
   /* Module info: The editorial articles above the search results */
   let query = "";
 
@@ -26,6 +76,18 @@ if (window.InleadReactInjector) {
       }
     },
     handler: function(React) {
+      const AutosuggestEditorial = AutosuggestEditorialCostructor(React, {
+        useRef: React.useRef,
+        useState: React.useState,
+        useEffect: React.useEffect,
+        getServiceBaseUrl,
+        serviceUrlKeys,
+        getServiceUrlWithParams,
+        formatCustomDateString,
+        useText,
+        omitBy
+      });
+
       return function() {
         const [editorialSuggestionsHits, setEditorialSuggestionsHits] = React.useState(0);
         const t = useText();
