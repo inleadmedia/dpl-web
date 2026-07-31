@@ -15,13 +15,13 @@
       return this._unwrappedPackages[key];
     }
 
-    unwrapPackages(unwrapPackageMethod) {
+    unwrapPackages(unwrapPackageMethod, unwrapPackageObject) {
       Object.keys(this._packagesList).forEach(packageKey => {
-        this.unwrapPackage(this._packagesList[packageKey], unwrapPackageMethod);
+        this.unwrapPackage(this._packagesList[packageKey], unwrapPackageMethod, unwrapPackageObject);
       });
     }
 
-    unwrapPackage(_package, unwrapPackageMethod) {
+    unwrapPackage(_package, unwrapPackageMethod, unwrapPackageObject) {
       if (!_package || typeof _package !== "object")
         return;
 
@@ -33,7 +33,13 @@
         if (!_package[minifiedKey] || !_package[minifiedKey].toString)
           return;
 
-        let unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+        let unwrapped;
+        if (typeof _package[minifiedKey] === "object" && unwrapPackageObject) {
+          unwrapped = unwrapPackageObject(_package[minifiedKey]);
+        } else {
+          unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+        }
+
         if (unwrapped) {
           _package[unwrapped.methodKey] = _package[minifiedKey];
           _package[unwrapped.methodKey].minifiedKey = minifiedKey;

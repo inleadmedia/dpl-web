@@ -47,7 +47,8 @@ if (window.InleadReactInjector) {
         return string;
       }
     }
-  }
+  };
+
   const { useConfig } = window.InleadReactInjector.getUnwrappedPackage("core/utils/config.tsx");
   const { useGetHoldings } = materialHelper;
 
