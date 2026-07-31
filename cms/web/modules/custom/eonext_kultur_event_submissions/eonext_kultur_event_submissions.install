@@ -1,0 +1,154 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for eonext_kultur_event_submissions.
+ */
+
+use Drupal\language\Entity\ConfigurableLanguage;
+use Drupal\user\Entity\Role;
+
+/**
+ * Grants module permissions to relevant roles.
+ */
+function _eonext_kultur_event_submissions_grant_permissions(): void {
+  $adminPermission = 'administer kultur event submissions';
+  $submitPermission = 'submit kultur event';
+
+  foreach (['administrator', 'editor', 'local_administrator'] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role === NULL) {
+      continue;
+    }
+
+    if (!$role->hasPermission($adminPermission)) {
+      $role->grantPermission($adminPermission);
+    }
+    if (!$role->hasPermission($submitPermission)) {
+      $role->grantPermission($submitPermission);
+    }
+    $role->save();
+  }
+
+  $anonymous = Role::load(Role::ANONYMOUS_ID);
+  if ($anonymous !== NULL && !$anonymous->hasPermission($submitPermission)) {
+    $anonymous->grantPermission($submitPermission);
+    $anonymous->save();
+  }
+
+  $authenticated = Role::load(Role::AUTHENTICATED_ID);
+  if ($authenticated !== NULL && !$authenticated->hasPermission($submitPermission)) {
+    $authenticated->grantPermission($submitPermission);
+    $authenticated->save();
+  }
+}
+
+/**
+ * Ensures Greenlandic is available and event series translation is enabled.
+ */
+function _eonext_kultur_event_submissions_ensure_languages(): void {
+  if (ConfigurableLanguage::load('kl') === NULL) {
+    ConfigurableLanguage::createFromLangcode('kl')->save();
+  }
+
+  if (!\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return;
+  }
+
+  $manager = \Drupal::service('content_translation.manager');
+  if (!$manager->isEnabled('eventseries', 'default')) {
+    $manager->setEnabled('eventseries', 'default', TRUE);
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function eonext_kultur_event_submissions_install(): void {
+  _eonext_kultur_event_submissions_grant_permissions();
+  _eonext_kultur_event_submissions_ensure_languages();
+}
+
+/**
+ * Grant submit permissions that may be missing after manual module enable.
+ */
+function eonext_kultur_event_submissions_update_9001(): void {
+  _eonext_kultur_event_submissions_grant_permissions();
+}
+
+/**
+ * Installs entity storage if the module was enabled without hook_install().
+ */
+function eonext_kultur_event_submissions_update_9002(): void {
+  $entity_type_id = 'kultur_event_submission';
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+
+  if ($update_manager->getEntityType($entity_type_id) === NULL) {
+    $update_manager->installEntityType($entity_type);
+  }
+}
+
+/**
+ * Ensures Greenlandic is configured and repairs orphaned event series fields.
+ */
+function eonext_kultur_event_submissions_update_9003(): void {
+  _eonext_kultur_event_submissions_ensure_languages();
+  _eonext_kultur_event_submissions_repair_eventseries_field_langcodes();
+}
+
+/**
+ * Moves field values to the entity default langcode when they were stored as en.
+ *
+ * This happens when event series were created with langcode kl before kl existed.
+ *
+ * @return int
+ *   The number of field rows updated.
+ */
+function _eonext_kultur_event_submissions_repair_eventseries_field_langcodes(): int {
+  $connection = \Drupal::database();
+  $schema = $connection->schema();
+  $updated = 0;
+
+  $series_ids = $connection->select('eventseries_field_data', 'es')
+    ->fields('es', ['id'])
+    ->condition('default_langcode', 1)
+    ->condition('langcode', 'kl')
+    ->execute()
+    ->fetchCol();
+
+  if ($series_ids === []) {
+    return 0;
+  }
+
+  $field_tables = [
+    'eventseries__custom_date',
+    'eventseries__field_teaser_image',
+    'eventseries__field_event_image',
+    'eventseries__field_event_paragraphs',
+    'eventseries__field_teaser_text',
+    'eventseries__field_event_partners',
+    'eventseries__field_event_address',
+    'eventseries__field_event_state',
+    'eventseries__field_description',
+    'eventseries__field_event_place',
+  ];
+
+  foreach ($field_tables as $table) {
+    if (!$schema->tableExists($table) || !$schema->fieldExists($table, 'langcode')) {
+      continue;
+    }
+
+    $updated += (int) $connection->update($table)
+      ->fields(['langcode' => 'kl'])
+      ->condition('entity_id', $series_ids, 'IN')
+      ->condition('langcode', 'en')
+      ->execute();
+  }
+
+  if ($updated > 0) {
+    \Drupal::entityTypeManager()->getStorage('eventseries')->resetCache($series_ids);
+  }
+
+  return $updated;
+}

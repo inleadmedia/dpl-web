@@ -1,0 +1,178 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Kulturnat event submissions.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
+use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_kultur_event_submissions_theme($existing, $type, $theme, $path): array {
+  return [
+    'form__eonext_kultur_event_submission_public' => [
+      'render element' => 'element',
+      'template' => 'form--eonext-kultur-event-submission-public',
+      'path' => $path . '/templates',
+    ],
+    'kultur_event_submission' => [
+      'variables' => [
+        'organisation_name' => NULL,
+        'status' => NULL,
+        'status_label' => NULL,
+        'city_label' => NULL,
+        'address' => NULL,
+        'event_start' => NULL,
+        'event_end' => NULL,
+        'contact_name' => NULL,
+        'contact_email' => NULL,
+        'contact_phone' => NULL,
+        'description_gl' => NULL,
+        'description_da' => NULL,
+        'image' => NULL,
+        'eventseries' => NULL,
+        'submitted' => NULL,
+        'updated' => NULL,
+        'actions' => [],
+      ],
+      'template' => 'kultur-event-submission',
+      'path' => $path . '/templates',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for form.
+ */
+function eonext_kultur_event_submissions_theme_suggestions_form_alter(array &$suggestions, array $variables): void {
+  if (($variables['element']['#form_id'] ?? '') === 'eonext_kultur_event_submission_public_form') {
+    $suggestions[] = 'form__eonext_kultur_event_submission_public';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for form_element.
+ */
+function eonext_kultur_event_submissions_theme_suggestions_form_element_alter(array &$suggestions, array $variables): void {
+  if (\Drupal::routeMatch()->getRouteName() !== 'eonext_kultur_event_submissions.public_form') {
+    return;
+  }
+
+  $suggestions[] = 'form_element__webform';
+  if (($variables['element']['#type'] ?? '') === 'radio') {
+    $suggestions[] = 'form_element__webform_radio';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter() for fieldset.
+ */
+function eonext_kultur_event_submissions_theme_suggestions_fieldset_alter(array &$suggestions, array $variables): void {
+  if (\Drupal::routeMatch()->getRouteName() !== 'eonext_kultur_event_submissions.public_form') {
+    return;
+  }
+
+  $suggestions[] = 'fieldset__webform';
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for the public submission form.
+ */
+function eonext_kultur_event_submissions_preprocess_form__eonext_kultur_event_submission_public(array &$variables): void {
+  $variables['attributes']['method'] = 'post';
+  $variables['attributes']['enctype'] = 'multipart/form-data';
+  $variables['attributes']['action'] = Url::fromRoute('eonext_kultur_event_submissions.public_form')->toString();
+}
+
+/**
+ * Implements hook_preprocess_html().
+ */
+function eonext_kultur_event_submissions_preprocess_html(array &$variables): void {
+  if (\Drupal::routeMatch()->getRouteName() !== 'eonext_kultur_event_submissions.public_form') {
+    return;
+  }
+
+  $variables['attributes']['class'][] = 'ek-submission-form-page';
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function eonext_kultur_event_submissions_preprocess_page(array &$variables): void {
+  if (\Drupal::routeMatch()->getRouteName() !== 'eonext_kultur_event_submissions.public_form') {
+    return;
+  }
+
+  $variables['#attached']['library'][] = 'eonext_kultur_event_submissions/submission-form';
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function eonext_kultur_event_submissions_menu_local_tasks_alter(array &$data, string $route_name): void {
+  if ($route_name !== 'entity.kultur_event_submission.canonical') {
+    return;
+  }
+
+  $submission = \Drupal::routeMatch()->getParameter('kultur_event_submission');
+  if (!$submission instanceof EntityInterface || $submission->getEntityTypeId() !== 'kultur_event_submission') {
+    return;
+  }
+
+  if (!$submission instanceof KulturEventSubmission || $submission->get('status')->value !== SubmissionConstants::STATUS_PENDING) {
+    unset($data['tabs'][1]['entity.kultur_event_submission.approve_form']);
+    unset($data['tabs'][1]['entity.kultur_event_submission.reject_form']);
+  }
+}
+
+/**
+ * Implements hook_entity_view_mode_alter().
+ */
+function eonext_kultur_event_submissions_entity_view_mode_alter(string &$view_mode, EntityInterface $entity): void {
+  if ($entity->getEntityTypeId() === 'kultur_event_submission' && $view_mode === 'default') {
+    $view_mode = 'full';
+  }
+}
+
+/**
+ * Applies Webform-compatible wrappers so novel form templates are used.
+ */
+function eonext_kultur_event_submissions_apply_webform_styling(array &$element): void {
+  static $skip_keys = [
+    'form_build_id' => TRUE,
+    'form_token' => TRUE,
+    'form_id' => TRUE,
+    'actions' => TRUE,
+    'confirmation' => TRUE,
+    'status_messages' => TRUE,
+  ];
+
+  foreach (Element::children($element) as $key) {
+    if (isset($skip_keys[$key])) {
+      continue;
+    }
+
+    if (isset($element[$key]['#type'])) {
+      $element[$key]['#webform_element'] = TRUE;
+    }
+
+    if (is_array($element[$key])) {
+      eonext_kultur_event_submissions_apply_webform_styling($element[$key]);
+    }
+  }
+}
+
+/**
+ * After-build callback for the public submission form.
+ */
+function eonext_kultur_event_submissions_public_form_after_build(array $form, FormStateInterface $form_state): array {
+  eonext_kultur_event_submissions_apply_webform_styling($form);
+  return $form;
+}

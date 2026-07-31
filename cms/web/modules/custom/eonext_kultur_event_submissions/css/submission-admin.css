@@ -1,0 +1,147 @@
+/**
+ * Gin admin detail view for Kulturnat event submissions.
+ */
+
+.ek-submission-admin {
+  max-width: 960px;
+}
+
+.ek-submission-admin__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.ek-submission-admin__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ek-submission-admin__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: 999px;
+}
+
+.ek-submission-admin__status--pending {
+  color: #8a6116;
+  background: #fff3cd;
+}
+
+.ek-submission-admin__status--approved {
+  color: #1e7a39;
+  background: #d4edda;
+}
+
+.ek-submission-admin__status--rejected {
+  color: #842029;
+  background: #f8d7da;
+}
+
+.ek-submission-admin__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--gin-color-text-light, #555);
+}
+
+.ek-submission-admin__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.ek-submission-admin__section {
+  padding: 1.25rem 1.5rem;
+  background: var(--gin-bg-layer, #fff);
+  border: 1px solid var(--gin-border-color-layer, #d4d4d8);
+  border-radius: var(--gin-border-m, 4px);
+}
+
+.ek-submission-admin__section--wide {
+  grid-column: 1 / -1;
+}
+
+.ek-submission-admin__section-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ek-submission-admin__definition-list {
+  display: grid;
+  gap: 0.875rem;
+  margin: 0;
+}
+
+.ek-submission-admin__definition-list > div {
+  margin: 0;
+}
+
+.ek-submission-admin__definition-list dt {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gin-color-text-light, #555);
+}
+
+.ek-submission-admin__definition-list dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.ek-submission-admin__definition-list--columns {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.ek-submission-admin__address .address {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.ek-submission-admin__image {
+  margin: 0;
+}
+
+.ek-submission-admin__image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--gin-border-color-layer, #d4d4d8);
+  border-radius: var(--gin-border-m, 4px);
+}
+
+.ek-submission-admin__descriptions {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.ek-submission-admin__description h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gin-color-text-light, #555);
+}
+
+.ek-submission-admin__description-body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (min-width: 768px) {
+  .ek-submission-admin__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

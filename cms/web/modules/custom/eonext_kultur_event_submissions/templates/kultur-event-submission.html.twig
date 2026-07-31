@@ -1,0 +1,111 @@
+{#
+/**
+ * @file
+ * Admin detail view for a Kulturnat event submission.
+ */
+#}
+<div class="ek-submission-admin">
+  <div class="ek-submission-admin__toolbar">
+    <span class="ek-submission-admin__status ek-submission-admin__status--{{ status }}">
+      {{ status_label }}
+    </span>
+    {% if actions %}
+      <div class="ek-submission-admin__actions">
+        {{ actions.approve }}
+        {{ actions.reject }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ek-submission-admin__meta">
+    <span>{{ 'Submitted'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}: {{ submitted }}</span>
+    <span>{{ 'Updated'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}: {{ updated }}</span>
+  </div>
+
+  <div class="ek-submission-admin__grid">
+    <section class="ek-submission-admin__section">
+      <h2 class="ek-submission-admin__section-title">{{ 'Organisation'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+      <dl class="ek-submission-admin__definition-list">
+        <div>
+          <dt>{{ 'Organisation name'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd>{{ organisation_name }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'City'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd>{{ city_label }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="ek-submission-admin__section">
+      <h2 class="ek-submission-admin__section-title">{{ 'Location'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+      <div class="ek-submission-admin__address">{{ address }}</div>
+    </section>
+
+    <section class="ek-submission-admin__section">
+      <h2 class="ek-submission-admin__section-title">{{ 'Date and time'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+      <dl class="ek-submission-admin__definition-list ek-submission-admin__definition-list--columns">
+        <div>
+          <dt>{{ 'Event start'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd>{{ event_start }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'Event end'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd>{{ event_end }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="ek-submission-admin__section">
+      <h2 class="ek-submission-admin__section-title">{{ 'Contact'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+      <dl class="ek-submission-admin__definition-list">
+        <div>
+          <dt>{{ 'Contact name'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd>{{ contact_name }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'Contact email'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dd><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></dd>
+        </div>
+        {% if contact_phone %}
+          <div>
+            <dt>{{ 'Contact phone'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+            <dd>{{ contact_phone }}</dd>
+          </div>
+        {% endif %}
+      </dl>
+    </section>
+
+    {% if image %}
+      <section class="ek-submission-admin__section ek-submission-admin__section--wide">
+        <h2 class="ek-submission-admin__section-title">{{ 'Image'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+        <figure class="ek-submission-admin__image">
+          <img src="{{ image.url }}" alt="{{ image.alt }}" loading="lazy" />
+        </figure>
+      </section>
+    {% endif %}
+
+    <section class="ek-submission-admin__section ek-submission-admin__section--wide">
+      <h2 class="ek-submission-admin__section-title">{{ 'Event description'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+      <div class="ek-submission-admin__descriptions">
+        <div class="ek-submission-admin__description">
+          <h3>{{ 'Info om arrangement på grønlandsk'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h3>
+          <div class="ek-submission-admin__description-body">{{ description_gl|nl2br }}</div>
+        </div>
+        {% if description_da %}
+          <div class="ek-submission-admin__description">
+            <h3>{{ 'Info om arrangement på dansk'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h3>
+            <div class="ek-submission-admin__description-body">{{ description_da|nl2br }}</div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    {% if eventseries %}
+      <section class="ek-submission-admin__section">
+        <h2 class="ek-submission-admin__section-title">{{ 'Published event series'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
+        <p>{{ eventseries }}</p>
+      </section>
+    {% endif %}
+  </div>
+</div>

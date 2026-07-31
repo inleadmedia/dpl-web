@@ -1,0 +1,10 @@
+services:
+  eonext_kultur_event_submissions.event_series_publisher:
+    class: Drupal\eonext_kultur_event_submissions\Service\EventSeriesPublisher
+    arguments:
+      - '@entity_type.manager'
+      - '@logger.channel.eonext_kultur_event_submissions'
+
+  logger.channel.eonext_kultur_event_submissions:
+    parent: logger.channel_base
+    arguments: ['eonext_kultur_event_submissions']

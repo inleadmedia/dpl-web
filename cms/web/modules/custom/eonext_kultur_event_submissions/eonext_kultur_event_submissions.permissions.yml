@@ -1,0 +1,6 @@
+administer kultur event submissions:
+  title: 'Administer Kulturnat event submissions'
+  description: 'Review, approve, and reject submitted Kulturnat events.'
+submit kultur event:
+  title: 'Submit Kulturnat events'
+  description: 'Submit events through the public Kulturnat registration form.'

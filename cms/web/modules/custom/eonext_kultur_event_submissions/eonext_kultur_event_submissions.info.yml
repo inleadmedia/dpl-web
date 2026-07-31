@@ -1,0 +1,15 @@
+name: 'EO Next Kultur Event Submissions'
+type: module
+description: 'Public Kulturnat event registration form with admin review and eventseries publishing.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - address:address
+  - content_translation:content_translation
+  - dpl_event:dpl_event
+  - file:file
+  - image:image
+  - language:language
+  - media:media
+  - paragraphs:paragraphs
+  - recurring_events:recurring_events

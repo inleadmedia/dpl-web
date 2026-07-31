@@ -1,0 +1,12 @@
+submission-form:
+  css:
+    theme:
+      css/submission-form.css: {}
+  dependencies:
+    - novel/base
+    - eonext_kultur/chrome
+
+admin-detail:
+  css:
+    theme:
+      css/submission-admin.css: {}

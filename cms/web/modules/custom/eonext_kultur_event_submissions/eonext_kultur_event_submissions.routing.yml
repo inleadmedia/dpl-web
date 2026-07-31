@@ -1,0 +1,53 @@
+eonext_kultur_event_submissions.public_form:
+  path: '/kultur/tilmeld-arrangement'
+  defaults:
+    _form: '\Drupal\eonext_kultur_event_submissions\Form\KulturEventSubmissionPublicForm'
+    _title: 'Tilmeld arrangement'
+  requirements:
+    _permission: 'submit kultur event'
+
+entity.kultur_event_submission.collection:
+  path: '/admin/content/kultur-event-submissions'
+  defaults:
+    _entity_list: 'kultur_event_submission'
+    _title: 'Kulturnat event submissions'
+  requirements:
+    _permission: 'administer kultur event submissions'
+
+entity.kultur_event_submission.canonical:
+  path: '/admin/content/kultur-event-submissions/{kultur_event_submission}'
+  defaults:
+    _entity_view: 'kultur_event_submission.full'
+    _title_callback: '\Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission::submissionTitle'
+  requirements:
+    _permission: 'administer kultur event submissions'
+  options:
+    parameters:
+      kultur_event_submission:
+        type: entity:kultur_event_submission
+
+entity.kultur_event_submission.approve_form:
+  path: '/admin/content/kultur-event-submissions/{kultur_event_submission}/approve'
+  defaults:
+    _entity_form: 'kultur_event_submission.approve'
+    _title: 'Approve submission'
+  requirements:
+    _permission: 'administer kultur event submissions'
+    _entity_access: 'kultur_event_submission.update'
+  options:
+    parameters:
+      kultur_event_submission:
+        type: entity:kultur_event_submission
+
+entity.kultur_event_submission.reject_form:
+  path: '/admin/content/kultur-event-submissions/{kultur_event_submission}/reject'
+  defaults:
+    _entity_form: 'kultur_event_submission.reject'
+    _title: 'Reject submission'
+  requirements:
+    _permission: 'administer kultur event submissions'
+    _entity_access: 'kultur_event_submission.update'
+  options:
+    parameters:
+      kultur_event_submission:
+        type: entity:kultur_event_submission

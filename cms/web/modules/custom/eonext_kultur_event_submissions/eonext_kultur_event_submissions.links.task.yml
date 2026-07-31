@@ -1,0 +1,16 @@
+entity.kultur_event_submission.canonical:
+  title: 'View'
+  route_name: entity.kultur_event_submission.canonical
+  base_route: entity.kultur_event_submission.canonical
+
+entity.kultur_event_submission.approve_form:
+  title: 'Approve'
+  route_name: entity.kultur_event_submission.approve_form
+  base_route: entity.kultur_event_submission.canonical
+  weight: 10
+
+entity.kultur_event_submission.reject_form:
+  title: 'Reject'
+  route_name: entity.kultur_event_submission.reject_form
+  base_route: entity.kultur_event_submission.canonical
+  weight: 20

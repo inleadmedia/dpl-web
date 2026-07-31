@@ -1,0 +1,137 @@
+/**
+ * Kulturnat event submission form — layout and branding only.
+ * Field controls use DPL design system (.dpl-form, .dpl-input, .btn-primary).
+ */
+
+.ek-submission-form-page .overflow-hidden {
+  overflow: visible;
+}
+
+.ek-submission-form-page main {
+  background-color: var(--ek-cream, #fefaf1);
+  padding-top: 0;
+}
+
+.ek-submission-form-page .page-title,
+.ek-submission-form-page h1.page-title {
+  display: none;
+}
+
+.ek-submission-form {
+  margin: 0;
+  padding: 0;
+}
+
+.ek-submission-form__hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  min-height: 14rem;
+  margin-inline: calc(50% - 50vw);
+  margin-bottom: 2.5rem;
+  padding: 2rem 1.5rem;
+  color: #fff;
+  text-align: center;
+  background-color: var(--ek-navy, #235881);
+}
+
+.ek-submission-form__hero-inner {
+  max-width: 42rem;
+}
+
+.ek-submission-form__title {
+  margin: 0 0 0.75rem;
+  font-family: var(--ek-font-heading, inherit);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.ek-submission-form__intro {
+  margin: 0 auto;
+  max-width: 36rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.ek-submission-form__inner {
+  max-width: 42rem;
+  margin: 0 auto 4rem;
+  padding: 0 1rem;
+}
+
+.ek-submission-form__section {
+  margin-bottom: 2.5rem;
+  padding: 0;
+}
+
+.ek-submission-form__section:last-of-type {
+  margin-bottom: 0;
+}
+
+.ek-submission-form__section-title {
+  margin: 0 0 1.5rem;
+  color: var(--ek-navy, #235881);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ek-submission-form__section .dpl-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ek-submission-form__section .dpl-fieldset > legend {
+  margin-bottom: 0;
+}
+
+.ek-submission-form__confirmation {
+  margin-bottom: 2rem;
+}
+
+.ek-submission-form__messages {
+  margin-bottom: 2rem;
+}
+
+.ek-submission-form__messages [data-drupal-messages] {
+  margin: 0;
+}
+
+.ek-submission-form__datetime-row {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.ek-submission-form__datetime-group h4 {
+  margin: 0 0 0.75rem;
+  font-family: var(--ek-font-body, inherit);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: #484848;
+}
+
+.ek-submission-form__datetime-group .container-inline {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ek-submission-form__datetime-row {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+  }
+
+  .ek-submission-form__datetime-group .container-inline {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ek-submission-form.dpl-form .dpl-button {
+  margin-top: 2.75rem;
+}
