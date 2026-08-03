@@ -191,14 +191,14 @@ final class KulturEventSubmissionPublicForm extends FormBase {
       'heading' => $this->sectionTitle($this->t('Event description', [], ['context' => 'eonext_kultur_event_submissions'])),
       'description_gl' => [
         '#type' => 'textarea',
-        '#title' => $this->t('Info om arrangement på grønlandsk', [], ['context' => 'eonext_kultur_event_submissions']),
+        '#title' => $this->t('Event information in Greenlandic', [], ['context' => 'eonext_kultur_event_submissions']),
         '#required' => TRUE,
         '#rows' => 6,
         '#attributes' => ['class' => ['dpl-input--full-width']],
       ],
       'description_da' => [
         '#type' => 'textarea',
-        '#title' => $this->t('Info om arrangement på dansk', [], ['context' => 'eonext_kultur_event_submissions']),
+        '#title' => $this->t('Event information in Danish', [], ['context' => 'eonext_kultur_event_submissions']),
         '#required' => FALSE,
         '#rows' => 6,
         '#attributes' => ['class' => ['dpl-input--full-width']],

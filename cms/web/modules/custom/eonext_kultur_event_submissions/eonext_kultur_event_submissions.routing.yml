@@ -1,8 +1,8 @@
 eonext_kultur_event_submissions.public_form:
-  path: '/kultur/tilmeld-arrangement'
+  path: '/kultur/register-event'
   defaults:
     _form: '\Drupal\eonext_kultur_event_submissions\Form\KulturEventSubmissionPublicForm'
-    _title: 'Tilmeld arrangement'
+    _title: 'Register event'
   requirements:
     _permission: 'submit kultur event'
 

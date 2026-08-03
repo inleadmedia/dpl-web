@@ -152,7 +152,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
       ]);
 
     $fields['description_gl'] = BaseFieldDefinition::create('text_long')
-      ->setLabel(new TranslatableMarkup('Info om arrangement på grønlandsk', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setLabel(new TranslatableMarkup('Event information in Greenlandic', [], ['context' => 'eonext_kultur_event_submissions']))
       ->setRequired(TRUE)
       ->setDisplayOptions('view', [
         'label' => 'above',
@@ -161,7 +161,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
       ]);
 
     $fields['description_da'] = BaseFieldDefinition::create('text_long')
-      ->setLabel(new TranslatableMarkup('Info om arrangement på dansk', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setLabel(new TranslatableMarkup('Event information in Danish', [], ['context' => 'eonext_kultur_event_submissions']))
       ->setRequired(FALSE)
       ->setDisplayOptions('view', [
         'label' => 'above',
