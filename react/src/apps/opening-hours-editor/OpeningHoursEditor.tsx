@@ -17,6 +17,7 @@ import watchIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icon
 
 export type OpeningHoursEditorType = {
   initialDate?: Date;
+  isInjectionExample?: boolean;
 };
 
 const OpeningHoursEditor: React.FC<OpeningHoursEditorType> = ({
