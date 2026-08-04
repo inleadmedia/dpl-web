@@ -95,8 +95,18 @@
         return false;
 
       return Object.keys(condition).every(conditionKey => {
-        if (reactNodeData.props == null || reactNodeData.props[conditionKey] == null)
+        if ((reactNodeData.props == null || reactNodeData.props[conditionKey] == null) && conditionKey !== "hasChild")
           return false;
+
+        if (conditionKey === "hasChild" && reactNodeData.children) {
+          return (reactNodeData.children || []).some(child => {
+            return this._matchElement({
+              tag: child.type,
+              props: child.props,
+              children: (child.props || {}).children
+            }, condition.hasChild);
+          });
+        }
 
         let valueToValidate = reactNodeData.props[conditionKey];
         if (conditionKey === "className" && typeof valueToValidate === "string") {
@@ -158,6 +168,10 @@
           } else {
             console.warn("Unknown injection type!", injection);
           }
+        }
+
+        if (injection.options.onFound) {
+          injection.options.onFound(reactNodeData);
         }
       }
 
