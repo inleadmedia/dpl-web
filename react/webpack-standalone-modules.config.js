@@ -34,7 +34,8 @@ module.exports = (_env, argv) => {
       "search-header-autosuggest-editorial-injection": "./src/apps/search-header/SearchHeaderAutosuggestEditorialInjection.jsx",
       "material-page-quick-loan-text-injection": "./src/components/material/QuickLoanTextInjection.jsx",
       "expanded-opening-hours-sidebar-injection": "./src/apps/opening-hours-sidebar/ExpandedOpeningHoursSidebarInjection.jsx",
-      "opening-hours-editor-custom-locale-injection": "./src/apps/opening-hours-editor/OpeningHoursEditorCustomLocaleInjection.jsx"
+      "opening-hours-editor-custom-locale-injection": "./src/apps/opening-hours-editor/OpeningHoursEditorCustomLocaleInjection.jsx",
+      "google-translations": "./src/apps/menu/GoogleTranslationsInjection.jsx"
     },
     output: {
       filename: "[name].js",
