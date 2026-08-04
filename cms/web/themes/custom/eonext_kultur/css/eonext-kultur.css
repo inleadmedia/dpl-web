@@ -47,6 +47,76 @@ h6,
   height: 52px;
 }
 
+/* Desktop inline header: logo, nav, search, and opening hours on one row. */
+@media (min-width: 768px) {
+  .header:has(.ek-header-menu) {
+    grid-template-columns: 280px 1fr 105px;
+    min-height: 96px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #dbdbdb;
+  }
+
+  .header:has(.ek-header-menu) .header__logo-desktop {
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-right: none;
+  }
+
+  .header:has(.ek-header-menu) .ek-logo {
+    height: 72px;
+  }
+
+  .header:has(.ek-header-menu) .header__menu.ek-header-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 96px;
+  }
+
+  .header:has(.ek-header-menu) .header__menu-first {
+    flex: 0 0 auto;
+    border-bottom: none;
+    display: flex;
+    align-items: stretch;
+    grid-template-columns: auto;
+  }
+
+  .header:has(.ek-header-menu) .header__menu-first > div:first-child {
+    display: flex;
+    align-items: stretch;
+  }
+
+  .header:has(.ek-header-menu) .header__menu-second {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .header:has(.ek-header-menu) .header__clock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: none;
+  }
+
+  .header:has(.ek-header-menu) .header__button--left-border,
+  .header:has(.ek-header-menu) .header__button--right-border {
+    border-left: none;
+    border-right: none;
+  }
+
+  .header:has(.ek-header-menu) .header__button {
+    height: 96px;
+    width: 96px;
+  }
+
+  .has-burger-menu .header:has(.ek-header-menu) {
+    grid-template-columns: 1fr 105px;
+  }
+}
+
 .header__logo-desktop .logo__description,
 .header__menu-navigation-logo .logo__description {
   display: none;
