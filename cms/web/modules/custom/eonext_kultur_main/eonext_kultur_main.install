@@ -94,21 +94,41 @@ function _eonext_kultur_main_configure_banner_form_display(): void {
 }
 
 /**
- * Wire nav spot background color into the paragraph edit form.
+ * Wire nav spot paragraph fields into the paragraph edit form.
  */
 function _eonext_kultur_main_configure_nav_spots_form_display(): void {
-  if (!FieldConfig::loadByName('paragraph', 'nav_spots_manual', 'field_nav_spot_background_color')) {
-    return;
-  }
-
   $form_display = EntityFormDisplay::load('paragraph.nav_spots_manual.default');
   if (!$form_display instanceof EntityFormDisplay) {
     return;
   }
 
-  $form_display
-    ->setComponent('field_nav_spot_background_color', _eonext_kultur_main_background_color_widget(3))
-    ->save();
+  if (FieldConfig::loadByName('paragraph', 'nav_spots_manual', 'field_nav_spot_button_label')) {
+    $form_display->setComponent('field_nav_spot_button_label', [
+      'type' => 'string_textfield',
+      'weight' => 1,
+      'region' => 'content',
+      'settings' => [
+        'size' => 60,
+        'placeholder' => '',
+      ],
+    ]);
+  }
+
+  if (FieldConfig::loadByName('paragraph', 'nav_spots_manual', 'field_nav_spot_image_alignment')) {
+    $form_display->setComponent('field_nav_spot_image_alignment', [
+      'type' => 'options_select',
+      'weight' => 2,
+      'region' => 'content',
+      'settings' => [],
+    ]);
+  }
+
+  if (FieldConfig::loadByName('paragraph', 'nav_spots_manual', 'field_nav_spot_background_color')) {
+    $form_display
+      ->setComponent('field_nav_spot_background_color', _eonext_kultur_main_background_color_widget(3));
+  }
+
+  $form_display->save();
 }
 
 /**
@@ -606,5 +626,136 @@ function _eonext_kultur_main_ensure_nav_grid_overlay_color_field(): void {
     if (!FieldConfig::load($data['id'])) {
       FieldConfig::create($data)->save();
     }
+  }
+}
+
+/**
+ * Ensure nav spot paragraph fields exist (EONEXT-315).
+ */
+function eonext_kultur_main_update_9024(): string {
+  _eonext_kultur_main_ensure_nav_spot_fields();
+  _eonext_kultur_main_configure_nav_spots_form_display();
+
+  return 'Nav spot button label, image alignment, and background color fields are available.';
+}
+
+/**
+ * Add the optional content slider logo field.
+ */
+function eonext_kultur_main_update_9025(): string {
+  _eonext_kultur_main_ensure_slider_logo_field();
+  _eonext_kultur_main_configure_slider_logo_form_display();
+
+  return 'Content sliders can now show an optional logo beside the carousel.';
+}
+
+/**
+ * Creates the content slider logo field from module install config.
+ */
+function _eonext_kultur_main_ensure_slider_logo_field(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_kultur_slider_logo',
+    'field.field.paragraph.content_slider.field_kultur_slider_logo',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+}
+
+/**
+ * Exposes the slider logo on the paragraph edit form.
+ */
+function _eonext_kultur_main_configure_slider_logo_form_display(): void {
+  if (!FieldConfig::loadByName('paragraph', 'content_slider', 'field_kultur_slider_logo')) {
+    return;
+  }
+
+  $form_display = EntityFormDisplay::load('paragraph.content_slider.default');
+  if ($form_display instanceof EntityFormDisplay) {
+    $form_display->setComponent('field_kultur_slider_logo', [
+      'type' => 'image_image',
+      'weight' => -4,
+      'region' => 'content',
+      'settings' => [
+        'progress_indicator' => 'throbber',
+        'preview_image_style' => 'small_preview',
+      ],
+      'third_party_settings' => [],
+    ])->save();
+  }
+
+  // The slider template renders the logo itself.
+  $view_display = EntityViewDisplay::load('paragraph.content_slider.default');
+  if ($view_display instanceof EntityViewDisplay) {
+    $view_display->removeComponent('field_kultur_slider_logo')->save();
+  }
+}
+
+/**
+ * Fix slider logo widget preview image style.
+ */
+function eonext_kultur_main_update_9026(): string {
+  _eonext_kultur_main_configure_slider_logo_form_display();
+
+  return 'Content slider logo field now uses the small_preview image style in the edit form.';
+}
+
+/**
+ * Creates nav spot paragraph fields from sync config when missing locally.
+ */
+function _eonext_kultur_main_ensure_nav_spot_fields(): void {
+  $sync = \Drupal::service('config.storage.sync');
+
+  foreach ([
+    'field.storage.paragraph.field_nav_spot_button_label',
+    'field.storage.paragraph.field_nav_spot_image_alignment',
+    'field.storage.paragraph.field_nav_spot_background_color',
+  ] as $config_name) {
+    $data = $sync->read($config_name);
+    if (!$data || FieldStorageConfig::load($data['id'])) {
+      continue;
+    }
+
+    if (($data['type'] ?? '') === 'list_string' && !empty($data['settings']['allowed_values'])) {
+      $allowed_values = [];
+      foreach ($data['settings']['allowed_values'] as $item) {
+        if (!is_array($item) || !isset($item['value'], $item['label'])) {
+          continue;
+        }
+        $allowed_values[$item['value']] = $item['label'];
+      }
+      $data['settings']['allowed_values'] = $allowed_values;
+    }
+
+    FieldStorageConfig::create($data)->save();
+  }
+
+  foreach ([
+    'field.field.paragraph.nav_spots_manual.field_nav_spot_button_label',
+    'field.field.paragraph.nav_spots_manual.field_nav_spot_image_alignment',
+    'field.field.paragraph.nav_spots_manual.field_nav_spot_background_color',
+  ] as $config_name) {
+    $data = $sync->read($config_name);
+    if (!$data || FieldConfig::load($data['id'])) {
+      continue;
+    }
+
+    FieldConfig::create($data)->save();
   }
 }

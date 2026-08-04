@@ -10,6 +10,7 @@ declare(strict_types=1);
 use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\ColorContrast;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 
@@ -24,9 +25,73 @@ function eonext_kultur_preprocess(array &$variables): void {
 }
 
 /**
+ * Implements hook_form_system_theme_settings_alter().
+ *
+ * @param array<string, mixed> $form
+ *   An associative array containing the structure of the form.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The current state of the form.
+ */
+function eonext_kultur_form_system_theme_settings_alter(array &$form, FormStateInterface $form_state): void {
+  $form['identity']['settings']['placeholder_bg_override'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Override media placeholder background', [], ['context' => 'EO NEXT Kultur settings']),
+    '#default_value' => theme_get_setting('placeholder_bg_override') ?? 0,
+    '#description' => t('Media without an image uses a darker tint of the identity color by default.', [], ['context' => 'EO NEXT Kultur settings']),
+  ];
+  $form['identity']['settings']['placeholder_bg_color'] = [
+    '#type' => 'color',
+    '#title' => t('Media placeholder background', [], ['context' => 'EO NEXT Kultur settings']),
+    '#default_value' => theme_get_setting('placeholder_bg_color') ?: '#ffffff',
+    '#description' => t('Background color used for media containers without an image.', [], ['context' => 'EO NEXT Kultur settings']),
+    '#states' => [
+      'visible' => [
+        ':input[name="placeholder_bg_override"]' => ['checked' => TRUE],
+      ],
+    ],
+  ];
+}
+
+/**
+ * Attaches the media placeholder background override to the page.
+ *
+ * @param array<mixed> $variables
+ *   An associative array containing the following possible keys:
+ *   - '#attached': An array of attachments for rendering.
+ * @param string $color
+ *   Hexadecimal color value.
+ */
+function _eonext_kultur_attach_placeholder_background(array &$variables, string $color): void {
+  if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+    return;
+  }
+
+  // Attachments render before the stylesheets, so the override has to win on
+  // importance rather than on source order.
+  $custom_css = "
+    .media-container--placeholder {
+      background-color: {$color} !important;
+    }
+  ";
+
+  $variables['#attached']['html_head'][] = [
+    [
+      '#type' => 'inline_template',
+      '#template' => '<style type="text/css">{{ style|safe_join("") }}</style>',
+      '#context' => ['style' => [$custom_css]],
+    ],
+    'eonext_kultur_placeholder_background',
+  ];
+}
+
+/**
  * Implements hook_preprocess_HOOK() for html.
  */
 function eonext_kultur_preprocess_html(array &$variables): void {
+  if (theme_get_setting('placeholder_bg_override')) {
+    _eonext_kultur_attach_placeholder_background($variables, (string) theme_get_setting('placeholder_bg_color'));
+  }
+
   $node = \Drupal::routeMatch()->getParameter('node');
   if (!$node instanceof NodeInterface) {
     return;
