@@ -16,7 +16,7 @@ chrome:
 
 header:
   js:
-    ../novel/assets/dpl-design-system/js/header-sticky.js: {}
+    js/header-sticky.js: {}
     js/header-state.js: {}
     ../novel/assets/dpl-design-system/js/header-sidebar-nav-js.js: {}
   dependencies:
