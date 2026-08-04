@@ -1,22 +1,35 @@
 /**
- * Kultur header state — accounts for inline search taking menu column space.
+ * Kultur header state — centered nav must fit between logo and search/clock.
  */
 function desktopLinksContainerCheckSize() {
   const container = document.querySelector(".header__menu-navigation");
+  const header = document.querySelector(".header.ek-header");
 
   document.documentElement.classList.add("has-burger-menu");
   document.documentElement.classList.remove("has-desktop-menu");
 
   const isDesktop = window.innerWidth >= 768;
-  const logoWidth = isDesktop ? 280 : 0;
-  const clockWidth = isDesktop ? 105 : 0;
-  const searchSlot = document.querySelector(".ek-header-menu .header__menu-second");
-  const searchWidth = isDesktop && searchSlot ? searchSlot.offsetWidth : 56;
-  const mobileButtons = isDesktop ? 0 : 56;
-  const reservedWidth = logoWidth + searchWidth + clockWidth + mobileButtons;
-  const availableSpace = window.innerWidth - reservedWidth;
+  if (!isDesktop || !container || !header) {
+    return;
+  }
 
-  if (!container || container.scrollWidth > availableSpace) {
+  const headerStyles = getComputedStyle(header);
+  const chromePadding = parseFloat(headerStyles.paddingLeft) || 0;
+  const logoWidth = 380;
+  const logoPaddingRight = 48;
+  const clockWidth = 105;
+  const searchSlot = document.querySelector(".ek-header-menu .header__menu-second");
+  const searchWidth = searchSlot ? searchSlot.offsetWidth : 520;
+  const navHalfWidth = container.scrollWidth / 2;
+  const navLeft = window.innerWidth / 2 - navHalfWidth;
+  const navRight = window.innerWidth / 2 + navHalfWidth;
+  const logoRight = chromePadding + logoWidth + logoPaddingRight;
+  const utilitiesLeft =
+    window.innerWidth - chromePadding - clockWidth - searchWidth;
+
+  const fits = navLeft >= logoRight && navRight <= utilitiesLeft;
+
+  if (!fits) {
     document.documentElement.classList.add("has-burger-menu");
     document.documentElement.classList.remove("has-desktop-menu");
   } else {
@@ -31,7 +44,7 @@ function initHeaderState() {
   );
 
   if (desktopLinks) {
-    desktopLinksContainerCheckSize(desktopLinks);
+    desktopLinksContainerCheckSize();
 
     window.addEventListener("resize", desktopLinksContainerCheckSize, true);
     document.addEventListener("load", desktopLinksContainerCheckSize, true);
