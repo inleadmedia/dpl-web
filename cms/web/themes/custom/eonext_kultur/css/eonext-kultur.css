@@ -434,10 +434,15 @@ article .rich-text ol > li::before {
   width: 100%;
 }
 
+.ek-slider-layout__logo {
+  margin: 0;
+}
+
 .ek-slider-layout__logo img {
   display: block;
   max-width: 180px;
   height: auto;
+  margin: 0;
 }
 
 @media (min-width: 768px) {
@@ -445,7 +450,6 @@ article .rich-text ol > li::before {
     flex-direction: row;
     align-items: center;
     gap: 48px;
-    padding-left: 48px;
   }
 
   .ek-slider-layout--has-logo .slider.swiper {
@@ -454,6 +458,7 @@ article .rich-text ol > li::before {
 
   .ek-slider-layout__logo {
     flex: 0 0 auto;
+    margin: 0;
   }
 }
 
