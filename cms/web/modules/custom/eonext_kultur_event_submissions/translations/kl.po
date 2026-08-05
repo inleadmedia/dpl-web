@@ -1,0 +1,315 @@
+# Greenlandic translation of EO Next Kultur Event Submissions
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2026-08-05 14:47+0200\n"
+"PO-Revision-Date: 2026-08-05 14:47+0200\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Language: kl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Register event"
+msgstr ""
+
+msgid ""
+"Fill in the details below to submit your event for Kulturnat. All "
+"fields marked with * are required."
+msgstr ""
+
+msgid "Submitted"
+msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+msgid "Organisation"
+msgstr ""
+
+msgid "Organisation name"
+msgstr ""
+
+msgid "City"
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Date and time"
+msgstr ""
+
+msgid "Event start"
+msgstr ""
+
+msgid "Event end"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "Contact name"
+msgstr ""
+
+msgid "Contact email"
+msgstr ""
+
+msgid "Contact phone"
+msgstr ""
+
+msgid "Image"
+msgstr ""
+
+msgid "Event description"
+msgstr ""
+
+msgid "Event information in Greenlandic"
+msgstr ""
+
+msgid "Event information in Danish"
+msgstr ""
+
+msgid "Published event series"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Greenland postal codes are 4 digits starting with 39 (e.g. 3900). "
+"Danish postal codes are 4 digits (e.g. 1000)."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Use the tabs above to manage fields, the public submission form, and "
+"admin displays for Kulturnat event submissions."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Approve submission from @organisation?"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"This will create a published event series with Greenlandic and Danish "
+"language versions based on the submitted content."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Approve and publish"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Only pending submissions can be approved."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submission approved. Event series %title was created."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Reject submission from @organisation?"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"The submission will be marked as rejected and will not create an event "
+"series."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Reject submission"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Only pending submissions can be rejected."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submission rejected."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Accepted formats: PNG, JPG, JPEG, WEBP."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submit event"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Danish description is required when Nuuk is selected."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end must be after event start."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Thank you. Your event has been submitted for review."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "City"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organisation"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Location"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Date and time"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Image"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event description"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event start"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Status"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submitted"
+msgstr ""
+
+msgid "N/A"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Approve"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Reject"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "View event series"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organisation name"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Address"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact name"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact email"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact phone"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Greenlandic"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Danish"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Published event series"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Updated"
+msgstr ""
+
+msgid "Kulturnat event submission form"
+msgstr ""
+
+msgid "Uses English on the public event submission form."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Nuuk"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "All other cities"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Pending"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Approved"
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Rejected"
+msgstr ""
+
+msgid "Kulturnat event submission"
+msgstr ""
+
+msgid "Kulturnat event submissions"
+msgstr ""
+
+msgid "Event submissions"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "Approve"
+msgstr ""
+
+msgid "Reject"
+msgstr ""
+
+msgid "Add submission"
+msgstr ""
+
+msgid "Approve submission"
+msgstr ""
+
+msgid "Reject submission"
+msgstr ""
+
+msgid "Manage fields and displays for Kulturnat event submissions."
+msgstr ""
+
+msgid "EO Next Kultur Event Submissions"
+msgstr ""
+
+msgid ""
+"Public Kulturnat event registration form with admin review and "
+"eventseries publishing."
+msgstr ""
+
