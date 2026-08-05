@@ -30,8 +30,6 @@ final class EventSeriesPublisher {
    *   When saving the event series fails.
    */
   public function publish(KulturEventSubmission $submission): EventSeries {
-    _eonext_kultur_event_submissions_ensure_languages();
-
     $descriptionGl = trim((string) $submission->get('description_gl')->value);
     $descriptionDa = trim((string) $submission->get('description_da')->value);
 
@@ -93,6 +91,7 @@ final class EventSeriesPublisher {
       ],
       'field_event_address' => $submission->get('address')->getValue(),
       'field_event_place' => $this->buildEventPlace($submission),
+      'field_event_location_type' => 'physical',
       'field_event_state' => 'Active',
       'field_event_partners' => [
         ['value' => $submission->get('organisation_name')->value],

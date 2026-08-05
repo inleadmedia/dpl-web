@@ -2,7 +2,11 @@ submission-form:
   css:
     theme:
       css/submission-form.css: {}
+  js:
+    js/submission-form.js: {}
   dependencies:
+    - core/drupal
+    - core/once
     - novel/base
     - eonext_kultur/chrome
 

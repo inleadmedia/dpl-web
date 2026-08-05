@@ -5,6 +5,8 @@
  * Module hooks for Kulturnat event submissions.
  */
 
+use CommerceGuys\Addressing\AddressFormat\AddressField;
+use CommerceGuys\Addressing\AddressFormat\FieldOverride;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -52,7 +54,7 @@ function eonext_kultur_event_submissions_theme($existing, $type, $theme, $path):
  * Implements hook_theme_suggestions_HOOK_alter() for form.
  */
 function eonext_kultur_event_submissions_theme_suggestions_form_alter(array &$suggestions, array $variables): void {
-  if (($variables['element']['#form_id'] ?? '') === 'eonext_kultur_event_submission_public_form') {
+  if (\Drupal::routeMatch()->getRouteName() === 'eonext_kultur_event_submissions.public_form') {
     $suggestions[] = 'form__eonext_kultur_event_submission_public';
   }
 }
@@ -170,9 +172,70 @@ function eonext_kultur_event_submissions_apply_webform_styling(array &$element):
 }
 
 /**
+ * Implements hook_field_widget_single_element_form_alter().
+ */
+function eonext_kultur_event_submissions_field_widget_single_element_form_alter(array &$element, FormStateInterface $form_state, array $context): void {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if ($route_name !== 'eonext_kultur_event_submissions.public_form') {
+    return;
+  }
+
+  if (($context['items']->getFieldDefinition()->getName() ?? '') !== 'address') {
+    return;
+  }
+
+  if (!isset($element['address'])) {
+    return;
+  }
+
+  $element['address']['#available_countries'] = ['GL', 'DK'];
+  if (isset($element['address']['postal_code'])) {
+    $element['address']['postal_code']['#description'] = t(
+      'Greenland postal codes are 4 digits starting with 39 (e.g. 3900). Danish postal codes are 4 digits (e.g. 1000).',
+      [],
+      ['context' => 'eonext_kultur_event_submissions']
+    );
+  }
+  $element['address']['#field_overrides'] = [
+    AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
+    AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
+    AddressField::FAMILY_NAME => FieldOverride::HIDDEN,
+    AddressField::ORGANIZATION => FieldOverride::HIDDEN,
+    AddressField::ADDRESS_LINE2 => FieldOverride::HIDDEN,
+    AddressField::ADDRESS_LINE3 => FieldOverride::HIDDEN,
+    AddressField::SORTING_CODE => FieldOverride::HIDDEN,
+    AddressField::DEPENDENT_LOCALITY => FieldOverride::HIDDEN,
+    AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
+  ];
+}
+
+/**
+ * After-build callback for the public image widget.
+ *
+ * Disables AJAX upload so files are saved when the form is submitted. This
+ * avoids anonymous upload tokens being lost between AJAX upload and submit.
+ */
+function eonext_kultur_event_submissions_image_widget_after_build(array $element, FormStateInterface $form_state): array {
+  if (isset($element['upload_button'])) {
+    $element['upload_button']['#access'] = FALSE;
+    unset($element['upload_button']['#ajax']);
+  }
+
+  if (isset($element['alt'])) {
+    $element['alt']['#access'] = FALSE;
+    $element['alt']['#required'] = FALSE;
+  }
+
+  return $element;
+}
+
+/**
  * After-build callback for the public submission form.
  */
 function eonext_kultur_event_submissions_public_form_after_build(array $form, FormStateInterface $form_state): array {
-  eonext_kultur_event_submissions_apply_webform_styling($form);
+  if (!$form_state->get('submission_success')) {
+    eonext_kultur_event_submissions_apply_webform_styling($form);
+  }
+
   return $form;
 }

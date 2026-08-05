@@ -7,6 +7,7 @@ dependencies:
   - address:address
   - content_translation:content_translation
   - dpl_event:dpl_event
+  - field_ui:field_ui
   - file:file
   - image:image
   - language:language

@@ -5,6 +5,7 @@
  * Install, update and uninstall functions for eonext_kultur_event_submissions.
  */
 
+use Drupal\eonext_kultur_event_submissions\Plugin\LanguageNegotiation\LanguageNegotiationPublicForm;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\user\Entity\Role;
 
@@ -95,6 +96,186 @@ function eonext_kultur_event_submissions_update_9002(): void {
 function eonext_kultur_event_submissions_update_9003(): void {
   _eonext_kultur_event_submissions_ensure_languages();
   _eonext_kultur_event_submissions_repair_eventseries_field_langcodes();
+}
+
+/**
+ * Enables Field UI management for Kulturnat event submissions.
+ */
+function eonext_kultur_event_submissions_update_9004(): void {
+  _eonext_kultur_event_submissions_install_field_ui_displays();
+
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+}
+
+/**
+ * Installs missing public/full form and view modes for Field UI.
+ */
+function eonext_kultur_event_submissions_update_9005(): void {
+  _eonext_kultur_event_submissions_install_field_ui_displays();
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+}
+
+/**
+ * Enables English language negotiation on the public submission form.
+ */
+function eonext_kultur_event_submissions_update_9007(): void {
+  _eonext_kultur_event_submissions_enable_public_form_language_negotiation();
+}
+
+/**
+ * Fixes missing preview image style on submission image widgets.
+ */
+function eonext_kultur_event_submissions_update_9008(): void {
+  $config_names = [
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.public',
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.default',
+  ];
+
+  foreach ($config_names as $config_name) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    $content = $config->get('content');
+    if (!is_array($content) || !isset($content['image']['settings']['preview_image_style'])) {
+      continue;
+    }
+
+    if ($content['image']['settings']['preview_image_style'] === 'thumbnail') {
+      $content['image']['settings']['preview_image_style'] = 'small_preview';
+      $config->set('content', $content)->save(TRUE);
+    }
+  }
+
+  _eonext_kultur_event_submissions_update_image_field_settings();
+}
+
+/**
+ * Updates image field settings for optional alt/title on public uploads.
+ */
+function eonext_kultur_event_submissions_update_9009(): void {
+  _eonext_kultur_event_submissions_update_image_field_settings();
+}
+
+/**
+ * Hides unused address subfields from submission validation.
+ */
+function eonext_kultur_event_submissions_update_9010(): void {
+  _eonext_kultur_event_submissions_update_address_field_settings();
+}
+
+/**
+ * Syncs address field storage settings with the module definition.
+ */
+function _eonext_kultur_event_submissions_update_address_field_settings(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load('kultur_event_submission.address');
+  if ($storage === NULL) {
+    return;
+  }
+
+  $storage->set('settings', [
+    'field_overrides' => [
+      'givenName' => ['override' => 'hidden'],
+      'additionalName' => ['override' => 'hidden'],
+      'familyName' => ['override' => 'hidden'],
+      'organization' => ['override' => 'hidden'],
+      'addressLine2' => ['override' => 'hidden'],
+      'addressLine3' => ['override' => 'hidden'],
+      'sortingCode' => ['override' => 'hidden'],
+      'dependentLocality' => ['override' => 'hidden'],
+      'administrativeArea' => ['override' => 'hidden'],
+    ],
+  ])->save();
+}
+
+/**
+ * Syncs image field storage settings with the module definition.
+ */
+function _eonext_kultur_event_submissions_update_image_field_settings(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load('kultur_event_submission.image');
+  if ($storage === NULL) {
+    return;
+  }
+
+  $settings = $storage->getSettings();
+  $settings['alt_field'] = 0;
+  $settings['alt_field_required'] = 0;
+  $settings['title_field'] = 0;
+  $settings['title_field_required'] = 0;
+  $storage->set('settings', $settings)->save();
+}
+
+/**
+ * Fixes invalid address widget wrapper_type in form displays.
+ */
+function eonext_kultur_event_submissions_update_9006(): void {
+  $config_names = [
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.public',
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.default',
+  ];
+
+  foreach ($config_names as $config_name) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    $content = $config->get('content');
+    if (!is_array($content) || !isset($content['address']['settings']['wrapper_type'])) {
+      continue;
+    }
+
+    if ($content['address']['settings']['wrapper_type'] === 'div') {
+      $content['address']['settings']['wrapper_type'] = 'container';
+      $config->set('content', $content)->save(TRUE);
+    }
+  }
+}
+
+/**
+ * Enables the public-form language negotiation method.
+ */
+function _eonext_kultur_event_submissions_enable_public_form_language_negotiation(): void {
+  $method_id = LanguageNegotiationPublicForm::METHOD_ID;
+  $config = \Drupal::configFactory()->getEditable('language.types');
+
+  foreach (['language_interface', 'language_content'] as $type) {
+    $enabled = $config->get("negotiation.$type.enabled") ?? [];
+    if (isset($enabled[$method_id])) {
+      continue;
+    }
+
+    $enabled[$method_id] = -20;
+    uasort($enabled, static fn ($a, $b): int => $a <=> $b);
+    $config->set("negotiation.$type.enabled", $enabled);
+
+    $weights = $config->get("negotiation.$type.method_weights") ?? [];
+    $weights[$method_id] = -20;
+    $config->set("negotiation.$type.method_weights", $weights);
+  }
+
+  $config->save(TRUE);
+}
+
+/**
+ * Installs default form and view display configuration for Field UI.
+ */
+function _eonext_kultur_event_submissions_install_field_ui_displays(): void {
+  $config_names = [
+    'core.entity_form_mode.kultur_event_submission.public',
+    'core.entity_view_mode.kultur_event_submission.full',
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.public',
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.default',
+    'core.entity_view_display.kultur_event_submission.kultur_event_submission.full',
+  ];
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_event_submissions');
+  $source_storage = new \Drupal\Core\Config\FileStorage($module_path . '/config/install');
+  $config_factory = \Drupal::configFactory();
+
+  foreach ($config_names as $config_name) {
+    if (!$config_factory->get($config_name)->isNew()) {
+      continue;
+    }
+
+    $data = $source_storage->read($config_name);
+    if ($data !== FALSE) {
+      $config_factory->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
 }
 
 /**

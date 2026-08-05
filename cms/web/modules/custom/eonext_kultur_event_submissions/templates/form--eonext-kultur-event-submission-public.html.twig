@@ -27,16 +27,17 @@
       </div>
     {% endif %}
 
-    {{ element.section_city }}
-    {{ element.section_organisation }}
-    {{ element.section_location }}
-    {{ element.section_schedule }}
-    {{ element.section_contact }}
-    {{ element.section_image }}
-    {{ element.section_descriptions }}
+    {% set excluded_keys = ['form_build_id', 'form_token', 'form_id', 'confirmation', 'status_messages', 'actions'] %}
+    {% for key, child in element|without(excluded_keys) %}
+      {% if key|first != '#' %}
+        {{ child }}
+      {% endif %}
+    {% endfor %}
 
     {% if element.actions %}
-      {{ element.actions }}
+      <div class="ek-submission-form__actions">
+        {{ element.actions }}
+      </div>
     {% endif %}
   </div>
 </form>

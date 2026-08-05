@@ -29,6 +29,10 @@ final class KulturEventSubmissionAccessControlHandler extends EntityAccessContro
    * {@inheritdoc}
    */
   protected function checkCreateAccess(AccountInterface $account, array $context, $entity_bundle = NULL) {
+    if ($account->hasPermission('submit kultur event')) {
+      return AccessResult::allowed()->cachePerPermissions();
+    }
+
     return AccessResult::allowedIfHasPermission($account, 'administer kultur event submissions');
   }
 
