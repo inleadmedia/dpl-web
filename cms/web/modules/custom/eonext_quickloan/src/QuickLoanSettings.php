@@ -14,4 +14,9 @@ class QuickLoanSettings {
    */
   public const MATERIAL_DATA_ATTRIBUTE = 'data-material-quick-loan-info';
 
+  /**
+   * Standalone bundle rendering the quick loan text on the material page.
+   */
+  public const LIBRARY = 'eonext_quickloan/material_page_quick_loan';
+
 }
