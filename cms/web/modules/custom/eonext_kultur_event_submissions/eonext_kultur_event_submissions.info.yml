@@ -3,6 +3,10 @@ type: module
 description: 'Public Kulturnat event registration form with admin review and eventseries publishing.'
 package: Custom
 core_version_requirement: ^10 || ^11
+# Lets core's locale module import translations/*.po straight from this module,
+# so the strings ship with the code instead of the shared POEditor pipeline.
+interface translation project: eonext_kultur_event_submissions
+interface translation server pattern: modules/custom/eonext_kultur_event_submissions/translations/%language.po
 dependencies:
   - address:address
   - content_translation:content_translation
