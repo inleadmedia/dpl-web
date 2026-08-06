@@ -1,0 +1,41 @@
+uuid: 6b0d4c92-7e15-4a83-9f2c-5d8b1e0a7c39
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_slider_logo
+    - paragraphs.paragraphs_type.content_slider
+  module:
+    - image
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.content_slider.field_kultur_slider_logo
+field_name: field_kultur_slider_logo
+entity_type: paragraph
+bundle: content_slider
+label: Logo
+description: 'Optional image shown beside the slider. Leave empty to keep the full-width layout.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'png gif jpg jpeg svg'
+  max_filesize: 8mb
+  max_resolution: ''
+  min_resolution: ''
+  alt_field: true
+  alt_field_required: false
+  title_field: false
+  title_field_required: false
+  default_image:
+    uuid: ''
+    alt: ''
+    title: ''
+    width: null
+    height: null
+field_type: image

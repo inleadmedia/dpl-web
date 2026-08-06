@@ -80,6 +80,31 @@ const AutosuggestOverlay: React.FC<Props> = ({ input, limit, filter }) => {
   const container =
     (input.closest(".header__menu-search") as HTMLElement) || input;
 
+  const getOverlayRect = useCallback((): Rect | null => {
+    const searchRect = container.getBoundingClientRect();
+    if (searchRect.width <= 0) {
+      return null;
+    }
+
+    const inlineMenu = input.closest(".ek-header-menu");
+    if (inlineMenu && window.innerWidth >= 768) {
+      const menuRect = inlineMenu.getBoundingClientRect();
+      return {
+        top: searchRect.bottom,
+        left: menuRect.left,
+        width: Math.max(0, searchRect.right - menuRect.left),
+        height: 0,
+      };
+    }
+
+    return {
+      top: searchRect.bottom,
+      left: searchRect.left,
+      width: searchRect.width,
+      height: 0,
+    };
+  }, [container, input]);
+
   const getDropdown = useCallback(
     (): HTMLElement | null =>
       container.querySelector<HTMLElement>(".autosuggest.autosuggest--open"),
@@ -108,16 +133,11 @@ const AutosuggestOverlay: React.FC<Props> = ({ input, limit, filter }) => {
       }
     }
 
-    const c = container.getBoundingClientRect();
-    if (c.width > 0) {
-      setRect({
-        top: c.bottom,
-        left: c.left,
-        width: c.width,
-        height: 0
-      });
+    const overlayRect = getOverlayRect();
+    if (overlayRect) {
+      setRect(overlayRect);
     }
-  }, [getDropdown, container, input]);
+  }, [getDropdown, getOverlayRect]);
 
   useEffect(() => {
     const onInput = () => {

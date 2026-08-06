@@ -258,6 +258,13 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
       $paragraph->getCacheTags()
     );
   }
+
+  if ($paragraph instanceof ParagraphInterface
+    && ($variables['field_name'] ?? '') === 'field_content_references'
+    && $paragraph->bundle() === 'content_slider') {
+    _eonext_kultur_main_apply_slider_logo($variables, $paragraph);
+  }
+
   if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
     return;
   }
@@ -268,6 +275,35 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
       unset($variables['items'][$delta]);
     }
   }
+}
+
+/**
+ * Adds the optional logo rendered beside a content slider.
+ *
+ * @param mixed[] $variables
+ *   Theme variables for the slider field template.
+ * @param \Drupal\paragraphs\ParagraphInterface $paragraph
+ *   The content slider paragraph.
+ */
+function _eonext_kultur_main_apply_slider_logo(array &$variables, ParagraphInterface $paragraph): void {
+  if (!$paragraph->hasField('field_kultur_slider_logo')
+    || $paragraph->get('field_kultur_slider_logo')->isEmpty()) {
+    return;
+  }
+
+  $variables['slider_logo'] = $paragraph->get('field_kultur_slider_logo')->view([
+    'label' => 'hidden',
+    'type' => 'image',
+    'settings' => [
+      'image_style' => '',
+      'image_link' => '',
+    ],
+  ]);
+
+  $variables['#cache']['tags'] = array_merge(
+    $variables['#cache']['tags'] ?? [],
+    $paragraph->getCacheTags()
+  );
 }
 
 /**

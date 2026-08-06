@@ -14,6 +14,14 @@ chrome:
     - novel/base
     - eonext_kultur/fonts
 
+header:
+  js:
+    js/header-sticky.js: {}
+    js/header-state.js: {}
+    ../novel/assets/dpl-design-system/js/header-sidebar-nav-js.js: {}
+  dependencies:
+    - eonext_kultur/chrome
+
 hero-slider:
   js:
     js/init-hero-slider.js: {}

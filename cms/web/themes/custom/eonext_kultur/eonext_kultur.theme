@@ -10,6 +10,7 @@ declare(strict_types=1);
 use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\ColorContrast;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 
@@ -24,9 +25,146 @@ function eonext_kultur_preprocess(array &$variables): void {
 }
 
 /**
+ * Implements hook_form_system_theme_settings_alter().
+ *
+ * @param array<string, mixed> $form
+ *   An associative array containing the structure of the form.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The current state of the form.
+ */
+function eonext_kultur_form_system_theme_settings_alter(array &$form, FormStateInterface $form_state): void {
+  $form['identity']['settings']['placeholder_bg_mode'] = [
+    '#type' => 'radios',
+    '#title' => t('Media placeholder background', [], ['context' => 'EO NEXT Kultur settings']),
+    '#default_value' => _eonext_kultur_placeholder_bg_mode(),
+    '#options' => [
+      'default' => t('Design system default (darker identity tint)', [], ['context' => 'EO NEXT Kultur settings']),
+      'identity_light' => t('Lighter identity color (auto)', [], ['context' => 'EO NEXT Kultur settings']),
+      'custom' => t('Custom color', [], ['context' => 'EO NEXT Kultur settings']),
+    ],
+    '#description' => t('Controls the background on media containers without an image.', [], ['context' => 'EO NEXT Kultur settings']),
+  ];
+  $form['identity']['settings']['placeholder_bg_color'] = [
+    '#type' => 'color',
+    '#title' => t('Custom media placeholder background', [], ['context' => 'EO NEXT Kultur settings']),
+    '#default_value' => theme_get_setting('placeholder_bg_color') ?: '#ffffff',
+    '#description' => t('Background color used when custom mode is selected.', [], ['context' => 'EO NEXT Kultur settings']),
+    '#states' => [
+      'visible' => [
+        ':input[name="placeholder_bg_mode"]' => ['value' => 'custom'],
+      ],
+    ],
+  ];
+}
+
+/**
+ * Resolves the configured media placeholder background mode.
+ */
+function _eonext_kultur_placeholder_bg_mode(): string {
+  $mode = theme_get_setting('placeholder_bg_mode');
+  if (is_string($mode) && $mode !== '') {
+    return $mode;
+  }
+
+  return theme_get_setting('placeholder_bg_override') ? 'custom' : 'default';
+}
+
+/**
+ * Attaches placeholder background CSS to the page head.
+ *
+ * @param array<mixed> $variables
+ *   HTML preprocess variables.
+ * @param string $background_value
+ *   Raw CSS background value.
+ */
+function _eonext_kultur_attach_placeholder_background_css(array &$variables, string $background_value): void {
+  $custom_css = "
+    .media-container--placeholder {
+      background-color: {$background_value} !important;
+    }
+  ";
+
+  $variables['#attached']['html_head'][] = [
+    [
+      '#type' => 'inline_template',
+      '#template' => '<style type="text/css">{{ style|safe_join("") }}</style>',
+      '#context' => ['style' => [$custom_css]],
+    ],
+    'eonext_kultur_placeholder_background',
+  ];
+}
+
+/**
+ * Attaches the media placeholder background override to the page.
+ *
+ * @param array<mixed> $variables
+ *   An associative array containing the following possible keys:
+ *   - '#attached': An array of attachments for rendering.
+ * @param string $color
+ *   Hexadecimal color value.
+ */
+function _eonext_kultur_attach_placeholder_background(array &$variables, string $color): void {
+  if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+    return;
+  }
+
+  _eonext_kultur_attach_placeholder_background_css($variables, $color);
+}
+
+/**
+ * Attaches a lighter tint derived from the configured identity color.
+ *
+ * @param array<mixed> $variables
+ *   HTML preprocess variables.
+ */
+function _eonext_kultur_attach_placeholder_background_identity_light(array &$variables): void {
+  $identity_color = theme_get_setting('identity_color');
+  if (is_string($identity_color) && ($light = _eonext_kultur_lighten_hex_color($identity_color)) !== NULL) {
+    _eonext_kultur_attach_placeholder_background($variables, $light);
+    return;
+  }
+
+  // Fall back to the design-system CSS variables when no identity color is set.
+  _eonext_kultur_attach_placeholder_background_css(
+    $variables,
+    'hsl(var(--identity-color-h), var(--identity-color-s), min(calc(var(--identity-color-l) + 32%), 90%))'
+  );
+}
+
+/**
+ * Returns a lighter hex color mixed toward white.
+ */
+function _eonext_kultur_lighten_hex_color(string $color, float $mix = 0.72): ?string {
+  $rgb = ColorContrast::parseColorToRgb($color);
+  if ($rgb === NULL) {
+    return NULL;
+  }
+
+  $mix = max(0.0, min(1.0, $mix));
+  $channel = static fn(int $value): int => (int) round($value + (255 - $value) * $mix);
+
+  return sprintf(
+    '#%02x%02x%02x',
+    $channel($rgb['r']),
+    $channel($rgb['g']),
+    $channel($rgb['b'])
+  );
+}
+
+/**
  * Implements hook_preprocess_HOOK() for html.
  */
 function eonext_kultur_preprocess_html(array &$variables): void {
+  switch (_eonext_kultur_placeholder_bg_mode()) {
+    case 'identity_light':
+      _eonext_kultur_attach_placeholder_background_identity_light($variables);
+      break;
+
+    case 'custom':
+      _eonext_kultur_attach_placeholder_background($variables, (string) theme_get_setting('placeholder_bg_color'));
+      break;
+  }
+
   $node = \Drupal::routeMatch()->getParameter('node');
   if (!$node instanceof NodeInterface) {
     return;
