@@ -7,7 +7,7 @@
 <form{{ attributes.addClass('ek-submission-form', 'dpl-form').setAttribute('method', 'post').setAttribute('enctype', 'multipart/form-data') }}>
   <div class="ek-submission-form__hero">
     <div class="ek-submission-form__hero-inner">
-      <h1 class="ek-submission-form__title">{{ 'Tilmeld arrangement'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h1>
+      <h1 class="ek-submission-form__title">{{ 'Register event'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h1>
       <p class="ek-submission-form__intro">{{ 'Fill in the details below to submit your event for Kulturnat. All fields marked with * are required.'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</p>
     </div>
   </div>
@@ -27,16 +27,17 @@
       </div>
     {% endif %}
 
-    {{ element.section_city }}
-    {{ element.section_organisation }}
-    {{ element.section_location }}
-    {{ element.section_schedule }}
-    {{ element.section_contact }}
-    {{ element.section_image }}
-    {{ element.section_descriptions }}
+    {% set excluded_keys = ['form_build_id', 'form_token', 'form_id', 'confirmation', 'status_messages', 'actions'] %}
+    {% for key, child in element|without(excluded_keys) %}
+      {% if key|first != '#' %}
+        {{ child }}
+      {% endif %}
+    {% endfor %}
 
     {% if element.actions %}
-      {{ element.actions }}
+      <div class="ek-submission-form__actions">
+        {{ element.actions }}
+      </div>
     {% endif %}
   </div>
 </form>

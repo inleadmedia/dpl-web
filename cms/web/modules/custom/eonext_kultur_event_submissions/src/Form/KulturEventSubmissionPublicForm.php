@@ -4,41 +4,45 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_event_submissions\Form;
 
-use CommerceGuys\Addressing\AddressFormat\AddressField;
-use CommerceGuys\Addressing\AddressFormat\FieldOverride;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\File\FileSystemInterface;
-use Drupal\Core\Form\FormBase;
+use Drupal\Core\Entity\EntityConstraintViolationListInterface;
+use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Url;
-use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Public Kulturnat event registration form.
  */
-final class KulturEventSubmissionPublicForm extends FormBase {
-
-  public function __construct(
-    private readonly EntityTypeManagerInterface $entityTypeManager,
-  ) {}
+final class KulturEventSubmissionPublicForm extends ContentEntityForm {
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container): static {
-    return new static(
-      $container->get('entity_type.manager'),
-    );
-  }
+  protected function flagViolations(EntityConstraintViolationListInterface $violations, array $form, FormStateInterface $form_state): void {
+    foreach ($violations->getEntityViolations() as $violation) {
+      $form_state->setErrorByName(
+        str_replace('.', '][', $violation->getPropertyPath()),
+        $violation->getMessage()
+      );
+    }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId(): string {
-    return 'eonext_kultur_event_submission_public_form';
+    foreach ($violations->getFieldNames() as $field_name) {
+      if (!isset($form[$field_name])) {
+        continue;
+      }
+
+      foreach ($violations->getByField($field_name) as $violation) {
+        if (isset($form[$field_name]['widget'][0]['value'])) {
+          $form_state->setError($form[$field_name]['widget'][0]['value'], $violation->getMessage());
+        }
+        elseif (isset($form[$field_name]['widget'][0])) {
+          $form_state->setError($form[$field_name]['widget'][0], $violation->getMessage());
+        }
+        else {
+          $form_state->setErrorByName($field_name, $violation->getMessage());
+        }
+      }
+    }
   }
 
   /**
@@ -50,174 +54,164 @@ final class KulturEventSubmissionPublicForm extends FormBase {
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['#attached']['library'][] = 'eonext_kultur_event_submissions/submission-form';
     $form['#attributes']['class'][] = 'dpl-form';
-    $form['#after_build'][] = 'eonext_kultur_event_submissions_public_form_after_build';
 
     if ($form_state->get('submission_success')) {
       $form['confirmation'] = $this->confirmationMessage();
+      return $form;
     }
-    else {
-      $form['status_messages'] = [
-        '#type' => 'status_messages',
-        '#weight' => -100,
+
+    $form['status_messages'] = [
+      '#type' => 'status_messages',
+      '#weight' => -100,
+    ];
+
+    /** @var \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission $submission */
+    $submission = $this->entity;
+    if ($submission->isNew()) {
+      if ($submission->get('city')->isEmpty()) {
+        $submission->set('city', SubmissionConstants::CITY_OTHER);
+      }
+      if ($submission->get('address')->isEmpty()) {
+        $submission->set('address', ['country_code' => 'GL']);
+      }
+    }
+
+    $form = parent::buildForm($form, $form_state);
+    $form['#after_build'][] = 'eonext_kultur_event_submissions_public_form_after_build';
+
+    if (isset($form['description_da'])) {
+      $form['description_da']['widget'][0]['value']['#attributes']['class'][] = 'dpl-input--full-width';
+      $form['description_da']['widget'][0]['value']['#states'] = [
+        'required' => [
+          ':input[name="city"]' => ['value' => SubmissionConstants::CITY_NUUK],
+        ],
       ];
     }
 
-    $form['section_city'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('City', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'city' => [
-        '#type' => 'radios',
-        '#title' => $this->t('Select city', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#title_display' => 'invisible',
-        '#required' => TRUE,
-        '#options' => SubmissionConstants::cityOptions(),
-        '#default_value' => SubmissionConstants::CITY_OTHER,
-      ],
-    ];
+    if (isset($form['description_gl']['widget'][0]['value'])) {
+      $form['description_gl']['widget'][0]['value']['#attributes']['class'][] = 'dpl-input--full-width';
+    }
 
-    $form['section_organisation'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Organisation', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'organisation_name' => [
-        '#type' => 'textfield',
-        '#title' => $this->t('Organisation name', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => TRUE,
-        '#maxlength' => 255,
-      ],
-    ];
+    if (isset($form['image']['widget'][0])) {
+      $form['image']['widget'][0]['#description'] = $this->t(
+        'Accepted formats: PNG, JPG, JPEG, WEBP.',
+        [],
+        ['context' => 'eonext_kultur_event_submissions']
+      );
+      $form['image']['widget'][0]['#after_build'][] = 'eonext_kultur_event_submissions_image_widget_after_build';
+    }
 
-    $form['section_location'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Location', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'address' => [
-        '#type' => 'address',
-        '#title' => $this->t('Address', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#title_display' => 'invisible',
-        '#required' => TRUE,
-        '#default_value' => ['country_code' => 'GL'],
-        '#available_countries' => ['GL', 'DK'],
-        '#field_overrides' => [
-          AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
-          AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
-          AddressField::FAMILY_NAME => FieldOverride::HIDDEN,
-          AddressField::ORGANIZATION => FieldOverride::HIDDEN,
-          AddressField::ADDRESS_LINE2 => FieldOverride::HIDDEN,
-          AddressField::ADDRESS_LINE3 => FieldOverride::HIDDEN,
-          AddressField::SORTING_CODE => FieldOverride::HIDDEN,
-          AddressField::DEPENDENT_LOCALITY => FieldOverride::HIDDEN,
-          AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
-        ],
-      ],
-    ];
+    $this->applySectionWrappers($form);
 
-    $form['section_schedule'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Date and time', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'schedule' => [
-        '#type' => 'container',
-        '#attributes' => ['class' => ['ek-submission-form__datetime-row']],
-        'event_start_group' => [
-          '#type' => 'container',
-          '#tree' => FALSE,
-          '#attributes' => ['class' => ['ek-submission-form__datetime-group']],
-          'event_start' => [
-            '#type' => 'datetime',
-            '#title' => $this->t('Event start', [], ['context' => 'eonext_kultur_event_submissions']),
-            '#required' => TRUE,
-            '#date_date_element' => 'date',
-            '#date_time_element' => 'time',
-          ],
-        ],
-        'event_end_group' => [
-          '#type' => 'container',
-          '#tree' => FALSE,
-          '#attributes' => ['class' => ['ek-submission-form__datetime-group']],
-          'event_end' => [
-            '#type' => 'datetime',
-            '#title' => $this->t('Event end', [], ['context' => 'eonext_kultur_event_submissions']),
-            '#required' => TRUE,
-            '#date_date_element' => 'date',
-            '#date_time_element' => 'time',
-          ],
-        ],
-      ],
-    ];
-
-    $form['section_contact'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Contact', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'contact_name' => [
-        '#type' => 'textfield',
-        '#title' => $this->t('Contact name', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => TRUE,
-        '#maxlength' => 255,
-      ],
-      'contact_email' => [
-        '#type' => 'email',
-        '#title' => $this->t('Contact email', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => TRUE,
-      ],
-      'contact_phone' => [
-        '#type' => 'tel',
-        '#title' => $this->t('Contact phone', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => FALSE,
-        '#maxlength' => 64,
-      ],
-    ];
-
-    $form['section_image'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Image', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'image' => [
-        '#type' => 'file',
-        '#title' => $this->t('Event image', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => TRUE,
-        '#upload_validators' => [
-          'file_validate_extensions' => ['png jpg jpeg webp'],
-        ],
-        '#description' => $this->t('Accepted formats: PNG, JPG, JPEG, WEBP.', [], ['context' => 'eonext_kultur_event_submissions']),
-      ],
-    ];
-
-    $form['section_descriptions'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['ek-submission-form__section']],
-      'heading' => $this->sectionTitle($this->t('Event description', [], ['context' => 'eonext_kultur_event_submissions'])),
-      'description_gl' => [
-        '#type' => 'textarea',
-        '#title' => $this->t('Info om arrangement på grønlandsk', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => TRUE,
-        '#rows' => 6,
-        '#attributes' => ['class' => ['dpl-input--full-width']],
-      ],
-      'description_da' => [
-        '#type' => 'textarea',
-        '#title' => $this->t('Info om arrangement på dansk', [], ['context' => 'eonext_kultur_event_submissions']),
-        '#required' => FALSE,
-        '#rows' => 6,
-        '#attributes' => ['class' => ['dpl-input--full-width']],
-        '#states' => [
-          'required' => [
-            ':input[name="city"]' => ['value' => SubmissionConstants::CITY_NUUK],
-          ],
-        ],
-      ],
-    ];
-
-    $form['actions'] = ['#type' => 'actions'];
-    $form['actions']['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Submit event', [], ['context' => 'eonext_kultur_event_submissions']),
-      '#attributes' => ['class' => ['btn-primary', 'btn-filled', 'btn-medium', 'dpl-button']],
-    ];
+    if (isset($form['actions']['submit'])) {
+      $form['actions']['submit']['#value'] = $this->t(
+        'Submit event',
+        [],
+        ['context' => 'eonext_kultur_event_submissions']
+      );
+      $form['actions']['submit']['#attributes']['class'] = [
+        'btn-primary',
+        'btn-filled',
+        'btn-medium',
+        'dpl-button',
+      ];
+    }
 
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
+    parent::validateForm($form, $form_state);
+
+    $city = $form_state->getValue('city');
+    if (is_array($city)) {
+      $city = $city[0]['value'] ?? NULL;
+    }
+
+    $descriptionDa = $form_state->getValue('description_da');
+    if (is_array($descriptionDa)) {
+      $descriptionDa = $descriptionDa[0]['value'] ?? '';
+    }
+    $descriptionDa = trim((string) $descriptionDa);
+
+    if ($city === SubmissionConstants::CITY_NUUK && $descriptionDa === '') {
+      $message = $this->t('Danish description is required when Nuuk is selected.', [], ['context' => 'eonext_kultur_event_submissions']);
+      if (isset($form['description_da']['widget'][0]['value'])) {
+        $form_state->setError($form['description_da']['widget'][0]['value'], $message);
+      }
+      else {
+        $form_state->setErrorByName('description_da', $message);
+      }
+    }
+
+    $start = $this->getDateTimeFromFormValue($form_state->getValue('event_start'));
+    $end = $this->getDateTimeFromFormValue($form_state->getValue('event_end'));
+    if ($start !== NULL && $end !== NULL && $end->getTimestamp() < $start->getTimestamp()) {
+      $message = $this->t('Event end must be after event start.', [], ['context' => 'eonext_kultur_event_submissions']);
+      if (isset($form['event_end']['widget'][0]['value'])) {
+        $form_state->setError($form['event_end']['widget'][0]['value'], $message);
+      }
+      else {
+        $form_state->setErrorByName('event_end', $message);
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function save(array $form, FormStateInterface $form_state): int {
+    /** @var \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission $submission */
+    $submission = $this->entity;
+    $submission->set('status', SubmissionConstants::STATUS_PENDING);
+
+    $result = parent::save($form, $form_state);
+
+    $this->messenger()->addStatus($this->t(
+      'Thank you. Your event has been submitted for review.',
+      [],
+      ['context' => 'eonext_kultur_event_submissions']
+    ));
+
+    $destination = $this->getAdminDestinationUrl();
+    if ($destination !== NULL) {
+      $form_state->setRedirectUrl($destination);
+      return $result;
+    }
+
+    $form_state->set('submission_success', TRUE);
+    $form_state->setUserInput([]);
+    $form_state->setRebuild(TRUE);
+
+    return $result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
+    parent::submitForm($form, $form_state);
+
+    if ($this->getAdminDestinationUrl() !== NULL) {
+      return;
+    }
+
+    $form_state->setRedirectUrl(Url::fromRoute('<current>'));
+  }
+
+  /**
+   * Returns an admin redirect URL when the form was opened from the CMS.
+   */
+  private function getAdminDestinationUrl(): ?Url {
+    $destination = \Drupal::request()->query->get('destination');
+    if (!is_string($destination) || !str_starts_with($destination, '/admin')) {
+      return NULL;
+    }
+
+    return Url::fromUserInput($destination);
   }
 
   /**
@@ -248,104 +242,92 @@ final class KulturEventSubmissionPublicForm extends FormBase {
   }
 
   /**
-   * Builds a section heading markup element.
+   * Extracts a datetime object from an entity form widget value.
    */
-  private function sectionTitle(string|\Stringable $title): array {
-    return [
-      '#type' => 'html_tag',
-      '#tag' => 'h2',
-      '#value' => $title,
-      '#attributes' => ['class' => ['ek-submission-form__section-title', 'text-header-h4']],
-    ];
+  private function getDateTimeFromFormValue(mixed $value): ?\Drupal\Core\Datetime\DrupalDateTime {
+    if ($value instanceof \Drupal\Core\Datetime\DrupalDateTime) {
+      return $value;
+    }
+
+    if (is_array($value) && isset($value[0]['value']) && $value[0]['value'] instanceof \Drupal\Core\Datetime\DrupalDateTime) {
+      return $value[0]['value'];
+    }
+
+    return NULL;
   }
 
   /**
-   * {@inheritdoc}
+   * Adds section headings around field wrappers without moving form elements.
    */
-  public function validateForm(array &$form, FormStateInterface $form_state): void {
-    parent::validateForm($form, $form_state);
+  private function applySectionWrappers(array &$form): void {
+    $this->wrapFieldSection($form, 'city', $this->t('City', [], ['context' => 'eonext_kultur_event_submissions']));
+    $this->wrapFieldSection($form, 'organisation_name', $this->t('Organisation', [], ['context' => 'eonext_kultur_event_submissions']));
+    $this->wrapFieldSection($form, 'address', $this->t('Location', [], ['context' => 'eonext_kultur_event_submissions']));
 
-    $city = $form_state->getValue('city');
-    $descriptionDa = trim((string) $form_state->getValue('description_da'));
-
-    if ($city === SubmissionConstants::CITY_NUUK && $descriptionDa === '') {
-      $form_state->setErrorByName(
-        'description_da',
-        $this->t('Danish description is required when Nuuk is selected.', [], ['context' => 'eonext_kultur_event_submissions'])
-      );
+    if (isset($form['event_start'])) {
+      $schedule_heading = '<h2 class="ek-submission-form__section-title text-header-h4">'
+        . $this->t('Date and time', [], ['context' => 'eonext_kultur_event_submissions'])
+        . '</h2>';
+      $existing_prefix = $form['event_start']['#prefix'] ?? '';
+      $form['event_start']['#prefix'] = $existing_prefix
+        . '<div class="ek-submission-form__section ek-submission-form__datetime-row">'
+        . $schedule_heading
+        . '<div class="ek-submission-form__datetime-fields">';
     }
 
-    $start = $form_state->getValue('event_start');
-    $end = $form_state->getValue('event_end');
-    if ($start instanceof DrupalDateTime
-      && $end instanceof DrupalDateTime
-      && $end->getTimestamp() < $start->getTimestamp()) {
-      $form_state->setErrorByName(
-        'event_end',
-        $this->t('Event end must be after event start.', [], ['context' => 'eonext_kultur_event_submissions'])
-      );
+    if (isset($form['event_end'])) {
+      $existing_suffix = $form['event_end']['#suffix'] ?? '';
+      $form['event_end']['#suffix'] = $existing_suffix . '</div></div>';
     }
 
-    if ($form_state->hasAnyErrors()) {
-      return;
+    if (isset($form['contact_name'])) {
+      $contact_heading = '<h2 class="ek-submission-form__section-title text-header-h4">'
+        . $this->t('Contact', [], ['context' => 'eonext_kultur_event_submissions'])
+        . '</h2>';
+      $existing_prefix = $form['contact_name']['#prefix'] ?? '';
+      $form['contact_name']['#prefix'] = $existing_prefix
+        . '<div class="ek-submission-form__section">'
+        . $contact_heading;
     }
 
-    $validators = [
-      'file_validate_extensions' => ['png jpg jpeg webp'],
-    ];
-    /** @var \Drupal\file\FileInterface|null $file */
-    $file = file_save_upload(
-      'image',
-      $validators,
-      'public://kultur-event-submissions',
-      FileSystemInterface::EXISTS_RENAME
-    );
-
-    if ($file === NULL) {
-      $form_state->setErrorByName(
-        'image',
-        $this->t('The image could not be uploaded. Check the file format and try again.', [], ['context' => 'eonext_kultur_event_submissions'])
-      );
-      return;
+    if (isset($form['contact_phone'])) {
+      $existing_suffix = $form['contact_phone']['#suffix'] ?? '';
+      $form['contact_phone']['#suffix'] = $existing_suffix . '</div>';
     }
 
-    $file->setPermanent();
-    $file->save();
-    $form_state->set('uploaded_image_fid', (int) $file->id());
+    $this->wrapFieldSection($form, 'image', $this->t('Image', [], ['context' => 'eonext_kultur_event_submissions']));
+
+    if (isset($form['description_gl'])) {
+      $description_heading = '<h2 class="ek-submission-form__section-title text-header-h4">'
+        . $this->t('Event description', [], ['context' => 'eonext_kultur_event_submissions'])
+        . '</h2>';
+      $existing_prefix = $form['description_gl']['#prefix'] ?? '';
+      $form['description_gl']['#prefix'] = $existing_prefix
+        . '<div class="ek-submission-form__section">'
+        . $description_heading;
+    }
+
+    if (isset($form['description_da'])) {
+      $existing_suffix = $form['description_da']['#suffix'] ?? '';
+      $form['description_da']['#suffix'] = $existing_suffix . '</div>';
+    }
   }
 
   /**
-   * {@inheritdoc}
+   * Wraps a single field in a section container with a heading.
    */
-  public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $fileId = (int) $form_state->get('uploaded_image_fid');
+  private function wrapFieldSection(array &$form, string $field_name, string|\Stringable $title): void {
+    if (!isset($form[$field_name])) {
+      return;
+    }
 
-    /** @var \Drupal\Core\Datetime\DrupalDateTime $eventStart */
-    $eventStart = $form_state->getValue('event_start');
-    /** @var \Drupal\Core\Datetime\DrupalDateTime $eventEnd */
-    $eventEnd = $form_state->getValue('event_end');
-
-    /** @var \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission $submission */
-    $submission = $this->entityTypeManager->getStorage('kultur_event_submission')->create([
-      'organisation_name' => $form_state->getValue('organisation_name'),
-      'city' => $form_state->getValue('city'),
-      'address' => $form_state->getValue('address'),
-      'event_start' => $eventStart->format('Y-m-d\TH:i:s'),
-      'event_end' => $eventEnd->format('Y-m-d\TH:i:s'),
-      'contact_name' => $form_state->getValue('contact_name'),
-      'contact_email' => $form_state->getValue('contact_email'),
-      'contact_phone' => $form_state->getValue('contact_phone'),
-      'image' => $fileId > 0 ? ['target_id' => $fileId] : [],
-      'description_gl' => $form_state->getValue('description_gl'),
-      'description_da' => $form_state->getValue('description_da'),
-      'status' => SubmissionConstants::STATUS_PENDING,
-    ]);
-    $submission->save();
-
-    $this->messenger()->addStatus($this->t('Thank you. Your event has been submitted for review.', [], ['context' => 'eonext_kultur_event_submissions']));
-    $form_state->set('submission_success', TRUE);
-    $form_state->setUserInput([]);
-    $form_state->setRebuild(TRUE);
+    $heading = '<h2 class="ek-submission-form__section-title text-header-h4">' . $title . '</h2>';
+    $existing_prefix = $form[$field_name]['#prefix'] ?? '';
+    $form[$field_name]['#prefix'] = $existing_prefix
+      . '<div class="ek-submission-form__section">'
+      . $heading;
+    $existing_suffix = $form[$field_name]['#suffix'] ?? '';
+    $form[$field_name]['#suffix'] = $existing_suffix . '</div>';
   }
 
 }

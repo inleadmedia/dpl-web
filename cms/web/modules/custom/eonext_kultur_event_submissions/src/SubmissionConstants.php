@@ -32,7 +32,7 @@ final class SubmissionConstants {
   public static function cityOptions(): array {
     return [
       self::CITY_NUUK => (string) t('Nuuk', [], ['context' => 'eonext_kultur_event_submissions']),
-      self::CITY_OTHER => (string) t('Alle andre byer', [], ['context' => 'eonext_kultur_event_submissions']),
+      self::CITY_OTHER => (string) t('All other cities', [], ['context' => 'eonext_kultur_event_submissions']),
     ];
   }
 

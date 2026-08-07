@@ -58,10 +58,13 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
+/* Bottom spacing is padding, not margin: the form is the last element inside
+   main, so a bottom margin would collapse out of the cream area and leave the
+   submit button flush against the footer. */
 .ek-submission-form__inner {
   max-width: 42rem;
-  margin: 0 auto 4rem;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 0 1rem 4rem;
 }
 
 .ek-submission-form__section {
@@ -103,8 +106,37 @@
 }
 
 .ek-submission-form__datetime-row {
+  display: block;
+}
+
+.ek-submission-form__datetime-fields {
   display: grid;
   gap: 1.5rem;
+}
+
+.ek-submission-form__datetime-fields > .form-wrapper,
+.ek-submission-form__datetime-fields > .field--type-datetime,
+.ek-submission-form__datetime-fields > .js-form-wrapper {
+  margin: 0;
+}
+
+.ek-submission-form__datetime-fields .container-inline,
+.ek-submission-form__datetime-fields .form-datetime-wrapper {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ek-submission-form__datetime-fields {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .ek-submission-form__datetime-fields .container-inline,
+  .ek-submission-form__datetime-fields .form-datetime-wrapper {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .ek-submission-form__datetime-group h4 {
@@ -122,11 +154,6 @@
 }
 
 @media (min-width: 640px) {
-  .ek-submission-form__datetime-row {
-    grid-template-columns: 1fr 1fr;
-    column-gap: 1.5rem;
-  }
-
   .ek-submission-form__datetime-group .container-inline {
     grid-template-columns: 1fr 1fr;
   }

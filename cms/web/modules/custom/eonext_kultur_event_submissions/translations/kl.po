@@ -1,0 +1,17 @@
+# Only completed translations belong in this file. An empty msgstr
+# DELETES any existing translation for the same string site-wide.
+# Untranslated strings live in eonext_kultur_event_submissions.pot.
+# Greenlandic translation of EO Next Kultur Event Submissions
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2026-08-05 14:47+0200\n"
+"PO-Revision-Date: 2026-08-05 14:47+0200\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Language: kl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"

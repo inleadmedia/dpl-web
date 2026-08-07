@@ -1,0 +1,8 @@
+eonext_kultur_event_submissions.public_form:
+  route_name: eonext_kultur_event_submissions.public_form
+  title: 'Add submission'
+  options:
+    query:
+      destination: /admin/content/kultur-event-submissions
+  appears_on:
+    - entity.kultur_event_submission.collection

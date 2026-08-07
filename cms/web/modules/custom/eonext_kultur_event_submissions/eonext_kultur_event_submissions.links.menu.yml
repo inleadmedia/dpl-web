@@ -1,12 +1,12 @@
-entity.kultur_event_submission.collection:
+entity.kultur_event_submission.settings:
   title: 'Kulturnat event submissions'
-  description: 'Review organisation-submitted Kulturnat events.'
-  route_name: entity.kultur_event_submission.collection
-  parent: system.admin_content
+  description: 'Manage fields and displays for Kulturnat event submissions.'
+  route_name: entity.kultur_event_submission.settings
+  parent: system.admin_structure
   weight: 20
 
 eonext_kultur_event_submissions.public_form:
-  title: 'Tilmeld arrangement'
+  title: 'Register event'
   route_name: eonext_kultur_event_submissions.public_form
   menu_name: main
   weight: 50

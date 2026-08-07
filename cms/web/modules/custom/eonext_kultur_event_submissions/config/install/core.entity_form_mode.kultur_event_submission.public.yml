@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_kultur_event_submissions
+id: kultur_event_submission.public
+label: 'Public submission'
+description: 'Public Kulturnat event registration form.'
+targetEntityType: kultur_event_submission
+cache: true

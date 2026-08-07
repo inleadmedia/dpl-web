@@ -1,0 +1,124 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - address
+    - datetime
+    - eonext_kultur_event_submissions
+    - image
+id: kultur_event_submission.kultur_event_submission.full
+targetEntityType: kultur_event_submission
+bundle: kultur_event_submission
+mode: full
+content:
+  organisation_name:
+    type: string
+    label: above
+    weight: 0
+    region: content
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  city:
+    type: list_default
+    label: above
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  address:
+    type: address_default
+    label: above
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  event_start:
+    type: datetime_default
+    label: above
+    weight: 3
+    region: content
+    settings:
+      timezone_override: ''
+    third_party_settings: {  }
+  event_end:
+    type: datetime_default
+    label: above
+    weight: 4
+    region: content
+    settings:
+      timezone_override: ''
+    third_party_settings: {  }
+  contact_name:
+    type: string
+    label: above
+    weight: 5
+    region: content
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  contact_email:
+    type: email_mailto
+    label: above
+    weight: 6
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  contact_phone:
+    type: string
+    label: above
+    weight: 7
+    region: content
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  image:
+    type: image
+    label: above
+    weight: 8
+    region: content
+    settings:
+      image_link: ''
+      image_style: ''
+    third_party_settings: {  }
+  description_gl:
+    type: text_default
+    label: above
+    weight: 9
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  description_da:
+    type: text_default
+    label: above
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  status:
+    type: list_default
+    label: above
+    weight: 11
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  eventseries:
+    type: entity_reference_label
+    label: above
+    weight: 12
+    region: content
+    settings:
+      link: true
+    third_party_settings: {  }
+  created:
+    type: timestamp
+    label: above
+    weight: 13
+    region: content
+    settings:
+      date_format: medium
+      custom_date_format: ''
+      timezone: ''
+    third_party_settings: {  }
+hidden:
+  changed: true
