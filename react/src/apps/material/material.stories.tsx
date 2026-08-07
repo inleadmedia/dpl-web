@@ -905,7 +905,7 @@ const meta: Meta<typeof MaterialEntry> = {
     searchUrl: "/search",
     materialUrl: "/work/:workid",
     advancedSearchUrl: "/advancedsearch",
-    wid: "work-of:870970-basis:141399357",
+    wid: "work-of:870970-basis:140058203",
     agencyIdConfig: "710100",
     localSubjectsAgencyIdsConfig: "",
     smsNotificationsForReservationsEnabledConfig: "1",
@@ -1387,5 +1387,14 @@ export const ContentsRaw: Story = {
   args: {
     ...Default.args,
     wid: "work-of:150086-netmusik:00795041726629"
+  }
+};
+
+export const KviklanAvailability: Story = {
+  name: "Kviklan availability Inlead injection",
+  args: {
+    ...Default.args,
+    wid: "work-of:870970-basis:140058203",
+    isInjectionExample: true
   }
 };

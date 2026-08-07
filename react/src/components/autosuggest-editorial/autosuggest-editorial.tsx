@@ -7,6 +7,7 @@ import { omitBy } from "lodash";
 
 interface AutosuggestEditorialProps {
   query?: string;
+  minQueryLimit?: number;
   limit?: number;
   template?: string;
   materialId?: string;
@@ -119,12 +120,13 @@ const AutosuggestMaterial: React.FC<EditorialSuggestion> = ({ title, url, create
   );
 };
 
-const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, materialId, filter, limit = 7, template = "suggestion", onFound }) => {
+// See the same option (minQueryLimit) at the `apps/search-header/search-header.tsx` file;
+const AutosuggestEditorial: React.FC<AutosuggestEditorialProps> = ({ query, minQueryLimit = 3, materialId, filter, limit = 7, template = "suggestion", onFound }) => {
   const lastQuery = useRef<string | undefined>("");
   const [editorialSuggestions, setEditorialSuggestions] = useState([]);
 
   useEffect(() => {
-    if (!materialId && (!query || query.length < minimalAutosuggestCharacters || lastQuery.current === query))
+    if (!materialId && (!query || query.length < minQueryLimit || lastQuery.current === query))
       return;
 
     lastQuery.current = query || materialId;

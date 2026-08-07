@@ -25,6 +25,11 @@
     "build:js:prod": "NODE_ENV=production webpack --mode=production --config webpack.config.js",
     "build:css:dev": "postcss ./src/apps/**/*.scss ./src/components/components.scss --ext css --dir ./dist",
     "build:css:prod": "postcss ./src/apps/**/*.scss ./src/components/components.scss --no-map --ext css --dir ./dist --env production",
+
+    "build:js-standalone-module:prod": "NODE_ENV=production webpack --mode=production --config webpack-standalone-modules.config.js",
+    "build:css-standalone-module:prod": "postcss ./src/components/autosuggest-editorial/autosuggest-editorial.scss --no-map --ext css --dir ./dist-standalone-modules --env production",
+    "build:standalone-module:prod": "npm run build:css-standalone-module:prod; npm run build:js-standalone-module:prod",
+
     "watch": "npx concurrently --raw \"yarn watch:lint:js\" \"yarn watch:lint:scss\"",
     "watch:css": "postcss ./src/apps/**/*.scss ./src/components/components.scss --ext css --dir ./dist --watch",
     "watch:lint:scss": "chokidar \"./src/**/*.scss\" -c \"yarn lint:scss:fix\"",

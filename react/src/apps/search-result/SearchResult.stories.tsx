@@ -61,7 +61,7 @@ export const Default: Story = {
     ...globalConfigArgs,
     ...mappArgs,
     ...zeroHitsSearchUrlArgs,
-    q: "harry",
+    q: "ol",
     pageSizeDesktop: 50,
     pageSizeMobile: 20,
     etAlText: "et al.",
@@ -124,5 +124,13 @@ export const Default: Story = {
     webSearchConfig:
       '{\n  "webSearchUrl": "https://www.google.com",\n  "webSearchText": "Google",\n  "webSearchTotal": "1000"\n}',
     searchDialogFilterMaterialsText: "Filter materials (97)"
+  }
+};
+
+export const InleadInjection: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    isInjectionExample: true
   }
 };

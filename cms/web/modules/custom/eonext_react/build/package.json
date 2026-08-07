@@ -1,0 +1,19 @@
+{
+  "name": "eonext-react-standalone-build",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared webpack/babel toolchain for the standalone React injection bundles shipped by EO Next modules. Build one with: npm run build -- --env module=<module_name>",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "build": "webpack --mode=production"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@babel/preset-react": "^7.29.7",
+    "babel-loader": "^10.1.1",
+    "core-js": "^3.49.0",
+    "webpack": "^5.109.2",
+    "webpack-cli": "^7.0.2"
+  }
+}
