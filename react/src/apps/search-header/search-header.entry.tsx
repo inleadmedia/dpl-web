@@ -54,11 +54,13 @@ const SearchHeaderEntry: React.FC<SearchHeaderEntryProps> = ({ isInjectionExampl
         setCurrentDate(Date.now());
       });
     }, []);
+
+    return <div data-current-date={ currentDate || "" }>
+      <SearchHeader />
+    </div>;
   }
 
-  return <div data-current-date={ currentDate || "" }>
-    <SearchHeader />
-  </div>;
+  return <SearchHeader />;
 };
 
 export default withUrls(withText(SearchHeaderEntry));
