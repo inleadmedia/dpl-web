@@ -37,7 +37,11 @@
         if (typeof _package[minifiedKey] === "object" && unwrapPackageObject) {
           unwrapped = unwrapPackageObject(_package[minifiedKey]);
         } else {
-          unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+          try {
+            unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+          } catch (_) {
+            return;
+          }
         }
 
         if (unwrapped) {
