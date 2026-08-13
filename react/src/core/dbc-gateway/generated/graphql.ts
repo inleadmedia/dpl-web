@@ -8882,6 +8882,7 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   classifications {
     code
+    entryType
   }
   contents {
     heading
