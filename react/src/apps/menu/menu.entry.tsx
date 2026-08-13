@@ -79,23 +79,25 @@ const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile, isInje
   const [currentDate, setCurrentDate] = React.useState(0);
 
   if (isInjectionExample) {
-      React.useEffect(() => {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
         // @ts-ignore-next-line
-        if (window.InleadReactInjector) {
-          // @ts-ignore-next-line
-          window.InleadReactInjector.clearInjections();
-        }
+        window.InleadReactInjector.clearInjections();
+      }
 
-        // @ts-ignore-next-line
-        import("./GoogleTranslationsInjection.jsx").then(() => {
-          setCurrentDate(Date.now());
-        });
-      }, []);
-    }
+      // @ts-ignore-next-line
+      import("./GoogleTranslationsInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
 
-  return <div data-current-date={ currentDate || "" }>
-    <Menu pageSize={pageSize} />
-  </div>;
+    return <div data-current-date={ currentDate || "" }>
+      <Menu pageSize={pageSize} />
+    </div>;
+  }
+
+  return <Menu pageSize={pageSize} />;
 };
 
 export default withUrls(withConfig(withText(MenuEntry)));
