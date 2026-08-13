@@ -1,0 +1,16 @@
+uuid: 98b18fc3-c3c1-4228-9579-1aabe23e00d6
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_relevant_ticket_manager
+field_name: field_relevant_ticket_manager
+entity_type: organization_event
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

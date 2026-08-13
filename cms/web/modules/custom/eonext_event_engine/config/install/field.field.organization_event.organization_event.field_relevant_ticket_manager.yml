@@ -1,0 +1,23 @@
+uuid: 85647cd2-a04e-40d7-87fc-9cd467864e4d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_relevant_ticket_manager
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_relevant_ticket_manager
+field_name: field_relevant_ticket_manager
+entity_type: organization_event
+bundle: organization_event
+label: 'Relevant for ticket manager'
+description: 'If you mark this event as relevant, it means that if you use an external ticket system, some data such as ticket link, status and others may be overridden.'
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

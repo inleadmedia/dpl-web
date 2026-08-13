@@ -1,0 +1,13 @@
+entity.organization_event.collection:
+  title: 'Events (Pre-event)'
+  route_name: entity.organization_event.collection
+  parent: system.admin_content
+  description: 'Manage pre-event drafts.'
+  weight: 15
+
+entity.organization_event_type.collection:
+  title: 'Event (Pre-event) types'
+  route_name: entity.organization_event_type.collection
+  parent: system.admin_structure
+  description: 'Manage pre-event types and fields.'
+  weight: 15

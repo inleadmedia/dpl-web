@@ -1,0 +1,164 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for EO Next Event Status.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Batch\BatchBuilder;
+use Drupal\Core\Config\ConfigImporter;
+use Drupal\Core\Config\ConfigImporterException;
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Config\Importer\ConfigImporterBatch;
+use Drupal\Core\Config\StorageComparer;
+use Drupal\eonext_event_status\EventSubscriber\OverlayConfigEventSubscriber;
+
+/**
+ * The DPL-owned displays this module used to be arranged into by hand.
+ */
+const EONEXT_EVENT_STATUS_DPL_DISPLAYS = [
+  'core.entity_form_display.eventseries.default.default',
+  'core.entity_form_display.eventinstance.default.default',
+];
+
+/**
+ * The fields this module adds to DPL-owned event bundles.
+ */
+const EONEXT_EVENT_STATUS_FIELDS = [
+  'field_ribbon_text',
+  'field_ribbon_color',
+  'field_ribbon_instances_apply',
+];
+
+/**
+ * Triggers a configuration import so our config/sync overlay is applied.
+ *
+ * Installing or updating a module does not import configuration, so we have to
+ * ask for it ourselves. Inside DPL CMS library sites are always expected to
+ * match the configuration shipped with the platform, so importing here is safe.
+ *
+ * @see \Drupal\eonext_event_status\EventSubscriber\OverlayConfigEventSubscriber
+ */
+function eonext_event_status_update_config(): void {
+  $sync_storage = \Drupal::service('config.import_transformer')
+    ->transform(\Drupal::service('config.storage.sync'));
+
+  // On first enable our event subscriber is not in the container yet, so the
+  // transform above does not include our overlay. Apply it directly; writing
+  // the same objects again on later imports is harmless.
+  $path = \Drupal::service('extension.path.resolver')
+    ->getPath('module', 'eonext_event_status') . '/config/sync';
+  OverlayConfigEventSubscriber::overlayConfig($sync_storage, new FileStorage($path));
+
+  $config_importer = new ConfigImporter(
+    new StorageComparer($sync_storage, \Drupal::service('config.storage')),
+    \Drupal::service('event_dispatcher'),
+    \Drupal::service('config.manager'),
+    \Drupal::service('lock.persistent'),
+    \Drupal::service('config.typed'),
+    \Drupal::service('module_handler'),
+    \Drupal::service('module_installer'),
+    \Drupal::service('theme_handler'),
+    \Drupal::service('string_translation'),
+    \Drupal::service('extension.list.module'),
+    \Drupal::service('extension.list.theme'),
+  );
+
+  // Another module in the same install run already scheduled an import. Its
+  // comparison was built after every module was installed, so it covers our
+  // configuration too and a second import would only fail on the lock.
+  if ($config_importer->alreadyImporting()) {
+    return;
+  }
+
+  try {
+    $sync_steps = $config_importer->initialize();
+
+    $batch_builder = (new BatchBuilder())
+      ->setTitle(t('Synchronizing configuration'))
+      ->setFinishCallback([ConfigImporterBatch::class, 'finish'])
+      ->setInitMessage(t('Starting configuration synchronization.'))
+      ->setProgressMessage(t('Completed step @current of @total.'))
+      ->setErrorMessage(t('Configuration synchronization has encountered an error.'));
+
+    foreach ($sync_steps as $sync_step) {
+      $batch_builder->addOperation([ConfigImporterBatch::class, 'process'], [$config_importer, $sync_step]);
+    }
+
+    batch_set($batch_builder->toArray());
+  }
+  catch (ConfigImporterException $e) {
+    throw new \RuntimeException('Error importing configuration: ' . $e->getMessage());
+  }
+}
+
+// The configuration import that applies our overlay runs from
+// hook_modules_installed() rather than hook_install(), so that installing
+// several modules at once only imports once, after all of them are in place.
+// @see eonext_event_status_modules_installed()
+
+/**
+ * Releases the DPL event displays this module used to occupy.
+ *
+ * The ribbon fields are now placed by hook_entity_form_display_alter() at
+ * render time, so the stored DPL displays no longer need to mention them. Any
+ * site where an administrator arranged the fields by hand has those displays
+ * pinned in config_ignore_auto, which both blocks DPL's own updates to them
+ * and previously made config import fail. Release them again.
+ */
+function eonext_event_status_update_10001(): string {
+  $messages = [];
+
+  $display_storage = \Drupal::entityTypeManager()->getStorage('entity_form_display');
+  foreach (EONEXT_EVENT_STATUS_DPL_DISPLAYS as $config_name) {
+    $display_id = substr($config_name, strlen('core.entity_form_display.'));
+    $display = $display_storage->load($display_id);
+    if (!$display) {
+      continue;
+    }
+
+    $removed = FALSE;
+    foreach (EONEXT_EVENT_STATUS_FIELDS as $field_name) {
+      if ($display->getComponent($field_name)) {
+        $display->removeComponent($field_name);
+        $removed = TRUE;
+      }
+    }
+
+    if ($removed) {
+      $display->save();
+      $messages[] = "Removed ribbon fields from $display_id.";
+    }
+  }
+
+  $messages[] = _eonext_event_status_unpin_config(EONEXT_EVENT_STATUS_DPL_DISPLAYS);
+
+  return implode(' ', array_filter($messages));
+}
+
+/**
+ * Removes config objects from the config_ignore_auto ignore list.
+ *
+ * @param string[] $config_names
+ *   Names of the config objects to stop ignoring.
+ */
+function _eonext_event_status_unpin_config(array $config_names): string {
+  $settings = \Drupal::configFactory()->getEditable('config_ignore_auto.settings');
+  $ignored = $settings->get('ignored_config_entities') ?: [];
+
+  $remaining = array_values(array_filter(
+    $ignored,
+    fn (string $item): bool => !in_array($item, $config_names, TRUE),
+  ));
+
+  $removed = count($ignored) - count($remaining);
+  if ($removed === 0) {
+    return '';
+  }
+
+  $settings->set('ignored_config_entities', $remaining)->save();
+
+  return "Released $removed config object(s) back to DPL CMS.";
+}

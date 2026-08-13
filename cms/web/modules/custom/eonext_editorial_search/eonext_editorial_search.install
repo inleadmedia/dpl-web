@@ -1,0 +1,249 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for EO Next Editorial Search.
+ */
+
+use Drupal\Core\Batch\BatchBuilder;
+use Drupal\Core\Config\ConfigImporter;
+use Drupal\Core\Config\ConfigImporterException;
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Config\Importer\ConfigImporterBatch;
+use Drupal\Core\Config\StorageComparer;
+use Drupal\eonext_editorial_search\ArticleMaterialSync;
+use Drupal\eonext_editorial_search\EventSubscriber\OverlayConfigEventSubscriber;
+use Drupal\user\Entity\Role;
+
+/**
+ * Settings the library owns, which a platform release must never overwrite.
+ */
+const EONEXT_EDITORIAL_SEARCH_SITE_OWNED_CONFIG = [
+  'eonext_editorial_search.settings',
+];
+
+/**
+ * DPL-owned config earlier versions of this module changed in place.
+ *
+ * Administrators who arranged field_material by hand also left these pinned in
+ * config_ignore_auto, which stops DPL CMS from updating them.
+ */
+const EONEXT_EDITORIAL_SEARCH_RELEASED_CONFIG = [
+  'core.entity_form_display.node.article.default',
+  'user.role.anonymous',
+  'user.role.authenticated',
+];
+
+/**
+ * Triggers a configuration import so our config/sync overlay is applied.
+ *
+ * Installing or updating a module does not import configuration, so we have to
+ * ask for it ourselves. Inside DPL CMS library sites are always expected to
+ * match the configuration shipped with the platform, so importing here is safe.
+ *
+ * @see \Drupal\eonext_editorial_search\EventSubscriber\OverlayConfigEventSubscriber
+ */
+function eonext_editorial_search_update_config(): void {
+  $sync_storage = \Drupal::service('config.import_transformer')
+    ->transform(\Drupal::service('config.storage.sync'));
+
+  $path = \Drupal::service('extension.path.resolver')
+    ->getPath('module', 'eonext_editorial_search') . '/config/sync';
+  // On first enable our event subscriber is not in the container yet.
+  OverlayConfigEventSubscriber::overlayConfig($sync_storage, new FileStorage($path));
+
+  $config_importer = new ConfigImporter(
+    new StorageComparer($sync_storage, \Drupal::service('config.storage')),
+    \Drupal::service('event_dispatcher'),
+    \Drupal::service('config.manager'),
+    \Drupal::service('lock.persistent'),
+    \Drupal::service('config.typed'),
+    \Drupal::service('module_handler'),
+    \Drupal::service('module_installer'),
+    \Drupal::service('theme_handler'),
+    \Drupal::service('string_translation'),
+    \Drupal::service('extension.list.module'),
+    \Drupal::service('extension.list.theme'),
+  );
+
+  // Another module in the same install run already scheduled an import. Its
+  // comparison was built after every module was installed, so it covers our
+  // configuration too and a second import would only fail on the lock.
+  if ($config_importer->alreadyImporting()) {
+    return;
+  }
+
+  try {
+    $sync_steps = $config_importer->initialize();
+
+    $batch_builder = (new BatchBuilder())
+      ->setTitle(t('Synchronizing configuration'))
+      ->setFinishCallback([ConfigImporterBatch::class, 'finish'])
+      ->setInitMessage(t('Starting configuration synchronization.'))
+      ->setProgressMessage(t('Completed step @current of @total.'))
+      ->setErrorMessage(t('Configuration synchronization has encountered an error.'));
+
+    foreach ($sync_steps as $sync_step) {
+      $batch_builder->addOperation([ConfigImporterBatch::class, 'process'], [$config_importer, $sync_step]);
+    }
+
+    batch_set($batch_builder->toArray());
+  }
+  catch (ConfigImporterException $e) {
+    throw new \RuntimeException('Error importing configuration: ' . $e->getMessage());
+  }
+}
+
+/**
+ * Excludes the library's own settings from configuration import.
+ */
+function eonext_editorial_search_protect_site_owned_config(): string {
+  $settings = \Drupal::configFactory()->getEditable('config_ignore_auto.settings');
+  $ignored = $settings->get('ignored_config_entities') ?: [];
+
+  $added = array_diff(EONEXT_EDITORIAL_SEARCH_SITE_OWNED_CONFIG, $ignored);
+  if (!$added) {
+    return '';
+  }
+
+  $ignored = array_merge($ignored, $added);
+  sort($ignored);
+  $settings->set('ignored_config_entities', $ignored)->save();
+
+  return 'Protected ' . implode(', ', $added) . ' from configuration import.';
+}
+
+/**
+ * Hands DPL-owned configuration back to the platform.
+ */
+function eonext_editorial_search_release_dpl_config(): string {
+  $settings = \Drupal::configFactory()->getEditable('config_ignore_auto.settings');
+  $ignored = $settings->get('ignored_config_entities') ?: [];
+
+  $remaining = array_values(array_filter(
+    $ignored,
+    fn (string $item): bool => !in_array($item, EONEXT_EDITORIAL_SEARCH_RELEASED_CONFIG, TRUE),
+  ));
+
+  $released = count($ignored) - count($remaining);
+  if ($released === 0) {
+    return '';
+  }
+
+  $settings->set('ignored_config_entities', $remaining)->save();
+
+  return "Released $released config object(s) back to DPL CMS.";
+}
+
+/**
+ * Ensures the editorial search toggle has a value.
+ */
+function _eonext_editorial_search_ensure_settings(): void {
+  $config = \Drupal::configFactory()->getEditable('eonext_editorial_search.settings');
+  if ($config->get('enable_editorial_search') === NULL) {
+    $config->set('enable_editorial_search', TRUE)->save();
+  }
+}
+
+/**
+ * Queues field_material sync for all articles when the field is available.
+ *
+ * @return int
+ *   Number of articles queued.
+ */
+function _eonext_editorial_search_enqueue_article_material_sync(): int {
+  if (!\Drupal::entityTypeManager()->getStorage('field_storage_config')->load('node.field_material')) {
+    return 0;
+  }
+
+  /** @var \Drupal\eonext_editorial_search\ArticleMaterialSync $sync */
+  $sync = \Drupal::service(ArticleMaterialSync::class);
+  $count = $sync->enqueueAllArticles();
+
+  if ($count > 0) {
+    \Drupal::logger('eonext_editorial_search')->notice(
+      'Queued field_material sync for @count article(s). Process with cron or: drush queue:run @queue',
+      [
+        '@count' => $count,
+        '@queue' => ArticleMaterialSync::QUEUE_NAME,
+      ],
+    );
+  }
+
+  return $count;
+}
+
+/**
+ * Implements hook_install().
+ */
+function eonext_editorial_search_install(): void {
+  _eonext_editorial_search_ensure_settings();
+  eonext_editorial_search_protect_site_owned_config();
+
+  // The configuration import that applies our overlay runs from
+  // hook_modules_installed(), so that installing several modules at once only
+  // imports once, after all of them are in place. field_material only exists
+  // after that import, so the article sync is queued from there too.
+  // @see eonext_editorial_search_modules_installed()
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eonext_editorial_search_uninstall(): void {
+  foreach (['editorial_categories', 'editorial_content_type', 'editorial_tags'] as $facet_id) {
+    $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
+    $facet?->delete();
+  }
+
+  $facet_source = \Drupal::entityTypeManager()
+    ->getStorage('facets_facet_source')
+    ->load('search_api:views_page__editorial_search__page');
+  $facet_source?->delete();
+
+  \Drupal::configFactory()->getEditable('eonext_editorial_search.settings')->delete();
+}
+
+/**
+ * Ship editorial search configuration through the DPL webmaster overlay.
+ *
+ * Previously the module wrote its configuration straight into the site and
+ * edited DPL CMS' own search index, roles and article form display on every
+ * deployment. That made the platform's configuration import delete the
+ * module's configuration - and fail outright once an administrator had
+ * arranged field_material by hand. Everything the module owns is now part of
+ * the configuration import, and the pieces it borrows are handed back.
+ */
+function eonext_editorial_search_update_10001(): string {
+  $messages = [];
+
+  // The REST endpoint now opens itself through a route access override, so the
+  // permission this module used to grant on DPL's roles is no longer needed.
+  $permission = 'restful get eonext_editorial_search:editorial_search';
+  foreach (['anonymous', 'authenticated'] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role instanceof Role && $role->hasPermission($permission)) {
+      $role->revokePermission($permission);
+      $role->save();
+      $messages[] = "Revoked $permission from $role_id.";
+    }
+  }
+
+  // field_material is placed by hook_entity_form_display_alter() at render
+  // time, so DPL's stored article form display no longer needs to mention it.
+  $display = \Drupal::entityTypeManager()
+    ->getStorage('entity_form_display')
+    ->load('node.article.default');
+  if ($display && $display->getComponent('field_material')) {
+    $display->removeComponent('field_material');
+    $display->save();
+    $messages[] = 'Removed field_material from the article form display.';
+  }
+
+  $messages[] = eonext_editorial_search_release_dpl_config();
+  $messages[] = eonext_editorial_search_protect_site_owned_config();
+
+  $messages[] = 'Editorial search configuration is now part of the configuration import.';
+
+  return implode(' ', array_filter($messages));
+}

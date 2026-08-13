@@ -1,0 +1,19 @@
+uuid: 27fec7e9-7b23-428f-b6c0-6b55d53664cd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_description
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_description
+field_name: field_description
+entity_type: organization_event
+bundle: organization_event
+label: Subtitle
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

@@ -1,0 +1,19 @@
+uuid: 0cef6134-5941-4156-be15-7285ef511402
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_event_location
+field_name: field_event_location
+entity_type: organization_event
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

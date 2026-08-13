@@ -1,0 +1,19 @@
+uuid: ba51cd2f-ead1-4f37-80c2-83ff17a939fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_teaser_text
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_teaser_text
+field_name: field_teaser_text
+entity_type: organization_event
+bundle: organization_event
+label: 'Teaser text'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,25 @@
+administer organization event types:
+  title: 'Administer event (Pre-event) types'
+  description: 'Manage event (Pre-event) types and fields.'
+  restrict access: true
+
+create organization event:
+  title: 'Create event (Pre-event)'
+
+edit own organization event:
+  title: 'Edit own event (Pre-event)'
+
+edit any organization event:
+  title: 'Edit any event (Pre-event)'
+
+delete own organization event:
+  title: 'Delete own event (Pre-event)'
+
+delete any organization event:
+  title: 'Delete any event (Pre-event)'
+
+view organization event:
+  title: 'View event (Pre-event)'
+
+view unpublished organization event:
+  title: 'View unpublished event (Pre-event)'

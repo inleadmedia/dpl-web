@@ -1,0 +1,220 @@
+uuid: 00000000-0000-4000-8000-000000000021
+langcode: en
+status: true
+dependencies:
+  config:
+    - eonext_event_engine.organization_event_type.organization_event
+    - field.field.organization_event.organization_event.field_audiences
+    - field.field.organization_event.organization_event.field_automatic_list_hide
+    - field.field.organization_event.organization_event.field_branch
+    - field.field.organization_event.organization_event.field_categories
+    - field.field.organization_event.organization_event.field_description
+    - field.field.organization_event.organization_event.field_event_address_gsearch
+    - field.field.organization_event.organization_event.field_event_all_day
+    - field.field.organization_event.organization_event.field_event_date
+    - field.field.organization_event.organization_event.field_event_image
+    - field.field.organization_event.organization_event.field_event_link
+    - field.field.organization_event.organization_event.field_event_location
+    - field.field.organization_event.organization_event.field_event_location_type
+    - field.field.organization_event.organization_event.field_event_non_branch_location
+    - field.field.organization_event.organization_event.field_event_paragraphs
+    - field.field.organization_event.organization_event.field_event_partners
+    - field.field.organization_event.organization_event.field_event_place
+    - field.field.organization_event.organization_event.field_event_state
+    - field.field.organization_event.organization_event.field_relevant_ticket_manager
+    - field.field.organization_event.organization_event.field_screen_names
+    - field.field.organization_event.organization_event.field_tags
+    - field.field.organization_event.organization_event.field_teaser_image
+    - field.field.organization_event.organization_event.field_teaser_text
+    - field.field.organization_event.organization_event.field_ticket_capacity
+    - field.field.organization_event.organization_event.field_ticket_categories
+  module:
+    - datetime_range
+    - eonext_event_engine
+    - gsearch
+    - link
+    - media_library
+    - options
+    - paragraphs
+    - select2
+id: organization_event.organization_event.default
+targetEntityType: organization_event
+bundle: organization_event
+mode: default
+content:
+  title:
+    type: string
+    label: above
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_description:
+    type: string
+    label: above
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_automatic_list_hide:
+    type: string
+    label: above
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_all_day:
+    type: string
+    label: above
+    weight: 3
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_date:
+    type: string
+    label: above
+    weight: 4
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_location_type:
+    type: string
+    label: above
+    weight: 5
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_branch:
+    type: string
+    label: above
+    weight: 6
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_non_branch_location:
+    type: string
+    label: above
+    weight: 7
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_location:
+    type: string
+    label: above
+    weight: 8
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_address_gsearch:
+    type: string
+    label: above
+    weight: 9
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_place:
+    type: string
+    label: above
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_paragraphs:
+    type: string
+    label: above
+    weight: 11
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_relevant_ticket_manager:
+    type: string
+    label: above
+    weight: 12
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_link:
+    type: string
+    label: above
+    weight: 13
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_ticket_capacity:
+    type: string
+    label: above
+    weight: 14
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_ticket_categories:
+    type: string
+    label: above
+    weight: 15
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_partners:
+    type: string
+    label: above
+    weight: 16
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_image:
+    type: string
+    label: above
+    weight: 17
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_event_state:
+    type: string
+    label: above
+    weight: 18
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_audiences:
+    type: string
+    label: above
+    weight: 19
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_teaser_text:
+    type: string
+    label: above
+    weight: 20
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_teaser_image:
+    type: string
+    label: above
+    weight: 21
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_categories:
+    type: string
+    label: above
+    weight: 22
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_tags:
+    type: string
+    label: above
+    weight: 23
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_screen_names:
+    type: string
+    label: above
+    weight: 24
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }

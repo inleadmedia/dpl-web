@@ -1,0 +1,17 @@
+services:
+  eonext_event_status.overlay_config_subscriber:
+    class: Drupal\eonext_event_status\EventSubscriber\OverlayConfigEventSubscriber
+    arguments:
+      - '@extension.path.resolver'
+    tags:
+      - { name: event_subscriber }
+  eonext_event_status.ribbon:
+    class: Drupal\eonext_event_status\Services\RibbonService
+  eonext_event_status.event_rest_mapper:
+    class: Drupal\eonext_event_status\Services\EventRestMapper
+    decorates: dpl_event.event_rest_mapper
+    arguments:
+      - '@entity_type.manager'
+      - '@file_url_generator'
+      - '@config.factory'
+      - '@eonext_event_status.ribbon'

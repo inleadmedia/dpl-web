@@ -1,0 +1,6 @@
+services:
+  eonext_event_engine.overlay_config:
+    class: Drupal\eonext_event_engine\EventSubscriber\OverlayConfigEventSubscriber
+    arguments: ['@extension.path.resolver']
+    tags:
+      - { name: event_subscriber }

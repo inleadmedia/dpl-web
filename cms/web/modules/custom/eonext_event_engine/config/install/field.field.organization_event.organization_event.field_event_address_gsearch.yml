@@ -1,0 +1,22 @@
+uuid: 5b2a21ee-dc1d-4b50-9188-70a2aac13483
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_address_gsearch
+    - eonext_event_engine.organization_event_type.organization_event
+  module:
+    - gsearch
+id: organization_event.organization_event.field_event_address_gsearch
+field_name: field_event_address_gsearch
+entity_type: organization_event
+bundle: organization_event
+label: Address
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allow_freetext: true
+field_type: address_gsearch

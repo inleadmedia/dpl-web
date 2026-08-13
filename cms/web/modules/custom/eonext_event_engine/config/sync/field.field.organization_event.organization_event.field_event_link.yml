@@ -1,0 +1,23 @@
+uuid: 34a66371-a7a7-4b18-8ac3-cedd844369ad
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_link
+    - eonext_event_engine.organization_event_type.organization_event
+  module:
+    - link
+id: organization_event.organization_event.field_event_link
+field_name: field_event_link
+entity_type: organization_event
+bundle: organization_event
+label: 'Ticket link'
+description: 'Please enter the URL where attendees can buy/get tickets for this event.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 0
+  link_type: 16
+field_type: link

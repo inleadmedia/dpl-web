@@ -1,0 +1,29 @@
+uuid: cb75bf5c-60f3-4e19-b8f2-1a75e6998856
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_tags
+    - eonext_event_engine.organization_event_type.organization_event
+    - taxonomy.vocabulary.tags
+id: organization_event.organization_event.field_tags
+field_name: field_tags
+entity_type: organization_event
+bundle: organization_event
+label: Tags
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      tags: tags
+    sort:
+      field: name
+      direction: asc
+    auto_create: true
+    auto_create_bundle: ''
+field_type: entity_reference

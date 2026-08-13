@@ -1,0 +1,29 @@
+uuid: a4730068-3a0a-4217-a58c-b900a89ed9b6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_screen_names
+    - eonext_event_engine.organization_event_type.organization_event
+    - taxonomy.vocabulary.screen_name
+id: organization_event.organization_event.field_screen_names
+field_name: field_screen_names
+entity_type: organization_event
+bundle: organization_event
+label: 'Screen names'
+description: 'Select which screens to display this event on.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      screen_name: screen_name
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

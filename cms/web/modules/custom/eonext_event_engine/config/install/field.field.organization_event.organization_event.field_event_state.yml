@@ -1,0 +1,23 @@
+uuid: 968a5dcb-f5db-478e-addd-b806bc6a1eb4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_state
+    - eonext_event_engine.organization_event_type.organization_event
+  module:
+    - enum_field
+id: organization_event.organization_event.field_event_state
+field_name: field_event_state
+entity_type: organization_event
+bundle: organization_event
+label: State
+description: 'If ‘Relevant for ticket manager’ under ‘Tickets’ is turned on, then this state is ignored and the state provided from the ticket manager is used.'
+required: true
+translatable: false
+default_value:
+  -
+    value: Active
+default_value_callback: ''
+settings: {  }
+field_type: enum_string

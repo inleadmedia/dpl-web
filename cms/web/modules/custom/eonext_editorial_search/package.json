@@ -1,0 +1,17 @@
+{
+  "name": "eonext_editorial_search",
+  "version": "1.0.0",
+  "description": "Frontend (React) and styles for EO Next Editorial Search",
+  "scripts": {
+    "scss:facets": "sass scss/style.scss css/eonext_editorial_search.min.css --style=compressed --no-source-map",
+    "scss:editorial": "sass scss/editorial.scss css/editorial.css --style=compressed --no-source-map",
+    "scss": "npm run scss:facets && npm run scss:editorial",
+    "build:js": "esbuild js/src/index.tsx --bundle --minify --format=iife --tsconfig=tsconfig.json --jsx=transform --jsx-factory=React.createElement --jsx-fragment=React.Fragment --alias:react=preact/compat --alias:react-dom=preact/compat --outfile=js/editorial.bundle.js",
+    "build": "npm run scss:editorial && npm run build:js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.0",
+    "preact": "^10.23.0",
+    "sass": "^1.77.0"
+  }
+}

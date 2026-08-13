@@ -1,0 +1,16 @@
+uuid: 27ccaa57-2a1f-4529-ab07-c71a01064507
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_event_all_day
+field_name: field_event_all_day
+entity_type: organization_event
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

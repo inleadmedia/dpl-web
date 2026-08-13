@@ -1,0 +1,18 @@
+uuid: 779b32f9-8b51-469d-a352-769a9c3c5a1d
+langcode: en
+status: true
+dependencies:
+    - taxonomy
+id: organization_event.field_audiences
+field_name: field_audiences
+entity_type: organization_event
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

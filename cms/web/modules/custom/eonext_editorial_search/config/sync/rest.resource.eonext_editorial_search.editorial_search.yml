@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_editorial_search
+    - serialization
+    - user
+  enforced:
+    module:
+      - eonext_editorial_search
+id: eonext_editorial_search.editorial_search
+plugin_id: 'eonext_editorial_search:editorial_search'
+granularity: resource
+configuration:
+  methods:
+    - GET
+  formats:
+    - json
+  authentication:
+    - cookie

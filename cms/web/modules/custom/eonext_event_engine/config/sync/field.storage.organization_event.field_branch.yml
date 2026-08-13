@@ -1,0 +1,19 @@
+uuid: 3ca969ad-2b9d-47cf-9f31-63bb29a96d26
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: organization_event.field_branch
+field_name: field_branch
+entity_type: organization_event
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

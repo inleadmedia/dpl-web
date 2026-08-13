@@ -1,0 +1,10 @@
+uuid: 00000000-0000-4000-8000-000000000010
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - eonext_event_engine
+id: organization_event
+label: 'Event (Pre-event)'
+description: 'Draft event before publishing to the event platform.'

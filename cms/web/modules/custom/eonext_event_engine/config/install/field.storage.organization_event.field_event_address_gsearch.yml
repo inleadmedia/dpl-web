@@ -1,0 +1,18 @@
+uuid: a614c9c1-4bc5-4028-a931-eab89db341e3
+langcode: en
+status: true
+dependencies:
+  module:
+    - gsearch
+id: organization_event.field_event_address_gsearch
+field_name: field_event_address_gsearch
+entity_type: organization_event
+type: address_gsearch
+settings: {  }
+module: gsearch
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

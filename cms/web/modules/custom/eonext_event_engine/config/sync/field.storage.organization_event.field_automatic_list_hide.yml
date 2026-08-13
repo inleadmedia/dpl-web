@@ -1,0 +1,16 @@
+uuid: 34549f80-7ec1-4b16-b26e-0e4b67eb0d95
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_automatic_list_hide
+field_name: field_automatic_list_hide
+entity_type: organization_event
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

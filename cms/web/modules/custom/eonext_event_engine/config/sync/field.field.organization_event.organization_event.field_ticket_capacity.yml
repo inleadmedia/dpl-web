@@ -1,0 +1,23 @@
+uuid: c9b75ee5-77e1-4bea-abbd-5cc03494bacd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_ticket_capacity
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_ticket_capacity
+field_name: field_ticket_capacity
+entity_type: organization_event
+bundle: organization_event
+label: 'Total ticket capacity'
+description: 'Used by third party services to detect when an event is sold out.<br /><br />Is not displayed to the end-user.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

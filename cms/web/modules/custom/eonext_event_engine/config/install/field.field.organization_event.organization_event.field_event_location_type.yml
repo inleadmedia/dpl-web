@@ -1,0 +1,23 @@
+uuid: cb3914ba-2fec-4d00-8bcb-efdf4defdd12
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_location_type
+    - eonext_event_engine.organization_event_type.organization_event
+  module:
+    - options
+id: organization_event.organization_event.field_event_location_type
+field_name: field_event_location_type
+entity_type: organization_event
+bundle: organization_event
+label: 'In person or online?'
+description: 'Specify wether this is a physical or online event. If it’s both online and in person, please create two separate events.'
+required: true
+translatable: false
+default_value:
+  -
+    value: physical
+default_value_callback: ''
+settings: {  }
+field_type: list_string

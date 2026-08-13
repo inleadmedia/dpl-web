@@ -1,0 +1,138 @@
+<?php
+
+/**
+ * @file
+ * Provides custom event ribbons on series and instances.
+ */
+
+use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\dpl_event\Entity\EventInstance;
+use Drupal\recurring_events\Entity\EventSeries;
+
+/**
+ * The ribbon widgets this module adds, per entity type.
+ *
+ * Keyed by entity type, then field name, with the widget to use.
+ */
+const EONEXT_EVENT_STATUS_WIDGETS = [
+  'eventseries' => [
+    'field_ribbon_text' => 'string_textfield',
+    'field_ribbon_color' => 'color_field_widget_default',
+    'field_ribbon_instances_apply' => 'boolean_checkbox',
+  ],
+  'eventinstance' => [
+    'field_ribbon_text' => 'string_textfield',
+    'field_ribbon_color' => 'color_field_widget_default',
+  ],
+];
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * Applies our config/sync overlay once the module is in place. Drupal calls
+ * this after every module in an install run has been installed, so enabling
+ * several modules together still results in a single configuration import.
+ */
+function eonext_event_status_modules_installed(array $modules, bool $is_syncing): void {
+  if ($is_syncing || !in_array('eonext_event_status', $modules, TRUE)) {
+    return;
+  }
+
+  \Drupal::moduleHandler()->loadInclude('eonext_event_status', 'install');
+  eonext_event_status_update_config();
+}
+
+/**
+ * Implements hook_entity_form_display_alter().
+ *
+ * Places the ribbon widgets on the event forms at render time rather than
+ * storing them in DPL CMS' own form display configuration. DPL reworks those
+ * displays every few releases, and editing them here would both lose those
+ * reworks and pin the display in config_ignore_auto, which breaks the
+ * platform's configuration import.
+ */
+function eonext_event_status_entity_form_display_alter(EntityFormDisplayInterface $form_display, array $context): void {
+  $widgets = EONEXT_EVENT_STATUS_WIDGETS[$context['entity_type']] ?? NULL;
+  if ($widgets === NULL || $context['form_mode'] !== 'default') {
+    return;
+  }
+
+  $definitions = \Drupal::service('entity_field.manager')
+    ->getFieldDefinitions($context['entity_type'], $context['bundle']);
+
+  // Sit after DPL's own fields so a platform reshuffle cannot bury these.
+  $weight = 900;
+
+  foreach ($widgets as $field_name => $widget) {
+    // The field is missing while the module is installed but its configuration
+    // has not been imported yet.
+    if (!isset($definitions[$field_name]) || $form_display->getComponent($field_name)) {
+      continue;
+    }
+
+    $form_display->setComponent($field_name, [
+      'type' => $widget,
+      'weight' => $weight++,
+      'region' => 'content',
+      'settings' => [],
+      'third_party_settings' => [],
+    ]);
+  }
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function eonext_event_status_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  $ribbon = eonext_event_status_get_entity_ribbon($entity);
+  if ($ribbon === NULL) {
+    return;
+  }
+
+  eonext_event_status_attach_ribbon($build, $ribbon, $display->getMode());
+}
+
+/**
+ * Resolves ribbon data for a rendered event entity.
+ *
+ * @return array{text: string, color: string}|null
+ *   Ribbon data, or NULL when no ribbon is configured.
+ */
+function eonext_event_status_get_entity_ribbon(EntityInterface $entity): ?array {
+  $ribbon_service = \Drupal::service('eonext_event_status.ribbon');
+
+  if ($entity instanceof EventInstance) {
+    $event_series = $entity->get('eventseries_id')->entity ?? NULL;
+    if ($event_series instanceof EventSeries) {
+      return $ribbon_service->getRibbon($event_series, $entity);
+    }
+    return NULL;
+  }
+
+  if ($entity instanceof EventSeries) {
+    return $ribbon_service->getRibbon($entity);
+  }
+
+  return NULL;
+}
+
+/**
+ * Attaches ribbon assets and frontend data to an entity render array.
+ */
+function eonext_event_status_attach_ribbon(array &$build, array $ribbon, string $view_mode): void {
+  $build['#attached']['library'][] = 'eonext_event_status/event-status';
+
+  // DPL uses the "default" view mode for full event pages. Themes do not
+  // always forward entity attributes into the full-page template, so pass
+  // ribbon data via drupalSettings for those displays.
+  if (in_array($view_mode, ['full', 'default'], TRUE)) {
+    $build['#attached']['drupalSettings']['eonextEventStatus'] = $ribbon;
+    return;
+  }
+
+  $build['#attributes']['class'][] = 'eonext-event-status';
+  $build['#attributes']['data-ribbon-label'] = $ribbon['text'];
+  $build['#attributes']['data-ribbon-color'] = $ribbon['color'];
+}

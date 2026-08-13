@@ -1,0 +1,21 @@
+uuid: c7e61538-7983-439e-bdef-562c67de1498
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_automatic_list_hide
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_automatic_list_hide
+field_name: field_automatic_list_hide
+entity_type: organization_event
+bundle: organization_event
+label: 'Hide in automatic lists'
+description: "If chosen, this organization_event and it's instances will not show up in automatic lists across the site.<br><br />The event will still show up in lists where it is manually added, and in Google search results."
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

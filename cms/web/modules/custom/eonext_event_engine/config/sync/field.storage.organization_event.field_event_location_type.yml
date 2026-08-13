@@ -1,0 +1,26 @@
+uuid: 9c3253a5-b9d5-4e1a-b86d-f6bac0f678c0
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+id: organization_event.field_event_location_type
+field_name: field_event_location_type
+entity_type: organization_event
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: physical
+      label: 'In person'
+    -
+      value: online
+      label: Online
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

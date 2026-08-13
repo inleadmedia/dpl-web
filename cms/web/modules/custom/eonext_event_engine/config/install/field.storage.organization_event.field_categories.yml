@@ -1,0 +1,18 @@
+uuid: 33199578-5e56-4239-9a1c-3a48da9d79b9
+langcode: en
+status: true
+dependencies:
+    - taxonomy
+id: organization_event.field_categories
+field_name: field_categories
+entity_type: organization_event
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,29 @@
+uuid: 61527540-d34c-4e64-9541-74e0820965da
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_categories
+    - eonext_event_engine.organization_event_type.organization_event
+    - taxonomy.vocabulary.categories
+id: organization_event.organization_event.field_categories
+field_name: field_categories
+entity_type: organization_event
+bundle: organization_event
+label: Categories
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      categories: categories
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

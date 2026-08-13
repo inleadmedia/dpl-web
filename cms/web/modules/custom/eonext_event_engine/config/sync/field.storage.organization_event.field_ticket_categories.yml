@@ -1,0 +1,20 @@
+uuid: fd52a71b-e360-411c-bd8d-22dacd4baecf
+langcode: en
+status: true
+dependencies:
+  module:
+    - entity_reference_revisions
+    - paragraphs
+id: organization_event.field_ticket_categories
+field_name: field_ticket_categories
+entity_type: organization_event
+type: entity_reference_revisions
+settings:
+  target_type: paragraph
+module: entity_reference_revisions
+locked: false
+cardinality: -1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

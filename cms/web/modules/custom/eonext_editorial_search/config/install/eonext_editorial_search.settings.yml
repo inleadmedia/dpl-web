@@ -1,0 +1,7 @@
+dependencies:
+  module:
+    - eonext_editorial_search
+  enforced:
+    module:
+      - eonext_editorial_search
+enable_editorial_search: true

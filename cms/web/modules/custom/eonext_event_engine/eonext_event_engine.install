@@ -1,0 +1,100 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for EO Next Event Engine.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Batch\BatchBuilder;
+use Drupal\Core\Config\ConfigImporter;
+use Drupal\Core\Config\ConfigImporterException;
+use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Config\Importer\ConfigImporterBatch;
+use Drupal\Core\Config\StorageComparer;
+use Drupal\eonext_event_engine\EventSubscriber\OverlayConfigEventSubscriber;
+
+/**
+ * Triggers a configuration import so our config/sync overlay is applied.
+ */
+function eonext_event_engine_update_config(): void {
+  $sync_storage = \Drupal::service('config.import_transformer')
+    ->transform(\Drupal::service('config.storage.sync'));
+
+  $path = \Drupal::service('extension.path.resolver')
+    ->getPath('module', 'eonext_event_engine') . '/config/sync';
+  OverlayConfigEventSubscriber::overlayConfig($sync_storage, new FileStorage($path));
+
+  $config_importer = new ConfigImporter(
+    new StorageComparer($sync_storage, \Drupal::service('config.storage')),
+    \Drupal::service('event_dispatcher'),
+    \Drupal::service('config.manager'),
+    \Drupal::service('lock.persistent'),
+    \Drupal::service('config.typed'),
+    \Drupal::service('module_handler'),
+    \Drupal::service('module_installer'),
+    \Drupal::service('theme_handler'),
+    \Drupal::service('string_translation'),
+    \Drupal::service('extension.list.module'),
+    \Drupal::service('extension.list.theme'),
+  );
+
+  if ($config_importer->alreadyImporting()) {
+    return;
+  }
+
+  try {
+    $sync_steps = $config_importer->initialize();
+
+    $batch_builder = (new BatchBuilder())
+      ->setTitle(t('Synchronizing configuration'))
+      ->setFinishCallback([ConfigImporterBatch::class, 'finish'])
+      ->setInitMessage(t('Starting configuration synchronization.'))
+      ->setProgressMessage(t('Completed step @current of @total.'))
+      ->setErrorMessage(t('Configuration synchronization has encountered an error.'));
+
+    foreach ($sync_steps as $sync_step) {
+      $batch_builder->addOperation([ConfigImporterBatch::class, 'process'], [$config_importer, $sync_step]);
+    }
+
+    batch_set($batch_builder->toArray());
+  }
+  catch (ConfigImporterException $e) {
+    throw new \RuntimeException('Error importing configuration: ' . $e->getMessage());
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function eonext_event_engine_install(): void {
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  if (!$update_manager->getEntityType('organization_event')) {
+    $update_manager->installEntityType(\Drupal::entityTypeManager()->getDefinition('organization_event'));
+  }
+
+  // Grant administrators full access to organization event entities.
+  $permissions = [
+    'administer organization event types',
+    'create organization event',
+    'edit own organization event',
+    'edit any organization event',
+    'delete own organization event',
+    'delete any organization event',
+    'view organization event',
+    'view unpublished organization event',
+  ];
+
+  $roles = ['administrator'];
+  foreach ($roles as $role_id) {
+    $role = \Drupal::entityTypeManager()->getStorage('user_role')->load($role_id);
+    if (!$role) {
+      continue;
+    }
+    foreach ($permissions as $permission) {
+      $role->grantPermission($permission);
+    }
+    $role->save();
+  }
+}

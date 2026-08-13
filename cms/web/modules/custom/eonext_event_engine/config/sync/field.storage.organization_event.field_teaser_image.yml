@@ -1,0 +1,19 @@
+uuid: beb35250-0765-4263-b592-3404a25f00cd
+langcode: en
+status: true
+dependencies:
+  module:
+    - media
+id: organization_event.field_teaser_image
+field_name: field_teaser_image
+entity_type: organization_event
+type: entity_reference
+settings:
+  target_type: media
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

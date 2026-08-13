@@ -1,0 +1,21 @@
+name: 'EO Next Event Engine'
+type: module
+description: 'Provides a pre-event content entity for drafting events before publishing to the event platform.'
+package: EO next
+core_version_requirement: ^10
+dependencies:
+  - drupal:field
+  - drupal:field_ui
+  - drupal:user
+  - drupal:datetime_range
+  - drupal:media
+  - drupal:media_library
+  - drupal:link
+  - drupal:options
+  - drupal:taxonomy
+  - drupal:node
+  - dpl_event:dpl_event
+  - enum_field:enum_field
+  - entity_reference_revisions:entity_reference_revisions
+  - paragraphs:paragraphs
+  - gsearch:gsearch

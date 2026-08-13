@@ -1,0 +1,19 @@
+uuid: 2db31caf-f3be-4cd5-ba1f-360adac1f2dd
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_teaser_text
+field_name: field_teaser_text
+entity_type: organization_event
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

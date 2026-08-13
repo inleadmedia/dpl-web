@@ -1,0 +1,11 @@
+entity.organization_event.add_form:
+  route_name: entity.organization_event.add_page
+  title: 'Add event (Pre-event)'
+  appears_on:
+    - entity.organization_event.collection
+
+entity.organization_event_type.add_form:
+  route_name: entity.organization_event_type.add_form
+  title: 'Add event (Pre-event) type'
+  appears_on:
+    - entity.organization_event_type.collection

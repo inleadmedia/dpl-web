@@ -1,0 +1,29 @@
+uuid: 941192f1-7e1e-4db9-8c3a-121f42e532a6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_teaser_image
+    - media.type.image
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_teaser_image
+field_name: field_teaser_image
+entity_type: organization_event
+bundle: organization_event
+label: 'Teaser image'
+description: 'The teaser fields are used for the card of display.<br />If no image has been selected, the text will be shown instead:<br /><br /><img src="/themes/custom/novel/images/teaser-text-image.jpg" /><br /><br /><hr/>'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

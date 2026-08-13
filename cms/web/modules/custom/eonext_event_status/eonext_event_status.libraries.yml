@@ -1,0 +1,10 @@
+# Custom module library for general purposes.
+event-status:
+  js:
+    js/event-status.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+  css:
+    theme:
+      css/event-status.css: {}

@@ -1,0 +1,18 @@
+uuid: 83e74f50-b7bd-4446-adbd-cd521c9b6a90
+langcode: en
+status: true
+dependencies:
+id: organization_event.field_ticket_capacity
+field_name: field_ticket_capacity
+entity_type: organization_event
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

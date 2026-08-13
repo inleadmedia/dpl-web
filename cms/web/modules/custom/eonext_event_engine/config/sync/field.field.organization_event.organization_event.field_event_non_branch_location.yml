@@ -1,0 +1,21 @@
+uuid: e7ed86e8-f94e-4cc0-97a6-5cb7e3c0a4a7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_non_branch_location
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_event_non_branch_location
+field_name: field_event_non_branch_location
+entity_type: organization_event
+bundle: organization_event
+label: 'Other location than branch'
+description: 'If you choose “other location” this will be show in the list and on the event as the location for the event.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

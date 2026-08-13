@@ -1,0 +1,19 @@
+uuid: a959cce1-8a35-4120-b043-57a746198af4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_place
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_event_place
+field_name: field_event_place
+entity_type: organization_event
+bundle: organization_event
+label: Place
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

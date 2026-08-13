@@ -1,0 +1,21 @@
+uuid: 9d60d0b8-f2f7-4817-b6db-7d2bd3e73088
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_event_all_day
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_event_all_day
+field_name: field_event_all_day
+entity_type: organization_event
+bundle: organization_event
+label: 'All day'
+description: 'If the event is not limited to a certain time of day, you can enable it here.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

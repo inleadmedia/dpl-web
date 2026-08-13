@@ -1,0 +1,19 @@
+uuid: 2ade2b4a-d23e-43f7-a0fb-f6da05e7d484
+langcode: en
+status: true
+dependencies:
+  module:
+    - media
+id: organization_event.field_event_image
+field_name: field_event_image
+entity_type: organization_event
+type: entity_reference
+settings:
+  target_type: media
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

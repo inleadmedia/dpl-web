@@ -1,0 +1,25 @@
+uuid: a413a69c-ad9e-4100-aee2-2502751afd9e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_branch
+    - eonext_event_engine.organization_event_type.organization_event
+id: organization_event.organization_event.field_branch
+field_name: field_branch
+entity_type: organization_event
+bundle: organization_event
+label: Branch
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: views
+  handler_settings:
+    view:
+      view_name: entity_reference_content
+      display_name: branch_addresses
+      arguments: {  }
+field_type: entity_reference

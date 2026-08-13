@@ -1,0 +1,29 @@
+uuid: 3089fa42-d041-412b-9c87-e2ab522257d7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.organization_event.field_audiences
+    - eonext_event_engine.organization_event_type.organization_event
+    - taxonomy.vocabulary.audiences
+id: organization_event.organization_event.field_audiences
+field_name: field_audiences
+entity_type: organization_event
+bundle: organization_event
+label: Audiences
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      audiences: audiences
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference
