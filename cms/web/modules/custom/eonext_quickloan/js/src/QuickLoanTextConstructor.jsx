@@ -23,8 +23,13 @@ export const QuickLoanTextConstructor = (React, externalLibraries) => {
 
     const quickLoanLibrariesMap = {};
     holdings.forEach((holding) => {
-      if (holding?.lmsPlacement?.sublocation?.sublocationId === "kvik" && holding?.branch?.title)
+      if (
+        holding?.lmsPlacement?.sublocation?.sublocationId === "kvik"
+        && holding?.branch?.title
+        && holding?.materials.some(material => material.available)
+      ) {
         quickLoanLibrariesMap[holding?.branch?.title] = true;
+      }
     });
 
     const quickLoanLibraries = Object.keys(quickLoanLibrariesMap);
