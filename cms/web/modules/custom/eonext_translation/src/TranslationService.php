@@ -165,7 +165,9 @@ class TranslationService implements TranslationServiceInterface {
         continue;
       }
 
-      $langUrl->setOption('language', $languageManagerLinks->links[$langCode]['language']);
+      $language = $languageManagerLinks->links[$langCode]['language']
+        ?? $this->languageManager->getLanguage($langCode);
+      $langUrl->setOption('language', $language);
 
       $links[$langCode] = [
         'name' => $langName,

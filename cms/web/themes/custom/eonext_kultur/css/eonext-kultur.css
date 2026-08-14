@@ -1216,3 +1216,80 @@ article .rich-text ol > li::before {
 .banner--light-background .banner__title + svg .arrow__head {
   fill: var(--ek-navy, #235881);
 }
+
+/* ---- Language translation selector in ek-header ---- */
+
+/* Hide the patron login/profile button — not needed on the kultur site */
+.header.ek-header .header__profile-traslation-container > button {
+  display: none !important;
+}
+
+/*
+ * Mobile/tablet: position the translation container absolutely in the top-right of the header.
+ */
+.header.ek-header .ek-header-translation {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+@media (min-width: 768px) {
+  .header.ek-header .ek-header-translation {
+    height: 70px;
+  }
+}
+
+/*
+ * Desktop: participate in the header grid.
+ * Expand to 5 columns and move the clock to column 5 to make room.
+ */
+@media (min-width: 1440px) {
+  .header.ek-header {
+    grid-template-columns: auto 1fr auto auto auto;
+  }
+
+  .header.ek-header .header__clock {
+    grid-column: 5 !important;
+  }
+
+  .header.ek-header .ek-header-translation {
+    position: static;
+    grid-column: 4;
+    grid-row: 1;
+    height: auto;
+    align-items: center;
+  }
+}
+
+/* Translation widget — fix vertical centering */
+.header.ek-header .header__profile-traslation-container {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.header.ek-header .header__translations {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.header.ek-header .header__translations-wrapper {
+  width: 70px !important;
+  height: 70px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Override the base library styles that push content to the bottom */
+.header.ek-header .header__translations-button {
+  justify-content: center !important;
+  align-self: center !important;
+  padding-bottom: 0 !important;
+}

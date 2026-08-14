@@ -24,7 +24,6 @@
         </div>
         {{ drupal_menu('main') }}
       </div>
-      {{ patron_menu }}
       <div class="header__button-responsive-switch">
         {% if opening_hours_url %}
           <a href="{{ opening_hours_url }}"
@@ -45,6 +44,9 @@
       </div>
     </nav>
     {{ search_header }}
+  </div>
+  <div class="ek-header-translation">
+    {{ patron_menu }}
   </div>
   {% if opening_hours_url %}
     <div class="header__clock">
