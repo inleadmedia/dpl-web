@@ -34,4 +34,45 @@
       );
     },
   };
+
+  /**
+   * Toggles the required asterisk on the Danish description when Nuuk is selected.
+   *
+   * Drupal's #states required on a deeply nested widget element does not
+   * reliably update the label asterisk. This behaviour handles it explicitly.
+   */
+  Drupal.behaviors.eonextKulturSubmissionRequiredDescription = {
+    attach(context) {
+      once('ek-submission-required-description', 'form.ek-submission-form', context).forEach(
+        (form) => {
+          const cityInputs = form.querySelectorAll('input[name="city"]');
+          const textarea = form.querySelector('textarea[name="description_da[0][value]"]');
+
+          if (!textarea) {
+            return;
+          }
+
+          const updateRequired = () => {
+            const checked = form.querySelector('input[name="city"]:checked');
+            const isNuuk = checked && checked.value === 'nuuk';
+
+            textarea.required = isNuuk;
+
+            const formItem = textarea.closest('.form-item');
+            if (formItem) {
+              const label = formItem.querySelector('label');
+              if (label) {
+                label.classList.toggle('js-form-required', isNuuk);
+                label.classList.toggle('form-required', isNuuk);
+                label.classList.toggle('input-label--required', isNuuk);
+              }
+            }
+          };
+
+          cityInputs.forEach((input) => input.addEventListener('change', updateRequired));
+          updateRequired();
+        },
+      );
+    },
+  };
 })(Drupal, once);
