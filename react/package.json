@@ -27,7 +27,7 @@
     "build:css:prod": "postcss ./src/apps/**/*.scss ./src/components/components.scss --no-map --ext css --dir ./dist --env production",
 
     "build:js-standalone-module:prod": "NODE_ENV=production webpack --mode=production --config webpack-standalone-modules.config.js",
-    "build:css-standalone-module:prod": "postcss ./src/components/autosuggest-editorial/autosuggest-editorial.scss --no-map --ext css --dir ./dist-standalone-modules --env production",
+    "build:css-standalone-module:prod": "./postcss-standalone-modules.sh",
     "build:standalone-module:prod": "npm run build:css-standalone-module:prod; npm run build:js-standalone-module:prod",
 
     "watch": "npx concurrently --raw \"yarn watch:lint:js\" \"yarn watch:lint:scss\"",
