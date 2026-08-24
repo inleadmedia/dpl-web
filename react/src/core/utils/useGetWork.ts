@@ -55,6 +55,11 @@ function parseMarcField(workData: any, extraMarc?: string, shelfmarkOverride?: a
   if (shelfmarkOverride && shelfmarkOverride.getter)
     shelfmarkOverrideData = shelfmarkOverride.getter(workData);
 
+  if (shelfmarkOverrideData && shelfmarkOverrideData[0] && workData.dk5MainEntry) {
+    workData.dk5MainEntry.display = shelfmarkOverrideData[0];
+    workData.dk5MainEntry.code = shelfmarkOverrideData[0];
+  }
+
   if (workData.manifestations) {
     (workData.manifestations.all || []).forEach((manifestation: any, index: number) => {
       manifestation._abstractByLang = toGroupedAbstract(manifestation.abstract, lodash.get(manifestation, "languages.main"));

@@ -7,6 +7,57 @@
     constructor() {
       this._reactPackage;
       this._instantiatedInjections = [];
+      this._packagesList = {};
+      this._unwrappedPackages = {};
+    }
+
+    getUnwrappedPackage(key) {
+      return this._unwrappedPackages[key];
+    }
+
+    unwrapPackages(unwrapPackageMethod, unwrapPackageObject) {
+      Object.keys(this._packagesList).forEach(packageKey => {
+        this.unwrapPackage(this._packagesList[packageKey], unwrapPackageMethod, unwrapPackageObject);
+      });
+    }
+
+    unwrapPackage(_package, unwrapPackageMethod, unwrapPackageObject) {
+      if (!_package || typeof _package !== "object")
+        return;
+
+      /* Clone of the _package is required for dev mode */
+      if ("__STORYBOOK_STORY_STORE__" in window)
+        _package = Object.assign({}, _package);
+
+      Object.keys(_package).forEach(minifiedKey => {
+        if (!_package[minifiedKey] || !_package[minifiedKey].toString)
+          return;
+
+        let unwrapped;
+        if (typeof _package[minifiedKey] === "object" && unwrapPackageObject) {
+          unwrapped = unwrapPackageObject(_package[minifiedKey]);
+        } else {
+          unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
+        }
+
+        if (unwrapped) {
+          _package[unwrapped.methodKey] = _package[minifiedKey];
+          _package[unwrapped.methodKey].minifiedKey = minifiedKey;
+
+          this._unwrappedPackages[unwrapped.packageKey] = _package;
+        }
+      });
+    }
+
+    findPackage(validator) {
+      let foundPackageKey = Object.keys(this._packagesList).find(packageKey => {
+        return this._packagesList[packageKey]
+          && typeof this._packagesList[packageKey] === "object"
+          && validator(this._packagesList[packageKey]);
+      });
+
+      if (foundPackageKey)
+        return this._packagesList[foundPackageKey];
     }
 
     setInjectionToReactLibrary(reactPackage) {
@@ -44,8 +95,18 @@
         return false;
 
       return Object.keys(condition).every(conditionKey => {
-        if (reactNodeData.props == null || reactNodeData.props[conditionKey] == null)
+        if ((reactNodeData.props == null || reactNodeData.props[conditionKey] == null) && conditionKey !== "hasChild")
           return false;
+
+        if (conditionKey === "hasChild" && reactNodeData.children) {
+          return (reactNodeData.children || []).some(child => {
+            return this._matchElement({
+              tag: child.type,
+              props: child.props,
+              children: (child.props || {}).children
+            }, condition.hasChild);
+          });
+        }
 
         let valueToValidate = reactNodeData.props[conditionKey];
         if (conditionKey === "className" && typeof valueToValidate === "string") {
@@ -108,6 +169,10 @@
             console.warn("Unknown injection type!", injection);
           }
         }
+
+        if (injection.options.onFound) {
+          injection.options.onFound(reactNodeData);
+        }
       }
 
       return reactNodeData;
@@ -125,22 +190,20 @@
       ["inlead_hook"], {
         inlead_hook(e, a, _import) {
           // Search for react package at webpackChunks
-          var reactPackage;
-          globalThis.webpackChunk_danskernesdigitalebibliotek_dpl_react.some((bundle) => {
-            var bundlePackages = bundle[1];
-            Object.keys(bundlePackages).some((packageKey) => {
+
+          globalThis.webpackChunk_danskernesdigitalebibliotek_dpl_react.forEach((bundle) => {
+            Object.keys(bundle[1]).forEach((packageKey) => {
               var _package = _import(packageKey);
               if (!_package)
                 return;
 
-              // Validate package exports to make sure that the react package
-              if (_package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react."))
-                reactPackage = _package;
-
-              return reactPackage;
+              window.InleadReactInjector._packagesList[packageKey] = _package;
             });
+          });
 
-            return reactPackage;
+          var reactPackage = window.InleadReactInjector.findPackage((_package) => {
+            // Validate package exports to make sure that the react package
+            return _package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react.");
           });
 
           if (!reactPackage)

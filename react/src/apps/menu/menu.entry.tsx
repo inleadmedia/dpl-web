@@ -50,6 +50,7 @@ export interface MenuProps {
   materialAndAuthorText: string;
   materialByAuthorText: string;
   statusBadgeWarningText: string;
+  isInjectionExample?: boolean;
 }
 
 export interface MenuEntryProps
@@ -65,7 +66,7 @@ export interface MenuEntryProps
     GlobalEntryTextProps,
     ReservationMaterialDetailsProps {}
 
-const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile }) => {
+const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile, isInjectionExample }) => {
   const pageSize = pageSizeGlobal(
     {
       desktop: pageSizeDesktop,
@@ -73,6 +74,28 @@ const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile }) => {
     },
     "pageSizeLoanList"
   );
+
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = React.useState(0);
+
+  if (isInjectionExample) {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("./GoogleTranslationsInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+
+    return <div data-current-date={ currentDate || "" }>
+      <Menu pageSize={pageSize} />
+    </div>;
+  }
 
   return <Menu pageSize={pageSize} />;
 };

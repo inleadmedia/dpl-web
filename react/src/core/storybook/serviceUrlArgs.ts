@@ -260,8 +260,8 @@ if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true"
 
   document.body.setAttribute("data-show-search-sorting", showSearchSorting);
   document.body.setAttribute("data-search-lazy-types-loading", searchLazyTypesLoading);
-  document.body.setAttribute("data-autosuggest-editorial", "false");
-  document.body.setAttribute("data-editorial-search", "false");
+  document.body.setAttribute("data-autosuggest-editorial", "true");
+  document.body.setAttribute("data-editorial-search", "true");
 
   document.body.setAttribute("data-material-quick-loan-info", "false");
 

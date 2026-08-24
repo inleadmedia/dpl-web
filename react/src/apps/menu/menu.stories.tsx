@@ -221,3 +221,11 @@ export const UserMenu: Story = {
     return <WrappedStoryHeader userProfile={menu} />;
   }
 };
+
+export const TranslationsInjection: Story = {
+  name: "Trasnlations Inlead injection",
+  args: {
+    ...UserMenu.args,
+    isInjectionExample: true
+  }
+}

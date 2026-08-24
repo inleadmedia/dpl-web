@@ -31,6 +31,7 @@ import { isPeriodical, shouldShowMaterialAvailabilityText } from "./helper";
 import { first } from "lodash";
 import { hasCorrectMaterialType } from "./material-buttons/helper";
 import { ManifestationMaterialType } from "../../core/utils/types/material-type";
+
 import { QuickLoanText } from "./QuickLoanText";
 
 interface MaterialHeaderProps {

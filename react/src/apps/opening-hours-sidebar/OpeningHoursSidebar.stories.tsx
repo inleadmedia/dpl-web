@@ -58,3 +58,11 @@ type Story = StoryObj<typeof OpeningHoursSidebar>;
 export const App: Story = {
   render: (args) => <OpeningHoursSidebar {...args} />
 };
+
+export const ExpandedSidebarInjection: Story = {
+  name: "Expanded sidebar injection",
+  args: {
+    ...meta.args,
+    isInjectionExample: true
+  }
+};

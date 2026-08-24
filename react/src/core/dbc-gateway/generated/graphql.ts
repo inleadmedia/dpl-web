@@ -8829,6 +8829,21 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
       }
     }
   }
+  abstract
+  subjects {
+    all {
+      display
+      type
+    }
+    dbcVerified {
+      display
+      type
+    }
+  }
+  classifications {
+    code
+    entryType
+  }
   contents {
     heading
     type
