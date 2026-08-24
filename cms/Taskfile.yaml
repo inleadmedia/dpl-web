@@ -51,7 +51,6 @@ tasks:
       - composer install --no-cache
       - composer reinstall inleadmedia/dpl-design-system inleadmedia/dpl-react --no-cache
       - composer drupal:scaffold
-      - $(cd dev-scripts/dpl-react; composer install --no-cache)
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
       - |
         if [ "${SKIP_GO_DEPLOY}" = true ]; then
@@ -130,10 +129,22 @@ tasks:
 
   drupal:upgrade:
     desc: Run database updates and config import on an existing instance
+    env:
+      EONEXT_MOBILESEARCH_SKIP: "1"
     cmds:
       - task -t Taskfile.yaml drupal:update
+      # Drop the compiled container so new module services (e.g.
+      # dpl_po.po_file_builder from 2026.34) exist before Drush instantiates
+      # every drush.services.yml command. sql:query bootstraps only to
+      # DATABASE, so it still works when the cached container is stale.
+      - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
+      # Ghost modules (removed from the tree, still in this site's DB) break
+      # ModuleInstaller and REST plugin discovery during updb.
+      - php dev-scripts/purge-missing-modules.php
+      - ${DRUSH_EXEC} pm-uninstall easyemail -y || true
       - ${DRUSH_EXEC} en varnish_purger -y
       - ${DRUSH_EXEC} updb -y
+      - ${DRUSH_EXEC} scr dev-scripts/delete-newsletter-material.php
       - ${DRUSH_EXEC} cim -y
       - ${DRUSH_EXEC} deploy:hook -y
       - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
