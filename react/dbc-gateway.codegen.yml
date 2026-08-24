@@ -1,8 +1,5 @@
 overwrite: true
-schema:
-  - "https://temp.fbi-api.dbc.dk/${CODEGEN_SCHEMA_PROFILE}/graphql":
-      headers:
-        Authorization: "Bearer ${STORYBOOK_LIBRARY_TOKEN}"
+schema: "../schemas/graphql/dbc-fbi.temp-next.graphql"
 documents: "src/**/*.graphql"
 generates:
   src/core/dbc-gateway/generated/graphql.ts:
@@ -12,7 +9,7 @@ generates:
       defaultScalarType: unknown
       identifierName: operationNames
       useConsts: true
-      legacyMode: true
+      reactQueryVersion: 5
     plugins:
       - "typescript"
       - "typescript-operations"
@@ -20,8 +17,8 @@ generates:
       - "named-operations-object"
     hooks:
       afterOneFileWrite:
-        - yarn post-process-generated-graphql
-        - yarn eslint --fix
+        - pnpm run post-process-generated-graphql
+        - pnpm exec eslint --fix
   src/core/dbc-gateway/generated/graphql.schema.json:
     plugins:
       - "introspection"

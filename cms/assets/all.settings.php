@@ -24,6 +24,9 @@ $config['system.site']['mail'] = 'mail@folkebibliotekernescms.dk';
 // Configure GSearch to use our supplied Dataforsyningen token.
 $config['gsearch.settings']['token'] = getenv('DATAFORSYNINGEN_TOKEN');
 
+$config['media_videotool.settings']['public_key'] = getenv('VIDEOTOOL_PUBLIC_KEY');
+$config['media_videotool.settings']['private_key'] = getenv('VIDEOTOOL_PRIVATE_KEY');
+
 // Configure logging using the project name and environment from the Lagoon
 // environment.
 $config['jsonlog.settings']['jsonlog_siteid'] = getenv('LAGOON_PROJECT') . '_' . getenv('LAGOON_ENVIRONMENT');
@@ -164,6 +167,24 @@ if (getenv('LAGOON_ENVIRONMENT_TYPE') !== 'production') {
   // to help debug email validation issues.
   $config['evac.settings']['log_errors'] = TRUE;
   $config['evac.settings']['log_warnings'] = TRUE;
+}
+
+// Setup the key-value store holding Prometheus metric counters.
+//
+// This is deliberately a different instance from the cache backend configured
+// below: that one runs an LRU eviction policy and is flushed wholesale, both
+// of which would corrupt counters. When the host is unset - an environment
+// where the service has not been rolled out yet - dpl_metrics falls back to
+// per-process storage and the endpoint simply reports close to nothing.
+if ($metrics_redis_host = getenv('METRICS_REDIS_HOST')) {
+  $settings['dpl_metrics.redis_host'] = $metrics_redis_host;
+  $settings['dpl_metrics.redis_port'] = getenv('METRICS_REDIS_SERVICE_PORT') ?: '6379';
+}
+
+// Token Prometheus presents as a bearer token when scraping /metrics. Without
+// it the endpoint is closed to everyone but users holding the permission.
+if ($metrics_token = getenv('METRICS_SCRAPE_TOKEN')) {
+  $settings['dpl_metrics.token'] = $metrics_token;
 }
 
 // Setup Redis.

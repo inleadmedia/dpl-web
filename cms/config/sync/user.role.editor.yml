@@ -23,6 +23,7 @@ dependencies:
     - rest.resource.dpl_opening_hours_delete
     - rest.resource.dpl_opening_hours_update
     - system.menu.main
+    - taxonomy.vocabulary.audiences
     - taxonomy.vocabulary.breadcrumb_structure
     - taxonomy.vocabulary.categories
     - taxonomy.vocabulary.opening_hours_categories
@@ -37,7 +38,6 @@ dependencies:
     - dpl_opening_hours
     - dpl_webform
     - entity_clone
-    - field_inheritance
     - file
     - filter
     - media
@@ -75,7 +75,6 @@ permissions:
   - 'administer advanced webform confirmation settings'
   - 'administer advanced webform element settings'
   - 'administer dpl_footer settings'
-  - 'administer entity field inheritance'
   - 'administer menu'
   - 'administer nodes'
   - 'administer redirects'
@@ -99,6 +98,7 @@ permissions:
   - 'create image media'
   - 'create media'
   - 'create page content'
+  - 'create terms in audiences'
   - 'create terms in breadcrumb_structure'
   - 'create terms in categories'
   - 'create terms in opening_hours_categories'
@@ -149,6 +149,7 @@ permissions:
   - 'delete own videotool media'
   - 'delete own webform'
   - 'delete page revisions'
+  - 'delete terms in audiences'
   - 'delete terms in breadcrumb_structure'
   - 'delete terms in categories'
   - 'delete terms in opening_hours_categories'
@@ -187,6 +188,7 @@ permissions:
   - 'edit own video media'
   - 'edit own videotool media'
   - 'edit own webform'
+  - 'edit terms in audiences'
   - 'edit terms in breadcrumb_structure'
   - 'edit terms in categories'
   - 'edit terms in opening_hours_categories'

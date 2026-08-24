@@ -7,10 +7,11 @@ describe("Dashboard", () => {
       // The intercepted data in the test is also collected on the same date
       // to get a proper setup for testing the dashboard.
       const fakeToday = new Date("2023-10-04T10:00:00.000").getTime();
-      // Sets time to a specific date
-      // https://github.com/cypress-io/cypress/issues/7577
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cy.clock(fakeToday).then((clock: any) => clock.bind(window));
+      // Sets time to a specific date. cy.clock() applies to the application
+      // under test automatically when called before cy.visit().
+      // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+      // notify scheduler, leaving every component stuck in its loading state.
+      cy.clock(fakeToday, ["Date"]);
     });
 
     cy.intercept("GET", "**/external/agencyid/patron/patronid/fees/v2**", {

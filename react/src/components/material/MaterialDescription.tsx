@@ -18,7 +18,10 @@ import { Work } from "../../core/utils/types/entities";
 import { Pid, WorkId } from "../../core/utils/types/ids";
 import { useUrls } from "../../core/utils/url";
 import HorizontalTermLine from "../horizontal-term-line/HorizontalTermLine";
-import { materialIsFiction } from "../../core/utils/helpers/general";
+import {
+  materialIsFiction,
+  materialFictionNonfictionIsNotSpecified
+} from "../../core/utils/helpers/general";
 import SeriesList from "../card-item-list/card-list-item/series-list";
 import MaterialContents from "./MaterialContents/MaterialContents";
 import ButtonShare from "../button-share/button-share";
@@ -125,14 +128,15 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     };
   });
 
-  const fictionNonfictionList = fictionNonfiction
-    ? [
-        {
-          url: constructSearchUrl(searchUrl, fictionNonfiction.display),
-          term: fictionNonfiction.display
-        }
-      ]
-    : [];
+  const fictionNonfictionList =
+    fictionNonfiction && !materialFictionNonfictionIsNotSpecified(work)
+      ? [
+          {
+            url: constructSearchUrl(searchUrl, fictionNonfiction.display),
+            term: fictionNonfiction.display
+          }
+        ]
+      : [];
 
   let knownFileds: any = {
     [t("inSameSeriesText")]: {
@@ -190,14 +194,22 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   return (
     <section className="material-description" data-cy="material-description">
       <>
-        { (descriptionOverride || work.abstract && work.abstract[0]) && (
+        { (descriptionOverride || work.abstract?.length) && (
           <>
             <h2 className="material-description__heading">
               {t("descriptionHeadlineText")}
             </h2>
-            <p className="material-description__content">
-              { descriptionOverride === null ? work.abstract && work.abstract[0] : descriptionOverride }
-            </p>
+            {descriptionOverride === null
+              ? work.abstract?.map((line, index) => (
+                  <p key={index} className="material-description__content">
+                    {line}
+                  </p>
+                ))
+              : (
+                  <p className="material-description__content">
+                    {descriptionOverride}
+                  </p>
+                )}
           </>
         )}
         {bestRepresentationContents && (

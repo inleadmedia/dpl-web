@@ -9,11 +9,13 @@ updates:
   # GitHub Actions - applies to all workflows in .github/workflows
   - package-ecosystem: github-actions
     directory: "/"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -22,6 +24,8 @@ updates:
   # CMS - Composer dependencies
   - package-ecosystem: composer
     directory: "/cms"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     groups:
       drupal-core-minor-releases:
@@ -40,7 +44,6 @@ updates:
       # Never attempt automated updates to major Drupal releases.
       - dependency-name: "drupal/core*"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "drupal/potion"
       - dependency-name: "spawnia/sailor"
         versions: [">1.1.0"]
       # drupal/next 2.1.0 adds draft_enabled to exported Next entity config.
@@ -61,31 +64,19 @@ updates:
         versions: [">=10.6.0"]
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
       - "cms"
       - "drupal"
 
-  # CMS dev-scripts - Composer dependencies
-  - package-ecosystem: composer
-    directory: "/cms/dev-scripts"
-    open-pull-requests-limit: 20
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Europe/Copenhagen
-    labels:
-      - "dependencies"
-      - "cms"
-      - "dev-scripts"
-
   # CMS - npm dependencies
   - package-ecosystem: npm
     directory: "/cms"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     groups:
       typescript-eslint:
@@ -100,8 +91,8 @@ updates:
         update-types: ["version-update:semver-major"]
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -111,12 +102,14 @@ updates:
   # Design System - npm dependencies
   - package-ecosystem: npm
     directory: "/design-system"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -155,12 +148,14 @@ updates:
   # Go (Next.js) - npm dependencies
   - package-ecosystem: npm
     directory: "/go"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -248,16 +243,27 @@ updates:
       # orval v8 requires breaking config/fetcher changes — upgrade tracked separately.
       - dependency-name: "orval"
         update-types: ["version-update:semver-major"]
+      # Next 16.3.0 update fails tests. DDF-480.
+      - dependency-name: "next"
+        versions: [">=16.3.0"]
+      - dependency-name: "@next/env"
+        versions: [">=16.3.0"]
+      - dependency-name: "eslint-config-next"
+        versions: [">=16.3.0"]
+      - dependency-name: "@next/eslint-plugin-next"
+        versions: [">=16.3.0"]
 
   # React - npm dependencies
   - package-ecosystem: npm
     directory: "/react"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -281,6 +287,9 @@ updates:
           - "@types/react"
           - "react-dom"
           - "@types/react-dom"
+      react-query:
+        patterns:
+          - "@tanstack/react-query"
       redux:
         patterns:
           - "@reduxjs/toolkit"
@@ -342,3 +351,20 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "stylelint-config-recommended-scss"
         update-types: ["version-update:semver-major"]
+      # codegen breaks with these versions. DDFNEXT-1455
+      # typescript / typescript-operations v6 emit a second set of input/enum
+      # types that collide with the typescript-react-query@6 output.
+      # graphql 17 is also unsupported by the pinned codegen toolchain (all
+      # plugins peer-require graphql ^16), so codegen crashes on it.
+      - dependency-name: "graphql"
+        versions: [">=17.0.0"]
+      - dependency-name: "@graphql-codegen/add"
+        versions: [">=7.0.0"]
+      - dependency-name: "@graphql-codegen/cli"
+        versions: [">=7.0.0"]
+      - dependency-name: "@graphql-codegen/introspection"
+        versions: [">=6.0.0"]
+      - dependency-name: "@graphql-codegen/typescript"
+        versions: [">=6.0.0"]
+      - dependency-name: "@graphql-codegen/typescript-operations"
+        versions: [">=6.0.0"]

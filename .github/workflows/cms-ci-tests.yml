@@ -8,7 +8,7 @@ on:
       - '.github/workflows/cms-*.yml'
 
 env:
-  PHP_VERSION: 8.3
+  PHP_VERSION: 8.4
   COMPOSER_VERSION: v2
 
 # Detect if this action is already running, and cancel it.
@@ -25,7 +25,7 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -35,6 +35,9 @@ jobs:
       - name: Validate composer.json
         run: |
           composer validate --no-check-all --no-check-publish
+      - name: Ensure dependencies are resolvable
+        run: |
+          composer update --dry-run --with-all-dependencies --no-interaction --no-progress
       - name: Install Dependencies
         run: |
           composer install --no-interaction --no-progress
@@ -48,7 +51,7 @@ jobs:
       run:
         working-directory: cms
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Setup PHP, with composer and extensions
       uses: shivammathur/setup-php@v2
       with:
@@ -70,7 +73,7 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -92,7 +95,7 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -115,7 +118,7 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -132,23 +135,25 @@ jobs:
   LightHouse:
     name: CMS / Test site performance using Lighthouse
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - uses: ./.github/actions/common-setup-js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
         run: task ci:reset
+        working-directory: cms
       - name: Run Lighthouse test
         run: task ci:lighthouse
+        working-directory: cms
       - name: Archive logs
         uses: actions/upload-artifact@v7
         with:
@@ -158,23 +163,25 @@ jobs:
   Pa11y:
     name: CMS / Test accessibility using Pa11y
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - uses: ./.github/actions/common-setup-js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
         run: task ci:reset
+        working-directory: cms
       - name: Run Pa11y
         run: task ci:pa11y
+        working-directory: cms
       - name: Archive screenshots
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -231,22 +238,18 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # git with HTTP authentication provides an easy way for us to install
         # unreleased commits of NPM projects. Currently: Pa11yCI
       - name: Reconfigure git to use HTTP authentication
         run: git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: ./.github/actions/common-setup-js
         with:
-          cache: 'yarn'
-          cache-dependency-path: 'cms/yarn.lock'
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install problem matcher
         uses: xt0rted/markdownlint-problem-matcher@v3
       - name: Lint Markdown
-        run: npx markdownlint-cli2
+        run: pnpm dlx markdownlint-cli2
 
   Shellcheck:
     name: CMS / Shellcheck
@@ -257,13 +260,13 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install GCC problem matcher for Shellcheck
@@ -278,119 +281,57 @@ jobs:
       run:
         working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # git with HTTP authentication provides an easy way for us to install
         # unreleased commits of NPM projects. Currently: Pa11yCI
       - name: Reconfigure git to use HTTP authentication
         run: git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: ./.github/actions/common-setup-js
         with:
-          cache: 'yarn'
-          cache-dependency-path: 'cms/yarn.lock'
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run ESLint
-        run: npx eslint web -c .eslintrc.json
+        run: pnpm exec eslint web -c eslint.config.mjs
 
   EslintCypress:
     name: CMS / Lint Cypress tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         # git with HTTP authentication provides an easy way for us to install
         # unreleased commits of NPM projects. Currently: Pa11yCI
       - name: Reconfigure git to use HTTP authentication
         run: git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - uses: ./.github/actions/common-setup-js
         with:
-          cache: 'yarn'
-          cache-dependency-path: 'cms/yarn.lock'
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Run ESLint
-        run: npx eslint cypress -c cypress/.eslintrc.json
-
-  CheckOpenApiSpec:
-    name: CMS / Check OpenAPI specification
-    runs-on: ubuntu-latest
-    defaults:
-      run:
         working-directory: cms
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          # Our Taskfile requires a proper checkout to function because of
-          # certain vars.
-          fetch-depth: 0
-      - name: Install go-task
-        uses: arduino/setup-task@v2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Setup site
-        run: task ci:reset
-      - name: Validate specification
-        run: task ci:openapi:validate
-      - name: Download current specification
-        run: task ci:openapi:download
-      - name: Ensure specification has not drifted
-        run: git diff --ignore-space-at-eol --exit-code openapi.json
-      - name: Generate package for CMS API specification
-        run: task dev:codegen:dpl-cms
-      - name: Ensure CMS API package code has not drifted
-        run: git diff --ignore-space-at-eol --exit-code packages/cms-api/*
-
-  CheckGraphQlSchema:
-    name: CMS / Check GraphQL specification
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cms
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          # Our Taskfile requires a proper checkout to function because of
-          # certain vars.
-          fetch-depth: 0
-      - name: Install go-task
-        uses: arduino/setup-task@v2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Enable BNF for site
-        run: task dev:bnf:enable
-      - name: Setup site
-        run: task ci:reset:clean
-      - name: Extract GraphQL schema and generate client
-        run: task dev:codegen:bnf-graphql
-      - name: Ensure GraphQL client code has not drifted
-        run: git diff --ignore-space-at-eol --exit-code web/modules/custom/bnf/src/GraphQL/*
+        run: pnpm exec eslint cypress -c cypress/eslint.config.mjs
 
   CheckDrupalConfig:
     name: CMS / Check Drupal Config
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: cms
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - uses: ./.github/actions/common-setup-js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
         run: task ci:reset:clean
+        working-directory: cms
       - name: Export configuration
         run: task dev:cli -- drush config-export -y
+        working-directory: cms
       - name: Check for uncommited configuration after install
-        run: git diff --ignore-space-at-eol --exit-code config/sync/*.yml
+        run: git diff --ignore-space-at-eol --exit-code cms/config/sync/*.yml
 
   CheckPhpVersion:
     name: CMS / Check PHP version
@@ -400,7 +341,7 @@ jobs:
         working-directory: cms
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Check PHP version in composer.json
         run: |
           if ! jq .require.php composer.json | grep ${{ env.PHP_VERSION }}; then

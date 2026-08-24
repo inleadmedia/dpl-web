@@ -3,7 +3,7 @@ import {
   useMutation,
   UseQueryOptions,
   UseMutationOptions
-} from "react-query";
+} from "@tanstack/react-query";
 import lodash from "lodash";
 // @ts-ignore-next-line
 import * as async from "async-es";
@@ -36,7 +36,9 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: { input: unknown; output: unknown };
+  /** An integer in the range from 1 to 100 */
   PaginationLimitScalar: { input: unknown; output: unknown };
 };
 
@@ -107,7 +109,7 @@ export type Audience = {
   lix?: Maybe<Scalars["String"]["output"]>;
   /** Media council age recommendation */
   mediaCouncilAgeRestriction?: Maybe<MediaCouncilAgeRestriction>;
-  /** PEGI age rating for games  */
+  /** PEGI age rating for games */
   pegi?: Maybe<Pegi>;
   /** Number of players in the game. */
   players?: Maybe<Players>;
@@ -274,7 +276,7 @@ export type ComplexSearchFiltersInput = {
   agencyId?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Name of the branch. */
   branch?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  /** BranchId.  */
+  /** BranchId. */
   branchId?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** The circulationrule of the item */
   circulationRule?: InputMaybe<Array<Scalars["String"]["input"]>>;
@@ -537,7 +539,7 @@ export type CoverDetails = {
 export type CreatorInterface = {
   /** Name of the creator */
   display: Scalars["String"]["output"];
-  /** Name of the creator which can be used to sort after  */
+  /** Name of the creator which can be used to sort after */
   nameSort: Scalars["String"]["output"];
   /** A list of which kinds of contributions this creator made to this creation */
   roles: Array<Role>;
@@ -685,15 +687,6 @@ export type FacetValue = {
    * API calls when this manifestation is selected.
    */
   traceId: Scalars["String"]["output"];
-};
-
-/** A sorting value. */
-export type SearchSortingOption = {
-  __typename?: "SearchSortingOption";
-  /** A name of a sorting field */
-  name: Scalars["String"];
-  /** Use the value when applying sorting */
-  value: Scalars["String"];
 };
 
 export type FictionNonfiction = {
@@ -976,7 +969,7 @@ export type Manifestation = {
   creators: Array<CreatorInterface>;
   /** Additional creators of this manifestation as described on the publication. E.g. 'tekst af William Warren' */
   creatorsFromDescription: Array<Scalars["String"]["output"]>;
-  /** The year for the publication of the first edition for this work  */
+  /** The year for the publication of the first edition for this work */
   dateFirstEdition?: Maybe<PublicationYear>;
   /** Edition details for this manifestation */
   edition?: Maybe<Edition>;
@@ -998,8 +991,6 @@ export type Manifestation = {
   latestPrinting?: Maybe<Printing>;
   /** Identification of the local id of this manifestation */
   localId?: Maybe<Scalars["String"]["output"]>;
-  /** Field for presenting bibliographic records in MARC format */
-  marc?: Maybe<MarcRecord>;
   /** The type of material of the manifestation based on bibliotek.dk types */
   materialTypes: Array<MaterialType>;
   /** Information on music shelving */
@@ -1090,7 +1081,7 @@ export type ManifestationTitles = {
   titlePlusLanguage?: Maybe<Scalars["String"]["output"]>;
   /** Danish translation of the main title */
   translated?: Maybe<Array<Scalars["String"]["output"]>>;
-  /** detailed title for tv series  */
+  /** detailed title for tv series */
   tvSeries?: Maybe<TvSeries>;
 };
 
@@ -1112,22 +1103,6 @@ export type Manifestations = {
    * Only one manifestation per unit is returned.
    */
   searchHits?: Maybe<Array<SearchHit>>;
-};
-
-export type MarcRecord = {
-  __typename?: "MarcRecord";
-  /** The library agency */
-  agencyId: Scalars["String"]["output"];
-  /** The bibliographic record identifier */
-  bibliographicRecordId: Scalars["String"]["output"];
-  /** The MARC record collection content as marcXchange XML string */
-  content: Scalars["String"]["output"];
-  /** The serialization format of the MARC record content. Defaults to 'marcXchange' */
-  contentSerializationFormat: Scalars["String"]["output"];
-  /** Flag indicating whether or not the record is deleted */
-  deleted: Scalars["Boolean"]["output"];
-  /** The marc record identifier */
-  id: Scalars["String"]["output"];
 };
 
 export type MaterialType = {
@@ -1335,7 +1310,7 @@ export type Note = {
   display: Array<Scalars["String"]["output"]>;
   /** Heading before note */
   heading?: Maybe<Scalars["String"]["output"]>;
-  /** The type of note - e.g. note about language, genre etc, NOT_SPECIFIED if not known.  */
+  /** The type of note - e.g. note about language, genre etc, NOT_SPECIFIED if not known. */
   type: NoteTypeEnum;
   /** A link and possible link text */
   urls?: Maybe<Array<Maybe<AccessUrl>>>;
@@ -1802,8 +1777,6 @@ export type SearchResponse = {
   __typename?: "SearchResponse";
   /** A list of alternative search queries */
   didYouMean: Array<DidYouMean>;
-  /** Alailable sorting options  */
-  sorting?: Array<SearchSortingOption> | null;
   /**
    * Make sure only to fetch this when needed
    * This may take seconds to complete
@@ -1858,13 +1831,13 @@ export type Series = {
   description?: Maybe<Scalars["String"]["output"]>;
   /** The number of members in the series */
   hitcount: Scalars["Int"]["output"];
-  /** Additional information  */
+  /** Additional information */
   identifyingAddition?: Maybe<Scalars["String"]["output"]>;
   /** Whether this is a popular series or general series */
   isPopular?: Maybe<Scalars["Boolean"]["output"]>;
   /** MainLanguages of the series */
   mainLanguages: Array<Scalars["String"]["output"]>;
-  /** Members of this serie.  */
+  /** Members of this serie. */
   members: Array<SerieWork>;
   /** The number in the series as text qoutation */
   numberInSeries?: Maybe<Scalars["String"]["output"]>;
@@ -1971,7 +1944,7 @@ export type SubjectContainer = {
 
 export type SubjectInterface = {
   display: Scalars["String"]["output"];
-  /** Language of the subject - contains display and isoCode  */
+  /** Language of the subject - contains display and isoCode */
   language?: Maybe<Language>;
   local?: Maybe<Scalars["Boolean"]["output"]>;
   /** The type of subject - 'location', 'time period' etc., 'topic' if not specific kind of subject term */
@@ -2284,8 +2257,6 @@ export type Work = {
   mainLanguages: Array<Language>;
   /** Details about the manifestations of this work */
   manifestations: Manifestations;
-  /** Field for presenting bibliographic records in MARC format */
-  marc?: Maybe<MarcRecord>;
   /** The type of material of the manifestation based on bibliotek.dk types */
   materialTypes: Array<MaterialType>;
   /** Relations to other manifestations */
@@ -2329,7 +2300,7 @@ export type WorkTitles = {
   titlePlusLanguage?: Maybe<Scalars["String"]["output"]>;
   /** Danish translation of the main title */
   translated?: Maybe<Array<Scalars["String"]["output"]>>;
-  /** detailed title for tv series  */
+  /** detailed title for tv series */
   tvSeries?: Maybe<TvSeries>;
 };
 
@@ -3020,9 +2991,6 @@ export type ManifestationBasicDetailsFragment = {
       iso639Set1: string;
     }> | null;
   } | null;
-  cover: {
-    detail: string
-  };
 };
 
 export type GetManifestationViaMaterialByFaustQueryVariables = Exact<{
@@ -3072,9 +3040,6 @@ export type GetManifestationViaMaterialByFaustQuery = {
         iso639Set1: string;
       }> | null;
     } | null;
-    cover: {
-      detail: string
-    };
   } | null;
 };
 
@@ -3131,9 +3096,6 @@ export type GetManifestationViaBestRepresentationByFaustQuery = {
               iso639Set1: string;
             }> | null;
           } | null;
-          cover: {
-            detail: string
-          };
         };
       };
     };
@@ -3142,7 +3104,6 @@ export type GetManifestationViaBestRepresentationByFaustQuery = {
 
 export type GetMaterialQueryVariables = Exact<{
   wid: Scalars["String"]["input"];
-  withDefaultMarc?: boolean;
 }>;
 
 export type GetMaterialQuery = {
@@ -3794,7 +3755,6 @@ export type GetMaterialQuery = {
 
 export type GetMaterialGloballyQueryVariables = Exact<{
   wid: Scalars["String"]["input"];
-  withDefaultMarc?: boolean;
 }>;
 
 export type GetMaterialGloballyQuery = {
@@ -5148,18 +5108,41 @@ export type RecommendFromFaustQuery = {
   };
 };
 
+export type SearchFacetQueryVariables = Exact<{
+  q: SearchQueryInput;
+  facets: Array<FacetFieldEnum> | FacetFieldEnum;
+  facetLimit: Scalars["Int"]["input"];
+  filters?: InputMaybe<SearchFiltersInput>;
+}>;
+
+export type SearchFacetQuery = {
+  __typename?: "Query";
+  search: {
+    __typename?: "SearchResponse";
+    facets: Array<{
+      __typename?: "FacetResult";
+      name: string;
+      type: FacetFieldEnum;
+      values: Array<{
+        __typename?: "FacetValue";
+        key: string;
+        term: string;
+        score?: number | null;
+        traceId: string;
+      }>;
+    }>;
+  };
+};
+
 export type SearchWithPaginationQueryVariables = Exact<{
   q: SearchQueryInput;
   offset: Scalars["Int"]["input"];
   limit: Scalars["PaginationLimitScalar"]["input"];
   filters?: InputMaybe<SearchFiltersInput>;
-  sorting?: string;
 }>;
 
 export type SearchWithPaginationQuery = {
   __typename?: "Query";
-  withSearch?: boolean;
-  lazyTypesLoading?: boolean;
   search: {
     __typename?: "SearchResponse";
     hitcount: number;
@@ -6426,9 +6409,6 @@ export type SuggestionsFromQueryStringQuery = {
           bestRepresentation: {
             __typename?: "Manifestation";
             pid: string;
-            cover: {
-              detail: string
-            };
             languages?: {
               __typename?: "Languages";
               main?: Array<{
@@ -6505,47 +6485,17 @@ export type GetBestRepresentationPidByIsbnQuery = {
   };
 };
 
-export type SearchFacetQueryVariables = Exact<{
-  q: SearchQueryInput;
-  facets: Array<FacetFieldEnum> | FacetFieldEnum;
-  facetLimit: Scalars["Int"]["input"];
-  filters?: InputMaybe<SearchFiltersInput>;
-}>;
-
-export type SearchFacetQuery = {
-  __typename?: "Query";
-  search: {
-    __typename?: "SearchResponse";
-    sorting?: Array<SearchSortingOption> | null;
-    facets: Array<{
-      __typename?: "FacetResult";
-      name: string;
-      type: FacetFieldEnum;
-      values: Array<{
-        __typename?: "FacetValue";
-        key: string;
-        term: string;
-        score?: number | null;
-        traceId: string;
-      }>;
-    }>;
-  };
-};
-
 export type IntelligentFacetsQueryVariables = Exact<{
   q: SearchQueryInput;
   facetsLimit: Scalars["Int"]["input"];
   valuesLimit: Scalars["Int"]["input"];
   filters: SearchFiltersInput;
-  sorting?: string;
 }>;
 
 export type IntelligentFacetsQuery = {
   __typename?: "Query";
-  withSearch?: boolean;
   search: {
     __typename?: "SearchResponse";
-    sorting?: Array<SearchSortingOption> | null;
     intelligentFacets: Array<{
       __typename?: "FacetResult";
       name: string;
@@ -7169,7 +7119,6 @@ export type ManifestationsSimpleFieldsFragment = {
   genreAndForm: Array<string>;
   source: Array<string>;
   publisher: Array<string>;
-  classifications?: Array<Classification>;
   subjects: {
     __typename?: "SubjectContainer";
     all: Array<
@@ -7204,9 +7153,6 @@ export type ManifestationsSimpleFieldsFragment = {
     | { __typename: "Corporation"; display: string }
     | { __typename: "Person"; display: string }
   >;
-  cover?: {
-    detail: string;
-  };
   identifiers: Array<{
     __typename?: "Identifier";
     type: IdentifierTypeEnum;
@@ -8708,9 +8654,6 @@ export const ManifestationBasicDetailsFragmentDoc = `
       display
     }
   }
-  cover {
-    detail
-  }
   creators {
     display
   }
@@ -8849,21 +8792,10 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
     fragment ManifestationsSimpleFields on Manifestation {
   pid
   genreAndForm
-  genreForm {
-    display
-    language {
-      isoCode
-      display
-    }
-  }
   source
   subjects {
     all {
       display
-      language {
-        isoCode
-        display
-      }
     }
   }
   ...WithLanguages
@@ -8896,20 +8828,6 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
         singular
       }
     }
-  }
-  abstract
-  subjects {
-    all {
-      display
-      type
-    }
-    dbcVerified {
-      display
-      type
-    }
-  }
-  classifications {
-    code
   }
   contents {
     heading
@@ -8961,13 +8879,6 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   audience {
     generalAudience
-    audienceGeneral {
-      display
-      language {
-        isoCode
-        display
-      }
-    }
     ages {
       display
     }
@@ -8978,7 +8889,6 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   notes {
     display
-    type
   }
   languages {
     notes
@@ -9026,9 +8936,6 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   catalogueCodes {
     nationalBibliography
     otherCatalogues
-  }
-  cover {
-    detail
   }
 }
     ${WithLanguagesFragmentDoc}`;
@@ -9096,8 +9003,6 @@ export const WorkSmallSearchFragmentDoc = `
 }
 `;
 
-
-
 export const WorkMediumFragmentDoc = `
     fragment WorkMedium on Work {
   ...WorkSmall
@@ -9164,16 +9069,25 @@ export const useComplexFacetSearchQuery = <
   TError = unknown
 >(
   variables: ComplexFacetSearchQueryVariables,
-  options?: UseQueryOptions<ComplexFacetSearchQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<ComplexFacetSearchQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      ComplexFacetSearchQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<ComplexFacetSearchQuery, TError, TData>(
-    ["complexFacetSearch", variables],
-    fetcher<ComplexFacetSearchQuery, ComplexFacetSearchQueryVariables>(
+  return useQuery<ComplexFacetSearchQuery, TError, TData>({
+    queryKey: ["complexFacetSearch", variables],
+    queryFn: fetcher<ComplexFacetSearchQuery, ComplexFacetSearchQueryVariables>(
       ComplexFacetSearchDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const ComplexSuggestDocument = `
@@ -9193,16 +9107,21 @@ export const useComplexSuggestQuery = <
   TError = unknown
 >(
   variables: ComplexSuggestQueryVariables,
-  options?: UseQueryOptions<ComplexSuggestQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<ComplexSuggestQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<ComplexSuggestQuery, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<ComplexSuggestQuery, TError, TData>(
-    ["complexSuggest", variables],
-    fetcher<ComplexSuggestQuery, ComplexSuggestQueryVariables>(
+  return useQuery<ComplexSuggestQuery, TError, TData>({
+    queryKey: ["complexSuggest", variables],
+    queryFn: fetcher<ComplexSuggestQuery, ComplexSuggestQueryVariables>(
       ComplexSuggestDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetSmallWorkDocument = `
@@ -9218,16 +9137,21 @@ export const useGetSmallWorkQuery = <
   TError = unknown
 >(
   variables: GetSmallWorkQueryVariables,
-  options?: UseQueryOptions<GetSmallWorkQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetSmallWorkQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<GetSmallWorkQuery, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<GetSmallWorkQuery, TError, TData>(
-    ["getSmallWork", variables],
-    fetcher<GetSmallWorkQuery, GetSmallWorkQueryVariables>(
+  return useQuery<GetSmallWorkQuery, TError, TData>({
+    queryKey: ["getSmallWork", variables],
+    queryFn: fetcher<GetSmallWorkQuery, GetSmallWorkQueryVariables>(
       GetSmallWorkDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetManifestationViaMaterialByFaustDocument = `
@@ -9243,20 +9167,25 @@ export const useGetManifestationViaMaterialByFaustQuery = <
   TError = unknown
 >(
   variables: GetManifestationViaMaterialByFaustQueryVariables,
-  options?: UseQueryOptions<
-    GetManifestationViaMaterialByFaustQuery,
-    TError,
-    TData
-  >
+  options?: Omit<
+    UseQueryOptions<GetManifestationViaMaterialByFaustQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetManifestationViaMaterialByFaustQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<GetManifestationViaMaterialByFaustQuery, TError, TData>(
-    ["getManifestationViaMaterialByFaust", variables],
-    fetcher<
+  return useQuery<GetManifestationViaMaterialByFaustQuery, TError, TData>({
+    queryKey: ["getManifestationViaMaterialByFaust", variables],
+    queryFn: fetcher<
       GetManifestationViaMaterialByFaustQuery,
       GetManifestationViaMaterialByFaustQueryVariables
     >(GetManifestationViaMaterialByFaustDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetManifestationViaBestRepresentationByFaustDocument = `
@@ -9278,24 +9207,33 @@ export const useGetManifestationViaBestRepresentationByFaustQuery = <
   TError = unknown
 >(
   variables: GetManifestationViaBestRepresentationByFaustQueryVariables,
-  options?: UseQueryOptions<
-    GetManifestationViaBestRepresentationByFaustQuery,
-    TError,
-    TData
-  >
+  options?: Omit<
+    UseQueryOptions<
+      GetManifestationViaBestRepresentationByFaustQuery,
+      TError,
+      TData
+    >,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetManifestationViaBestRepresentationByFaustQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
   return useQuery<
     GetManifestationViaBestRepresentationByFaustQuery,
     TError,
     TData
-  >(
-    ["getManifestationViaBestRepresentationByFaust", variables],
-    fetcher<
+  >({
+    queryKey: ["getManifestationViaBestRepresentationByFaust", variables],
+    queryFn: fetcher<
       GetManifestationViaBestRepresentationByFaustQuery,
       GetManifestationViaBestRepresentationByFaustQueryVariables
     >(GetManifestationViaBestRepresentationByFaustDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetMaterialDocument = `
@@ -9305,6 +9243,7 @@ export const GetMaterialDocument = `
   }
 }
     ${WorkMediumFragmentDoc}`;
+
 
 function addDefaultMarc(graphqlRequest: string, options: any) {
   if (options?.withDefaultMarc) {
@@ -9330,16 +9269,21 @@ function addDefaultMarc(graphqlRequest: string, options: any) {
 
 export const useGetMaterialQuery = <TData = GetMaterialQuery, TError = unknown>(
   variables: GetMaterialQueryVariables,
-  options?: UseQueryOptions<GetMaterialQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetMaterialQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<GetMaterialQuery, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<GetMaterialQuery, TError, TData>(
-    ["getMaterial", variables],
-    fetcher<GetMaterialQuery, GetMaterialQueryVariables>(
+  return useQuery<GetMaterialQuery, TError, TData>({
+    queryKey: ["getMaterial", variables],
+    queryFn: fetcher<GetMaterialQuery, GetMaterialQueryVariables>(
       addDefaultMarc(GetMaterialDocument, variables || {}),
-      lodash.omit(variables || {}, ["withDefaultMarc"])
+      lodash.omit(variables || {}, ["withDefaultMarc"]) as GetMaterialQueryVariables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetMaterialGloballyDocument = `
@@ -9355,16 +9299,28 @@ export const useGetMaterialGloballyQuery = <
   TError = unknown
 >(
   variables: GetMaterialGloballyQueryVariables,
-  options?: UseQueryOptions<GetMaterialGloballyQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetMaterialGloballyQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetMaterialGloballyQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<GetMaterialGloballyQuery, TError, TData>(
-    ["getMaterialGlobally", variables],
-    fetcher<GetMaterialGloballyQuery, GetMaterialGloballyQueryVariables>(
+  return useQuery<GetMaterialGloballyQuery, TError, TData>({
+    queryKey: ["getMaterialGlobally", variables],
+    queryFn: fetcher<
+      GetMaterialGloballyQuery,
+      GetMaterialGloballyQueryVariables
+    >(
       addDefaultMarc(GetMaterialGloballyDocument, variables || {}),
-      lodash.omit(variables || {}, ["withDefaultMarc"])
+      lodash.omit(variables || {}, ["withDefaultMarc"]) as GetMaterialGloballyQueryVariables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetInfomediaDocument = `
@@ -9388,16 +9344,21 @@ export const useGetInfomediaQuery = <
   TError = unknown
 >(
   variables: GetInfomediaQueryVariables,
-  options?: UseQueryOptions<GetInfomediaQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetInfomediaQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<GetInfomediaQuery, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<GetInfomediaQuery, TError, TData>(
-    ["getInfomedia", variables],
-    fetcher<GetInfomediaQuery, GetInfomediaQueryVariables>(
+  return useQuery<GetInfomediaQuery, TError, TData>({
+    queryKey: ["getInfomedia", variables],
+    queryFn: fetcher<GetInfomediaQuery, GetInfomediaQueryVariables>(
       GetInfomediaDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetReviewManifestationsDocument = `
@@ -9413,16 +9374,25 @@ export const useGetReviewManifestationsQuery = <
   TError = unknown
 >(
   variables: GetReviewManifestationsQueryVariables,
-  options?: UseQueryOptions<GetReviewManifestationsQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetReviewManifestationsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetReviewManifestationsQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<GetReviewManifestationsQuery, TError, TData>(
-    ["getReviewManifestations", variables],
-    fetcher<
+  return useQuery<GetReviewManifestationsQuery, TError, TData>({
+    queryKey: ["getReviewManifestations", variables],
+    queryFn: fetcher<
       GetReviewManifestationsQuery,
       GetReviewManifestationsQueryVariables
     >(GetReviewManifestationsDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const OpenOrderDocument = `
@@ -9448,15 +9418,15 @@ export const useOpenOrderMutation = <TError = unknown, TContext = unknown>(
     TError,
     OpenOrderMutationVariables,
     TContext
-  >(
-    ["openOrder"],
-    (variables?: OpenOrderMutationVariables) =>
+  >({
+    mutationKey: ["openOrder"],
+    mutationFn: (variables?: OpenOrderMutationVariables) =>
       fetcher<OpenOrderMutation, OpenOrderMutationVariables>(
         OpenOrderDocument,
         variables
       )(),
-    options
-  );
+    ...options
+  });
 };
 
 export const RecommendFromFaustDocument = `
@@ -9476,17 +9446,73 @@ export const useRecommendFromFaustQuery = <
   TError = unknown
 >(
   variables: RecommendFromFaustQueryVariables,
-  options?: UseQueryOptions<RecommendFromFaustQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<RecommendFromFaustQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      RecommendFromFaustQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<RecommendFromFaustQuery, TError, TData>(
-    ["recommendFromFaust", variables],
-    fetcher<RecommendFromFaustQuery, RecommendFromFaustQueryVariables>(
+  return useQuery<RecommendFromFaustQuery, TError, TData>({
+    queryKey: ["recommendFromFaust", variables],
+    queryFn: fetcher<RecommendFromFaustQuery, RecommendFromFaustQueryVariables>(
       RecommendFromFaustDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
+
+export const SearchFacetDocument = `
+    query searchFacet($q: SearchQueryInput!, $facets: [FacetFieldEnum!]!, $facetLimit: Int!, $filters: SearchFiltersInput) {
+  search(q: $q, filters: $filters) {
+    facets(facets: $facets) {
+      name
+      type
+      values(limit: $facetLimit) {
+        key
+        term
+        score
+        traceId
+      }
+    }
+  }
+}
+    `;
+
+export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
+  variables: SearchFacetQueryVariables,
+  options?: Omit<
+    UseQueryOptions<SearchFacetQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<SearchFacetQuery, TError, TData>["queryKey"];
+  }
+) => {
+  return useQuery<SearchFacetQuery, TError, TData>({
+    queryKey: ["searchFacet", variables],
+    queryFn: fetcher<SearchFacetQuery, SearchFacetQueryVariables>(
+      SearchFacetDocument,
+      variables
+    ),
+    ...options
+  });
+};
+
+export const SearchWithPaginationDocument = `
+    query searchWithPagination($q: SearchQueryInput!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: SearchFiltersInput) {
+  search(q: $q, filters: $filters) {
+    hitcount
+    works(offset: $offset, limit: $limit) {
+      ...WorkSmall
+    }
+  }
+}
+    ${WorkSmallFragmentDoc}`;
 
 function getSearchWithPaginationQuery(options: any) {
   var withSorting = options?.withSorting;
@@ -9527,7 +9553,16 @@ export const useSearchWithPaginationQuery = <
   TError = unknown
 >(
   variables: SearchWithPaginationQueryVariables,
-  options?: UseQueryOptions<SearchWithPaginationQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<SearchWithPaginationQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      SearchWithPaginationQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
   const [searchResult, setSearchResult] = useState({ data: null as any, error: null, status: "waiting", isLoading: true });
   const abortController: any = useRef(null);
@@ -9544,8 +9579,8 @@ export const useSearchWithPaginationQuery = <
     setSearchResult({ data: null, error: null, isLoading: true, status: "loading" });
 
     fetcher(getSearchWithPaginationQuery(options), variables, _abortController)().then((searchResult: any) => {
-      if (options?.onSuccess)
-        options?.onSuccess(searchResult);
+      if ((options as any)?.onSuccess)
+        (options as any)?.onSuccess(searchResult);
 
       if ((options as any)?.lazyTypesLoading) {
         (searchResult?.search?.works || []).forEach((materialData: any) => {
@@ -9616,20 +9651,25 @@ export const useComplexSearchWithPaginationWorkAccessQuery = <
   TError = unknown
 >(
   variables: ComplexSearchWithPaginationWorkAccessQueryVariables,
-  options?: UseQueryOptions<
-    ComplexSearchWithPaginationWorkAccessQuery,
-    TError,
-    TData
-  >
+  options?: Omit<
+    UseQueryOptions<ComplexSearchWithPaginationWorkAccessQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      ComplexSearchWithPaginationWorkAccessQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<ComplexSearchWithPaginationWorkAccessQuery, TError, TData>(
-    ["complexSearchWithPaginationWorkAccess", variables],
-    fetcher<
+  return useQuery<ComplexSearchWithPaginationWorkAccessQuery, TError, TData>({
+    queryKey: ["complexSearchWithPaginationWorkAccess", variables],
+    queryFn: fetcher<
       ComplexSearchWithPaginationWorkAccessQuery,
       ComplexSearchWithPaginationWorkAccessQueryVariables
     >(ComplexSearchWithPaginationWorkAccessDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const ComplexSearchWithPaginationDocument = `
@@ -9648,16 +9688,25 @@ export const useComplexSearchWithPaginationQuery = <
   TError = unknown
 >(
   variables: ComplexSearchWithPaginationQueryVariables,
-  options?: UseQueryOptions<ComplexSearchWithPaginationQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<ComplexSearchWithPaginationQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      ComplexSearchWithPaginationQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<ComplexSearchWithPaginationQuery, TError, TData>(
-    ["complexSearchWithPagination", variables],
-    fetcher<
+  return useQuery<ComplexSearchWithPaginationQuery, TError, TData>({
+    queryKey: ["complexSearchWithPagination", variables],
+    queryFn: fetcher<
       ComplexSearchWithPaginationQuery,
       ComplexSearchWithPaginationQueryVariables
     >(ComplexSearchWithPaginationDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const SuggestionsFromQueryStringDocument = `
@@ -9680,9 +9729,6 @@ export const SuggestionsFromQueryStringDocument = `
           }
           bestRepresentation {
             pid
-            cover {
-              detail
-            }
             ...WithLanguages
           }
         }
@@ -9697,16 +9743,25 @@ export const useSuggestionsFromQueryStringQuery = <
   TError = unknown
 >(
   variables: SuggestionsFromQueryStringQueryVariables,
-  options?: UseQueryOptions<SuggestionsFromQueryStringQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<SuggestionsFromQueryStringQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      SuggestionsFromQueryStringQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<SuggestionsFromQueryStringQuery, TError, TData>(
-    ["suggestionsFromQueryString", variables],
-    fetcher<
+  return useQuery<SuggestionsFromQueryStringQuery, TError, TData>({
+    queryKey: ["suggestionsFromQueryString", variables],
+    queryFn: fetcher<
       SuggestionsFromQueryStringQuery,
       SuggestionsFromQueryStringQueryVariables
     >(SuggestionsFromQueryStringDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetCoversByPidsDocument = `
@@ -9744,16 +9799,21 @@ export const useGetCoversByPidsQuery = <
   TError = unknown
 >(
   variables: GetCoversByPidsQueryVariables,
-  options?: UseQueryOptions<GetCoversByPidsQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetCoversByPidsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<GetCoversByPidsQuery, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<GetCoversByPidsQuery, TError, TData>(
-    ["GetCoversByPids", variables],
-    fetcher<GetCoversByPidsQuery, GetCoversByPidsQueryVariables>(
+  return useQuery<GetCoversByPidsQuery, TError, TData>({
+    queryKey: ["GetCoversByPids", variables],
+    queryFn: fetcher<GetCoversByPidsQuery, GetCoversByPidsQueryVariables>(
       GetCoversByPidsDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const GetBestRepresentationPidByIsbnDocument = `
@@ -9776,25 +9836,34 @@ export const useGetBestRepresentationPidByIsbnQuery = <
   TError = unknown
 >(
   variables: GetBestRepresentationPidByIsbnQueryVariables,
-  options?: UseQueryOptions<GetBestRepresentationPidByIsbnQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<GetBestRepresentationPidByIsbnQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetBestRepresentationPidByIsbnQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<GetBestRepresentationPidByIsbnQuery, TError, TData>(
-    ["GetBestRepresentationPidByIsbn", variables],
-    fetcher<
+  return useQuery<GetBestRepresentationPidByIsbnQuery, TError, TData>({
+    queryKey: ["GetBestRepresentationPidByIsbn", variables],
+    queryFn: fetcher<
       GetBestRepresentationPidByIsbnQuery,
       GetBestRepresentationPidByIsbnQueryVariables
     >(GetBestRepresentationPidByIsbnDocument, variables),
-    options
-  );
+    ...options
+  });
 };
 
-export const SearchFacetDocument = `
-    query searchFacet($q: SearchQueryInput!, $facets: [FacetFieldEnum!]!, $facetLimit: Int!, $filters: SearchFiltersInput) {
+export const IntelligentFacetsDocument = `
+    query intelligentFacets($q: SearchQueryInput!, $facetsLimit: Int!, $valuesLimit: Int!, $filters: SearchFiltersInput!) {
   search(q: $q, filters: $filters) {
-    facets(facets: $facets) {
+    intelligentFacets(limit: $facetsLimit) {
       name
       type
-      values(limit: $facetLimit) {
+      values(limit: $valuesLimit) {
         key
         term
         score
@@ -9805,19 +9874,6 @@ export const SearchFacetDocument = `
 }
     `;
 
-export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
-  variables: SearchFacetQueryVariables,
-  options?: UseQueryOptions<SearchFacetQuery, TError, TData>
-) => {
-  return useQuery<SearchFacetQuery, TError, TData>(
-    ["searchFacet", variables],
-    fetcher<SearchFacetQuery, SearchFacetQueryVariables>(
-      SearchFacetDocument,
-      variables
-    ),
-    options
-  );
-};
 
 function getIntelligentFacetsQuery(options: any) {
   var withSorting = options?.withSorting;
@@ -9849,16 +9905,25 @@ export const useIntelligentFacetsQuery = <
   TError = unknown
 >(
   variables: IntelligentFacetsQueryVariables,
-  options?: UseQueryOptions<IntelligentFacetsQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<IntelligentFacetsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      IntelligentFacetsQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<IntelligentFacetsQuery, TError, TData>(
-    ["intelligentFacets", variables],
-    fetcher<IntelligentFacetsQuery, IntelligentFacetsQueryVariables>(
+  return useQuery<IntelligentFacetsQuery, TError, TData>({
+    queryKey: ["intelligentFacets", variables],
+    queryFn: fetcher<IntelligentFacetsQuery, IntelligentFacetsQueryVariables>(
       getIntelligentFacetsQuery(options),
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const WorkRecommendationsDocument = `
@@ -9884,16 +9949,25 @@ export const useWorkRecommendationsQuery = <
   TError = unknown
 >(
   variables: WorkRecommendationsQueryVariables,
-  options?: UseQueryOptions<WorkRecommendationsQuery, TError, TData>
+  options?: Omit<
+    UseQueryOptions<WorkRecommendationsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      WorkRecommendationsQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
 ) => {
-  return useQuery<WorkRecommendationsQuery, TError, TData>(
-    ["WorkRecommendations", variables],
-    fetcher<WorkRecommendationsQuery, WorkRecommendationsQueryVariables>(
-      WorkRecommendationsDocument,
-      variables
-    ),
-    options
-  );
+  return useQuery<WorkRecommendationsQuery, TError, TData>({
+    queryKey: ["WorkRecommendations", variables],
+    queryFn: fetcher<
+      WorkRecommendationsQuery,
+      WorkRecommendationsQueryVariables
+    >(WorkRecommendationsDocument, variables),
+    ...options
+  });
 };
 
 export const PlaceCopyDocument = `
@@ -9919,15 +9993,26 @@ export const usePlaceCopyMutation = <TError = unknown, TContext = unknown>(
     TError,
     PlaceCopyMutationVariables,
     TContext
-  >(
-    ["placeCopy"],
-    (variables?: PlaceCopyMutationVariables) =>
+  >({
+    mutationKey: ["placeCopy"],
+    mutationFn: (variables?: PlaceCopyMutationVariables) =>
       fetcher<PlaceCopyMutation, PlaceCopyMutationVariables>(
         PlaceCopyDocument,
         variables
       )(),
-    options
-  );
+    ...options
+  });
+};
+
+
+export type MarcRecord = {
+  __typename?: "MarcRecord";
+  agencyId: Scalars["String"]["output"];
+  bibliographicRecordId: Scalars["String"]["output"];
+  content: Scalars["String"]["output"];
+  contentSerializationFormat: Scalars["String"]["output"];
+  deleted: Scalars["Boolean"]["output"];
+  id: Scalars["String"]["output"];
 };
 
 const marcGetMarcByRecordIdDocument = `
@@ -9951,16 +10036,21 @@ export type MarcGetMarcByRecordIdArgs = {
 
 export const useGetMaterialMarc = <TData = MarcRecord, TError = unknown>(
   variables: MarcGetMarcByRecordIdArgs,
-  options?: UseQueryOptions<MarcRecord, TError, TData>
+  options?: Omit<
+    UseQueryOptions<MarcRecord, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<MarcRecord, TError, TData>["queryKey"];
+  }
 ) => {
-  return useQuery<MarcRecord, TError, TData>(
-    ["marcGetMarcByRecordId", variables],
-    fetcher<MarcRecord, MarcGetMarcByRecordIdArgs>(
+  return useQuery<MarcRecord, TError, TData>({
+    queryKey: ["marcGetMarcByRecordId", variables],
+    queryFn: fetcher<MarcRecord, MarcGetMarcByRecordIdArgs>(
       marcGetMarcByRecordIdDocument,
       variables
     ),
-    options
-  );
+    ...options
+  });
 };
 
 export const operationNames = {
@@ -9986,6 +10076,7 @@ export const operationNames = {
     GetCoversByPids: "GetCoversByPids" as const,
     GetBestRepresentationPidByIsbn: "GetBestRepresentationPidByIsbn" as const,
     intelligentFacets: "intelligentFacets" as const,
+    marcGetMarcByRecordId: "marcGetMarcByRecordId" as const,
     WorkRecommendations: "WorkRecommendations" as const
   },
   Mutation: {

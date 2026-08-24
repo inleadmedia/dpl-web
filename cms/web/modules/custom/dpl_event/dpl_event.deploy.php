@@ -10,6 +10,8 @@
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\dpl_event\Entity\EventInstance;
+use Drupal\dpl_event\EventListPaging;
+use Drupal\dpl_event\Form\SettingsForm;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\gsearch\Services\Gsearch;
 use Drupal\recurring_events\Entity\EventSeries;
@@ -226,4 +228,69 @@ function dpl_event_deploy_migrate_gsearch_eventseries(): string {
 function dpl_event_deploy_migrate_gsearch_eventinstance(): string {
   $storage = \Drupal::entityTypeManager()->getStorage('eventinstance');
   return _dpl_event_migrate_events_to_gsearch($storage);
+}
+
+/**
+ * Fix non-online instances that accidentally have an overriding place.
+ *
+ * We have logic in dpl_event.module, that sets a single space in
+ * field_event_place to override data from the series.
+ * This should only happen when the instance it self was set to being "online",
+ * but due to a bug, it happened also when set to "none".
+ *
+ * This migrate cleans up those instances that never should have been overriden.
+ */
+function dpl_event_deploy_migrate_event_place(): string {
+  $storage = \Drupal::entityTypeManager()->getStorage('eventinstance');
+  $query = $storage->getQuery();
+  $place_field_name = 'field_event_place';
+
+  // Exclude online events. A plain "<> 'online'" condition would drop every
+  // instance where the field is empty (NULL <> 'online' is NULL, not TRUE),
+  // so we also accept instances where the field is not set at all.
+  $not_online = $query->orConditionGroup()
+    ->condition("field_event_location_type", 'online', '<>')
+    ->notExists("field_event_location_type");
+
+  $ids = $query
+    ->condition($place_field_name, " ")
+    ->condition($not_online)
+    // We do not need an access check, as it's a migrator.
+    ->accessCheck(FALSE)
+    ->execute();
+
+  /** @var \Drupal\dpl_event\Entity\EventInstance[] $events */
+  $events = $storage->loadMultiple($ids);
+
+  foreach ($events as $event) {
+    $event->set($place_field_name, NULL);
+    $event->save();
+  }
+
+  $count = count($ids);
+
+  return "Updated $count events, migrating wrongly-overriden place fields.";
+}
+
+/**
+ * Default the event list paging mode to the pre-existing experience, if unset.
+ *
+ * Before this setting existed the events list always showed 25 events followed
+ * by a "Show more" button. Sites without a value - e.g. because they ignore
+ * this config, so config import did not provide one - are defaulted to that
+ * same mode, keeping the change invisible until an editor picks another one.
+ */
+function dpl_event_deploy_set_default_list_paging_mode(): string {
+  $config = \Drupal::configFactory()->getEditable(SettingsForm::CONFIG_NAME);
+
+  // Never override a value that is already set - e.g. one just brought in by
+  // config import, or an editor's own choice.
+  if (!empty($config->get('list_paging_mode'))) {
+    return 'Event list paging mode already set; left unchanged.';
+  }
+
+  $default_mode = EventListPaging::DEFAULT_MODE->value;
+  $config->set('list_paging_mode', $default_mode)->save();
+
+  return "Set event list paging mode to the existing default ({$default_mode}).";
 }

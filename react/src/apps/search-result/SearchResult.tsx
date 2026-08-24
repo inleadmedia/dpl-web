@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import useSearchResultTracking from "./useSearchResultTracking";
 import { useDeepCompareEffect } from "react-use";
 import { useQueryState, parseAsJson, parseAsBoolean } from "nuqs";
+import { keepPreviousData } from "@tanstack/react-query";
 import SearchResultHeader from "../../components/search-bar/search-result-header/SearchResultHeader";
 import usePager from "../../components/result-pager/use-pager";
 import {
@@ -13,7 +14,7 @@ import {
 import { Work } from "../../core/utils/types/entities";
 import { getCurrentLocation, redirectTo } from "../../core/utils/helpers/url";
 import { useText } from "../../core/utils/text";
-import { cleanBranchesId, TBranch } from "../../core/utils/branches";
+import useGetSearchBranches from "../../core/utils/branches";
 import SearchResultInvalidSearch from "./search-result-not-valid-search";
 import { useUrls } from "../../core/utils/url";
 import { useConfig } from "../../core/utils/config";
@@ -45,10 +46,9 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
   const [hitcount, setHitCount] = useState<number>(0);
   const minimalQueryLength = 1;
   const config = useConfig();
-  const branches = config<TBranch[]>("branchesConfig", {
-    transformer: "jsonParse"
-  });
-  const cleanBranches = cleanBranchesId(branches);
+  // Exclude search-blacklisted branches so works held only at blacklisted
+  // branches are filtered out of the results.
+  const cleanBranches = useGetSearchBranches();
 
   const { openDialogWithContent, closeDialog, dialogRef } = useDialog();
 
@@ -97,7 +97,7 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
       filters: searchFilters
     },
     {
-      keepPreviousData: true
+      placeholderData: keepPreviousData
     }
   );
 
@@ -135,14 +135,16 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
       filters: searchFilters
     },
     {
-      enabled: q.length >= minimalQueryLength,
-      onSuccess: (data) => {
-        if (data.search.hitcount === 0) {
-          redirectTo(zeroHitsSearchUrl);
-        }
-      }
+      enabled: q.length >= minimalQueryLength
     }
   );
+
+  // A search without results sends the user to the dedicated zero-hits page.
+  useEffect(() => {
+    if (data?.search.hitcount === 0) {
+      redirectTo(zeroHitsSearchUrl);
+    }
+  }, [data, zeroHitsSearchUrl]);
 
   useEffect(() => {
     if (!data) {

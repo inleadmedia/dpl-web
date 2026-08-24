@@ -65,9 +65,7 @@ export type AdvancedSearchRowData = {
 };
 
 export type AdvancedSearchRowUpdateRowAspect =
-  | "term"
-  | "searchIndex"
-  | "clause";
+  "term" | "searchIndex" | "clause";
 
 export type AdvancedSearchQuery = {
   rows: AdvancedSearchRowData[];

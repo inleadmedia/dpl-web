@@ -5,22 +5,26 @@
  * Module file for DPL Event.
  */
 
+use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
 use Drupal\Core\Url;
 use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
 use Drupal\dpl_event\Entity\EventInstance;
 use Drupal\dpl_event\EventState;
 use Drupal\dpl_event\Form\SettingsForm;
+use Drupal\dpl_event\Hook\EventListPagingHooks;
 use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\dpl_event\Workflows\OccurredSchedule;
 use Drupal\dpl_event\Workflows\UnpublishSchedule;
 use Drupal\dpl_event\Workflows\UnpublishSeriesSchedule;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\recurring_events\Entity\EventSeries;
+use Drupal\views\ViewExecutable;
 
 /**
  * Implements hook_entity_presave().
@@ -69,8 +73,17 @@ function dpl_event_entity_presave(EntityInterface $entity): void {
     }
   }
 
-  if (!$is_physical && $entity->hasField('field_event_place')) {
-    $entity->set('field_event_place', ' ');
+  // If an event is fully online, we do not want place to be set.
+  if ($location_type === 'online' && $entity->hasField('field_event_place')) {
+    // On eventinstances we cannot just set the value to NULL, as then we'll
+    // be inheriting the value from the series. To get around that, we set it
+    // to an empty space.
+    if ($entity instanceof EventInstance) {
+      $entity->set('field_event_place', ' ');
+    }
+    else {
+      $entity->set('field_event_place', NULL);
+    }
   }
 
   if (!$show_non_branch_toggle && $entity->hasField('field_event_non_branch_location')) {
@@ -488,8 +501,20 @@ function dpl_event_entity_query_taxonomy_vocabulary_alter(QueryInterface $query)
  *
  * - Move the "Published" checkbox gin sticky action header.
  * - Hide screen names if the feature is disabled.
+ * - Correct the description of what a recurrence change does to occurrences.
  */
 function dpl_event_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  // The exposed form for the event list is rather difficult to detect.
+  if ($form_id == 'views_exposed_form' && $form['#id'] == 'views-exposed-form-events-all') {
+    $form['actions']['submit']['#type'] = 'image_button';
+    $form['actions']['submit']['#src'] = '/themes/custom/novel/assets/dpl-design-system/icons/basic/icon-search.svg';
+    // This is horrible, but the Form API apparently already populated the
+    // #pre_render, and it's in the pre_render the magic happens.
+    $form['actions']['submit']['#pre_render'][0][0] = 'Drupal\Core\Render\Element\ImageButton';
+
+    return;
+  }
+
   $forms = [
     'eventseries_default_edit_form',
     'eventseries_default_add_form',
@@ -499,6 +524,16 @@ function dpl_event_form_alter(array &$form, FormStateInterface $form_state, stri
 
   if (!in_array($form_id, $forms)) {
     return;
+  }
+
+  // recurring_events warns that every occurrence will be removed and recreated
+  // when the recurrence changes. We only touch the occurrences the change
+  // actually affects, so say that instead. This override goes away once the
+  // creator plugin can supply the message itself.
+  // @see \Drupal\dpl_event\Plugin\EventInstanceCreator\DplEventInstanceCreator
+  // @see https://www.drupal.org/project/recurring_events/issues/3615282
+  if (isset($form['diff']['diff_message'])) {
+    $form['diff']['diff_message']['#markup'] = t('The recurrence has been changed. Occurrences that are no longer part of it will be deleted, and any new ones will be created. The remaining occurrences, and anything filled in on them, are left as they are. Deleting an occurrence cannot be undone.', [], ['context' => 'dpl_event']);
   }
 
   if (isset($form['field_event_all_day'])) {
@@ -523,19 +558,29 @@ function dpl_event_form_alter(array &$form, FormStateInterface $form_state, stri
     'and',
     [
       [':input[name="field_event_non_branch_location[value]"]' => ['checked' => TRUE]],
-      'or',
-      [':input[name="field_branch"]' => ['value' => '']],
     ],
   ];
 
   if (isset($form['field_event_non_branch_location'])) {
     $form['field_event_non_branch_location']['#states']['visible'] = [
       ':input[name="field_event_location_type"]' => ['value' => 'physical'],
-      'and',
-      ':input[name="field_branch"]' => ['!value' => ''],
     ];
   }
   // phpcs:enable Squiz.Arrays.ArrayDeclaration.NoKeySpecified
+
+  // We only want to show the field description if it's not an "online" event.
+  $form['field_branch']['description'] = [
+    '#type' => 'container',
+    '#attributes' => ['class' => ['form-item__description']],
+    '#states' => [
+      'invisible' => [
+        ':input[name="field_event_location_type"]' => ['value' => 'online'],
+      ],
+    ],
+    'message' => [
+      '#markup' => t('When selecting a branch, we will use the address from the branch, unless you select “Other location”.', [], ['context' => 'dpl_event']),
+    ],
+  ];
 
   if (isset($form['field_event_location'])) {
     $form['field_event_location']['#states']['visible'] = $physical_state;
@@ -578,4 +623,175 @@ function dpl_event_form_alter(array &$form, FormStateInterface $form_state, stri
   }
 
   $form['field_screen_names']['#access'] = FALSE;
+}
+
+/**
+ * Marks consecutive event instances from the same series as stacked.
+ *
+ * Walks an ordered list of render items and flags each item whose preceding
+ * sibling belongs to the same event series. Flagged items get
+ * 'shouldBeStacked' set on the wrapper and have their view mode switched to
+ * 'stacked_event' so the theme can render them in a compact, stacked form.
+ *
+ * Each item is expected to be wrapped as ['content' => $entity_render_array],
+ * matching the structure produced by views_view_unformatted.
+ *
+ * @param array<mixed> $items
+ *   The list of wrapped render items.
+ *
+ * @return array<mixed>
+ *   The items with stacked metadata, cache tags and contexts applied.
+ */
+function _dpl_event_stack_eventinstances(array $items): array {
+  foreach ($items as $index => &$item) {
+    if (($item['content']['#view_mode'] ?? NULL) !== 'list_teaser_stacked_parent' ||
+      !($item['content']['#eventinstance'] ?? NULL) instanceof EventInstance) {
+      continue;
+    }
+
+    $eventInstance = $item['content']['#eventinstance'];
+    $eventSeries = $eventInstance->getEventSeries();
+
+    $shouldBeStacked = FALSE;
+
+    // Check if not first row and previous event_series_id matches. An instance
+    // whose series has been deleted belongs with nothing, so it is never
+    // stacked.
+    $priorInstance = $items[$index - 1]['content']['#eventinstance'] ?? NULL;
+    if ($eventSeries instanceof EventSeries && $priorInstance instanceof EventInstance) {
+      $priorSeries = $priorInstance->getEventSeries();
+      $shouldBeStacked = $priorSeries instanceof EventSeries
+        && $eventSeries->id() === $priorSeries->id();
+    }
+
+    $item['shouldBeStacked'] = $shouldBeStacked;
+
+    if ($shouldBeStacked) {
+      $item['content']['#view_mode'] = 'stacked_event';
+    }
+
+    // Add cache tags to ensure stacked view is recalculated for factors that
+    // can affect the order:
+    // - Events are created/updated/deleted
+    // - Path and url arguments as this can effect filtering and ordering.
+    $item['content']['#cache']['tags'][] = 'eventinstance_list';
+    $item['content']['#cache']['contexts'][] = 'url';
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_views_pre_build().
+ *
+ * @see \Drupal\dpl_event\Hook\EventListPagingHooks::viewsPreBuild()
+ */
+#[LegacyHook]
+function dpl_event_views_pre_build(ViewExecutable $view): void {
+  DrupalTyped::service(EventListPagingHooks::class)->viewsPreBuild($view);
+}
+
+/**
+ * Implements hook_views_pre_render().
+ *
+ * @see \Drupal\dpl_event\Hook\EventListPagingHooks::viewsPreRender()
+ */
+#[LegacyHook]
+function dpl_event_views_pre_render(ViewExecutable $view): void {
+  DrupalTyped::service(EventListPagingHooks::class)->viewsPreRender($view);
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views_view_unformatted__events.
+ *
+ * Flags consecutive event instances from the same series as stacked. Scoped
+ * to the 'events' view, which is the only one rendering eventinstances in the
+ * stacked parent view mode.
+ */
+function dpl_event_preprocess_views_view_unformatted__events(array &$variables): void {
+  $variables['rows'] = _dpl_event_stack_eventinstances($variables['rows']);
+  $variables['rows'] = _dpl_event_group_events_by_month($variables['rows']);
+
+  // The library inserts a separator before each month's first event, re-running
+  // as the infinite-scroll pager and AJAX filter/sort re-render the list.
+  $variables['#attached']['library'][] = 'novel/content-list-month-separator';
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views_view__events.
+ *
+ * Opts the events overview into the design system's month-separator styling
+ * and behaviour by adding its wrapper class to the same container element the
+ * infinite-scroll pager wraps the paged lists in. Keying off our own class
+ * (rather than the pager module's) keeps the other infinite-scroll views
+ * (articles, editorial search) unaffected.
+ */
+function dpl_event_preprocess_views_view__events(array &$variables): void {
+  if (empty($variables['rows'])) {
+    return;
+  }
+  $variables['rows']['#theme_wrappers']['container']['#attributes']['class'][] = 'content-list-month-wrapper';
+}
+
+/**
+ * Groups event rows by month: adds month label/key and un-stacks month starts.
+ *
+ * The overview is sorted chronologically, so one pass suffices. Each event row
+ * gets 'month_label' (localized month name, built server-side so translation
+ * and timezone match the other dates) and 'month_key' (the 'Y-m' grouping key,
+ * so the same month name in different years opens a new separator).
+ *
+ * A month's first event is also un-stacked to a full teaser; otherwise, if it
+ * continues a series from the previous month, the stacker would render it as a
+ * parent-less "stacked" row under the heading, which looks broken.
+ *
+ * Must run after _dpl_event_stack_eventinstances().
+ *
+ * @param array<mixed> $items
+ *   The list of wrapped render items.
+ *
+ * @return array<mixed>
+ *   The items, with month data set and month-starting events un-stacked.
+ */
+function _dpl_event_group_events_by_month(array $items): array {
+  $date_formatter = DrupalTyped::service(DateFormatterInterface::class, 'date.formatter');
+  $previous_month = NULL;
+
+  foreach ($items as &$item) {
+    $event_instance = $item['content']['#eventinstance'] ?? NULL;
+
+    // Only events take part in month grouping; leave any other row untouched.
+    if (!($event_instance instanceof EventInstance)) {
+      continue;
+    }
+
+    $timestamp = $event_instance->getStartDate()->getTimestamp();
+
+    // Label is the month name without year; grouping keys off 'Y-m'.
+    $item['month_label'] = $date_formatter->format($timestamp, 'custom', 'F');
+    $month_key = $date_formatter->format($timestamp, 'custom', 'Y-m');
+    $item['month_key'] = $month_key;
+
+    $is_month_start = $month_key !== $previous_month;
+    $previous_month = $month_key;
+
+    if ($is_month_start && ($item['shouldBeStacked'] ?? FALSE)) {
+      $item['shouldBeStacked'] = FALSE;
+      $item['content']['#view_mode'] = 'list_teaser_stacked_parent';
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for dpl_related_content.
+ *
+ * Flags consecutive event instances from the same series as stacked.
+ */
+function dpl_event_preprocess_dpl_related_content(array &$variables): void {
+  if (empty($variables['items']) || !is_array($variables['items'])) {
+    return;
+  }
+  $variables['items'] = _dpl_event_stack_eventinstances($variables['items']);
 }
