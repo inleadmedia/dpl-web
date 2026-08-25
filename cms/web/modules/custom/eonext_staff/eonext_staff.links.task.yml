@@ -1,0 +1,8 @@
+entity.eonext_library_staff.settings:
+  title: 'Settings'
+  route_name: entity.eonext_library_staff.settings
+  base_route: entity.eonext_library_staff.settings
+entity.user.staff:
+  route_name: entity.eonext_library_staff.edit_form
+  base_route: entity.user.canonical
+  title: Staff

@@ -5,9 +5,10 @@ describe('Work page', () => {
     const work = new WorkPage();
 
     work.visit(['work-of:870970-basis:25245784']);
-    cy.getBySel('material-header-content')
-      .scrollIntoView()
-      .contains('Harry Potter og Fønixordenen');
+    cy.getBySel('material-header-content').scrollIntoView();
+    cy.getBySel('material-header-content').contains(
+      'Harry Potter og Fønixordenen',
+    );
 
     work.elements
       .page_title()
@@ -18,7 +19,7 @@ describe('Work page', () => {
       .metaProperty('og:url')
       .should(
         'eq',
-        'http://varnish:8080/work/work-of%3A870970-basis%3A25245784',
+        `${Cypress.config('baseUrl')}/work/work-of%3A870970-basis%3A25245784`,
       );
     // See comment in dpl_react_apps_preprocess_html() as to why this is.
     work.metaProperty('og:type').should('eq', 'website');

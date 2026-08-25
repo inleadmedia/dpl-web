@@ -1,0 +1,8 @@
+type: module
+name: EO NEXT React
+description: 'Shared runtime for standalone React injections into the dpl-react apps.'
+package: EO next
+core_version_requirement: ^10 || ^11
+configure: eonext_react.settings
+dependencies:
+  - dpl_react:dpl_react

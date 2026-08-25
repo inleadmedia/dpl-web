@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import { NuqsAdapter } from "nuqs/adapters/next/app"
 import { Suspense } from "react"
 
 import Footer from "@/components/global/footer/Footer"
 import GridHelper from "@/components/global/gridHelper/GridHelper"
 import Header from "@/components/global/header/Header"
+import MappTracking from "@/components/global/mappTracking/MappTracking"
 import Theme from "@/components/global/theme/Theme"
 import { DynamicModal } from "@/components/shared/dynamicModal/DynamicModal"
 import { DynamicSheet } from "@/components/shared/dynamicSheet/DynamicSheet"
@@ -41,17 +43,24 @@ async function RootLayout({
 }>) {
   const dplCmsConfig = await getDplCmsPublicConfig()
   return (
-    <DplCmsConfigContextProvider dplCmsConfig={dplCmsConfig}>
-      <Theme>
-        <ReactQueryProvider>
-          <Header />
-          <DynamicSheet />
-          <DynamicModal />
-          {children}
-          <Footer />
-        </ReactQueryProvider>
-      </Theme>
-    </DplCmsConfigContextProvider>
+    <NuqsAdapter>
+      <DplCmsConfigContextProvider dplCmsConfig={dplCmsConfig}>
+        <Theme>
+          <ReactQueryProvider>
+            <Header />
+            <DynamicSheet />
+            <DynamicModal />
+            {children}
+            <Footer />
+            {/* Own Suspense boundary: MappTracking reads useSearchParams, which
+                would otherwise opt the whole layout into client rendering. */}
+            <Suspense>
+              <MappTracking />
+            </Suspense>
+          </ReactQueryProvider>
+        </Theme>
+      </DplCmsConfigContextProvider>
+    </NuqsAdapter>
   )
 }
 

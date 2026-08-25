@@ -4,9 +4,9 @@ Monorepo for the Danish Public Libraries (DPL) web platform, containing four int
 
 ## Projects
 
-- **[cms](./cms/)** - Drupal CMS
+- **[cms](./cms/)** - Drupal-based CMS
 - **[design-system](./design-system/)** - UI component library
-- **[go](./go/)** - Next.js frontend
+- **[go](./go/)** - Next.js frontend for youth-focused “Go” sites.
 - **[react](./react/)** - React component library
 
 ## Documentation
@@ -16,6 +16,14 @@ Monorepo for the Danish Public Libraries (DPL) web platform, containing four int
 For detailed information about the projects, setup instructions, and development guidelines, see the [docs](./docs/) directory.
 
 ## Quick Start
+
+**🚀 [Getting started with `dpl-web`](./ONBOARDING.md)** walks you through
+prerequisites, environment setup and getting each of the four projects running
+locally:
+
+First, install [pnpm](https://pnpm.io/).
+
+Once it’s installed, run `pnpm install` in this folder to install JavaScript dependencies.
 
 Each project has a `task dev:reset` command to set up the development environment:
 

@@ -7,7 +7,6 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
-use Drupal\recurring_events\Entity\EventInstance;
 use Spatie\Color\Hex;
 use Spatie\Color\Hsl;
 use function Safe\file_get_contents;
@@ -340,47 +339,6 @@ function novel_theme_suggestions_input_alter(array &$suggestions, array $variabl
 }
 
 /**
- * Preprocesses rows in a Drupal view to handle the display of event instances.
- *
- * Introduces an 'shouldBeStacked' attribute for event items to specify whether
- * they should be presented in a stacked view mode.
- * This determination is made by comparing the current event's series ID with
- *  that of the preceding event.
- *
- * @param array &$variables
- *   An array of variables to pass to the theme layer.
- */
-function novel_preprocess_views_view_unformatted(&$variables): void {
-
-  $rows = &$variables['rows'];
-  foreach ($rows as $index => &$row) {
-
-    if ($row['content']['#view_mode'] !== 'list_teaser_stacked_parent' ||
-      !($row['content']['#eventinstance'] instanceof EventInstance)) {
-      continue;
-    }
-
-    $eventInstance = $row['content']['#eventinstance'];
-    $eventSeriesId = $eventInstance->getEventSeries()->id();
-
-    // Check if not first row and previous event_series_id matches.
-    $shouldBeStacked = $index > 0 && $eventSeriesId === $rows[$index - 1]['content']['#eventinstance']->getEventSeries()->id();
-    $row['shouldBeStacked'] = $shouldBeStacked;
-
-    if ($shouldBeStacked) {
-      $row['content']['#view_mode'] = 'stacked_event';
-    }
-
-    // Add cache tags to ensure stacked view is recalculated for factors that
-    // can affect the order:
-    // - Events are created/updated/deleted
-    // - Path and url arguments as this can effect filtering and ordering.
-    $row['content']['#cache']['tags'][] = 'eventinstance_list';
-    $row['content']['#cache']['contexts'][] = 'url';
-  }
-}
-
-/**
  * Implements hook_theme_suggestions_HOOK_alter() for form_element.
  */
 function novel_theme_suggestions_form_element_alter(array &$suggestions, array $variables): void {
@@ -404,5 +362,55 @@ function novel_theme_suggestions_form_element_alter(array &$suggestions, array $
 function novel_theme_suggestions_fieldset_alter(array &$suggestions, array $variables): void {
   if (isset($variables['element']['#webform_element'])) {
     $suggestions[] = 'fieldset__webform';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_media_alter().
+ */
+function novel_theme_suggestions_media_alter(array &$suggestions, array $variables): void {
+  // Give the template suggestion for the download display mode higher priority
+  // so it trumps everything else.
+  $index = array_search('media__download', $suggestions);
+
+  if ($index !== FALSE) {
+    unset($suggestions[$index]);
+    $suggestions[] = 'media__download';
+  }
+}
+
+/**
+ * Preprocesses variables for HTML templates.
+ */
+function novel_preprocess_media(array &$variables): void {
+  // Prepare special variables for the download view_mode.
+  if ($variables['view_mode'] == 'download') {
+    /** @var \Drupal\media\Entity\Media $media */
+    $media = $variables['media'];
+
+    $description = $media->getName();
+    $url = '';
+
+    if ($media->hasField('field_media_file')) {
+      // Documents use the file description as link text.
+      /** @var \Drupal\file\Plugin\Field\FieldType\FileItem $file */
+      $file = $media->get('field_media_file')[0];
+      $description = $file->description;
+      $url = $file->entity?->createFileUrl();
+    }
+    elseif ($media->hasField('field_media_image')) {
+      /** @var \Drupal\file\Plugin\Field\FieldType\FileItem $file */
+      $file = $media->get('field_media_image')[0];
+      $url = $file->entity?->createFileUrl();
+
+    }
+    elseif ($media->hasField('field_media_audio_file')) {
+      /** @var \Drupal\file\Plugin\Field\FieldType\FileItem $file */
+      $file = $media->get('field_media_audio_file')[0];
+      $url = $file->entity?->createFileUrl();
+    }
+
+    $variables['download_description'] = $description;
+    $variables['download_url'] = $url;
   }
 }

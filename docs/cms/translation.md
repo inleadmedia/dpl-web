@@ -14,10 +14,18 @@ of the system is in Danish.
 To make the "translation traffic" work following components are being used:
 
 * GitHub
-  * [Stores `.po` files in git](web/profiles/dpl_cms/translations/da.po) with
-    translatable strings and translations
-* [GitHub Actions](.github/workflows/translations.yml)
-  * Scans codebase for new translatable strings and commits them to GitHub
+  * [Stores the combined `.po` file in
+    git](../../cms/web/profiles/dpl_cms/translations/da.combined.po) with
+    translatable strings and translations. It is the single source of truth.
+    The `*.po` and `*.config.po` files are generated from it and are not
+    committed.
+* [GitHub Actions](../../.github/workflows/cms-translate-source.yml)
+  * Scans the codebase for new translatable strings and commits them to GitHub.
+    The scan is done by the `dpl_po:scan-source` Drush command, which uses the
+    [potx](https://www.drupal.org/project/potx) module and writes the strings
+    together with the translations we already have. It covers our own modules,
+    themes and profile, plus every contrib module Drupal has installed. Core is
+    left out, as its translations come from localize.drupal.org
   * Exports translatable configuration strings into a separate `*.config.po` file
   * Merges the two files: `*.po` and `*.config.po` into a `*.combined.po` file
   * Notifies POEditor that new translatable strings are available
@@ -30,17 +38,15 @@ To make the "translation traffic" work following components are being used:
   * Provides webhooks where external systems can notify of new translations
 * DPL CMS
   * Drupal installation which is [configured to use GitHub Pages as an interface
-    translation server](web/profiles/dpl_cms/dpl_cms.info.yml) from which `.po`
+    translation server](../../cms/web/profiles/dpl_cms/dpl_cms.info.yml) from which `.po`
     files can be consumed.
   * In the development setup and in cronjobs defined in the environments there
   are two jobs in charge of importing the regular translations
   and the configuration translations.
 
-The following diagram show how these systems interact to support the flow of
-from introducing a new translateable string in the codebase to DPL CMS consuming
+The following diagram shows how these systems interact to support the flow
+from introducing a new translatable string in the codebase to DPL CMS consuming
 an updated translation with said string.
-
-case
 
 ```mermaid
 sequenceDiagram
@@ -48,8 +54,8 @@ sequenceDiagram
   Actor Developer
   Developer ->> Developer: Open pull request with new translatable string
   Developer ->> GitHubActions: Merge pull request into develop
-  GitHubActions ->> GitHubActions: Scan codebase and write strings to .po file
-  GitHubActions ->> GitHubActions: Fill .po file with existing translations
+%% <!-- markdownlint-disable-next-line MD013 -->
+  GitHubActions ->> GitHubActions: Scan codebase and write strings, with the translations we have, to a .po file
 %% <!-- markdownlint-disable-next-line MD013 -->
   Note over GitHubActions,GitHubActions: If config translations<br/>are available<br/>they are used<br/>otherwise empty strings
 %% <!-- markdownlint-disable-next-line MD013 -->

@@ -24,7 +24,6 @@ export type Scalars = {
   UtcOffset: { input: unknown; output: unknown; }
 };
 
-/** Complex address data. */
 export type Address = {
   __typename?: 'Address';
   additionalName?: Maybe<Scalars['String']['output']>;
@@ -42,12 +41,9 @@ export type Address = {
   sortingCode?: Maybe<Scalars['String']['output']>;
 };
 
-/** Kommune. */
 export type AddressCountry = {
   __typename?: 'AddressCountry';
-  /** The code of the country. */
   code?: Maybe<Scalars['String']['output']>;
-  /** The name of the country. */
   name?: Maybe<Scalars['String']['output']>;
 };
 
@@ -69,94 +65,207 @@ export type AdgangsplatformenUserToken = {
   token?: Maybe<Scalars['String']['output']>;
 };
 
-/** Input for filter exposed with operator "between". */
-export type BetweenFloatInput = {
-  /** The maximum value of the range. */
-  max?: InputMaybe<Scalars['Float']['input']>;
-  /** The minimum value of the range. */
-  min?: InputMaybe<Scalars['Float']['input']>;
-};
-
-/** Input for filter exposed with operator "between". */
-export type BetweenStringInput = {
-  /** The maximum value of the range. */
-  max?: InputMaybe<Scalars['String']['input']>;
-  /** The minimum value of the range. */
-  min?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** A library branch (physical location) within the library organization. */
-export type Branch = {
-  __typename?: 'Branch';
-  /** The physical address of the branch. Only available for CMS-configured branches. */
-  address?: Maybe<BranchAddress>;
-  /** Indicates which contexts this branch is available in. */
-  availabilityContext: BranchAvailabilityContext;
-  /** The ISIL branch identifier, e.g. DK-710111. */
-  isilId: Scalars['String']['output'];
-  /** The human-readable name of the branch. */
+export type AppCategory = {
+  __typename?: 'AppCategory';
+  elements: Array<AppContentElement>;
+  icon: Scalars['String']['output'];
+  id: Scalars['String']['output'];
   title: Scalars['String']['output'];
 };
 
-/** Physical address of a branch. */
+export type AppContentElement = {
+  id: Scalars['String']['output'];
+};
+
+export type AppContentElementGoLinkbox = AppContentElement & {
+  __typename?: 'AppContentElementGoLinkbox';
+  color?: Maybe<Scalars['String']['output']>;
+  contentId: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  image?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type AppContentElementGoMaterialSliderAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementGoMaterialSliderAutomatic';
+  cql: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type AppContentElementGoMaterialSliderManual = AppContentElement & {
+  __typename?: 'AppContentElementGoMaterialSliderManual';
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementMaterialGridAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementMaterialGridAutomatic';
+  cql: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  priorityMaterialType?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type AppContentElementMaterialGridManual = AppContentElement & {
+  __typename?: 'AppContentElementMaterialGridManual';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementNavSpotsManual = AppContentElement & {
+  __typename?: 'AppContentElementNavSpotsManual';
+  id: Scalars['String']['output'];
+  linkedPages: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementRecommendation = AppContentElement & {
+  __typename?: 'AppContentElementRecommendation';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  imagePositionRight: Scalars['Boolean']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  workId: Scalars['String']['output'];
+};
+
+export type AppContentElementText = AppContentElement & {
+  __typename?: 'AppContentElementText';
+  body: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+};
+
+export type AppContentElementVideo = AppContentElement & {
+  __typename?: 'AppContentElementVideo';
+  id: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  video: AppVideo;
+};
+
+export type AppContentElementVideoBundleAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementVideoBundleAutomatic';
+  cql: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+  video: AppVideo;
+};
+
+export type AppContentElementVideoBundleManual = AppContentElement & {
+  __typename?: 'AppContentElementVideoBundleManual';
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  video: AppVideo;
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppFeesAndPaymentInfo = {
+  __typename?: 'AppFeesAndPaymentInfo';
+  feesAndReplacementCostsUrl?: Maybe<Scalars['String']['output']>;
+  paymentSiteButtonLabel?: Maybe<Scalars['String']['output']>;
+  paymentSiteUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type AppPage = {
+  __typename?: 'AppPage';
+  elements: Array<AppContentElement>;
+  image?: Maybe<Scalars['String']['output']>;
+  subtitle?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type AppType =
+  | 'BIBLO'
+  | 'BIBLOGO'
+  | 'MYBIBLO';
+
+export type AppVideo = {
+  __typename?: 'AppVideo';
+  orientation: AppVideoOrientation;
+  thumbnail: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type AppVideoOrientation =
+  | 'HORIZONTAL'
+  | 'VERTICAL';
+
+export type BetweenFloatInput = {
+  max?: InputMaybe<Scalars['Float']['input']>;
+  min?: InputMaybe<Scalars['Float']['input']>;
+};
+
+export type BetweenStringInput = {
+  max?: InputMaybe<Scalars['String']['input']>;
+  min?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Branch = {
+  __typename?: 'Branch';
+  address?: Maybe<BranchAddress>;
+  availabilityContext: BranchAvailabilityContext;
+  email?: Maybe<Scalars['String']['output']>;
+  isilId: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
 export type BranchAddress = {
   __typename?: 'BranchAddress';
-  /** City name. */
   city?: Maybe<Scalars['String']['output']>;
-  /** ISO 3166-1 alpha-2 country code. */
   country?: Maybe<Scalars['String']['output']>;
-  /** Postal/ZIP code. */
   postalCode?: Maybe<Scalars['String']['output']>;
-  /** Street name and house number. */
   street?: Maybe<Scalars['String']['output']>;
 };
 
-/** In which contexts this branch is available. */
 export type BranchAvailabilityContext = {
   __typename?: 'BranchAvailabilityContext';
-  /** Whether this branch is used when requesting availability. */
   availability: Scalars['Boolean']['output'];
-  /** Whether this branch is used when requesting reservations. */
   reservations: Scalars['Boolean']['output'];
-  /** Whether this branch is used in the search (i.e. not excluded from search results). */
   search: Scalars['Boolean']['output'];
 };
 
-/** En CQL søgestreng. */
+export type BrandSettings = {
+  __typename?: 'BrandSettings';
+  logoUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type CqlSearch = {
   __typename?: 'CQLSearch';
-  /** CQL søgestrengen. */
+  branch?: Maybe<Scalars['String']['output']>;
+  department?: Maybe<Scalars['String']['output']>;
+  firstAccessionDateOperator?: Maybe<Scalars['String']['output']>;
+  firstAccessionDateValue?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<Scalars['String']['output']>;
+  onshelf?: Maybe<Scalars['String']['output']>;
+  sort?: Maybe<Scalars['String']['output']>;
+  sublocation?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
-/** A color field. */
 export type Color = {
   __typename?: 'Color';
-  /** The color value in #HEX format. */
   color?: Maybe<Scalars['String']['output']>;
-  /** The opacity value. */
   opacity?: Maybe<Scalars['Float']['output']>;
 };
 
-/** A Date range has a start and an end. */
 export type DateRange = {
   __typename?: 'DateRange';
-  /** The end of the date range. */
   end?: Maybe<DateTime>;
-  /** The start of the date range. */
   start?: Maybe<DateTime>;
 };
 
-/** A DateTime object. */
 export type DateTime = {
   __typename?: 'DateTime';
-  /** A string that will have a value of format ±hh:mm */
   offset: Scalars['UtcOffset']['output'];
-  /** RFC 3339 compliant time string. */
   time: Scalars['Time']['output'];
-  /** Type represents date and time as number of milliseconds from start of the UNIX epoch. */
   timestamp: Scalars['Timestamp']['output'];
-  /** A field whose value exists in the standard IANA Time Zone Database. */
   timezone: Scalars['TimeZone']['output'];
 };
 
@@ -165,39 +274,29 @@ export type DplTokens = {
   adgangsplatformen?: Maybe<AdgangsplatformenTokens>;
 };
 
-/** A file object to represent an managed file. */
+export type Error = {
+  __typename?: 'Error';
+  message: Scalars['String']['output'];
+};
+
 export type File = {
   __typename?: 'File';
-  /** The description of the file. */
   description?: Maybe<Scalars['String']['output']>;
-  /** Filens mime-type. */
   mime?: Maybe<Scalars['String']['output']>;
-  /** Filens navn. */
   name?: Maybe<Scalars['String']['output']>;
-  /** Filens størrelse i bytes. */
   size: Scalars['Int']['output'];
-  /** The URL of the file. */
   url: Scalars['String']['output'];
 };
 
-/** Result for view go_categories display go_categories. */
 export type GoCategoriesResult = View & {
   __typename?: 'GoCategoriesResult';
-  /** Viewets beskrivelse. */
   description?: Maybe<Scalars['String']['output']>;
-  /** The machine name of the display. */
   display: Scalars['String']['output'];
-  /** The ID of the view. */
   id: Scalars['ID']['output'];
-  /** The human friendly label of the view. */
   label?: Maybe<Scalars['String']['output']>;
-  /** The language code of the view. */
   langcode?: Maybe<Scalars['String']['output']>;
-  /** Information about the page in the view. */
   pageInfo: ViewPageInfo;
-  /** The results of the view. */
   results: Array<NodeUnion>;
-  /** The machine name of the view. */
   view: Scalars['String']['output'];
 };
 
@@ -217,6 +316,7 @@ export type GoConfigurationPublic = {
   libraryInfo?: Maybe<GoLibraryInfo>;
   loginUrls?: Maybe<GoLoginUrls>;
   logoutUrls?: Maybe<GoLogoutUrls>;
+  mapp?: Maybe<MappTracking>;
   searchProfiles?: Maybe<SearchProfiles>;
   unilogin?: Maybe<UniloginConfigurationPublic>;
 };
@@ -237,1320 +337,790 @@ export type GoLogoutUrls = {
   adgangsplatformen?: Maybe<Scalars['String']['output']>;
 };
 
-/** A image object to represent an managed file. */
 export type Image = {
   __typename?: 'Image';
-  /** The alt text of the image. */
   alt?: Maybe<Scalars['String']['output']>;
-  /** The height of the image. */
   height: Scalars['Int']['output'];
-  /** The mime type of the image. */
   mime?: Maybe<Scalars['String']['output']>;
-  /** The size of the image in bytes. */
   size: Scalars['Int']['output'];
-  /** The title text of the image. */
   title?: Maybe<Scalars['String']['output']>;
-  /** The URL of the image. */
   url: Scalars['String']['output'];
-  /** The width of the image. */
   width: Scalars['Int']['output'];
 };
 
-/** Generic input for key-value pairs. */
+export type ImportResponse = {
+  __typename?: 'ImportResponse';
+  message: Scalars['String']['output'];
+  status: ImportStatus;
+};
+
+export type ImportStatus =
+  | 'failure'
+  | 'success';
+
+export type InterestPeriod = {
+  __typename?: 'InterestPeriod';
+  label: Scalars['String']['output'];
+  value: Scalars['Int']['output'];
+};
+
+export type InterestPeriods = {
+  __typename?: 'InterestPeriods';
+  all: Array<InterestPeriod>;
+  default: InterestPeriod;
+};
+
 export type KeyValueInput = {
   key: Scalars['String']['input'];
   value?: InputMaybe<Scalars['String']['input']>;
 };
 
-/** A language definition provided by the CMS. */
 export type Language = {
   __typename?: 'Language';
-  /** The language direction. */
   direction?: Maybe<Scalars['String']['output']>;
-  /** Sprogkoden. */
   id?: Maybe<Scalars['ID']['output']>;
-  /** Sprogets navn. */
   name?: Maybe<Scalars['String']['output']>;
 };
 
-/** A link. */
 export type Link = {
   __typename?: 'Link';
   id?: Maybe<Scalars['String']['output']>;
-  /** Whether the link is internal to this website. */
   internal: Scalars['Boolean']['output'];
-  /** Linkets titel */
   title?: Maybe<Scalars['String']['output']>;
-  /** Linkets URL */
   url?: Maybe<Scalars['String']['output']>;
 };
 
-/** Entity type media. */
+export type MappTracking = {
+  __typename?: 'MappTracking';
+  domain?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['String']['output']>;
+};
+
 export type MediaAudio = MediaInterface & {
   __typename?: 'MediaAudio';
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Lydfil */
   mediaAudioFile: File;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type media. */
 export type MediaDocument = MediaInterface & {
   __typename?: 'MediaDocument';
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Fil */
   mediaFile: File;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type media. */
 export type MediaImage = MediaInterface & {
   __typename?: 'MediaImage';
-  /** Bruges til fotokreditering og info om copyright. Vises som regel ved siden af billedet. */
   byline?: Maybe<Scalars['String']['output']>;
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /**
-   * Du kan indstille et fokuspunkt ved at klikke på forhåndsvisningen af
-   * billedet og flytte det hvide mål.<br /><br />Ved at indstille et fokuspunkt
-   * fortæller du systemet, hvilken del af billedet der skal være i fokus, når
-   * det beskæres.<br /><br />Brug funktionen "forhåndsvisning" til at se,
-   * hvordan dit billede vil blive beskåret på tværs af billedstil.
-   */
   mediaImage: Image;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type media. */
 export type MediaInterface = {
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type media. */
-export type MediaUnion = MediaAudio | MediaDocument | MediaImage | MediaVideo | MediaVideotool;
+export type MediaUnion = MediaAudio | MediaDocument | MediaImage | MediaVideo | MediaVideotool | MediaVideotoolVertical;
 
-/** Entity type media. */
 export type MediaVideo = MediaInterface & {
   __typename?: 'MediaVideo';
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** URL til video */
   mediaOembedVideo: Scalars['String']['output'];
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
   thumbnail: Scalars['String']['output'];
 };
 
-/** Entity type media. */
 export type MediaVideotool = MediaInterface & {
   __typename?: 'MediaVideotool';
-  /** The time the media item was last edited. */
   changed: DateTime;
-  /** The time the media item was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** VideoTool URL */
   mediaVideotool: Scalars['String']['output'];
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
+  streamingUrl?: Maybe<Scalars['String']['output']>;
   thumbnail: Scalars['String']['output'];
 };
 
-/** The schema's entry-point for mutations. */
+export type MediaVideotoolVertical = MediaInterface & {
+  __typename?: 'MediaVideotoolVertical';
+  changed: DateTime;
+  created: DateTime;
+  id: Scalars['ID']['output'];
+  langcode: Language;
+  mediaVideotoolVertical: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path?: Maybe<Scalars['String']['output']>;
+  status: Scalars['Boolean']['output'];
+  streamingUrl?: Maybe<Scalars['String']['output']>;
+  thumbnail: Scalars['String']['output'];
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Placeholder for mutation extension. */
   _: Scalars['Boolean']['output'];
+  import: ImportResponse;
 };
 
-/** Brug artikler til nyhedspræget indhold med en begrænset levetid. */
+
+export type MutationImportArgs = {
+  callbackUrl: Scalars['String']['input'];
+  uuid: Scalars['String']['input'];
+};
+
+export type NewContentResponse = {
+  __typename?: 'NewContentResponse';
+  errors: Array<Error>;
+  uuids: Array<Scalars['String']['output']>;
+  youngest: Scalars['Time']['output'];
+};
+
 export type NodeArticle = NodeInterface & {
   __typename?: 'NodeArticle';
-  /** Bibliotek */
   branch?: Maybe<NodeUnion>;
-  /**
-   * Oplys en canonical URL hvis indholdet i artiklen er kopieret fra en anden
-   * hjemmeside (fx kopieret fra et andet biblioteks hjemmeside). Dette hjælper
-   * med at signalere til søgemaskiner at kilden til indholdet er den
-   * specificerede side, og sikrer at den originale kilde krediteres.
-   */
   canonicalUrl?: Maybe<Link>;
-  /** Kategorier */
   categories?: Maybe<TermUnion>;
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Overskriv forfatter */
   overrideAuthor?: Maybe<Scalars['String']['output']>;
-  /** Paragraphs */
   paragraphs?: Maybe<Array<ParagraphUnion>>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Udgivelsesdato */
   publicationDate: DateTime;
-  /**
-   * Som standard er forfatteren sat til den Drupal-bruger, der ejer indholdet.<br
-   * /><br />Hvis du ønsker at tilsidesætte dette med din egen tekst, kan du
-   */
   showOverrideAuthor?: Maybe<Scalars['Boolean']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Manchet */
   subtitle?: Maybe<Scalars['String']['output']>;
-  /** Tags */
   tags?: Maybe<Array<TermUnion>>;
-  /**
-   * Teaserfelterne bruges til cards som blikfang for indholdet. Hvis der ikke er
-   * valgt et teaserbillede, vil teksten vises i stedet.
-   */
   teaserImage?: Maybe<MediaUnion>;
-  /** Teasertekst */
   teaserText?: Maybe<Scalars['String']['output']>;
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/** Brug GO-artikler til nyhedsværdigt indhold, der ikke bliver opdateret regelmæssigt. */
 export type NodeGoArticle = NodeInterface & {
   __typename?: 'NodeGoArticle';
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /** Billede */
   goArticleImage?: Maybe<MediaUnion>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Overskriv forfatter */
   overrideAuthor?: Maybe<Scalars['String']['output']>;
-  /** Paragraphs */
   paragraphs?: Maybe<Array<ParagraphUnion>>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Publiceringsdato */
   publicationDate: DateTime;
-  /**
-   * Som standard er forfatteren sat til den Drupal-bruger, der ejer indholdet.<br
-   * /><br />Hvis du ønsker at tilsidesætte dette med din egen tekst, kan du
-   */
   showOverrideAuthor?: Maybe<Scalars['Boolean']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Undertekst */
   subtitle?: Maybe<Scalars['String']['output']>;
-  /**
-   * Teaserfelterne bruges til cards som blikfang for indholdet. Hvis der ikke er
-   * valgt et teaserbillede, vil teksten vises i stedet.
-   */
   teaserImage: MediaUnion;
-  /** Teaser tekst */
   teaserText?: Maybe<Scalars['String']['output']>;
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/**
- * GO category pages will be used for creating a "landingpage" for specific categories.
- * When creating and publishing a new category page, the category will automatically be added to the category menu.
- */
 export type NodeGoCategory = NodeInterface & {
   __typename?: 'NodeGoCategory';
-  /** The category image will be shown in the category menu as part of this category's menu element. */
   categoryMenuImage: MediaUnion;
-  /** The category sound will be able to be played in the category menu as part of this category's menu element. */
   categoryMenuSound?: Maybe<MediaUnion>;
-  /** The category title will be shown in the category menu as part of this category's menu element. */
   categoryMenuTitle: Scalars['String']['output'];
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /** Category menu color */
   goColor?: Maybe<Scalars['String']['output']>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Paragraphs */
   paragraphs?: Maybe<Array<ParagraphUnion>>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Publiceringsdato */
   publicationDate: DateTime;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/**
- * GO-sider bliver brugt til forskellige typer for indhold, som ikke tilhører
- * hverken en artikel-side eller en kategori-side. Fx forsiden, informationssider
- */
 export type NodeGoPage = NodeInterface & {
   __typename?: 'NodeGoPage';
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Paragraffer */
   paragraphs?: Maybe<Array<ParagraphUnion>>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Publikationsdato */
   publicationDate: DateTime;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/** Entity type node. */
 export type NodeInterface = {
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/**
- * Sider kan anvendes til en bred vifte af indhold af mere eller mindre blivende
- * karakter. En side kan være simpel og indeholde tekst om fx. låneregler, men
- * kan også være en strukturerende enhed, hvis formål er at udstille andre sider
- * i en sektion med henblik på formidling eller navigation.
- */
 export type NodePage = NodeInterface & {
   __typename?: 'NodePage';
-  /** Bibliotek */
   branch?: Maybe<NodeUnion>;
-  /**
-   * Hvis du vil gøre denne side til en strukturerende side, skal du gemme siden
-   * først og  <a href="/admin/structure/taxonomy/manage/breadcrumb_structure/add"
-   * target="_blank">tilføje den som en reference i strukturtræet.
-   */
   breadcrumbParent?: Maybe<TermUnion>;
-  /**
-   * Oplys en canonical URL hvis indholdet i artiklen er kopieret fra en anden
-   * hjemmeside (fx kopieret fra et andet biblioteks hjemmeside). Dette hjælper
-   * med at signalere til søgemaskiner at kilden til indholdet er den
-   * specificerede side, og sikrer at den originale kilde krediteres.
-   */
   canonicalUrl?: Maybe<Link>;
-  /** Tidspunktet hvor indholdselementet sidst blev redigeret. */
   changed: DateTime;
-  /** The date and time that the content was created. */
   created: DateTime;
-  /**
-   * Som standard vises titel og manchettekst ikke på indholdstypen sider.  Hvis
-   * du vil have dem vist, kan du slå det til her.
-   */
   displayTitles?: Maybe<Scalars['Boolean']['output']>;
-  /** Titlen, der er vist øverst på siden.<br /><br /> <strong>Hvis den er tom, bliver standardsiden brugt i stedet.</strong>. */
   heroTitle?: Maybe<Scalars['String']['output']>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Language */
   langcode: Language;
-  /** Paragraphs */
   paragraphs?: Maybe<Array<ParagraphUnion>>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Forfremmet til forside */
   promote: Scalars['Boolean']['output'];
-  /** Udgivelsesdato */
   publicationDate: DateTime;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Klæbrig */
   sticky: Scalars['Boolean']['output'];
-  /** Manchet */
   subtitle?: Maybe<Scalars['String']['output']>;
-  /**
-   * Teaserfelterne bruges til cards som blikfang for indholdet. Hvis der ikke er
-   * valgt et teaserbillede, vil teksten vises i stedet.
-   */
   teaserImage?: Maybe<MediaUnion>;
-  /** Teasertekst */
   teaserText?: Maybe<Scalars['String']['output']>;
-  /** Titel */
   title: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
-/** Entity type node. */
 export type NodeUnion = NodeArticle | NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/** Entity type paragraph. */
 export type ParagraphAccordion = ParagraphInterface & {
   __typename?: 'ParagraphAccordion';
-  /** Accordion beskrivelse */
   accordionDescription?: Maybe<Text>;
-  /** Accordion titel */
   accordionTitle: Text;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Bannerets funktion er at linke til internt indhold, og kan bruges med eller uden baggrundsbillede. */
 export type ParagraphBanner = ParagraphInterface & {
   __typename?: 'ParagraphBanner';
-  /** Bannerbeskrivelse */
   bannerDescription?: Maybe<Scalars['String']['output']>;
-  /** Bannerbillede */
   bannerImage?: Maybe<MediaUnion>;
-  /** Bannerlink */
   bannerLink: Link;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Understreget titel */
   underlinedTitle?: Maybe<Text>;
 };
 
-/** Vis automatisk alt indhold, som refererer til dit valgte brødkrumme element. */
 export type ParagraphBreadcrumbChildren = ParagraphInterface & {
   __typename?: 'ParagraphBreadcrumbChildren';
-  /** Vælg en sideforælder i brødkrummestrukturen, hvis sidebørn skal vises. Kun ét niveau af sidebørn kan vises. */
   breadcrumbTarget?: Maybe<TermUnion>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Vis undertekster */
   showSubtitles?: Maybe<Scalars['Boolean']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** En regel til at vælge en matchende kampagne */
 export type ParagraphCampaignRule = ParagraphInterface & {
   __typename?: 'ParagraphCampaignRule';
-  /** Facet */
   campaignRuleFacet: Scalars['String']['output'];
-  /** Term */
   campaignRuleTerm: Scalars['String']['output'];
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type paragraph. */
 export type ParagraphCardGridAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphCardGridAutomatic';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Hvis der ikke vælges noget, vil ALT automatisk blive valgt. */
   filterBranches?: Maybe<Array<NodeUnion>>;
-  /** Filter efter kategorier */
   filterCategories?: Maybe<Array<TermUnion>>;
-  /** Tilstandstype */
   filterCondType: Scalars['String']['output'];
-  /** Hvis intet er valgt, vil alt blive valgt. */
   filterContentTypes?: Maybe<Array<Scalars['String']['output']>>;
-  /** Filter efter tags */
   filterTags?: Maybe<Array<TermUnion>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Flere links */
   moreLink?: Maybe<Link>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title?: Maybe<Scalars['String']['output']>;
 };
 
-/** Entity type paragraph. */
 export type ParagraphCardGridManual = ParagraphInterface & {
   __typename?: 'ParagraphCardGridManual';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Indhold */
   gridContent?: Maybe<Array<ParagraphCardGridManualGridContentUnion>>;
   gridContentUuids?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Flere links */
   moreLink?: Maybe<Link>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Overskrift */
   title?: Maybe<Scalars['String']['output']>;
 };
 
-/** Indhold */
 export type ParagraphCardGridManualGridContentUnion = NodeArticle | NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/** Entity type paragraph. */
 export type ParagraphContentSlider = ParagraphInterface & {
   __typename?: 'ParagraphContentSlider';
-  /** Indhold */
   contentReferences?: Maybe<Array<ParagraphContentSliderContentReferencesUnion>>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** forældet */
   title?: Maybe<Scalars['String']['output']>;
-  /** Titel */
   underlinedTitle?: Maybe<Text>;
 };
 
-/** Entity type paragraph. */
 export type ParagraphContentSliderAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphContentSliderAutomatic';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Hvis der ikke vælges noget, vil ALT automatisk blive valgt. */
   filterBranches?: Maybe<Array<NodeUnion>>;
-  /** Filtrer efter kategori */
   filterCategories?: Maybe<Array<TermUnion>>;
-  /** Tilstandstype */
   filterCondType: Scalars['String']['output'];
-  /** Hvis intet er valgt, vil alt blive valgt. */
   filterContentTypes?: Maybe<Array<Scalars['String']['output']>>;
-  /** Filtrer efter tags */
   filterTags?: Maybe<Array<TermUnion>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel (forældet) */
   title?: Maybe<Scalars['String']['output']>;
-  /** Titel */
   underlinedTitle?: Maybe<Text>;
 };
 
-/** Indhold */
 export type ParagraphContentSliderContentReferencesUnion = NodeArticle | NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/** En kombination af navn på billetkategori og pris på et arrangement.  */
 export type ParagraphEventTicketCategory = ParagraphInterface & {
   __typename?: 'ParagraphEventTicketCategory';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Navn */
   ticketCategoryName: Scalars['String']['output'];
 };
 
-/** Link med ikoner. Designet til jpg, jpeg, png, pdf, mp3, mov, mp4, og mpeg filer */
 export type ParagraphFiles = ParagraphInterface & {
   __typename?: 'ParagraphFiles';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Filer */
   files?: Maybe<Array<MediaUnion>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Denne paragraph viser en liste af arrangementer filtreret på kategori, tags og filialer. */
 export type ParagraphFilteredEventList = ParagraphInterface & {
   __typename?: 'ParagraphFilteredEventList';
-  /** Dette felt bruges ikke længere og vil blive slettet i fremtiden. */
   amountOfEvents?: Maybe<Scalars['Int']['output']>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Hvis der ikke vælges noget, vil ALT automatisk blive valgt. */
   filterBranches?: Maybe<Array<NodeUnion>>;
-  /** Tilføj en kategori, du vil inkludere */
   filterCategories?: Maybe<Array<TermUnion>>;
-  /** Tilstandstype */
   filterCondType: Scalars['String']['output'];
-  /** Tilføj et tag, du vil inkludere */
   filterTags?: Maybe<Array<TermUnion>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /**
-   * Vælg antallet af arrangementer, du ønsker at vise. <br /><br />Hvis antallet
-   * vist er mindre end det, du har angivet her, skyldes det sandsynligvis, at der
-   * ikke er nok resultater baseret på dine valgte filtre.
-   */
   maxItemAmount: Scalars['String']['output'];
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title?: Maybe<Scalars['String']['output']>;
 };
 
-/** Denne paragraph bruges til at vise 1-2 billeder på GO-indholdstyper som GO artikel, GO-side og GO kategori. */
 export type ParagraphGoImages = ParagraphInterface & {
   __typename?: 'ParagraphGoImages';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Billeder */
   goImages: Array<MediaUnion>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/**
- * Denne link-paragraph bruges til links i GO, da det kræver ekstra felter som
- * aria-label og ’Åbn link i nyt vindue’. Disse felter kunne ikke eksporteres
- * i GraphQL, når der bruges en Linkit-widget.
- */
 export type ParagraphGoLink = ParagraphInterface & {
   __typename?: 'ParagraphGoLink';
-  /** Aria Label */
   ariaLabel?: Maybe<Scalars['String']['output']>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Link */
   link: Link;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Åbn link i et nyt vindue */
   targetBlank?: Maybe<Scalars['Boolean']['output']>;
 };
 
-/** Entity type paragraph. */
 export type ParagraphGoLinkbox = ParagraphInterface & {
   __typename?: 'ParagraphGoLinkbox';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Farve */
   goColor?: Maybe<Scalars['String']['output']>;
-  /** Beskrivelse */
   goDescription: Scalars['String']['output'];
-  /** Billede */
   goImage?: Maybe<MediaUnion>;
-  /** Link */
   goLinkParagraph: ParagraphUnion;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
 };
 
-/** Denne paragraph bruges til at vise en række materialer baseret på en CQL-søgestreng. */
 export type ParagraphGoMaterialSliderAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphGoMaterialSliderAutomatic';
-  /**
-   * Dette felt er til at indsætte en CQL-søgestreng baseret på en søgning. <br
-   * /><br />Vær opmærksom på, at det er nødvendigt at kopiere den nøjagtige
-   * CQL-streng, inklusive citationstegn. dvs.: ( 'harry potter')<br /><br />En
-   * gyldig CQL-søgestreng kan genereres ved at udføre en forespørgsel gennem
-   * den avancerede søgning og kopiere CQL-strengen derfra.
-   */
   cqlSearch?: Maybe<CqlSearch>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Antal materialer */
   sliderAmountOfMaterials: Scalars['Int']['output'];
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
 };
 
-/**
- * Denne paragraph bruges til at vise en række materialer. Materialerne kan
- * vælges ved manuelt at søge efter tilgængelige materialer.
- */
 export type ParagraphGoMaterialSliderManual = ParagraphInterface & {
   __typename?: 'ParagraphGoMaterialSliderManual';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /**
-   * Her kan du vælge hvilke materialer, der skal vises. Hvis du skal linke til en
-   * specifik type, vælg den i dropdown-menuen, og systemet viser den, hvis
-   * tilgængelig.<br />Eksempel VærkID: work-of:870970-basis:136336282
-   */
   materialSliderWorkIds: Array<WorkId>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title: Scalars['String']['output'];
 };
 
-/**
- * Dette GO-specifikke tekstfelt bruger CKEditor 5 med formatet GO-brødtekst, som
- * understøtter struktureret indhold med overskrifter (H2, H3), fed, kursiv,
- * understregning, lister og avancerede linkfunktioner som target-attributter og
- * Linkit-integration.
- */
 export type ParagraphGoTextBody = ParagraphInterface & {
   __typename?: 'ParagraphGoTextBody';
-  /** Body */
   body: Text;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Angiv URL-en for den video, der skal vises */
 export type ParagraphGoVideo = ParagraphInterface & {
   __typename?: 'ParagraphGoVideo';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Embed video */
   embedVideo: MediaUnion;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titl */
   title: Scalars['String']['output'];
 };
 
-/**
- * Denne paragraph bruges til at vise en VideoTool-video og vise et sæt relaterede
- * bøger. De relaterede bøger vælges automatisk baseret på en CQL-søgestreng.
- */
 export type ParagraphGoVideoBundleAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphGoVideoBundleAutomatic';
-  /**
-   * Dette felt er til at indsætte en CQL-søgestreng baseret på en søgning. <br
-   * /><br />Vær opmærksom på, at det er nødvendigt at kopiere den nøjagtige
-   * CQL-streng, inklusive citationstegn. dvs.: ( 'harry potter')<br /><br />En
-   * gyldig CQL-søgestreng kan genereres ved at udføre en forespørgsel gennem
-   * den avancerede søgning og kopiere CQL-strengen derfra.
-   */
   cqlSearch?: Maybe<CqlSearch>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Embed video */
   embedVideo: MediaUnion;
-  /** Titel */
   goVideoTitle: Scalars['String']['output'];
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Antal af ​​relaterede materialer, der skal vises. */
   videoAmountOfMaterials: Scalars['Int']['output'];
 };
 
-/**
- * Denne paragraph bruges til at vise en VideoTool-video og vise et sæt relaterede
- * eller anbefalede materialer. Materialerne kan vælges manuelt.
- */
 export type ParagraphGoVideoBundleManual = ParagraphInterface & {
   __typename?: 'ParagraphGoVideoBundleManual';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Embed video */
   embedVideo: MediaUnion;
-  /** Titel */
   goVideoTitle: Scalars['String']['output'];
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /**
-   * Her kan du vælge, hvilke materialer der skal vises. Hvis du har brug for at
-   * linke til en bestemt type, skal du vælge den fra rullemenuen, og systemet vil
-   * vise det, hvis det er tilgængeligt.<br />Example work ID:
-   * work-of:870970-basis:136336282
-   */
   videoBundleWorkIds?: Maybe<Array<WorkId>>;
 };
 
-/** En Hero til placering øverst på forsiden med et billede, informativ tekst, kategori og et link til fremhævet indhold. */
+export type ParagraphGoVideoBundleVerticalAuto = ParagraphInterface & {
+  __typename?: 'ParagraphGoVideoBundleVerticalAuto';
+  cqlSearch?: Maybe<CqlSearch>;
+  created: DateTime;
+  embedVideo: MediaUnion;
+  goVideoTitle: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  langcode: Language;
+  status: Scalars['Boolean']['output'];
+  videoAmountOfMaterials: Scalars['Int']['output'];
+};
+
+export type ParagraphGoVideoBundleVerticalManual = ParagraphInterface & {
+  __typename?: 'ParagraphGoVideoBundleVerticalManual';
+  created: DateTime;
+  embedVideo: MediaUnion;
+  goVideoTitle: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  langcode: Language;
+  status: Scalars['Boolean']['output'];
+  videoBundleWorkIds?: Maybe<Array<WorkId>>;
+};
+
 export type ParagraphHero = ParagraphInterface & {
   __typename?: 'ParagraphHero';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Hero kategori */
   heroCategories?: Maybe<TermUnion>;
-  /** Hero indholdstype */
   heroContentType?: Maybe<Scalars['String']['output']>;
-  /** Hero dato */
   heroDate?: Maybe<DateTime>;
-  /** Hero beskrivelse */
   heroDescription?: Maybe<Text>;
-  /** Hero billede */
   heroImage?: Maybe<MediaUnion>;
-  /** Hero link */
   heroLink?: Maybe<Link>;
-  /** Overskrift */
   heroTitle: Scalars['String']['output'];
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type paragraph. */
 export type ParagraphInterface = {
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Giver besøgende på sitet mulighed for at vælge foretrukket sprog */
 export type ParagraphLanguageSelector = ParagraphInterface & {
   __typename?: 'ParagraphLanguageSelector';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Sprogikon */
   languageIcon: Image;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Links med ikoner. Designet til interne/eksterne links og links til søgeresultater ␣. */
 export type ParagraphLinks = ParagraphInterface & {
   __typename?: 'ParagraphLinks';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Link */
   link: Array<Link>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Dette afsnit vil vise en liste over arrangementer, der er manuelt valgt. */
 export type ParagraphManualEventList = ParagraphInterface & {
   __typename?: 'ParagraphManualEventList';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Arrangementer */
   events?: Maybe<Array<UnsupportedType>>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Titel */
   title?: Maybe<Scalars['String']['output']>;
 };
 
-/** Et gitter med anbefalede materialer, baseret på en CQL-streng og filtre. */
 export type ParagraphMaterialGridAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphMaterialGridAutomatic';
   /** @deprecated Use materialAmount instead */
   amountOfMaterials: Scalars['Int']['output'];
-  /**
-   * Dette felt er til indsættelse af en CQL-streng baseret på en søgning. <br
-   * /><br />Vær opmærksom på, at det er nødvendigt at kopiere den nøjagtige
-   * CQL-streng, inklusive anførselstegnene. dvs: ('harry potter')<br /><br />En
-   * gyldig CQL-søgestreng kan genereres ved at udføre en forespørgsel gennem
-   * den avancerede søgning og kopiere CQL-strengen derfra.
-   */
   cqlSearch?: Maybe<CqlSearch>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Antal materialer */
   materialAmount: Scalars['Int']['output'];
-  /**
-   * Dette er en valgfri beskrivelsestekst, der kan ledsage materiale grid'et. Lad
-   * feltet være tomt, hvis du ikke ønsker en beskrivelse.
-   */
   materialGridDescription?: Maybe<Scalars['String']['output']>;
-  /** Titel på materialekomponenten. Efterlad dette felt blankt, hvis du ikke vil give den en overskrift. */
   materialGridTitle?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Et gitter med anbefalede materialer, baseret på en link-søgestreng. */
 export type ParagraphMaterialGridLinkAutomatic = ParagraphInterface & {
   __typename?: 'ParagraphMaterialGridLinkAutomatic';
   /** @deprecated Use materialAmount instead */
   amountOfMaterials: Scalars['Int']['output'];
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Antal materialer */
   materialAmount: Scalars['Int']['output'];
-  /** This is the optional description for the material grid. <br />Leave blank if you do not want a description. */
   materialGridDescription?: Maybe<Scalars['String']['output']>;
-  /**
-   * Tilføj et link her, som er genereret ved hjælp af avanceret søgning -> CQL
-   * /><br />Bemærk at en søgning, der er foretaget vha feltsøgning under
-   * avanceret søgning, ikke virker. Der SKAL benyttes CQL.
-   */
   materialGridLink: Scalars['String']['output'];
-  /** Der vises ikke en titel, hvis denne er tom. */
   materialGridTitle?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** En komponent som viser en liste af manuelt udvalgte værker. */
 export type ParagraphMaterialGridManual = ParagraphInterface & {
   __typename?: 'ParagraphMaterialGridManual';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /**
-   * Dette er en valgfri beskrivelsestekst, der kan ledsage materiale grid'et. Lad
-   * feltet være tomt, hvis du ikke ønsker en beskrivelse.
-   */
   materialGridDescription?: Maybe<Scalars['String']['output']>;
-  /** Titel på materialekomponenten. Efterlad dette felt blankt, hvis du ikke vil give den en overskrift. */
   materialGridTitle?: Maybe<Scalars['String']['output']>;
-  /**
-   * Eksempel VærkID: work-of:870970-basis:136336282.<br /><br />Hvis du skal
-   * linke til en specifik type, vælg den i dropdown-menuen, og systemet vil vise
-   * den, hvis den er tilgængelig. <strong>Understøtter max 32
-   * elementer.</strong>
-   */
   materialGridWorkIds?: Maybe<Array<WorkId>>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Dette felt vil blive slettet i fremtiden. Brug venligst det andet VærkID felt. */
   workId?: Maybe<Array<WorkId>>;
 };
 
-/** Entity type paragraph. */
 export type ParagraphMedias = ParagraphInterface & {
   __typename?: 'ParagraphMedias';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Billeder */
   medias: Array<MediaUnion>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type paragraph. */
 export type ParagraphNavGridManual = ParagraphInterface & {
   __typename?: 'ParagraphNavGridManual';
   contentReferenceUuids?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  /** Indhold */
   contentReferences?: Maybe<Array<ParagraphNavGridManualContentReferencesUnion>>;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Vis manchettekster */
   showSubtitles?: Maybe<Scalars['Boolean']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Overskrift */
   title?: Maybe<Scalars['String']['output']>;
 };
 
-/** Indhold */
 export type ParagraphNavGridManualContentReferencesUnion = NodeArticle | NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/** Entity type paragraph. */
 export type ParagraphNavSpotsManual = ParagraphInterface & {
   __typename?: 'ParagraphNavSpotsManual';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Indhold */
   navSpotsContent?: Maybe<Array<ParagraphNavSpotsManualNavSpotsContentUnion>>;
   navSpotsContentUuids?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Indhold */
 export type ParagraphNavSpotsManualNavSpotsContentUnion = NodeArticle | NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/**
- * This is a paragraph for displaying the opening hours for the branch it is applied to.
- *
- * Opening hours are created under the settings of a branch.
- */
 export type ParagraphOpeningHours = ParagraphInterface & {
   __typename?: 'ParagraphOpeningHours';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Denne paragraph bruges til at anbefale et enkelt materiale. */
 export type ParagraphRecommendation = ParagraphInterface & {
   __typename?: 'ParagraphRecommendation';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /**
-   * Dette bestemmer om, et billede skal positioneres til venstre eller højre. <br
-   * />Hvis den ikke er slået til (standardadfærd), placeres billedet til
-   * venstre, hvis den er slået til, placeres billedet til højre.
-   */
   imagePositionRight?: Maybe<Scalars['Boolean']['output']>;
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /**
-   * Dette er beskrivelsen af det anbefalede materiale. Hvis du tilføjer en
-   * beskrivelsestekst, vil titlen på materialet ikke blive autoudfyldt.
-   */
   recommendationDescription?: Maybe<Scalars['String']['output']>;
-  /**
-   * Titlen på det anbefalede materiale. Hvis du tilføjer en titel, vil
-   * beskrivelsesteksten af materialet ikke blive autoudfyldt.
-   */
   recommendationTitle?: Maybe<Text>;
-  /**
-   * Dette er det arbejds-ID, der bruges til at hente materialeoplysningerne.
-   * Eksempel: work-of:870970-basis:136336282.<br />I øjeblikket hentes dette ved
-   * at udføre en søgning efter et materiale manuelt og kopiere denne værdi fra
-   * URL'en.<br />Hvis du har brug for at linke til en bestemt type, skal du vælge
-   * den fra rullemenuen, og systemet vil vise den, hvis den er tilgængelig.
-   */
   recommendationWorkId?: Maybe<WorkId>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Denne paragraph viser links uden ikoner. */
 export type ParagraphSimpleLinks = ParagraphInterface & {
   __typename?: 'ParagraphSimpleLinks';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Link */
   link: Array<Link>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** En basal, formateret brødtekst */
 export type ParagraphTextBody = ParagraphInterface & {
   __typename?: 'ParagraphTextBody';
-  /** Brødtekst */
   body: Text;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Entity type paragraph. */
-export type ParagraphUnion = ParagraphAccordion | ParagraphBanner | ParagraphBreadcrumbChildren | ParagraphCampaignRule | ParagraphCardGridAutomatic | ParagraphCardGridManual | ParagraphContentSlider | ParagraphContentSliderAutomatic | ParagraphEventTicketCategory | ParagraphFiles | ParagraphFilteredEventList | ParagraphGoImages | ParagraphGoLink | ParagraphGoLinkbox | ParagraphGoMaterialSliderAutomatic | ParagraphGoMaterialSliderManual | ParagraphGoTextBody | ParagraphGoVideo | ParagraphGoVideoBundleAutomatic | ParagraphGoVideoBundleManual | ParagraphHero | ParagraphLanguageSelector | ParagraphLinks | ParagraphManualEventList | ParagraphMaterialGridAutomatic | ParagraphMaterialGridLinkAutomatic | ParagraphMaterialGridManual | ParagraphMedias | ParagraphNavGridManual | ParagraphNavSpotsManual | ParagraphOpeningHours | ParagraphRecommendation | ParagraphSimpleLinks | ParagraphTextBody | ParagraphUserRegistrationItem | ParagraphUserRegistrationLinklist | ParagraphUserRegistrationSection | ParagraphVideo | ParagraphWebform;
+export type ParagraphUnion = ParagraphAccordion | ParagraphBanner | ParagraphBreadcrumbChildren | ParagraphCampaignRule | ParagraphCardGridAutomatic | ParagraphCardGridManual | ParagraphContentSlider | ParagraphContentSliderAutomatic | ParagraphEventTicketCategory | ParagraphFiles | ParagraphFilteredEventList | ParagraphGoImages | ParagraphGoLink | ParagraphGoLinkbox | ParagraphGoMaterialSliderAutomatic | ParagraphGoMaterialSliderManual | ParagraphGoTextBody | ParagraphGoVideo | ParagraphGoVideoBundleAutomatic | ParagraphGoVideoBundleManual | ParagraphGoVideoBundleVerticalAuto | ParagraphGoVideoBundleVerticalManual | ParagraphHero | ParagraphLanguageSelector | ParagraphLinks | ParagraphManualEventList | ParagraphMaterialGridAutomatic | ParagraphMaterialGridLinkAutomatic | ParagraphMaterialGridManual | ParagraphMedias | ParagraphNavGridManual | ParagraphNavSpotsManual | ParagraphOpeningHours | ParagraphRecommendation | ParagraphSimpleLinks | ParagraphTextBody | ParagraphUserRegistrationItem | ParagraphUserRegistrationLinklist | ParagraphUserRegistrationSection | ParagraphVideo | ParagraphWebform;
 
-/** "Brugerregistreringselement" anvendes til at vise relevant information om brugerregistreringsprocessen. */
 export type ParagraphUserRegistrationItem = ParagraphInterface & {
   __typename?: 'ParagraphUserRegistrationItem';
-  /** Anker */
   anchor?: Maybe<Scalars['String']['output']>;
-  /** Brødtekst */
   body: Text;
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Aktivér denne indstilling for at få vist en knap øverst på siden, så det er nemmere at navigere. */
   displayInNavigation?: Maybe<Scalars['Boolean']['output']>;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Angiv hvordan et linket dokument skal åbne når en bruger klikker på linket. */
   linkTarget: Scalars['String']['output'];
-  /** Hvis titelfeltet på navigationsknappen ikke udfyldes, vil den automatisk få titlen på denne Paragraph. */
   navigationTitle?: Maybe<Scalars['String']['output']>;
-  /** Registreringslink */
   registrationLink?: Maybe<Link>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/**
- * Denne paragraph bestemmer placeringen af genveje til
- * "Brugeregistreingsparagraphs". Paragraphen tillader redaktører at specificere,
- * om disse genveje skal vises.
- */
 export type ParagraphUserRegistrationLinklist = ParagraphInterface & {
   __typename?: 'ParagraphUserRegistrationLinklist';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** "Brugerregistreringsparagraph" bruges til at vise "Brugerregistreringselementer". */
 export type ParagraphUserRegistrationSection = ParagraphInterface & {
   __typename?: 'ParagraphUserRegistrationSection';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Indtast URL'en til den video, du vil indlejre. */
 export type ParagraphVideo = ParagraphInterface & {
   __typename?: 'ParagraphVideo';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** Indlejr video */
   embedVideo: MediaUnion;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** Paragraph brugt til indlejring af en webformular. */
 export type ParagraphWebform = ParagraphInterface & {
   __typename?: 'ParagraphWebform';
-  /** The time that the Paragraph was created. */
   created: DateTime;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** The paragraphs entity language code. */
   langcode: Language;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
 };
 
-/** The schema's entry-point for queries. */
 export type Query = { go: { cacheTags: string[] } } & {
   __typename?: 'Query';
   dplTokens?: Maybe<DplTokens>;
-  /** Retrieve library branches with optional filtering. */
+  getAppBrandSettings: BrandSettings;
+  getAppCategories: Array<AppCategory>;
+  getAppFeesAndPaymentInfo?: Maybe<AppFeesAndPaymentInfo>;
+  getAppPage?: Maybe<AppPage>;
   getBranches: Array<Branch>;
-  /** Query for view go_categories display go_categories. */
   goCategories?: Maybe<GoCategoriesResult>;
   goConfiguration?: Maybe<GoConfiguration>;
-  /** Schema information. */
   info: SchemaInformation;
-  /** Load a Node entity by id. */
+  newContent: NewContentResponse;
   node?: Maybe<NodeUnion>;
-  /** Load a Paragraph entity by id. */
   paragraph?: Maybe<ParagraphUnion>;
-  /** Load a content preview. */
   preview?: Maybe<NodeUnion>;
-  /** Load a Route by path. */
+  reservationSettings: ReservationSettings;
   route?: Maybe<RouteUnion>;
 };
 
 
-/** The schema's entry-point for queries. */
+export type QueryGetAppCategoriesArgs = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  type: AppType;
+};
+
+
+export type QueryGetAppPageArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryGetBranchesArgs = {
   availabilityContexts?: InputMaybe<Array<Scalars['String']['input']>>;
   cmsConfigured?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1558,13 +1128,17 @@ export type QueryGetBranchesArgs = {
 };
 
 
-/** The schema's entry-point for queries. */
 export type QueryGoCategoriesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
-/** The schema's entry-point for queries. */
+export type QueryNewContentArgs = {
+  since: Scalars['Time']['input'];
+  uuid: Scalars['String']['input'];
+};
+
+
 export type QueryNodeArgs = {
   id: Scalars['ID']['input'];
   langcode?: InputMaybe<Scalars['String']['input']>;
@@ -1572,7 +1146,6 @@ export type QueryNodeArgs = {
 };
 
 
-/** The schema's entry-point for queries. */
 export type QueryParagraphArgs = {
   id: Scalars['ID']['input'];
   langcode?: InputMaybe<Scalars['String']['input']>;
@@ -1580,7 +1153,6 @@ export type QueryParagraphArgs = {
 };
 
 
-/** The schema's entry-point for queries. */
 export type QueryPreviewArgs = {
   id: Scalars['ID']['input'];
   langcode?: InputMaybe<Scalars['String']['input']>;
@@ -1588,311 +1160,199 @@ export type QueryPreviewArgs = {
 };
 
 
-/** The schema's entry-point for queries. */
 export type QueryRouteArgs = {
   langcode?: InputMaybe<Scalars['String']['input']>;
   path: Scalars['String']['input'];
   revision?: InputMaybe<Scalars['ID']['input']>;
 };
 
-/** Routes represent incoming requests that resolve to content. */
+export type ReservationSettings = {
+  __typename?: 'ReservationSettings';
+  allowRemoveReadyReservations: Scalars['Boolean']['output'];
+  interestPeriods: InterestPeriods;
+  smsNotificationsEnabled: Scalars['Boolean']['output'];
+  urls: ReservationUrls;
+};
+
+export type ReservationUrls = {
+  __typename?: 'ReservationUrls';
+  pauseReservationInfo: Scalars['String']['output'];
+  zeroHitsSearch: Scalars['String']['output'];
+};
+
 export type Route = {
-  /** Whether this route is internal or external. */
   internal: Scalars['Boolean']['output'];
-  /** URL of this route. */
   url: Scalars['String']['output'];
 };
 
-/** A list of possible entities that can be returned by URL. */
 export type RouteEntityUnion = NodeGoArticle | NodeGoCategory | NodeGoPage | NodePage;
 
-/** Route outside of this website. */
 export type RouteExternal = Route & {
   __typename?: 'RouteExternal';
-  /** Whether this route is internal or external. */
   internal: Scalars['Boolean']['output'];
-  /** URL of this route. */
   url: Scalars['String']['output'];
 };
 
-/** Route within this website. */
 export type RouteInternal = Route & {
   __typename?: 'RouteInternal';
-  /** Breadcrumb links for this route. */
   breadcrumbs?: Maybe<Array<Link>>;
-  /** Content assigned to this route. */
   entity?: Maybe<RouteEntityUnion>;
-  /** Whether this route is internal or external. */
   internal: Scalars['Boolean']['output'];
-  /** URL of this route. */
   url: Scalars['String']['output'];
 };
 
-/** Redirect to another URL with status. */
 export type RouteRedirect = Route & {
   __typename?: 'RouteRedirect';
-  /** Whether this route is internal or external. */
   internal: Scalars['Boolean']['output'];
-  /** Utility prop. Always true for redirects. */
   redirect: Scalars['Boolean']['output'];
-  /** Suggested status for redirect. Eg 301. */
   status: Scalars['Int']['output'];
-  /** URL of this route. */
   url: Scalars['String']['output'];
 };
 
-/** Route types that can exist in the system. */
 export type RouteUnion = RouteExternal | RouteInternal | RouteRedirect;
 
-/** Schema information provided by the system. */
 export type SchemaInformation = {
   __typename?: 'SchemaInformation';
-  /** The schema description. */
   description?: Maybe<Scalars['String']['output']>;
-  /** The internal path to the front page. */
   home?: Maybe<Scalars['String']['output']>;
-  /** List of languages available. */
   languages: Array<Language>;
-  /** The site name. */
   name?: Maybe<Scalars['String']['output']>;
   url: Scalars['String']['output'];
-  /** The schema version. */
   version?: Maybe<Scalars['String']['output']>;
 };
 
-/** Various FBI profiles configured by the local library. */
 export type SearchProfiles = {
   __typename?: 'SearchProfiles';
-  /**
-   * This is meant to be a fallback profile if no other profile is specified.
-   * But is not being used in the current implementation.
-   */
   default?: Maybe<Scalars['String']['output']>;
-  /** This is the profile is using materials from other libraries as well. */
   global?: Maybe<Scalars['String']['output']>;
-  /** This is the profile used for searching works in the library's catalog. */
   local?: Maybe<Scalars['String']['output']>;
 };
 
-/** Sort direction. */
 export type SortDirection =
-  /** Stigende */
   | 'ASC'
-  /** Faldende */
   | 'DESC';
 
-/** The schema's entry-point for subscriptions. */
 export type Subscription = {
   __typename?: 'Subscription';
-  /** Placeholder for subscription extension. */
   _: Scalars['Boolean']['output'];
 };
 
-/** Entity type taxonomy_term. */
 export type TermBreadcrumbStructure = TermInterface & {
   __typename?: 'TermBreadcrumbStructure';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Titlen, der vises over listen af refereret indhold. Vil ikke blive vist, hvis der ikke vises nogen børn. */
   childrenTitle?: Maybe<Scalars['String']['output']>;
-  /** Indhold der linkes til */
   content: NodeUnion;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Vis en automatisk liste med indhold, som refererer til dette brødkrumme element, på denne side. */
   showChildren?: Maybe<Scalars['Boolean']['output']>;
-  /** Sæt hak her, hvis børnebrødkrummen skal udfoldes med eventuelle undertitel */
   showChildrenSubtitles?: Maybe<Scalars['Boolean']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Entity type taxonomy_term. */
 export type TermCategories = TermInterface & {
   __typename?: 'TermCategories';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Entity type taxonomy_term. */
 export type TermInterface = {
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Kategorier af åbningstider, f.eks. "Åbent" eller "Telefontid" */
 export type TermOpeningHoursCategories = TermInterface & {
   __typename?: 'TermOpeningHoursCategories';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Screens to display content on */
 export type TermScreenName = TermInterface & {
   __typename?: 'TermScreenName';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Entity type taxonomy_term. */
 export type TermTags = TermInterface & {
   __typename?: 'TermTags';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** Entity type taxonomy_term. */
 export type TermUnion = TermBreadcrumbStructure | TermCategories | TermOpeningHoursCategories | TermScreenName | TermTags | TermWebformEmailCategories;
 
-/** List of email categories used for sending webform submissions. Each category is associated with an email address. */
 export type TermWebformEmailCategories = TermInterface & {
   __typename?: 'TermWebformEmailCategories';
-  /** Datoen hvor termen senest blev redigeret. */
   changed: DateTime;
-  /** Beskrivelse */
   description: Text;
-  /** Tilføj den e-mail, som henvendelser i denne kategori skal sendes til. */
   email: Scalars['Email']['output'];
-  /** The Universally Unique IDentifier (UUID). */
   id: Scalars['ID']['output'];
-  /** Term sprogkode. */
   langcode: Language;
-  /** Navn */
   name: Scalars['String']['output'];
-  /** Denne terms overordnede termer. */
   parent?: Maybe<TermUnion>;
-  /** Alternativ URL */
   path?: Maybe<Scalars['String']['output']>;
-  /** Publiceret */
   status: Scalars['Boolean']['output'];
-  /** Vægten af denne term i forhold til andre termer. */
   weight: Scalars['Int']['output'];
 };
 
-/** A processed text format defined by the CMS. */
 export type Text = {
   __typename?: 'Text';
-  /** The text format used to process the text value. */
   format?: Maybe<Scalars['String']['output']>;
-  /** The processed text value. */
   processed?: Maybe<Scalars['Html']['output']>;
-  /** The raw text value. */
   value?: Maybe<Scalars['String']['output']>;
 };
 
-/** A processed text format with summary defined by the CMS. */
 export type TextSummary = {
   __typename?: 'TextSummary';
-  /** The text format used to process the text value. */
   format?: Maybe<Scalars['String']['output']>;
-  /** The processed text value. */
   processed?: Maybe<Scalars['Html']['output']>;
-  /** The processed text summary. */
   summary?: Maybe<Scalars['Html']['output']>;
-  /** The raw text value. */
   value?: Maybe<Scalars['String']['output']>;
 };
 
-/** Available translations for content. */
 export type Translation = {
   __typename?: 'Translation';
-  /** The language of the translation. */
   langcode: Language;
-  /** The path to the translated content. */
   path?: Maybe<Scalars['String']['output']>;
-  /** The title of the translation. */
   title?: Maybe<Scalars['String']['output']>;
 };
 
@@ -1900,8 +1360,6 @@ export type UniloginConfigurationPrivate = {
   __typename?: 'UniloginConfigurationPrivate';
   clientSecret?: Maybe<Scalars['String']['output']>;
   pubHubRetailerKeyCode?: Maybe<Scalars['String']['output']>;
-  webServicePassword?: Maybe<Scalars['String']['output']>;
-  webServiceUsername?: Maybe<Scalars['String']['output']>;
 };
 
 export type UniloginConfigurationPublic = {
@@ -1909,104 +1367,66 @@ export type UniloginConfigurationPublic = {
   municipalityId?: Maybe<Scalars['String']['output']>;
 };
 
-/**
- * Unsupported entity or field type in the schema.
- * This entity may not have been enabled in the schema yet and is being referenced via entity reference.
- */
 export type UnsupportedType = {
   __typename?: 'UnsupportedType';
-  /** Unsupported type, always TRUE. */
   unsupported?: Maybe<Scalars['Boolean']['output']>;
 };
 
-/** Views represent collections of curated data from the CMS. */
 export type View = {
-  /** Viewets beskrivelse. */
   description?: Maybe<Scalars['String']['output']>;
-  /** The machine name of the display. */
   display: Scalars['String']['output'];
-  /** The ID of the view. */
   id: Scalars['ID']['output'];
-  /** The human friendly label of the view. */
   label?: Maybe<Scalars['String']['output']>;
-  /** The language code of the view. */
   langcode?: Maybe<Scalars['String']['output']>;
-  /** Information about the page in the view. */
   pageInfo: ViewPageInfo;
-  /** The machine name of the view. */
   view: Scalars['String']['output'];
 };
 
-/** An exposed filter option for the view. */
 export type ViewFilter = {
   __typename?: 'ViewFilter';
-  /** The filter element attributes. */
   attributes: Scalars['UntypedStructuredData']['output'];
-  /** The filter element description. */
   description?: Maybe<Scalars['String']['output']>;
-  /** The filter identifier. */
   id: Scalars['ID']['output'];
-  /** The filter element label. */
   label?: Maybe<Scalars['String']['output']>;
-  /** Whether the filter allows multiple values. */
   multiple: Scalars['Boolean']['output'];
-  /** The filter operator. */
   operator: Scalars['String']['output'];
-  /** The filter element options if any are defined. */
   options?: Maybe<Scalars['UntypedStructuredData']['output']>;
-  /** The filter plugin type. */
   plugin: Scalars['String']['output'];
-  /** Whether the filter is required. */
   required: Scalars['Boolean']['output'];
-  /** The filter element type. */
   type: Scalars['String']['output'];
-  /** The value for the filter. Could be an array for multiple values. */
   value?: Maybe<Scalars['UntypedStructuredData']['output']>;
 };
 
-/** Information about the page in a view. */
 export type ViewPageInfo = {
   __typename?: 'ViewPageInfo';
-  /** Any result offset being used. */
   offset: Scalars['Int']['output'];
-  /** The current page being returned. */
   page: Scalars['Int']['output'];
-  /** How many results per page. */
   pageSize: Scalars['Int']['output'];
-  /** How many results total. */
   total: Scalars['Int']['output'];
 };
 
-/** A reference to an embedded view */
 export type ViewReference = {
   __typename?: 'ViewReference';
-  /** The contextual filter values used. */
   contextualFilter?: Maybe<Array<Scalars['String']['output']>>;
-  /** The machine name of the display. */
   display: Scalars['String']['output'];
-  /** How many results per page. */
   pageSize?: Maybe<Scalars['Int']['output']>;
-  /** The name of the query used to fetch the data, if the view is a GraphQL display. */
   query?: Maybe<Scalars['String']['output']>;
-  /** The machine name of the view. */
   view: Scalars['String']['output'];
 };
 
-/** All available view result types. */
 export type ViewResultUnion = GoCategoriesResult;
 
-/** Et WorkID-felt. */
 export type WorkId = {
   __typename?: 'WorkId';
-  /** Materialetype (fx bog, film, lydbog) */
   material_type?: Maybe<Scalars['String']['output']>;
-  /** Værk-ID */
   work_id?: Maybe<Scalars['String']['output']>;
 };
 
 export type ImageFragmentFragment = { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } };
 
-export type MediaVideotoolFragmentFragment = { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string };
+export type MediaVideotoolFragmentFragment = { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string };
+
+export type MediaVideotoolVerticalFragmentFragment = { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string };
 
 export type NodeGoPageFragment = { __typename: 'NodeGoPage', paragraphs?: Array<
     | { __typename?: 'ParagraphAccordion' }
@@ -2026,6 +1446,7 @@ export type NodeGoPageFragment = { __typename: 'NodeGoPage', paragraphs?: Array<
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
       > }
     | { __typename?: 'ParagraphGoLink' }
     | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2034,6 +1455,7 @@ export type NodeGoPageFragment = { __typename: 'NodeGoPage', paragraphs?: Array<
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
        | null, goLinkParagraph:
         | { __typename?: 'ParagraphAccordion' }
         | { __typename?: 'ParagraphBanner' }
@@ -2055,6 +1477,8 @@ export type NodeGoPageFragment = { __typename: 'NodeGoPage', paragraphs?: Array<
         | { __typename?: 'ParagraphGoVideo' }
         | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
         | { __typename?: 'ParagraphGoVideoBundleManual' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
         | { __typename?: 'ParagraphLinks' }
@@ -2083,21 +1507,40 @@ export type NodeGoPageFragment = { __typename: 'NodeGoPage', paragraphs?: Array<
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
+      , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+    | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+       }
+    | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
       , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
     | { __typename?: 'ParagraphHero' }
     | { __typename?: 'ParagraphLanguageSelector' }
@@ -2126,6 +1569,7 @@ export type NodeGoArticleFragment = { __typename: 'NodeGoArticle', id: string, t
     | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
     | { __typename?: 'MediaVideo' }
     | { __typename?: 'MediaVideotool' }
+    | { __typename?: 'MediaVideotoolVertical' }
    | null, publicationDate: { __typename?: 'DateTime', timestamp: unknown }, paragraphs?: Array<
     | { __typename?: 'ParagraphAccordion' }
     | { __typename?: 'ParagraphBanner' }
@@ -2144,6 +1588,7 @@ export type NodeGoArticleFragment = { __typename: 'NodeGoArticle', id: string, t
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
       > }
     | { __typename?: 'ParagraphGoLink' }
     | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2152,6 +1597,7 @@ export type NodeGoArticleFragment = { __typename: 'NodeGoArticle', id: string, t
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
        | null, goLinkParagraph:
         | { __typename?: 'ParagraphAccordion' }
         | { __typename?: 'ParagraphBanner' }
@@ -2173,6 +1619,8 @@ export type NodeGoArticleFragment = { __typename: 'NodeGoArticle', id: string, t
         | { __typename?: 'ParagraphGoVideo' }
         | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
         | { __typename?: 'ParagraphGoVideoBundleManual' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
         | { __typename?: 'ParagraphLinks' }
@@ -2201,21 +1649,40 @@ export type NodeGoArticleFragment = { __typename: 'NodeGoArticle', id: string, t
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
+      , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+    | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+       }
+    | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
       , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
     | { __typename?: 'ParagraphHero' }
     | { __typename?: 'ParagraphLanguageSelector' }
@@ -2256,6 +1723,7 @@ export type NodeGoCategoryFragment = { __typename: 'NodeGoCategory', id: string,
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
       > }
     | { __typename?: 'ParagraphGoLink' }
     | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2264,6 +1732,7 @@ export type NodeGoCategoryFragment = { __typename: 'NodeGoCategory', id: string,
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
        | null, goLinkParagraph:
         | { __typename?: 'ParagraphAccordion' }
         | { __typename?: 'ParagraphBanner' }
@@ -2285,6 +1754,8 @@ export type NodeGoCategoryFragment = { __typename: 'NodeGoCategory', id: string,
         | { __typename?: 'ParagraphGoVideo' }
         | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
         | { __typename?: 'ParagraphGoVideoBundleManual' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+        | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
         | { __typename?: 'ParagraphLinks' }
@@ -2313,21 +1784,40 @@ export type NodeGoCategoryFragment = { __typename: 'NodeGoCategory', id: string,
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
        }
     | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
         | { __typename?: 'MediaAudio' }
         | { __typename?: 'MediaDocument' }
         | { __typename?: 'MediaImage' }
         | { __typename?: 'MediaVideo' }
-        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+        | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+        | { __typename?: 'MediaVideotoolVertical' }
+      , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+    | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+       }
+    | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+        | { __typename?: 'MediaAudio' }
+        | { __typename?: 'MediaDocument' }
+        | { __typename?: 'MediaImage' }
+        | { __typename?: 'MediaVideo' }
+        | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
       , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
     | { __typename?: 'ParagraphHero' }
     | { __typename?: 'ParagraphLanguageSelector' }
@@ -2355,7 +1845,8 @@ export type GoVideoFragment = { __typename: 'ParagraphGoVideo', id: string, titl
     | { __typename?: 'MediaDocument' }
     | { __typename?: 'MediaImage' }
     | { __typename?: 'MediaVideo' }
-    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+    | { __typename?: 'MediaVideotoolVertical' }
    };
 
 export type GoVideoBundleAutomaticFragment = { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
@@ -2363,7 +1854,8 @@ export type GoVideoBundleAutomaticFragment = { __typename: 'ParagraphGoVideoBund
     | { __typename?: 'MediaDocument' }
     | { __typename?: 'MediaImage' }
     | { __typename?: 'MediaVideo' }
-    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+    | { __typename?: 'MediaVideotoolVertical' }
    };
 
 export type GoVideoBundleManualFragment = { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
@@ -2371,8 +1863,27 @@ export type GoVideoBundleManualFragment = { __typename: 'ParagraphGoVideoBundleM
     | { __typename?: 'MediaDocument' }
     | { __typename?: 'MediaImage' }
     | { __typename?: 'MediaVideo' }
-    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+    | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+    | { __typename?: 'MediaVideotoolVertical' }
   , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null };
+
+export type GoVideoBundleVerticalManualFragment = { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+    | { __typename?: 'MediaAudio' }
+    | { __typename?: 'MediaDocument' }
+    | { __typename?: 'MediaImage' }
+    | { __typename?: 'MediaVideo' }
+    | { __typename?: 'MediaVideotool' }
+    | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+  , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null };
+
+export type GoVideoBundleVerticalAutomaticFragment = { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+    | { __typename?: 'MediaAudio' }
+    | { __typename?: 'MediaDocument' }
+    | { __typename?: 'MediaImage' }
+    | { __typename?: 'MediaVideo' }
+    | { __typename?: 'MediaVideotool' }
+    | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+   };
 
 export type GoMaterialSliderAutomaticFragment = { __typename: 'ParagraphGoMaterialSliderAutomatic', sliderAmountOfMaterials: number, titleOptional: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null };
 
@@ -2384,6 +1895,7 @@ export type GoLinkboxFragment = { __typename: 'ParagraphGoLinkbox', title: strin
     | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
     | { __typename?: 'MediaVideo' }
     | { __typename?: 'MediaVideotool' }
+    | { __typename?: 'MediaVideotoolVertical' }
    | null, goLinkParagraph:
     | { __typename?: 'ParagraphAccordion' }
     | { __typename?: 'ParagraphBanner' }
@@ -2405,6 +1917,8 @@ export type GoLinkboxFragment = { __typename: 'ParagraphGoLinkbox', title: strin
     | { __typename?: 'ParagraphGoVideo' }
     | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
     | { __typename?: 'ParagraphGoVideoBundleManual' }
+    | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+    | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
     | { __typename?: 'ParagraphHero' }
     | { __typename?: 'ParagraphLanguageSelector' }
     | { __typename?: 'ParagraphLinks' }
@@ -2434,6 +1948,7 @@ export type GoImagesFragment = { __typename: 'ParagraphGoImages', goImages: Arra
     | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
     | { __typename?: 'MediaVideo' }
     | { __typename?: 'MediaVideotool' }
+    | { __typename?: 'MediaVideotoolVertical' }
   > };
 
 export type RouteRedirectFragment = { __typename: 'RouteRedirect', url: string };
@@ -2452,6 +1967,7 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
            | null, publicationDate: { __typename?: 'DateTime', timestamp: unknown }, paragraphs?: Array<
             | { __typename?: 'ParagraphAccordion' }
             | { __typename?: 'ParagraphBanner' }
@@ -2470,6 +1986,7 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
               > }
             | { __typename?: 'ParagraphGoLink' }
             | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2478,6 +1995,7 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
                | null, goLinkParagraph:
                 | { __typename?: 'ParagraphAccordion' }
                 | { __typename?: 'ParagraphBanner' }
@@ -2499,6 +2017,8 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
                 | { __typename?: 'ParagraphGoVideo' }
                 | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
                 | { __typename?: 'ParagraphGoVideoBundleManual' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
                 | { __typename?: 'ParagraphHero' }
                 | { __typename?: 'ParagraphLanguageSelector' }
                 | { __typename?: 'ParagraphLinks' }
@@ -2527,21 +2047,40 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
+              , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+            | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+               }
+            | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
               , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
@@ -2582,6 +2121,7 @@ export type GetCategoriesQuery = { go: { cacheTags: string[] } } & { __typename?
           | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
           | { __typename?: 'MediaVideo' }
           | { __typename?: 'MediaVideotool' }
+          | { __typename?: 'MediaVideotoolVertical' }
         , changed: { __typename?: 'DateTime', timestamp: unknown } }
       | { __typename?: 'NodeGoPage' }
       | { __typename?: 'NodePage' }
@@ -2614,6 +2154,7 @@ export type GetCategoryPageByPathQuery = { go: { cacheTags: string[] } } & { __t
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
               > }
             | { __typename?: 'ParagraphGoLink' }
             | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2622,6 +2163,7 @@ export type GetCategoryPageByPathQuery = { go: { cacheTags: string[] } } & { __t
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
                | null, goLinkParagraph:
                 | { __typename?: 'ParagraphAccordion' }
                 | { __typename?: 'ParagraphBanner' }
@@ -2643,6 +2185,8 @@ export type GetCategoryPageByPathQuery = { go: { cacheTags: string[] } } & { __t
                 | { __typename?: 'ParagraphGoVideo' }
                 | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
                 | { __typename?: 'ParagraphGoVideoBundleManual' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
                 | { __typename?: 'ParagraphHero' }
                 | { __typename?: 'ParagraphLanguageSelector' }
                 | { __typename?: 'ParagraphLinks' }
@@ -2671,21 +2215,40 @@ export type GetCategoryPageByPathQuery = { go: { cacheTags: string[] } } & { __t
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
+              , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+            | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+               }
+            | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
               , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
@@ -2716,12 +2279,12 @@ export type GetCategoryPageByPathQuery = { go: { cacheTags: string[] } } & { __t
 export type GetDplCmsPrivateConfigurationQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDplCmsPrivateConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', private?: { __typename?: 'GoConfigurationPrivate', unilogin?: { __typename?: 'UniloginConfigurationPrivate', clientSecret?: string | null, pubHubRetailerKeyCode?: string | null, webServicePassword?: string | null, webServiceUsername?: string | null } | null } | null } | null };
+export type GetDplCmsPrivateConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', private?: { __typename?: 'GoConfigurationPrivate', unilogin?: { __typename?: 'UniloginConfigurationPrivate', clientSecret?: string | null, pubHubRetailerKeyCode?: string | null } | null } | null } | null };
 
 export type GetDplCmsPublicConfigurationQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDplCmsPublicConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', public?: { __typename?: 'GoConfigurationPublic', libraryInfo?: { __typename?: 'GoLibraryInfo', name?: string | null } | null, loginUrls?: { __typename?: 'GoLoginUrls', adgangsplatformen?: string | null } | null, logoutUrls?: { __typename?: 'GoLogoutUrls', adgangsplatformen?: string | null } | null, unilogin?: { __typename?: 'UniloginConfigurationPublic', municipalityId?: string | null } | null } | null } | null };
+export type GetDplCmsPublicConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', public?: { __typename?: 'GoConfigurationPublic', libraryInfo?: { __typename?: 'GoLibraryInfo', name?: string | null } | null, loginUrls?: { __typename?: 'GoLoginUrls', adgangsplatformen?: string | null } | null, logoutUrls?: { __typename?: 'GoLogoutUrls', adgangsplatformen?: string | null } | null, mapp?: { __typename?: 'MappTracking', domain?: string | null, id?: string | null } | null, unilogin?: { __typename?: 'UniloginConfigurationPublic', municipalityId?: string | null } | null } | null } | null };
 
 export type GetPageByPathQueryVariables = Exact<{
   path: Scalars['String']['input'];
@@ -2751,6 +2314,7 @@ export type GetPageByPathQuery = { go: { cacheTags: string[] } } & { __typename?
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
               > }
             | { __typename?: 'ParagraphGoLink' }
             | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2759,6 +2323,7 @@ export type GetPageByPathQuery = { go: { cacheTags: string[] } } & { __typename?
                 | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
                 | { __typename?: 'MediaVideo' }
                 | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical' }
                | null, goLinkParagraph:
                 | { __typename?: 'ParagraphAccordion' }
                 | { __typename?: 'ParagraphBanner' }
@@ -2780,6 +2345,8 @@ export type GetPageByPathQuery = { go: { cacheTags: string[] } } & { __typename?
                 | { __typename?: 'ParagraphGoVideo' }
                 | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
                 | { __typename?: 'ParagraphGoVideoBundleManual' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+                | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
                 | { __typename?: 'ParagraphHero' }
                 | { __typename?: 'ParagraphLanguageSelector' }
                 | { __typename?: 'ParagraphLinks' }
@@ -2808,21 +2375,40 @@ export type GetPageByPathQuery = { go: { cacheTags: string[] } } & { __typename?
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
                }
             | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
                 | { __typename?: 'MediaAudio' }
                 | { __typename?: 'MediaDocument' }
                 | { __typename?: 'MediaImage' }
                 | { __typename?: 'MediaVideo' }
-                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+                | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+                | { __typename?: 'MediaVideotoolVertical' }
+              , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+            | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+               }
+            | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+                | { __typename?: 'MediaAudio' }
+                | { __typename?: 'MediaDocument' }
+                | { __typename?: 'MediaImage' }
+                | { __typename?: 'MediaVideo' }
+                | { __typename?: 'MediaVideotool' }
+                | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
               , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
@@ -2863,6 +2449,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
         | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
         | { __typename?: 'MediaVideo' }
         | { __typename?: 'MediaVideotool' }
+        | { __typename?: 'MediaVideotoolVertical' }
        | null, publicationDate: { __typename?: 'DateTime', timestamp: unknown }, paragraphs?: Array<
         | { __typename?: 'ParagraphAccordion' }
         | { __typename?: 'ParagraphBanner' }
@@ -2881,6 +2468,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
           > }
         | { __typename?: 'ParagraphGoLink' }
         | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -2889,6 +2477,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
            | null, goLinkParagraph:
             | { __typename?: 'ParagraphAccordion' }
             | { __typename?: 'ParagraphBanner' }
@@ -2910,6 +2499,8 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'ParagraphGoVideo' }
             | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
             | { __typename?: 'ParagraphGoVideoBundleManual' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
             | { __typename?: 'ParagraphLinks' }
@@ -2938,21 +2529,40 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
+          , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+        | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+           }
+        | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
           , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
@@ -2992,6 +2602,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
           > }
         | { __typename?: 'ParagraphGoLink' }
         | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -3000,6 +2611,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
            | null, goLinkParagraph:
             | { __typename?: 'ParagraphAccordion' }
             | { __typename?: 'ParagraphBanner' }
@@ -3021,6 +2633,8 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'ParagraphGoVideo' }
             | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
             | { __typename?: 'ParagraphGoVideoBundleManual' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
             | { __typename?: 'ParagraphLinks' }
@@ -3049,21 +2663,40 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
+          , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+        | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+           }
+        | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
           , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
@@ -3103,6 +2736,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
           > }
         | { __typename?: 'ParagraphGoLink' }
         | { __typename: 'ParagraphGoLinkbox', title: string, goColor?: string | null, goDescription: string, goImage?:
@@ -3111,6 +2745,7 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaImage', name: string, byline?: string | null, mediaImage: { __typename?: 'Image', url: string, alt?: string | null, height: number, width: number, mime?: string | null, size: number, title?: string | null } }
             | { __typename?: 'MediaVideo' }
             | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical' }
            | null, goLinkParagraph:
             | { __typename?: 'ParagraphAccordion' }
             | { __typename?: 'ParagraphBanner' }
@@ -3132,6 +2767,8 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'ParagraphGoVideo' }
             | { __typename?: 'ParagraphGoVideoBundleAutomatic' }
             | { __typename?: 'ParagraphGoVideoBundleManual' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalAuto' }
+            | { __typename?: 'ParagraphGoVideoBundleVerticalManual' }
             | { __typename?: 'ParagraphHero' }
             | { __typename?: 'ParagraphLanguageSelector' }
             | { __typename?: 'ParagraphLinks' }
@@ -3160,21 +2797,40 @@ export type GetPreviewPageByIddQuery = { go: { cacheTags: string[] } } & { __typ
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleAutomatic', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
            }
         | { __typename: 'ParagraphGoVideoBundleManual', id: string, goVideoTitle: string, embedVideo:
             | { __typename?: 'MediaAudio' }
             | { __typename?: 'MediaDocument' }
             | { __typename?: 'MediaImage' }
             | { __typename?: 'MediaVideo' }
-            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string }
+            | { __typename?: 'MediaVideotool', id: string, name: string, mediaVideotool: string, thumbnail: string }
+            | { __typename?: 'MediaVideotoolVertical' }
+          , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
+        | { __typename: 'ParagraphGoVideoBundleVerticalAuto', goVideoTitle: string, videoAmountOfMaterials: number, id: string, cqlSearch?: { __typename?: 'CQLSearch', value?: string | null } | null, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
+           }
+        | { __typename: 'ParagraphGoVideoBundleVerticalManual', id: string, goVideoTitle: string, embedVideo:
+            | { __typename?: 'MediaAudio' }
+            | { __typename?: 'MediaDocument' }
+            | { __typename?: 'MediaImage' }
+            | { __typename?: 'MediaVideo' }
+            | { __typename?: 'MediaVideotool' }
+            | { __typename?: 'MediaVideotoolVertical', id: string, name: string, mediaVideotoolVertical: string, thumbnail: string }
           , videoBundleWorkIds?: Array<{ __typename?: 'WorkId', material_type?: string | null, work_id?: string | null }> | null }
         | { __typename?: 'ParagraphHero' }
         | { __typename?: 'ParagraphLanguageSelector' }
@@ -3225,6 +2881,7 @@ export const MediaVideotoolFragmentFragmentDoc = `
   id
   name
   mediaVideotool
+  thumbnail
 }
     `;
 export const GoVideoFragmentDoc = `
@@ -3266,6 +2923,42 @@ export const GoVideoBundleManualFragmentDoc = `
     material_type
     work_id
   }
+}
+    `;
+export const MediaVideotoolVerticalFragmentFragmentDoc = `
+    fragment mediaVideotoolVerticalFragment on MediaVideotoolVertical {
+  id
+  name
+  mediaVideotoolVertical
+  thumbnail
+}
+    `;
+export const GoVideoBundleVerticalManualFragmentDoc = `
+    fragment goVideoBundleVerticalManual on ParagraphGoVideoBundleVerticalManual {
+  __typename
+  id
+  goVideoTitle
+  embedVideo {
+    ...mediaVideotoolVerticalFragment
+  }
+  videoBundleWorkIds {
+    material_type
+    work_id
+  }
+}
+    `;
+export const GoVideoBundleVerticalAutomaticFragmentDoc = `
+    fragment goVideoBundleVerticalAutomatic on ParagraphGoVideoBundleVerticalAuto {
+  __typename
+  cqlSearch {
+    value
+  }
+  goVideoTitle
+  embedVideo {
+    ...mediaVideotoolVerticalFragment
+  }
+  videoAmountOfMaterials
+  id
 }
     `;
 export const GoMaterialSliderAutomaticFragmentDoc = `
@@ -3347,6 +3040,8 @@ export const NodeGoPageFragmentDoc = `
     ...goVideo
     ...goVideoBundleAutomatic
     ...goVideoBundleManual
+    ...goVideoBundleVerticalManual
+    ...goVideoBundleVerticalAutomatic
     ...goMaterialSliderAutomatic
     ...goMaterialSliderManual
     ...goLinkbox
@@ -3371,6 +3066,8 @@ export const NodeGoArticleFragmentDoc = `
     ...goVideo
     ...goVideoBundleAutomatic
     ...goVideoBundleManual
+    ...goVideoBundleVerticalManual
+    ...goVideoBundleVerticalAutomatic
     ...goMaterialSliderAutomatic
     ...goMaterialSliderManual
     ...goLinkbox
@@ -3389,6 +3086,8 @@ export const NodeGoCategoryFragmentDoc = `
     ...goVideo
     ...goVideoBundleAutomatic
     ...goVideoBundleManual
+    ...goVideoBundleVerticalManual
+    ...goVideoBundleVerticalAutomatic
     ...goMaterialSliderAutomatic
     ...goMaterialSliderManual
     ...goLinkbox
@@ -3426,6 +3125,8 @@ export const GetArticleByPathDocument = `
             ...goVideo
             ...goVideoBundleAutomatic
             ...goVideoBundleManual
+            ...goVideoBundleVerticalManual
+            ...goVideoBundleVerticalAutomatic
             ...goMaterialSliderAutomatic
             ...goMaterialSliderManual
             ...goLinkbox
@@ -3443,6 +3144,9 @@ ${GoVideoFragmentDoc}
 ${MediaVideotoolFragmentFragmentDoc}
 ${GoVideoBundleAutomaticFragmentDoc}
 ${GoVideoBundleManualFragmentDoc}
+${GoVideoBundleVerticalManualFragmentDoc}
+${MediaVideotoolVerticalFragmentFragmentDoc}
+${GoVideoBundleVerticalAutomaticFragmentDoc}
 ${GoMaterialSliderAutomaticFragmentDoc}
 ${GoMaterialSliderManualFragmentDoc}
 ${GoLinkboxFragmentDoc}
@@ -3578,6 +3282,9 @@ ${GoVideoFragmentDoc}
 ${MediaVideotoolFragmentFragmentDoc}
 ${GoVideoBundleAutomaticFragmentDoc}
 ${GoVideoBundleManualFragmentDoc}
+${GoVideoBundleVerticalManualFragmentDoc}
+${MediaVideotoolVerticalFragmentFragmentDoc}
+${GoVideoBundleVerticalAutomaticFragmentDoc}
 ${GoMaterialSliderAutomaticFragmentDoc}
 ${GoMaterialSliderManualFragmentDoc}
 ${GoLinkboxFragmentDoc}
@@ -3631,8 +3338,6 @@ export const GetDplCmsPrivateConfigurationDocument = `
       unilogin {
         clientSecret
         pubHubRetailerKeyCode
-        webServicePassword
-        webServiceUsername
       }
     }
   }
@@ -3690,6 +3395,10 @@ export const GetDplCmsPublicConfigurationDocument = `
       }
       logoutUrls {
         adgangsplatformen
+      }
+      mapp {
+        domain
+        id
       }
       unilogin {
         municipalityId
@@ -3752,6 +3461,8 @@ export const GetPageByPathDocument = `
             ...goVideo
             ...goVideoBundleAutomatic
             ...goVideoBundleManual
+            ...goVideoBundleVerticalManual
+            ...goVideoBundleVerticalAutomatic
             ...goMaterialSliderAutomatic
             ...goMaterialSliderManual
             ...goLinkbox
@@ -3768,6 +3479,9 @@ ${GoVideoFragmentDoc}
 ${MediaVideotoolFragmentFragmentDoc}
 ${GoVideoBundleAutomaticFragmentDoc}
 ${GoVideoBundleManualFragmentDoc}
+${GoVideoBundleVerticalManualFragmentDoc}
+${MediaVideotoolVerticalFragmentFragmentDoc}
+${GoVideoBundleVerticalAutomaticFragmentDoc}
 ${GoMaterialSliderAutomaticFragmentDoc}
 ${GoMaterialSliderManualFragmentDoc}
 ${GoLinkboxFragmentDoc}
@@ -3829,6 +3543,9 @@ ${GoVideoFragmentDoc}
 ${MediaVideotoolFragmentFragmentDoc}
 ${GoVideoBundleAutomaticFragmentDoc}
 ${GoVideoBundleManualFragmentDoc}
+${GoVideoBundleVerticalManualFragmentDoc}
+${MediaVideotoolVerticalFragmentFragmentDoc}
+${GoVideoBundleVerticalAutomaticFragmentDoc}
 ${GoMaterialSliderAutomaticFragmentDoc}
 ${GoMaterialSliderManualFragmentDoc}
 ${GoLinkboxFragmentDoc}
@@ -4104,12 +3821,15 @@ export const operationNames = {
   Fragment: {
     imageFragment: 'imageFragment',
     mediaVideotoolFragment: 'mediaVideotoolFragment',
+    mediaVideotoolVerticalFragment: 'mediaVideotoolVerticalFragment',
     nodeGoPage: 'nodeGoPage',
     nodeGoArticle: 'nodeGoArticle',
     nodeGoCategory: 'nodeGoCategory',
     goVideo: 'goVideo',
     goVideoBundleAutomatic: 'goVideoBundleAutomatic',
     goVideoBundleManual: 'goVideoBundleManual',
+    goVideoBundleVerticalManual: 'goVideoBundleVerticalManual',
+    goVideoBundleVerticalAutomatic: 'goVideoBundleVerticalAutomatic',
     goMaterialSliderAutomatic: 'goMaterialSliderAutomatic',
     goMaterialSliderManual: 'goMaterialSliderManual',
     goLinkbox: 'goLinkbox',

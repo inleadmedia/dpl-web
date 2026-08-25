@@ -9,11 +9,11 @@ on:
       - release/*
     paths:
       - 'design-system/**'
-      - '.github/workflows/design-system-*.yml'
+      - '.github/workflows/design-system-chromatic.yml'
   pull_request:
     paths:
       - 'design-system/**'
-      - '.github/workflows/design-system-*.yml'
+      - '.github/workflows/design-system-chromatic.yml'
     types: [ready_for_review, opened, synchronize]
 
 # Detect if this action is already running, and cancel it.
@@ -30,20 +30,18 @@ jobs:
         working-directory: design-system
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/common-setup-js
         with:
-          node-version-file: 'design-system/.nvmrc'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: yarn install --frozen-lockfile
-
-      - run: yarn css:build
+      - run: pnpm run css:build
 
       - name: Publish to Chromatic
-        uses: chromaui/action@v16
+        uses: chromaui/action@v18
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN_DESIGN_SYSTEM }}

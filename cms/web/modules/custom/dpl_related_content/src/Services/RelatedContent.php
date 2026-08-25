@@ -95,6 +95,14 @@ class RelatedContent {
   private array $branches = [];
 
   /**
+   * Audience term IDs, to look for.
+   *
+   * @var int[]
+   *  List of audience IDs
+   */
+  private array $audiences = [];
+
+  /**
    * What the results are based on - helps with debugging.
    *
    * The result basis is shown in the frontend, in a data-attribute as part
@@ -209,17 +217,20 @@ class RelatedContent {
     $event_ids = [];
     $node_ids = [];
 
-    if (empty($this->tags) && empty($this->categories) && !$this->broadSearch) {
+    if (empty($this->tags) && empty($this->categories) && empty($this->audiences) && !$this->broadSearch) {
       return [];
     }
 
     if ($this->outerAndConditions || $this->broadSearch) {
-      $node_ids = $this->getNodeIds($this->tags, $this->categories);
-      $event_ids = $this->getEventInstanceIds($this->tags, $this->categories);
-      $this->resultBasis = ['tags', 'categories'];
+      $node_ids = $this->getNodeIds($this->tags, $this->categories, $this->audiences);
+      $event_ids = $this->getEventInstanceIds($this->tags, $this->categories, $this->audiences);
+      $this->resultBasis = ['tags', 'categories', 'audiences'];
     }
     else {
-      // First, let's look up related content, based only on tags.
+      // First, let's look up related content, based only on tags. We ignore
+      // audience in this conditional branch as it doesn't really make sense
+      // without re-thinking the algorithm. In practice it's only the "Related
+      // content" block that uses this logic.
       if (!empty($this->tags)) {
         $node_ids = $this->getNodeIds($this->tags);
         $event_ids = $this->getEventInstanceIds($this->tags);
@@ -300,7 +311,9 @@ class RelatedContent {
       }
 
       if ($i < $event_length) {
-        $content[] = $event_view_builder->view($events[$i], $this->contentViewMode);
+        // We place it in a 'content', to match how views are built.
+        // That makes it easier for us to do similar preprocesses.
+        $content[]['content'] = $event_view_builder->view($events[$i], $this->contentViewMode);
       }
 
       if (count($content) >= $this->maxItems) {
@@ -308,7 +321,9 @@ class RelatedContent {
       }
 
       if ($i < $node_length) {
-        $content[] = $node_view_builder->view($nodes[$i], $this->contentViewMode);
+        // We place it in a 'content', to match how views are built.
+        // That makes it easier for us to do similar preprocesses.
+        $content[]['content'] = $node_view_builder->view($nodes[$i], $this->contentViewMode);
       }
     }
 
@@ -373,11 +388,17 @@ class RelatedContent {
    *   Tag term IDs, to look for.
    * @param array<int> $categories
    *   Category term IDs, to look for.
+   * @param array<int> $audiences
+   *   Audience term IDs, to look for.
    *
    * @return array<int|string>
    *   Matching node IDs
    */
-  private function getNodeIds(array $tags = [], array $categories = []): array {
+  private function getNodeIds(
+    array $tags = [],
+    array $categories = [],
+    array $audiences = [],
+  ): array {
     if (empty($this->nodeBundles)) {
       return [];
     }
@@ -405,6 +426,7 @@ class RelatedContent {
     $filters = [
       'field_tags' => $tags,
       'field_categories' => $categories,
+      'field_audiences' => $audiences,
     ];
 
     $this->addFilterConditions($query, $filters);
@@ -421,11 +443,17 @@ class RelatedContent {
    *   Tag term IDs, to look for.
    * @param array<int> $categories
    *   Category term IDs, to look for.
+   * @param array<int> $audiences
+   *   Audience term IDs, to look for.
    *
    * @return array<int|string>
    *   Matching Event Instance IDs
    */
-  private function getEventInstanceIds(array $tags = [], array $categories = []): array {
+  private function getEventInstanceIds(
+    array $tags = [],
+    array $categories = [],
+    array $audiences = [],
+  ): array {
     if (!$this->includeEvents) {
       return [];
     }
@@ -448,10 +476,10 @@ class RelatedContent {
     $filters = [
       'field_tags' => $tags,
       'field_categories' => $categories,
+      'field_audiences' => $audiences,
     ];
 
     $this->addFilterConditions($es_query, $filters);
-
     $es_ids = $es_query->execute();
 
     // If we found no eventseries that match, we cannot look up relevant
@@ -491,9 +519,11 @@ class RelatedContent {
     // so we will limit the query to this.
     $query->range(0, $this->maxItems);
 
-    // Add a GROUP BY clause to make results distinct by eventseries_id.
-    // E.g. - don't show eventinstances that look identical.
-    $query->groupBy('eid.eventseries_id');
+    if ($this->listStyle !== RelatedContentListStyle::EventListStacked) {
+      // Add a GROUP BY clause to make results distinct by eventseries_id.
+      // E.g. - don't show eventinstances that look identical.
+      $query->groupBy('eid.eventseries_id');
+    }
 
     // Execute the query and return ids.
     $result = $query->execute();
@@ -543,6 +573,20 @@ class RelatedContent {
   }
 
   /**
+   * Setter for audiences.
+   *
+   * @param int[]|string[]|\Drupal\taxonomy\TermInterface[] $audiences
+   *   The tags to set.
+   *
+   * @return int[]
+   *   The tag IDs.
+   */
+  public function setAudiences(array $audiences): array {
+    $this->audiences = $this->getReferenceIds($audiences);
+    return $this->audiences;
+  }
+
+  /**
    * Setter for list style, and the auto-effects on maxItems and item view mode.
    */
   public function setListStyle(RelatedContentListStyle $list_style): RelatedContentListStyle {
@@ -562,6 +606,13 @@ class RelatedContent {
 
     if ($this->listStyle == RelatedContentListStyle::EventList) {
       $this->contentViewMode = 'list_teaser';
+      $this->minItems = 1;
+      $this->maxItems = 12;
+    }
+
+    if ($this->listStyle === RelatedContentListStyle::EventListStacked) {
+      // The sub-events are being handled by a preprocess function in dpl_event.
+      $this->contentViewMode = 'list_teaser_stacked_parent';
       $this->minItems = 1;
       $this->maxItems = 12;
     }

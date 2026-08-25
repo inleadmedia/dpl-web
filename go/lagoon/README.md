@@ -1,16 +1,21 @@
 # Dockerfiles
 
-This directory contains the Dockerfiles that are used during the deployment
-of branch and PR environments for DPL CMS and for building source releases.
+This directory contains the Dockerfile and startup script for the Go (Next.js)
+application deployed via Lagoon.
 
-the cli, nginx and php dockerfiles are used to generate the container-images
-that Lagoon uses in PR/Branch environments. These files mirrors the files used
-for production deployments in
-<https://github.com/danskernesdigitalebibliotek/dpl-platform/blob/main/infrastructure/dpladm/env-repo-template/>
-. Should you need to make modifications to these files, make sure to also make
-the changes to the production versions.
+The build is split in two, so the expensive dependency install and the
+environment-independent compile happen once per commit rather than once per
+environment. The file names line up with the `build:stage1` / `build:stage2`
+scripts in `go/package.json` that they each run:
 
-`source.dockerfile` is used build and store a release of dpl-cms. For PR/branch
-environments the file is used as the first step in building the Lagoon images.
-The same file is used by the Github action that builds tagged releases of
-dpl-cms.
+- `stage1.dockerfile` installs dependencies from the repo root context and runs
+  `build:stage1` (`next build --experimental-build-mode=compile`). CI publishes
+  the result to `ghcr.io/danskernesdigitalebibliotek/dpl-web-go:<tag>` — see
+  `.github/workflows/go-build-base-image.yml`.
+- `stage2.dockerfile` is what Lagoon builds per environment. It starts `FROM`
+  the stage-1 image above, runs `build:stage2`
+  (`next build --experimental-build-mode=generate`) with the environment's build
+  args, and produces the production runtime image. It is wired up in
+  `docker-compose.lagoon.yml`.
+
+`start.sh` sets runtime environment variables and starts the Next.js server.

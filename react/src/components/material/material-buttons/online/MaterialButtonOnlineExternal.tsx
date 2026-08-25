@@ -10,6 +10,7 @@ import { ButtonSize } from "../../../../core/utils/types/button";
 import { Manifestation } from "../../../../core/utils/types/entities";
 import { ManifestationMaterialType } from "../../../../core/utils/types/material-type";
 import LinkButton from "../../../Buttons/LinkButton";
+import MaterialButtonLoading from "../generic/MaterialButtonLoading";
 
 export interface MaterialButtonOnlineExternalProps {
   externalUrl: string;
@@ -54,7 +55,7 @@ const MaterialButtonOnlineExternal: FC<MaterialButtonOnlineExternalProps> = ({
   const t = useText();
   const { data, error } = useProxyUrlGET(
     { url: externalUrl },
-    { enabled: urlWasTranslated === null && externalUrl.length > 0 }
+    { query: { enabled: urlWasTranslated === null && externalUrl.length > 0 } }
   );
 
   // Update translatedUrl and reset urlWasTranslated when externalUrl changes
@@ -85,6 +86,10 @@ const MaterialButtonOnlineExternal: FC<MaterialButtonOnlineExternalProps> = ({
         return t("seeOnlineText");
     }
   };
+
+  if (urlWasTranslated === null && !error) {
+    return <MaterialButtonLoading size={size || "large"} />;
+  }
 
   return (
     <LinkButton

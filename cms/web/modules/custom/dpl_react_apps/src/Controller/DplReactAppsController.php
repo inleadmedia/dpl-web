@@ -6,6 +6,9 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\dpl_fbi\Fbi;
 use Drupal\dpl_react_apps\Services\BranchService;
+use Drupal\dpl_react_apps\SharedTranslations\OnlineMaterialTexts;
+use Drupal\dpl_react_apps\SharedTranslations\OpenOrderTexts;
+use Drupal\dpl_react_apps\SharedTranslations\PlayerModalTexts;
 use Drupal\dpl_fbi\FirstAccessionDateOperator;
 use Drupal\dpl_fbs\Form\FbsSettingsForm;
 use Drupal\dpl_instant_loan\DplInstantLoanSettings;
@@ -78,8 +81,8 @@ class DplReactAppsController extends ControllerBase {
         if (!empty($location)) {
           $branch_output['location'] = [
             'city' => $location->getPostalName(),
-            'value' => $location->getValue(),
-            'address' => $location->getValue(),
+            'value' => $location->getString(),
+            'address' => $location->getString(),
             'lat' => $location->getLatitude(),
             'lng' => $location->getLongitude(),
           ];
@@ -615,19 +618,8 @@ class DplReactAppsController extends ControllerBase {
       'online-internal-success-manual-borrowing-notice-text' => $this->t('Please note that the loan does not happen automatically. You must manually borrow the digital material yourself within 48 hours', [], ['context' => 'Work Page']),
       'online-limit-month-audiobook-info-text' => $this->t('You have borrowed @count out of @limit possible audio-books this month', [], ['context' => 'Work Page']),
       'online-limit-month-ebook-info-text' => $this->t('You have borrowed @count out of @limit possible e-books this month', [], ['context' => 'Work Page']),
-      'online-material-player-text' => $this->t('Listen to @materialType', [], ['context' => 'Work Page']),
-      'online-material-reader-text' => $this->t('Read @materialType', [], ['context' => 'Work Page']),
       'online-limit-month-info-text' => $this->t('You have borrowed @count out of @limit possible e-books this month', [], ['context' => 'Work Page']),
       'online-material-teaser-text' => $this->t('Try @materialType', [], ['context' => 'Work Page']),
-      'open-order-not-owned-ill-loc-text' => $this->t('Your material has been ordered from another library', [], ['context' => 'Work Page']),
-      'open-order-owned-own-catalogue-text' => $this->t('Item available, order through the librarys catalogue', [], ['context' => 'Work Page']),
-      'open-order-owned-wrong-mediumtype-text' => $this->t('Item available but medium type not accepted', [], ['context' => 'Work Page']),
-      'open-order-response-title-text' => $this->t('Order from another library:', [], ['context' => 'Work Page']),
-      'open-order-service-unavailable-text' => $this->t('Service is currently unavailable', [], ['context' => 'Work Page']),
-      'open-order-status-owned-accepted-text' => $this->t('Your order is accepted', [], ['context' => 'Work Page']),
-      'open-order-unknown-error-text' => $this->t('An unknown error occurred', [], ['context' => 'Work Page']),
-      'open-order-unknown-pickupagency-text' => $this->t('Specified pickup agency not found', [], ['context' => 'Work Page']),
-      'open-order-unknown-user-text' => $this->t('User not found', [], ['context' => 'Work Page']),
       'order-digital-copy-button-loading-text' => $this->t('Order digital copy button loading text', [], ['context' => 'Work Page']),
       'order-digital-copy-button-text' => $this->t('Order digital copy', [], ['context' => 'Work Page']),
       'order-digital-copy-description-text' => $this->t('Order digital copy description text', [], ['context' => 'Work Page']),
@@ -643,9 +635,7 @@ class DplReactAppsController extends ControllerBase {
       'order-digital-copy-success-title-text' => $this->t('Digital copy ordered', [], ['context' => 'Work Page']),
       'order-digital-copy-title-text' => $this->t('Order digital copy', [], ['context' => 'Work Page']),
       'original-title-text' => $this->t('Original title', [], ['context' => 'Work Page']),
-      'periodical-select-edition-text' => $this->t('Edition', [], ['context' => 'Work Page']),
-      'player-modal-close-button-text' => $this->t('Close', [], ['context' => 'Work Page']),
-      'player-modal-description-text' => $this->t('Modal for player', [], ['context' => 'Work Page']),
+      'periodical-select-edition-text' => $this->t('Edition', [], ['context' => 'Work Page - periodical']),
       'periodical-select-year-text' => $this->t('Year', [], ['context' => 'Work Page']),
       'periodikum-select-week-text' => $this->t('Week', [], ['context' => 'Work Page']),
       'periodikum-select-year-text' => $this->t('Year', [], ['context' => 'Work Page']),
@@ -681,7 +671,7 @@ class DplReactAppsController extends ControllerBase {
       'reservable-from-another-library-missing-email-text' => $this->t('You need to add an email address to reserve from another library.', [], ['context' => 'Work Page']),
       'reservable-from-another-library-extra-info-text' => $this->t('NOTE! This material is ordered from another library. Therefore, it may take a few days before it appears on your list of reservations.', [], ['context' => 'Work Page']),
       'reservable-from-another-library-text' => $this->t('Ordered from another library', [], ['context' => 'Work Page']),
-      'reservation-errors-description-text' => $this->t('Year', [], ['context' => 'Work Page']),
+      'reservation-errors-description-text' => $this->t("We're sorry. Unfortunately, there has been an error. Try again, please.", [], ['context' => 'Work Page']),
       'reservation-errors-title-text' => $this->t('Reservation error', [], ['context' => 'Work Page']),
       'reservation-modal-close-modal-aria-label-text' => $this->t('Close reservation modal', [], ['context' => 'Work Page']),
       'reservation-modal-screen-reader-modal-description-text' => $this->t('modal for reservation', [], ['context' => 'Work Page']),
@@ -718,7 +708,10 @@ class DplReactAppsController extends ControllerBase {
       'copy-link-text' => $this->t('Copy link', [], ['context' => 'Work Page']),
       'copy-link-aria-label-text' => $this->t('Copy link to this page', [], ['context' => 'Work Page']),
       // Add external API base urls.
-    ] + self::externalApiBaseUrls();
+    ] + self::externalApiBaseUrls()
+      + PlayerModalTexts::texts()
+      + OnlineMaterialTexts::texts()
+      + OpenOrderTexts::texts();
 
     $app = [
       '#theme' => 'dpl_react_app',

@@ -1,0 +1,26 @@
+uuid: 05e9a92d-9c95-4a73-a59e-223dc1ef0c39
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+_core:
+  default_config_hash: gxo2TwyXLl0K6u4RNqtix3F6qz3RmZZb7La4Tlkj5l0
+id: e_resource_node_path
+label: 'E-resource node path'
+type: 'canonical_entities:node'
+pattern: 'e-material/[node:title]'
+selection_criteria:
+  355d1a42-3886-45ee-9c8a-be9beb84d515:
+    id: 'entity_bundle:node'
+    negate: false
+    uuid: 355d1a42-3886-45ee-9c8a-be9beb84d515
+    context_mapping:
+      node: node
+    bundles:
+      e_resource: e_resource
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

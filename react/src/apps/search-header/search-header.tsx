@@ -123,7 +123,7 @@ const SearchHeader: React.FC = () => {
     if (
       hasUserTyped &&
       suggestItems.length > 0 &&
-      (status === "success" || status === "loading")
+      (status === "success" || status === "pending")
     ) {
       setIsAutosuggestOpen(true);
     } else {

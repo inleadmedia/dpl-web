@@ -1,0 +1,20 @@
+uuid: d3c594ac-8821-4667-b706-b6e899d42082
+langcode: en
+status: true
+dependencies:
+  module:
+    - eonext_staff
+    - taxonomy
+id: eonext_library_staff.field_department
+field_name: field_department
+entity_type: eonext_library_staff
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

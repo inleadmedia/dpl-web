@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @file
+ * EONEXT Service Banner module.
+ */
+
+use Drupal\eonext_servicebanner\ServiceBannerSettings;
+
+/**
+ * Implements hook_theme().
+ */
+function eonext_servicebanner_theme(): array {
+  return [
+    'service_banner_preview' => [
+      'variables' => [
+        'title' => NULL,
+        'body' => NULL,
+        'url' => NULL,
+      ],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Automatically disables the service banner once its unpublish_on date
+ * has passed. Clears relevant caches so the change is reflected immediately.
+ */
+function eonext_servicebanner_cron(): void {
+  $config = \Drupal::config(ServiceBannerSettings::CONFIG_ID);
+
+  if (!(bool) $config->get('enabled')) {
+    return;
+  }
+
+  $unpublish_on = $config->get('unpublish_on');
+  if (empty($unpublish_on)) {
+    return;
+  }
+
+  $unpublish_timestamp = strtotime($unpublish_on);
+  if ($unpublish_timestamp === FALSE || $unpublish_timestamp > time()) {
+    return;
+  }
+
+  \Drupal::configFactory()
+    ->getEditable(ServiceBannerSettings::CONFIG_ID)
+    ->set('enabled', FALSE)
+    ->set('unpublish_on', '')
+    ->save();
+
+  \Drupal::service('cache_tags.invalidator')->invalidateTags(
+    $config->getCacheTags()
+  );
+
+  \Drupal::logger('eonext_servicebanner')->info(
+    'Service banner was automatically disabled (unpublish_on: @date).',
+    ['@date' => $unpublish_on]
+  );
+}
+
+/**
+ * Implements hook_preprocess_html().
+ *
+ * Adds service banner data as attributes on the <html> element, following
+ * the same pattern as eonext_advanced_search_preprocess_html().
+ */
+function eonext_servicebanner_preprocess_html(array &$variables): void {
+  $config = \Drupal::config(ServiceBannerSettings::CONFIG_ID);
+
+  $enabled = (bool) $config->get('enabled');
+  $unpublish_on = $config->get('unpublish_on');
+
+  if ($enabled && !empty($unpublish_on)) {
+    $unpublish_timestamp = strtotime($unpublish_on);
+    if ($unpublish_timestamp !== FALSE && $unpublish_timestamp <= time()) {
+      $enabled = FALSE;
+    }
+  }
+
+  if (!$enabled) {
+    return;
+  }
+
+  foreach (array_filter([
+    'service-banner-title' => $config->get('title') ?: NULL,
+    'service-banner-body' => $config->get('body') ?: NULL,
+    'service-banner-url' => $config->get('url') ?: NULL,
+    'service-banner-url-text' => $config->get('url_text') ?: NULL,
+  ]) as $prop => $value) {
+    /* @phpstan-ignore-next-line */
+    $variables['attributes']['data-' . $prop] = $value;
+  }
+}

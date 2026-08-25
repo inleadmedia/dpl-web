@@ -11,7 +11,7 @@ function dpl_go_deploy_0001_create_next_go_site_configuration(): string {
     throw new \Exception('The secrets DRUPAL_PREVIEW_SECRET and DRUPAL_REVALIDATE_SECRET must be set in production.');
   }
 
-  /** @var \Drupal\dpl_go\GoSite $go_site */
+  /** @var \Drupal\dpl_go\GoSiteInterface $go_site */
   $go_site = \Drupal::service('dpl_go.go_site');
   if (!$base_url = $go_site->getGoBaseUrl()) {
     return 'Could not determine the Go base URL.';
@@ -19,16 +19,16 @@ function dpl_go_deploy_0001_create_next_go_site_configuration(): string {
 
   $preview_url = sprintf('%s/preview', $base_url);
 
-  // Default revalidate URL and preview/revalidates for development.
-  $revalidate_url = sprintf('%s/cache/revalidate', 'http://host.docker.internal:3000');
-  $preview_secret = 'HRGx27rJGAB8Dy8mJDRd';
-  $revalidate_secret = 'CeXF8E2Rd9wXZ2sswFHR';
-
   // Set the revalidate URL and preview/revalidates for production.
-  if (getenv('LAGOON_ENVIRONMENT_TYPE') === 'production') {
-    $revalidate_url = sprintf('%s/cache/revalidate', $base_url);
-    $preview_secret = getenv('DRUPAL_PREVIEW_SECRET');
-    $revalidate_secret = getenv('DRUPAL_REVALIDATE_SECRET');
+  $revalidate_url = sprintf('%s/cache/revalidate', $base_url);
+  $preview_secret = getenv('DRUPAL_PREVIEW_SECRET');
+  $revalidate_secret = getenv('DRUPAL_REVALIDATE_SECRET');
+
+  // Revalidate URL and preview/revalidates for development.
+  if (getenv('LAGOON_ENVIRONMENT_TYPE') === 'local') {
+    $revalidate_url = sprintf('%s/cache/revalidate', 'http://host.docker.internal:3000');
+    $preview_secret = 'HRGx27rJGAB8Dy8mJDRd';
+    $revalidate_secret = 'CeXF8E2Rd9wXZ2sswFHR';
   }
 
   // Define the entity data.

@@ -3,6 +3,7 @@ import {
   ContentListItem,
   ContentListItemProps,
 } from "../content-list-item/ContentListItem";
+import ContentListItemStacked from "../content-list-item/ContentListItemStacked";
 
 interface PromoteEventsListProps {
   title: string;
@@ -31,9 +32,25 @@ const PromoteEventsList: React.FC<PromoteEventsListProps> = ({
         data-hide-list-button-after-expand="false"
         data-show-more-list-id="filtered-event-list"
       >
-        {events.map((event) => (
-          <li className="filtered-event-list__list-item" data-show-more-item>
-            <ContentListItem {...event} />
+        {events.map((event, index) => (
+          <li
+            key={index}
+            className="filtered-event-list__list-item"
+            data-show-more-item
+            {...(event.isStacked ? { "data-show-more-item-stacked": "" } : {})}
+          >
+            {event.isStacked ? (
+              <ContentListItemStacked
+                title={event.title}
+                href={event.href}
+                time={event.time}
+                date={event.date}
+                location={event.location}
+                status={event.status}
+              />
+            ) : (
+              <ContentListItem {...event} />
+            )}
           </li>
         ))}
       </ul>

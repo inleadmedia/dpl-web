@@ -1,0 +1,31 @@
+uuid: d8b1aa8d-9db9-46ed-b179-75cffc1aca12
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_button_link
+    - paragraphs.paragraphs_type.eonext_opening_hours
+  module:
+    - link
+  enforced:
+    module:
+      - eonext_opening_hours
+id: paragraph.eonext_opening_hours.field_button_link
+field_name: field_button_link
+entity_type: paragraph
+bundle: eonext_opening_hours
+label: 'Button Link'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    attributes: {  }
+    uri: 'internal:/branches'
+    title: ''
+    options: {  }
+default_value_callback: ''
+settings:
+  title: 2
+  link_type: 17
+field_type: link

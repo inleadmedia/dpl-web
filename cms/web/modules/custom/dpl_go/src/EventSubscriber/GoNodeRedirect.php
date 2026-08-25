@@ -3,7 +3,7 @@
 namespace Drupal\dpl_go\EventSubscriber;
 
 use Drupal\Core\Url;
-use Drupal\dpl_go\GoSite;
+use Drupal\dpl_go\GoSiteInterface;
 use Drupal\node\NodeInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
  */
 class GoNodeRedirect implements EventSubscriberInterface {
 
-  public function __construct(protected GoSite $goSite) {}
+  public function __construct(protected GoSiteInterface $goSite) {}
 
   /**
    * {@inheritDoc}
@@ -45,7 +45,9 @@ class GoNodeRedirect implements EventSubscriberInterface {
     $node = $request->attributes->get('node');
 
     if ($node instanceof NodeInterface && $this->goSite->isGoNode($node)) {
-      $url = Url::fromRoute('entity.node.canonical', ['node' => $node->id()])->toString();
+      $url = Url::fromRoute('entity.node.canonical', ['node' => $node->id()], [
+        'query' => ['u_cms_t_go' => 'true'],
+      ])->toString();
 
       $response = new RedirectResponse($this->goSite->getGoBaseUrl() . $url);
       $event->setResponse($response);

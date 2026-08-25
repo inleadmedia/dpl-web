@@ -1,0 +1,23 @@
+eonext_translation.settings:
+  path: '/admin/config/eonext'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'EONEXT Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+eonext_translation.translation_settings:
+  path: "/admin/config/eonext/translation"
+  defaults:
+    _title: "EONEXT Translation Functionality"
+    _form: 'Drupal\eonext_translation\Form\TranslationSettingsForm'
+  requirements:
+    _permission: "administer site configuration"
+
+eonext_translation.translate_footer:
+  path: "/admin/config/eonext/translation/translate-footer"
+  defaults:
+    _title: "Translate Footer"
+    _form: 'Drupal\eonext_translation\Form\FooterTranslateForm'
+  requirements:
+    _permission: "administer site configuration"

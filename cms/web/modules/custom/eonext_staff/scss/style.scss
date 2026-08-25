@@ -1,0 +1,84 @@
+.eonext-library-staff {
+  font-family: "Noto Sans",sans-serif;
+  font-style: normal;
+  max-width: 1056px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+
+  h2, h3 {
+    font-size: 40px;
+    line-height: 1.1em;
+    font-weight: 400;
+  }
+
+  .item-list {
+    h3 {
+      margin: 20px 0;
+      padding: 15px 15px 10px 15px;
+      font-size: 36px;
+      color: #ffffff;
+      background-color: #808184;
+    }
+
+    ul {
+      $gap: 28px;
+
+      display: flex;
+      flex-wrap: wrap;
+      gap: $gap;
+
+      li {
+        flex: 0 0 calc(50% - #{$gap});
+        color: rgba(38,38,38,0.8);
+
+        .views-field-field-forename,
+        .views-field-field-surname {
+          display: inline-block;
+          margin: 10px 0 5px 0;
+          font-weight: 600;
+          line-height: 1.5em;
+          color: #000000;
+        }
+
+        .views-field-field-forename {
+          margin-right: 10px;
+        }
+
+        .views-field-field-image {
+          background-color: #e5e5e5;
+
+          img {
+            margin: 0 auto;
+          }
+        }
+
+        .views-field-field-email {
+          a {
+            text-decoration: none;
+            color: #073c4c;
+
+            &:hover {
+              color: #262626;
+            }
+          }
+        }
+
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .eonext-library-staff {
+    .item-list {
+      ul {
+        li {
+          flex: 0 0 100%;
+        }
+      }
+    }
+  }
+}

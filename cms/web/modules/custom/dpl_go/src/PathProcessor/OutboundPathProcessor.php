@@ -7,7 +7,7 @@ namespace Drupal\dpl_go\PathProcessor;
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\AdminContext;
-use Drupal\dpl_go\GoSite;
+use Drupal\dpl_go\GoSiteInterface;
 use Symfony\Component\HttpFoundation\Request;
 use function Safe\preg_match;
 
@@ -20,7 +20,7 @@ use function Safe\preg_match;
 class OutboundPathProcessor implements OutboundPathProcessorInterface {
 
   public function __construct(
-    protected GoSite $goSite,
+    protected GoSiteInterface $goSite,
     protected AdminContext $adminContext,
   ) {
   }
@@ -71,6 +71,11 @@ class OutboundPathProcessor implements OutboundPathProcessorInterface {
           $baseUrl = $isGoNode ?
             $this->goSite->getGoBaseUrl() :
             $this->goSite->getCmsBaseUrl();
+
+          // Track CMS-to-Go navigation via Mapp URL parameter.
+          if ($isGoNode && !$this->goSite->isGoSite()) {
+            $options['query']['u_cms_t_go'] = 'true';
+          }
         }
       }
     }

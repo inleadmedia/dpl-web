@@ -1,0 +1,20 @@
+uuid: bcad6355-f980-40e6-ab5e-ae0103d91117
+langcode: en
+status: true
+dependencies:
+  config:
+    - recurring_events.eventseries_type.default
+id: eventseries.default.event_instances
+field_name: event_instances
+entity_type: eventseries
+bundle: default
+label: 'Event Instances'
+description: 'The event instances for this event.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: default
+  handler_settings: {  }
+field_type: entity_reference

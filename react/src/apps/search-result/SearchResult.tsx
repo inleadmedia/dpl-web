@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import useSearchResultTracking from "./useSearchResultTracking";
 import { useDeepCompareEffect } from "react-use";
 import { useQueryState, parseAsJson, parseAsBoolean } from "nuqs";
+import { keepPreviousData } from "@tanstack/react-query";
 import SearchResultHeader from "../../components/search-bar/search-result-header/SearchResultHeader";
 import usePager from "../../components/result-pager/use-pager";
 import {
@@ -13,11 +14,11 @@ import {
 import { Work } from "../../core/utils/types/entities";
 import { getCurrentLocation, redirectTo } from "../../core/utils/helpers/url";
 import { useText } from "../../core/utils/text";
-import { cleanBranchesId, TBranch } from "../../core/utils/branches";
+import useGetSearchBranches from "../../core/utils/branches";
 import SearchResultInvalidSearch from "./search-result-not-valid-search";
 import { useUrls } from "../../core/utils/url";
 import { useConfig } from "../../core/utils/config";
-import SearchResultList from "./SearchResultList";
+import SearchResultList, { ResultItem } from "./SearchResultList";
 import SearchResultFacets from "./SearchResultFacets";
 import IconFilter from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/basic/icon-filter.svg";
 import useDialog from "../../components/dialog/useDialog";
@@ -27,6 +28,8 @@ import { convertFacetsToFilters, isValidFacetsState } from "./helpers";
 import { isWildcardQuery } from "../advanced-search-v2/lib/query-builder";
 import { allFacetFields, createFilters } from "./helper";
 import AutosuggestEditorial from "../../components/autosuggest-editorial/autosuggest-editorial";
+import { useCampaignMatchPOST } from "../../core/dpl-cms/dpl-cms";
+import { CampaignMatchPOSTBody } from "../../core/dpl-cms/model/campaignMatchPOSTBody";
 
 interface SearchResultProps {
   q: string;
@@ -43,10 +46,9 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
   const [hitcount, setHitCount] = useState<number>(0);
   const minimalQueryLength = 1;
   const config = useConfig();
-  const branches = config<TBranch[]>("branchesConfig", {
-    transformer: "jsonParse"
-  });
-  const cleanBranches = cleanBranchesId(branches);
+  // Exclude search-blacklisted branches so works held only at blacklisted
+  // branches are filtered out of the results.
+  const cleanBranches = useGetSearchBranches();
 
   const { openDialogWithContent, closeDialog, dialogRef } = useDialog();
 
@@ -95,11 +97,36 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
       filters: searchFilters
     },
     {
-      keepPreviousData: true
+      placeholderData: keepPreviousData
     }
   );
 
   const facets = facetData?.search.facets || [];
+
+  const campaignMutation = useCampaignMatchPOST();
+
+  useEffect(() => {
+    if (facets.length === 0) return;
+
+    const body: CampaignMatchPOSTBody = {
+      queries: [{ text: q }],
+      facets: facets.map((facet) => ({
+        name: facet.name,
+        values: facet.values.map((v) => ({
+          key: v.key,
+          term: v.term,
+          score: v.score ?? undefined
+        }))
+      }))
+    };
+
+    campaignMutation.mutate({
+      data: body,
+      params: { _format: "json" }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facets]);
+
   const { data, isLoading } = useSearchWithPaginationQuery(
     {
       q: { all: q },
@@ -108,14 +135,16 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
       filters: searchFilters
     },
     {
-      enabled: q.length >= minimalQueryLength,
-      onSuccess: (data) => {
-        if (data.search.hitcount === 0) {
-          redirectTo(zeroHitsSearchUrl);
-        }
-      }
+      enabled: q.length >= minimalQueryLength
     }
   );
+
+  // A search without results sends the user to the dedicated zero-hits page.
+  useEffect(() => {
+    if (data?.search.hitcount === 0) {
+      redirectTo(zeroHitsSearchUrl);
+    }
+  }, [data, zeroHitsSearchUrl]);
 
   useEffect(() => {
     if (!data) {
@@ -258,11 +287,17 @@ const SearchResult: React.FC<SearchResultProps> = ({ q, pageSize }) => {
                 </Dialog>
               </div>
             </div>
-
             {resultItems && (
               <>
                 <SearchResultList
-                  resultItems={resultItems}
+                  resultItems={
+                    [
+                      ...(campaignMutation.data?.data
+                        ? [campaignMutation.data.data]
+                        : []),
+                      ...resultItems
+                    ] as ResultItem[]
+                  }
                   isLoading={isLoading}
                   page={page}
                   pageSize={pageSize}

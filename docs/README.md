@@ -36,6 +36,16 @@ React component library for self-service features.
 
 ---
 
+## Cross-Project Development
+
+For developing across CMS, React, and Design System together (building, linking assets, watch mode), see **[Cross-Project Development](./development.md)**.
+
+Shared API contracts (OpenAPI YAML and vendored GraphQL SDL) live at
+the repo root in **[`/schemas`](../schemas/)** — see that directory's
+README for the design rules and the refresh flow.
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -43,7 +53,7 @@ React component library for self-service features.
 Check the individual project documentation for specific requirements. Generally you'll need:
 
 - Node.js (check `.nvmrc` files in each project)
-- Yarn
+- pnpm
 - Docker
 - go-task (optional, for task runner)
 - Composer (for CMS)

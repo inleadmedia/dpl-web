@@ -1,0 +1,164 @@
+{% set is_tag_term_page = 'editorial_tags' in editorial_search_hidden_facets|default([]) %}
+{%
+  set classes = [
+    dom_id ? 'js-view-dom-id-' ~ dom_id,
+    'content-list-page',
+    'eonext-editorial-search',
+    is_tag_term_page ? 'eonext-editorial-search--tag-term',
+  ]
+%}
+<div{{ attributes.addClass(classes) }}>
+  {% if view.getTitle() %}
+    {{ title_prefix }}
+    <h1 class="content-list-page__heading">{{ view.getTitle() }}</h1>
+    {{ title_suffix }}
+  {% endif %}
+
+  {{ header }}
+
+  {% if exposed %}
+    <div class="eonext-editorial-search__search-form">
+      {{ exposed }}
+    </div>
+  {% endif %}
+
+  {{ attachment_before }}
+
+  <div class="eonext-search eonext-editorial-search__layout">
+    <div class="eonext-search__results">
+      <div class="eonext-search__grid eonext-editorial-search__grid">
+        <aside class="eonext-search-facets eonext-editorial-search__facets">
+          <div class="eonext-search-facets__container">
+            <ul class="eonext-search-facets__groups">
+              {{ drupal_block('facet_block:editorial_content_type') }}
+              {% if 'editorial_categories' not in editorial_search_hidden_facets|default([]) %}
+                {{ drupal_block('facet_block:editorial_categories') }}
+              {% endif %}
+              {% if 'editorial_tags' not in editorial_search_hidden_facets|default([]) %}
+                {{ drupal_block('facet_block:editorial_tags') }}
+              {% endif %}
+            </ul>
+          </div>
+        </aside>
+
+        <section class="eonext-editorial-search__results">
+          <div class="eonext-editorial-search__results-top-bar search__results-top-bar">
+            <div class="search__results-top-bar__right">
+              <button
+                type="button"
+                class="search__modify-filters-button"
+                data-editorial-search-filters-open
+                aria-haspopup="dialog"
+              >
+                <img src="{{ baseIconPath }}/basic/icon-filter.svg" alt="" width="16" height="16">
+                <span>{{ 'Filters'|t({}, {'context': 'eonext_editorial_search'}) }}</span>
+              </button>
+            </div>
+          </div>
+
+          {% if editorial_search_sort_field_options %}
+            <div class="eonext-search__sort-select eonext-editorial-search__sort">
+              <div class="eonext-editorial-search__sort-field">
+                <label class="eonext-search__sort-select__label" for="editorial-search-sort">
+                  {{ 'Sort by'|t({}, {'context': 'eonext_editorial_search'}) }}
+                </label>
+                <div class="eonext-search__sort-select__select-wrapper">
+                  <select
+                    class="eonext-search__sort-select__select"
+                    id="editorial-search-sort"
+                    data-editorial-search-sort
+                  >
+                    {% for value, label in editorial_search_sort_field_options %}
+                      <option value="{{ value }}"{{ value == editorial_search_sort_field_selected ? ' selected' : '' }}>
+                        {{ label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="eonext-search__dropdown__arrows">
+                    <img
+                      class="eonext-search__dropdown__arrow"
+                      alt=""
+                      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="eonext-editorial-search__sort-order">
+                <div class="eonext-search__sort-select__select-wrapper">
+                  <select
+                    class="eonext-search__sort-select__select"
+                    id="editorial-search-sort-order"
+                    data-editorial-search-sort-order
+                    aria-label="{{ 'Sort order'|t({}, {'context': 'eonext_editorial_search'}) }}"
+                  >
+                    {% for value, label in editorial_search_sort_order_options %}
+                      <option value="{{ value }}"{{ value == editorial_search_sort_order_selected ? ' selected' : '' }}>
+                        {{ label }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="eonext-search__dropdown__arrows">
+                    <img
+                      class="eonext-search__dropdown__arrow"
+                      alt=""
+                      src="{{ baseIconPath }}/collection/ExpandMore.svg"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+
+          {% if rows -%}
+            {{ rows }}
+          {% elseif empty -%}
+            <div class="empty-view">
+              {{ empty }}
+            </div>
+          {% endif %}
+
+          {{ pager }}
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <dialog
+    class="dialog dialog--sidebar eonext-editorial-search__facets-dialog"
+    data-editorial-search-filters-dialog
+    aria-labelledby="editorial-search-filters-dialog-title"
+  >
+    <div class="dialog__top-bar">
+      <button
+        type="button"
+        class="dialog__close-button"
+        data-editorial-search-filters-close
+        aria-label="{{ 'Close'|t }}"
+      >
+        <img src="{{ baseIconPath }}/collection/CloseLarge.svg" alt="" width="16" height="16">
+      </button>
+    </div>
+    <div class="search-facets__dialog">
+      <div class="search-facets__dialog-content">
+        <h2 class="search-facets__dialog-content__heading" id="editorial-search-filters-dialog-title">
+          {{ 'Filter results'|t({}, {'context': 'eonext_editorial_search'}) }}
+        </h2>
+        <div data-editorial-search-facets-dialog-mount></div>
+      </div>
+      <div class="search-facets__dialog__actions">
+        <button
+          type="button"
+          class="btn-primary btn-filled btn-medium search-facets__dialog__actions__button"
+          data-editorial-search-filters-close
+        >
+          {{ 'Show results'|t({}, {'context': 'eonext_editorial_search'}) }}
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  {{ attachment_after }}
+  {{ more }}
+  {{ footer }}
+  {{ feed_icons }}
+</div>

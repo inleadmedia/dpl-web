@@ -1,0 +1,22 @@
+.opening-hours--bare {
+  color: white;
+  background-color: teal;
+}
+
+.opening-hours--bare .opening-hours__individual-opening:nth-child(2n+1) {
+	background-color: green;
+}
+
+.opening-hours--bare .opening-hours__row {
+	color: white;
+}
+
+.opening-hours--bare .opening-hours__week-display {
+	color: black;
+}
+
+.opening-hours--bare .opening-hours__navigation-control,
+.opening-hours--bare .opening-hours__week-display {
+	background-color: yellow;
+    border-color: red;
+}

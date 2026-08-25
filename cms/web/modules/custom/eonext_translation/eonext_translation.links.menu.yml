@@ -1,0 +1,20 @@
+eonext_translation.settings:
+  title: 'Eonext'
+  route_name: eonext_translation.settings
+  parent: system.admin_config
+  weight: -1000
+
+eonext_translation.translation_settings:
+  title: Translation
+  description: Manages the site translation
+  route_name: eonext_translation.translation_settings
+  parent: eonext_translation.settings
+  weight: 1
+
+eonext_translation.translation_translate_footer:
+  title: Translate Footer
+  description: Translate the footer
+  route_name: eonext_translation.translate_footer
+  parent: eonext_translation.settings
+  weight: 2
+

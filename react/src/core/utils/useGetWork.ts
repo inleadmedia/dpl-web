@@ -1,6 +1,6 @@
 import lodash from "lodash";
 import { useMemo } from "react";
-import { UseQueryResult } from "react-query";
+import { UseQueryResult } from "@tanstack/react-query";
 import {
   GetMaterialGloballyQuery,
   GetMaterialQuery,

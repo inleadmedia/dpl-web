@@ -2,3 +2,6 @@
 generated
 node_modules
 .history
+AGENTS.md
+CLAUDE.md
+pnpm-lock.yaml

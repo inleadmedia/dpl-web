@@ -8,7 +8,7 @@ Storybook automatically forwards all `NEXT_PUBLIC_*` variables to its environmen
 
 Available on both client and server. Accessed via `getEnv()`.
 
-### `NEXT_PUBLIC_APP_URL`
+### `DPL_GO_BASE_URL`
 
 - **Required:** Yes (validated as URL)
 - **Example:** `https://dpl-cms.local:3000`
@@ -17,7 +17,7 @@ The canonical base URL of the GO frontend itself. The single most widely-used en
 
 In production, dynamically set in `lagoon/start.sh` from `LAGOON_DOMAIN` (with `go.` subdomain handling).
 
-### `NEXT_PUBLIC_DPL_CMS_HOSTNAME`
+### `DPL_CMS_BASE_URL`
 
 - **Required:** Yes
 - **Example:** `dpl-cms.local`
@@ -29,15 +29,7 @@ The hostname of the DPL CMS (Drupal) instance.
 
 In production, set in `lagoon/start.sh` from `LAGOON_DOMAIN`.
 
-### `NEXT_PUBLIC_GRAPHQL_SCHEMA_ENDPOINT_DPL_CMS`
-
-- **Required:** Yes (validated as URL)
-- **Example:** `https://dpl-cms.local/graphql`
-
-The full URL of the DPL CMS GraphQL API endpoint.
-
-- **Runtime** – every GraphQL request to DPL CMS goes through this endpoint (`dpl-cms.fetcher.ts`)
-- **Codegen** – the `codegen:graphql` script introspects this endpoint to generate TypeScript types (`codegen.ts`)
+- **Runtime GraphQL** – `dpl-cms.fetcher.ts` builds `${DPL_CMS_BASE_URL}/graphql` for every GraphQL request the running app makes to DPL CMS. (Codegen reads the SDL committed at `cms/dpl-cms.bnf.graphql` and does not touch this variable.)
 
 In production, set in `lagoon/start.sh` from `LAGOON_ROUTE`.
 
@@ -46,19 +38,17 @@ In production, set in `lagoon/start.sh` from `LAGOON_ROUTE`.
 - **Required:** Yes
 - **Example:** `go_graphql`
 
-Username for Basic Auth against the DPL CMS GraphQL API. Combined with the password below to produce a Base64-encoded `Authorization: Basic` header in `dpl-cms.fetcher.ts`. Also used during codegen schema introspection.
+Username for Basic Auth against the DPL CMS GraphQL API. Combined with the password below to produce a Base64-encoded `Authorization: Basic` header in `dpl-cms.fetcher.ts`. Runtime only — codegen reads the committed SDL at `cms/dpl-cms.bnf.graphql` and needs no credentials.
 
 ### `NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD`
 
 - **Required:** Yes
-- **Example:** `oA8mqZFxmFubREH77T3qeApeoUxoNS7Y`
 
 Password counterpart to the GraphQL consumer username above.
 
 ### `NEXT_PUBLIC_GRAPHQL_BASIC_TOKEN_DPL_CMS`
 
-- **Required:** No (only in `.env.example`)
-- **Example:** `Z29fZ3JhcGhxbDpvQThtcVpGeG1GdWJSRUg3N1QzcWVBcGVvVXhvTlM3WQ==`
+- **Required:** No (only set as a Lagoon variable, in `.lagoon.env`)
 
 **Legacy.** A pre-encoded Basic Auth token. Not referenced in application code — the app computes the token at runtime from the username + password above.
 
@@ -91,20 +81,6 @@ Enables test-specific behaviour:
 - **Unilogin OIDC** – allows insecure (non-HTTPS) requests to the identity broker (`uniloginClient.ts`)
 - **SOAP services** – redirects Publizon loan creation and Unilogin institution lookup endpoints to the local mock server (`requests.ts` files)
 
-### `CODEGEN_GRAPHQL_SCHEMA_ENDPOINT_FBI`
-
-- **Required:** No (optional, validated as URL if set)
-- **Example:** `https://fbi-api.dbc.dk/ereolgo/graphql`
-
-The FBI (Fælles Biblioteks Infrastruktur) GraphQL endpoint. Used **only** during code generation (`codegen.ts`) to introspect the FBI schema and generate TypeScript types/hooks.
-
-### `CODEGEN_LIBRARY_TOKEN`
-
-- **Required:** No (optional)
-- **Example:** `XXX`
-
-Bearer token for authenticating with the FBI GraphQL API during codegen. Sent as `Authorization: Bearer` when introspecting the FBI schema.
-
 ## Server-Only Variables
 
 Only available server-side. Accessed via `getServerEnv()`.
@@ -112,14 +88,12 @@ Only available server-side. Accessed via `getServerEnv()`.
 ### `DRUPAL_REVALIDATE_SECRET`
 
 - **Required:** Yes
-- **Example:** `CeXF8E2Rd9wXZ2sswFHR`
 
 Shared secret for on-demand cache revalidation. The `GET /cache/revalidate` route compares the incoming `secret` query parameter against this value; mismatches return 401. This lets DPL CMS trigger Next.js cache invalidation securely.
 
 ### `GO_SESSION_SECRET`
 
 - **Required:** Yes (minimum 32 characters)
-- **Example:** `yZJhgvvvUYMawDRbdzfdvsVswWXCKwkU`
 
 The encryption password for `iron-session`. Used to seal/unseal the `go-session` cookie that stores all authentication state (tokens, user info, session type). Also used in Cypress E2E setup to create mocked session cookies via `sealData()`.
 
@@ -140,7 +114,6 @@ OpenID Connect client ID for the Unilogin identity broker. Used by `openid-clien
 ### `UNILOGIN_CLIENT_SECRET`
 
 - **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX` (sensitive)
 
 OpenID Connect client secret for Unilogin. If set, overrides the value fetched from DPL CMS private configuration in `dplCmsConfig.ts`.
 
@@ -154,14 +127,12 @@ The OIDC discovery endpoint for the Unilogin broker. Used by `openid-client` to 
 ### `UNILOGIN_MUNICIPALITY_ID`
 
 - **Required:** No (optional)
-- **Example:** `XXX`
 
 Overrides the municipality ID from DPL CMS public config. Used for Unilogin institution filtering in `getDplCmsPublicConfig()`.
 
 ### `UNLILOGIN_PUBHUB_CLIENT_ID`
 
 - **Required:** Yes
-- **Example:** `EE939D96-702D-1BEE-AEB2-517B8BA18B11`
 
 Client ID for Publizon/PubHub SOAP services. Passed as `clientid` in service requests (`publizon.ts`).
 
@@ -170,7 +141,6 @@ Client ID for Publizon/PubHub SOAP services. Passed as `clientid` in service req
 ### `UNLILOGIN_PUBHUB_RETAILER_ID`
 
 - **Required:** Yes
-- **Example:** `XXX`
 
 Retailer ID for Publizon SOAP API calls. Passed as `retailerid` in loan creation and other Publizon requests.
 
@@ -179,29 +149,34 @@ Retailer ID for Publizon SOAP API calls. Passed as `retailerid` in loan creation
 ### `UNLILOGIN_PUBHUB_RETAILER_KEY_CODE`
 
 - **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX` (sensitive)
 
 Retailer key code for Publizon. MD5-hashed at runtime before being sent as `retailerkeycode` in SOAP requests (`publizon.ts`). If set as an env var, overrides the DPL CMS private config value.
 
 > **Note:** The `UNLILOGIN_` prefix (rather than `UNILOGIN_`) is a typo that has been carried through the codebase.
 
-### `UNLILOGIN_SERVICES_WS_USER`
+### `UNILOGIN_WS_UDBYDERSYSTEM_ID`
 
-- **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX`
+- **Required:** No (optional in `env.ts`, but throws at runtime if missing when the SOAP call is made)
 
-Username for Unilogin SOAP web services (e.g. institution lookups via `wsiinst-v5`). If set, overrides DPL CMS private config.
+Provider system ID from STIL Tilslutning, used when signing Unilogin SOAP webservice requests. Read via `getServerEnv()` in `go/app/(routes)/auth/callback/unilogin/requests.ts`, which raises `Missing Unilogin UdbydersystemId` if it is unset.
 
-> **Note:** The `UNLILOGIN_` prefix (rather than `UNILOGIN_`) is a typo that has been carried through the codebase.
+### `UNILOGIN_WS_PRIVATE_KEY`
 
-### `UNLILOGIN_SERVICES_WS_PASSWORD`
+- **Required:** No (optional)
+- **Example:** PEM-encoded private key with newlines written as `\n`
 
-- **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX` (sensitive)
+Private key used to sign Unilogin SOAP webservice requests. Read in `go/app/(routes)/auth/callback/unilogin/requests.ts`, which converts the literal `\n` sequences back into newlines.
 
-Password for Unilogin SOAP web services. Paired with `UNLILOGIN_SERVICES_WS_USER`. If set, overrides DPL CMS private config.
+### `UNILOGIN_WS_PUBLIC_CERT`
 
-> **Note:** The `UNLILOGIN_` prefix (rather than `UNILOGIN_`) is a typo that has been carried through the codebase.
+- **Required:** No (optional)
+- **Example:** PEM-encoded certificate
+
+Public certificate paired with the private key above. Read in `go/app/(routes)/auth/callback/unilogin/requests.ts`, which converts the literal `\n` sequences back into newlines.
+
+> **Note:** These three replaced the earlier username/password pair
+> (`UNLILOGIN_SERVICES_WS_USER` / `UNLILOGIN_SERVICES_WS_PASSWORD`), which is no
+> longer read anywhere. Some Lagoon projects still carry the old variables.
 
 ## Build / Tooling Variables
 
@@ -215,7 +190,7 @@ Used by scripts and tooling, not by the running application.
 ### `NODE_TLS_REJECT_UNAUTHORIZED`
 
 - **Values:** `0` to disable TLS verification
-- **Purpose:** Node.js flag used in dev/test scripts (`dev`, `dev:https`, `start:dev`, `codegen:graphql`) to allow HTTPS connections to servers with self-signed certificates (e.g. local DPL CMS on Docker). **Never set in production.**
+- **Purpose:** Node.js flag used in dev/test scripts (`dev`, `dev:https`, `start:dev`) to allow HTTPS connections to servers with self-signed certificates (e.g. local DPL CMS on Docker). **Never set in production.**
 
 ### `DEBUG_MOCK_SERVER`
 
@@ -224,17 +199,12 @@ Used by scripts and tooling, not by the running application.
 
 ## Lagoon Platform Variables
 
-Provided by the Lagoon hosting environment and consumed in `lagoon/start.sh` to derive runtime env vars:
+Provided by the Lagoon hosting environment and consumed in `go/scripts/prepare-docker-env-vars.mjs` to derive runtime env vars:
 
-### `LAGOON_DOMAIN`
+- `LAGOON_ROUTES`
 
-The primary domain of the Lagoon environment. Used to derive:
+    The list of all Lagoon routes, searched to find the one starting with `go.` or `node.` (possibly with www prefix.).
 
-- `NEXT_PUBLIC_APP_URL` — prefixed with `go.` subdomain (handles `www.` prefix)
-- `NEXT_PUBLIC_DPL_CMS_HOSTNAME` — set directly
+- `LAGOON_ROUTE`
 
-### `LAGOON_ROUTE`
-
-The full route URL (with protocol) from Lagoon. Used to derive:
-
-- `NEXT_PUBLIC_GRAPHQL_SCHEMA_ENDPOINT_DPL_CMS` — appends `/graphql`
+    The full route URL (with protocol) for the first/primary route.

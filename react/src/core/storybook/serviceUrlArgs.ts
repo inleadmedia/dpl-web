@@ -1,4 +1,5 @@
 import { serviceUrlKeys } from "../utils/reduxMiddleware/extractServiceBaseUrls";
+import { readEnv } from "../utils/helpers/env";
 
 export const argTypes = {
   [serviceUrlKeys.fbs]: {
@@ -33,7 +34,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://dpl-cms.docker"
+        summary: "https://dpl-cms.local"
       }
     }
   },
@@ -108,12 +109,12 @@ export const argTypes = {
 
 const envOptions = {
   [serviceUrlKeys.fbs]:
-    process.env.FBS_BASEURL ?? "https://fbs-openplatform.dbc.dk",
+    readEnv("FBS_BASEURL") ?? "https://fbs-openplatform.dbc.dk",
   [serviceUrlKeys.publizon]:
-    process.env.PUBLIZON_BASEURL ?? "https://pubhub-openplatform.dbc.dk",
-  [serviceUrlKeys.dplCms]: process.env.CMS_BASEURL ?? "https://dpl-cms.docker",
+    readEnv("PUBLIZON_BASEURL") ?? "https://pubhub-openplatform.dbc.dk",
+  [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.docker",
   [serviceUrlKeys.cover]:
-    process.env.COVERS_BASEURL ?? "https://cover.dandigbib.org",
+    readEnv("COVERS_BASEURL") ?? "https://cover.dandigbib.org",
   [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
   [serviceUrlKeys.fbi]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next-present/graphql",
   [serviceUrlKeys.fbiLocal]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next/graphql",

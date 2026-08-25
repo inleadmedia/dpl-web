@@ -146,6 +146,11 @@ export const statistics: Statistics = {
     name: "Klik på specifik manifestation",
     parameterName: ""
   },
+  instantLoanClick: {
+    id: 37,
+    name: "Klik på strakslån",
+    parameterName: ""
+  },
   materialAudience: {
     id: 67,
     name: "Materiale målgruppe",
@@ -168,6 +173,16 @@ export const statistics: Statistics = {
   recommendedMaterial: {
     id: 74,
     name: "Klik på recommended material",
+    parameterName: ""
+  },
+  recommendationParagraphClick: {
+    id: 69,
+    name: "Klik på recommendation-paragraphs",
+    parameterName: ""
+  },
+  materialGridClick: {
+    id: 47,
+    name: "Klik på Materiale grids",
     parameterName: ""
   }
 };

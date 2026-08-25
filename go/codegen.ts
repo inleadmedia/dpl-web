@@ -1,24 +1,21 @@
+/**
+ * @file
+ * Config file for graphql-codegen.
+ */
 import type { CodegenConfig } from "@graphql-codegen/cli"
-import { loadEnvConfig } from "@next/env"
 
-import { getEnv } from "./lib/config/env"
-import { getDplcmsGraphqlBasicAuthToken } from "./lib/graphql/fetchers/dpl-cms.fetcher"
+// Refresh with `task dev:codegen:bnf-graphql` in cms/.
+const DPL_CMS_SCHEMA_PATH = "../cms/dpl-cms.bnf.graphql"
 
-loadEnvConfig(process.cwd())
+// Refresh with `task schemas:refresh:dbc-fbi:fbcms-go`.
+const FBI_SCHEMA_PATH = "../schemas/graphql/dbc-fbi.fbcms-go.graphql"
 
 const config: CodegenConfig = {
   overwrite: true,
   generates: {
     "lib/graphql/generated/dpl-cms/graphql.ts": {
       documents: "**/*.dpl-cms.graphql",
-      // TODO: Make this configurable
-      schema: {
-        [getEnv("GRAPHQL_SCHEMA_ENDPOINT_DPL_CMS")]: {
-          headers: {
-            Authorization: `Basic ${getDplcmsGraphqlBasicAuthToken()}`,
-          },
-        },
-      },
+      schema: DPL_CMS_SCHEMA_PATH,
       plugins: [
         "typescript",
         "typescript-operations",
@@ -44,26 +41,12 @@ const config: CodegenConfig = {
       hooks: {
         // Correcting the codegen output.
         // First off, we correct the type of the options for the fetcher.
-        afterOneFileWrite: ["yarn post-process-dpl-cms-graphql", "yarn eslint --fix"],
+        afterOneFileWrite: ["pnpm run post-process-dpl-cms-graphql", "pnpm run lint --fix"],
       },
     },
-    // "lib/graphql/generated/dpl-cms/graphql.schema.json": {
-    //   // TODO: Make this configurable
-    //   schema: "http://dapple-cms.docker/graphql",
-    //   plugins: ["introspection"],
-    // },
     "lib/graphql/generated/fbi/graphql.ts": {
       documents: "**/*.fbi.graphql",
-      schema: [
-        {
-          // Needs a fallback if the environment variable is not set
-          [getEnv("CODEGEN_GRAPHQL_SCHEMA_ENDPOINT_FBI") || ""]: {
-            headers: {
-              Authorization: `Bearer ${getEnv("CODEGEN_LIBRARY_TOKEN")}`,
-            },
-          },
-        },
-      ],
+      schema: FBI_SCHEMA_PATH,
       plugins: [
         "typescript",
         "typescript-operations",
@@ -87,7 +70,7 @@ const config: CodegenConfig = {
         useConsts: true,
       },
       hooks: {
-        afterOneFileWrite: ["yarn eslint --fix"],
+        afterOneFileWrite: ["pnpm run lint --fix"],
       },
     },
   },

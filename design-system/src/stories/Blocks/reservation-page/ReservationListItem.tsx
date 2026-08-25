@@ -16,8 +16,9 @@ const ReservationListItem: React.FC<ReservationListItemProps> = ({
   const listItems = Array(amount).fill(0);
   return (
     <>
-      {listItems.map(() => (
+      {listItems.map((_item, index) => (
         <div
+          key={index}
           className={clsx(
             "list-reservation my-32 cursor-pointer arrow__hover--right-small",
             [{ "list-reservation--stacked": isStacked }],
@@ -34,11 +35,11 @@ const ReservationListItem: React.FC<ReservationListItemProps> = ({
               <div className="list-reservation__about">
                 <button
                   type="button"
-                  className="list-reservation__header color-secondary-gray"
+                  className="list-reservation__title list-reservation__title--button color-secondary-gray"
                 >
                   <span
                     id="48991963-title"
-                    className="list-reservation__header__text"
+                    className="list-reservation__title__text"
                   >
                     Operation Spøgelse
                   </span>

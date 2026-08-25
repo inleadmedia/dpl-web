@@ -3,7 +3,7 @@ import 'cypress-if';
 const node = {
   title: 'Varnish test',
   subtitle: 'A subtitle',
-  path: '/articles/varnish-test',
+  path: '/artikler/varnish-test',
 };
 
 const varnishCacheHeader = 'x-varnish-cache';
@@ -77,8 +77,8 @@ describe('Varnish', () => {
         cy.findByRole('link', {
           name: `Edit ${node.title}`,
         }).click();
+        cy.findByRole('button', { name: 'More actions' }).click();
         cy.findByRole('button', { name: 'More actions' })
-          .click()
           .parent()
           .findByRole('link', { name: 'Delete' })
           .click();

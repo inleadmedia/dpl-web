@@ -1,10 +1,335 @@
 version: '3'
 
-includes:
-  migration: ./migration/Taskfile.migration.yml
+output: prefixed
+
+vars:
+  CMS_DESIGN_SYSTEM_ASSETS: ./cms/web/themes/custom/novel/assets/dpl-design-system
+  CMS_REACT_LIBRARY: ./cms/web/libraries/dpl-react
+  DESIGN_SYSTEM_BUILD: ./design-system/build
+  CLI_PREFIX:
+    sh: if [[ -f .run-in-docker ]]; then echo "docker run --user $(id -u):$(id -g) -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack -e PNPM_HOME=/tmp/pnpm -e CI --rm -v \"{{.TASKFILE_DIR}}:/app\" -w /app node:24.15"; fi
 
 tasks:
+  init:
+    desc: "Initialize project, creating .env symlinks and installing dependencies."
+    deps:
+      - dev:dotenv:link
+      - init:pnpm
+
+  dockerinit:
+    summary: Initialize project, using docker
+    cmds:
+      - touch .run-in-docker
+      - task init
+
+  dev:dotenv:generate:
+    desc: "Generate/replace the central .env from 1Password (.env.1pass) and symlink it."
+    sources:
+      - '.env.1pass'
+    generates:
+      - '.env'
+    cmds:
+      - op inject --account reloadas.1password.com --force --in-file .env.1pass --out-file .env
+      - |
+        if [ "$(basename "$PWD")" != "dpl-web" ]; then
+          PROJECT_NAME=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
+          sed "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=${PROJECT_NAME}/" .env > .env.tmp && mv .env.tmp .env
+        fi
+    preconditions:
+      - sh: which op
+        msg: '1Password CLI command required'
+
+  dev:dotenv:template:
+    desc: "Create the central .env from .env.1pass without 1Password, leaving secret values empty."
+    summary: |
+      For environments that cannot reach 1Password — CI, or a developer without
+      access to our vault. Copies .env.1pass and blanks every `op://` reference,
+      so the resulting .env carries the local development defaults and leaves the
+      real secrets empty. Anything needing a real credential must be filled in by
+      hand afterwards.
+
+      Does nothing if a .env already exists, so it never overwrites a .env
+      generated from 1Password by dev:dotenv:generate.
+    status:
+      # Never clobber an existing .env — notably one holding real secrets.
+      - test -e .env
+    cmds:
+      # Values are quoted in .env.1pass ("op://..."), so match op:// anywhere
+      # after the '=' rather than immediately following it.
+      - sed -E 's|^([A-Za-z_][A-Za-z0-9_]*)=.*op://.*|\1=|' .env.1pass > .env
+
+  dev:dotenv:link:
+    desc: "Create symlinks in each project to the main .env file."
+    cmds:
+      - ln -sf ../.env cms/.env
+      - ln -sf ../.env go/.env
+      - ln -sf ../.env react/.env
+
+  dev:cli:
+    summary: Performs command inside a container. Expects parameter(s).
+    # User id and group corresponds to the node user in the container.
+    # This is a stopgap measure until someone has time for
+    # https://reload.atlassian.net/browse/DDF-220
+    cmds:
+      - "{{ .CLI_PREFIX }} {{ .CLI_ARGS }}"
+
+  # ---------------------------------------------------------------------------
+  # CI
+  # ---------------------------------------------------------------------------
+
   ci:actionlint:
     summary: Lint GitHub Actions workflows with actionlint
     cmds:
       - docker run --rm --volume "{{.TASKFILE_DIR}}:/repo:ro" --workdir /repo rhysd/actionlint:latest -color
+
+  # ---------------------------------------------------------------------------
+  # Tokens
+  # ---------------------------------------------------------------------------
+
+  token:generate:
+    desc: "Generate a new library token from Adgangsplatformen and write it to every *LIBRARY_TOKEN entry in the central root .env"
+    dotenv: ['.env']
+    silent: true
+    cmds:
+      - |
+        set -eu
+        : "${ADGANGSPLATFORMEN_CLIENT_ID:?missing in root .env}"
+        : "${ADGANGSPLATFORMEN_CLIENT_SECRET:?missing in root .env}"
+        : "${ADGANGSPLATFORMEN_AGENCY_ID:?missing in root .env}"
+
+        echo "Requesting new library token from login.bib.dk..."
+        response=$(curl -sS -X POST "https://login.bib.dk/oauth/token" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
+          --data-urlencode "grant_type=password" \
+          --data-urlencode "client_id=${ADGANGSPLATFORMEN_CLIENT_ID}" \
+          --data-urlencode "client_secret=${ADGANGSPLATFORMEN_CLIENT_SECRET}" \
+          --data-urlencode "username=@${ADGANGSPLATFORMEN_AGENCY_ID}" \
+          --data-urlencode "password=@${ADGANGSPLATFORMEN_AGENCY_ID}")
+
+        token=$(echo "$response" | jq -r .access_token)
+        if [ -z "$token" ] || [ "$token" = "null" ]; then
+          echo "Failed to obtain access token. Response:" >&2
+          echo "$response" >&2
+          exit 1
+        fi
+
+        if ! command -v perl >/dev/null 2>&1; then
+          echo "perl not found on PATH — skipping automatic .env updates."
+          echo "Paste the token below into the *LIBRARY_TOKEN entries of your .env files manually."
+        else
+          updated=0
+          for envfile in .env; do
+            [ -f "$envfile" ] || continue
+            if grep -qE '^[A-Za-z_][A-Za-z0-9_]*LIBRARY_TOKEN=' "$envfile"; then
+              TOKEN="$token" perl -i -pe 's/^([A-Za-z_][A-Za-z0-9_]*LIBRARY_TOKEN)=.*$/$1=$ENV{TOKEN}/' "$envfile"
+              echo "  updated $envfile"
+              updated=$((updated + 1))
+            fi
+          done
+
+          if [ "$updated" -eq 0 ]; then
+            echo "No *LIBRARY_TOKEN entries found in the root .env." >&2
+          else
+            echo "Done. Updated $updated file(s)."
+          fi
+        fi
+
+        echo
+        echo "Token:"
+        echo "$token"
+
+  # ---------------------------------------------------------------------------
+  # Sub-project starters (delegates to each project's own Taskfile)
+  # ---------------------------------------------------------------------------
+
+  cms:start:
+    desc: "Start CMS Docker containers (without resetting)"
+    cmds:
+      - task -d cms dev:start
+      - task -d cms dev:cli -- drush user-login
+
+  cms:reset:
+    desc: "Reset CMS dev environment from scratch (runs cms/Taskfile.yml dev:reset)"
+    cmds:
+      - task -d cms dev:reset
+
+  cms:watch:
+    desc: "Watch CMS source for changes and clear cache"
+    cmds:
+      - task -d cms dev:watch
+
+  cms:cli:
+    summary: "Run command in CMS container."
+    interactive: true
+    cmds:
+      - task -d cms dev:cli -- {{.CLI_ARGS}}
+
+  react:start:
+    desc: "Start React dev environment (runs react/Taskfile.yml dev:start)"
+    cmds:
+      - task -d react dev:start
+
+  design-system:start:
+    desc: "Start design-system dev environment (runs design-system/Taskfile.yml dev:start)"
+    cmds:
+      - task -d design-system dev:start
+
+  go:reset:
+    desc: "Reset Go dev environment (runs go/Taskfile.yml dev:reset)"
+    cmds:
+      - task -d go dev:reset
+
+  # ---------------------------------------------------------------------------
+  # Init (pnpm install for all JS projects)
+  # ---------------------------------------------------------------------------
+
+  init:pnpm:
+    desc: "Install dependencies with pnpm"
+    # Sources are listed explicitly per workspace package. A "**/package.json"
+    # glob would also walk every node_modules tree, which makes the
+    # up-to-date check take ~45 seconds with no output at all.
+    sources:
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - cms/package.json
+      - cms/pnpm-lock.yaml
+      - design-system/package.json
+      - design-system/pnpm-lock.yaml
+      - go/package.json
+      - go/pnpm-lock.yaml
+      - react/package.json
+      - react/pnpm-lock.yaml
+      - packages/*/package.json
+      - packages/*/pnpm-lock.yaml
+    cmds:
+      - task dev:cli -- corepack pnpm install
+
+  # ---------------------------------------------------------------------------
+  # Main orchestration
+  # ---------------------------------------------------------------------------
+
+  dev:cms-react:
+    desc: "Build design-system + React, copy into CMS. Use --watch for live-reload."
+    deps:
+      - cms:start
+      - dev:react:setup
+    cmds:
+      - task: dev:cms:link
+
+  # ---------------------------------------------------------------------------
+  # Design-system
+  # ---------------------------------------------------------------------------
+
+  dev:design-system:build:
+    desc: "Build design-system (sass + bundle into build/)"
+    deps:
+      - init:pnpm
+    dir: ./design-system
+    sources:
+      - 'src/**/*.scss'
+      - 'src/**/*.js'
+      - 'public/icons/**/*'
+      - 'base.scss'
+      - 'wysiwyg.scss'
+      - 'admin-base.scss'
+    generates:
+      - 'build/**/*.*'
+    cmds:
+      # pnpm run build compiles SCSS into src/styles/css/.
+      # We then assemble a clean build/ directory with the assets CMS needs.
+      - cd .. && task dev:cli -- sh -c "cd design-system && corepack pnpm run build"
+      - rm -rf ./build
+      - mkdir -p ./build/js
+      - cp -r ./public/icons ./build/icons
+      - cp -r ./src/styles/css ./build/css
+      - cp -r ./src/styles/fonts ./build/fonts
+      - find ./src -name "*.js" | while read -r f; do cp "$f" ./build/js/"$(basename "$f")"; done
+
+  # ---------------------------------------------------------------------------
+  # React
+  # ---------------------------------------------------------------------------
+
+  dev:react:setup:
+    desc: "Build design-system and React"
+    cmds:
+      - task: dev:design-system:build
+      - task: dev:react:build
+
+  dev:react:build:
+    desc: "Build React (pnpm build → dist/)"
+    deps:
+      - init:pnpm
+    dir: ./react
+    sources:
+      - 'src/**/*.ts'
+      - 'src/**/*.tsx'
+      - 'src/**/*.js'
+      - 'src/**/*.jsx'
+      - 'src/**/*.scss'
+      - 'webpack.config.js'
+      - 'webpack.helpers.js'
+    generates:
+      - 'dist/**/*.*'
+    cmds:
+      - cd .. && task dev:cli -- sh -c "cd react && corepack pnpm build"
+
+  # ---------------------------------------------------------------------------
+  # Copy assets into CMS
+  # ---------------------------------------------------------------------------
+
+  dev:cms:link:
+    desc: "Copy design-system + React build artifacts into CMS directories and clear cache"
+    deps:
+      - dev:cms:link:design-system
+      - dev:cms:link:react
+    cmds:
+      - task -d cms dev:cache:clear:all
+
+  dev:cms:link:design-system:
+    desc: "Copy design-system build into CMS theme assets"
+    deps:
+      - dev:design-system:build
+    cmds:
+      - rm -rf {{ .CMS_DESIGN_SYSTEM_ASSETS }}
+      - mkdir -p {{ .CMS_DESIGN_SYSTEM_ASSETS }}
+      - cp -r {{ .DESIGN_SYSTEM_BUILD }}/css {{ .CMS_DESIGN_SYSTEM_ASSETS }}/css
+      - cp -r {{ .DESIGN_SYSTEM_BUILD }}/js {{ .CMS_DESIGN_SYSTEM_ASSETS }}/js
+      - cp -r {{ .DESIGN_SYSTEM_BUILD }}/icons {{ .CMS_DESIGN_SYSTEM_ASSETS }}/icons
+      - cp -r {{ .DESIGN_SYSTEM_BUILD }}/fonts {{ .CMS_DESIGN_SYSTEM_ASSETS }}/fonts
+
+  dev:cms:link:react:
+    desc: "Copy React dist into CMS libraries"
+    deps:
+      - dev:react:build
+    cmds:
+      - rm -rf {{ .CMS_REACT_LIBRARY }}
+      - mkdir -p {{ .CMS_REACT_LIBRARY }}
+      - cp -r ./react/dist/* {{ .CMS_REACT_LIBRARY }}/
+
+  dev:reset:node_modules:
+    desc: "Remove node_modules from all projects and reinstall with pnpm."
+    cmds:
+      - "rm -rf node_modules **/node_modules"
+      - task: init:pnpm
+
+  lagoon:run-on-projects:
+    desc: Show how to run shell commands across many Lagoon projects in parallel
+    silent: true
+    cmds:
+      - |
+        cat <<'EOF'
+        run-on-projects.sh — run shell commands across many Lagoon projects.
+
+        The tool lives in:  cms/tools/lagoon-commands/
+
+          1. cd cms/tools/lagoon-commands
+          2. Edit projects.txt   (one project per line)
+          3. Edit commands.txt   (one shell command per line, {project} is replaced)
+          4. ./run-on-projects.sh           # default: 3 in parallel
+             ./run-on-projects.sh --dry-run # preview without running
+             ./run-on-projects.sh -h        # all flags
+
+        Per-project output goes to logs/<timestamp>/<project>.log.
+        See cms/tools/lagoon-commands/README.md for full docs.
+        EOF

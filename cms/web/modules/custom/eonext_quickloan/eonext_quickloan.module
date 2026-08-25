@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * EO NEXT Quick loan module.
+ */
+
+use Drupal\eonext_quickloan\QuickLoanSettings;
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function eonext_quickloan_preprocess_dpl_react_app(array &$variables): void {
+  if (($variables['name'] ?? '') !== 'material') {
+    return;
+  }
+
+  $enabled = (bool) \Drupal::config(QuickLoanSettings::CONFIG_ID)->get('enabled');
+  $variables['attributes'][QuickLoanSettings::MATERIAL_DATA_ATTRIBUTE] = $enabled ? 'true' : 'false';
+
+  // The attribute only reaches a dpl-react build that has the feature compiled
+  // in. The deployed bundle does not, so the text comes from a standalone
+  // bundle that injects into the already running React instance instead.
+  if ($enabled) {
+    $variables['#attached']['library'][] = QuickLoanSettings::LIBRARY;
+  }
+
+  $variables['#cache']['tags'][] = 'config:' . QuickLoanSettings::CONFIG_ID;
+}

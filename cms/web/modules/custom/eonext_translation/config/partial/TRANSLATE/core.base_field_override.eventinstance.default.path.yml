@@ -1,0 +1,20 @@
+uuid: 1aec4033-56f7-4fbd-b1fd-34da7e87b773
+langcode: en
+status: true
+dependencies:
+  config:
+    - recurring_events.eventinstance_type.default
+  module:
+    - path
+id: eventinstance.default.path
+field_name: path
+entity_type: eventinstance
+bundle: default
+label: 'URL alias'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: path

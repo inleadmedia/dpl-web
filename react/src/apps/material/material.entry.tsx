@@ -12,6 +12,8 @@ import { PublizonErrorArgs } from "../../core/storybook/publizonErrorArgs";
 import { CopyLinkArgs } from "../../core/storybook/copyLinkArgs";
 import { MappArgs } from "../../core/storybook/mappArgs";
 import { EditionSwitchModalArgs } from "../../core/storybook/editionSwitchModalArgs";
+import { PlayerModalProps } from "../../core/storybook/playerModalArgs";
+import { OpenOrderProps } from "../../core/storybook/openOrderArgs";
 import withPageStatistics from "../../core/statistics/withPageStatistics";
 import useSetSmoothScroll from "../../core/utils/useSetSmoothScroll";
 
@@ -133,25 +135,6 @@ interface MaterialEntryTextProps {
   onlineMaterialPlayerText: string;
   onlineMaterialReaderText: string;
   onlineMaterialTeaserText: string;
-  openOrderAuthenticationErrorText: string;
-  openOrderErrorMissingPincodeText: string;
-  openOrderInvalidOrderText: string;
-  openOrderNoServicerequesterText: string;
-  openOrderNotOwnedIllLocText: string;
-  openOrderNotOwnedNoIllLocText: string;
-  openOrderNotOwnedWrongIllMediumtypeText: string;
-  openOrderOrsErrorText: string;
-  openOrderOwnedOwnCatalogueText: string;
-  openOrderOwnedWrongMediumtypeText: string;
-  openOrderResponseTitleText: string;
-  openOrderServiceUnavailableText: string;
-  openOrderStatusOwnedAcceptedText: string;
-  openOrderUnknownErrorText: string;
-  openOrderUnknownPickupagencyText: string;
-  openOrderUnknownUserText: string;
-  openOrderUserBlockedByAgencyText: string;
-  openOrderUserNoLongerExistOnAgencyText: string;
-  openOrderUserNotVerifiedText: string;
   orderDigitalCopyButtonLoadingText: string;
   orderDigitalCopyButtonText: string;
   orderDigitalCopyDescriptionText: string;
@@ -177,8 +160,6 @@ interface MaterialEntryTextProps {
   outOfText: string;
   periodicalSelectEditionText: string;
   periodicalSelectYearText: string;
-  playerModalCloseButtonText: string;
-  playerModalDescriptionText: string;
   queueText: string;
   ratingIsText: string;
   readArticleText: string;
@@ -198,6 +179,7 @@ interface MaterialEntryTextProps {
   reserveBookText: string;
   reserveText: string;
   reserveWithMaterialTypeText: string;
+  relatedContentText: string;
   reviewsText: string;
   saveButtonText: string;
   seeOnlineText: string;
@@ -235,7 +217,9 @@ export interface MaterialEntryProps
     PublizonErrorArgs,
     CopyLinkArgs,
     MappArgs,
-    EditionSwitchModalArgs {
+    EditionSwitchModalArgs,
+    PlayerModalProps,
+    OpenOrderProps {
   wid: WorkId;
   isInjectionExample?: boolean;
 }

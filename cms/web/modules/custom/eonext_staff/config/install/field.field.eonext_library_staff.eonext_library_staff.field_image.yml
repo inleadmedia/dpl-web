@@ -1,0 +1,30 @@
+uuid: 469fa3aa-52ff-463e-a644-8a80b228f8bb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eonext_library_staff.field_image
+    - media.type.image
+  module:
+    - eonext_staff
+id: eonext_library_staff.eonext_library_staff.field_image
+field_name: field_image
+entity_type: eonext_library_staff
+bundle: eonext_library_staff
+label: Image
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:media'
+  handler_settings:
+    target_bundles:
+      image: image
+    sort:
+      field: _none
+      direction: ASC
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

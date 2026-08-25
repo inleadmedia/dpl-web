@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - field.field.node.branch.field_address
-    - field.field.node.branch.field_address_dawa
     - field.field.node.branch.field_address_gsearch
     - field.field.node.branch.field_agency_branch_id
     - field.field.node.branch.field_email
@@ -55,6 +54,7 @@ content:
     settings:
       size: 60
       placeholder: 'Type to search..'
+      freetext_coords: false
     third_party_settings: {  }
   field_agency_branch_id:
     type: select2
@@ -159,7 +159,6 @@ content:
 hidden:
   created: true
   field_address: true
-  field_address_dawa: true
   langcode: true
   promote: true
   publish_on: true

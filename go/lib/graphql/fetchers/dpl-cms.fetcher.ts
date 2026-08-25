@@ -3,7 +3,7 @@ import goConfig from "@/lib/config/goConfig"
 
 import AccessForbiddenError from "./AccessForbiddenError"
 
-export const getDplcmsGraphqlBasicAuthToken = () =>
+const getDplcmsGraphqlBasicAuthToken = () =>
   Buffer.from(
     `${getEnv("GO_GRAPHQL_CONSUMER_USER_NAME")}:${getEnv("GO_GRAPHQL_CONSUMER_USER_PASSWORD")}`
   ).toString("base64")
@@ -30,7 +30,8 @@ export function fetcher<TData, TVariables>(
   options?: RequestInit & { next?: NextFetchRequestConfig }
 ) {
   const { next, headers } = options || {}
-  const dplCmsGraphqlEndpoint = getEnv("GRAPHQL_SCHEMA_ENDPOINT_DPL_CMS")
+
+  const dplCmsGraphqlEndpoint = `${getEnv("DPL_CMS_BASE_URL")}/graphql`
 
   return async (): Promise<TData> => {
     try {

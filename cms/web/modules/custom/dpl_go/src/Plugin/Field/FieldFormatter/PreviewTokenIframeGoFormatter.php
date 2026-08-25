@@ -7,13 +7,15 @@ use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Utility\Token;
-use Drupal\dpl_go\GoSite;
+use Drupal\dpl_go\GoSiteInterface;
 use Drupal\graphql_compose_preview\TokenHelper;
 use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the 'preview_token_whatever' formatter.
+ *
+ * @extends \Drupal\Core\Field\FormatterBase<\Drupal\Core\Field\FieldItemListInterface>
  *
  * @FieldFormatter(
  *   id = "go_preview_token_iframe",
@@ -28,9 +30,9 @@ class PreviewTokenIframeGoFormatter extends FormatterBase {
   /**
    * The GoSite service.
    *
-   * @var \Drupal\dpl_go\GoSite
+   * @var \Drupal\dpl_go\GoSiteInterface
    */
-  protected GoSite $goSite;
+  protected GoSiteInterface $goSite;
 
   /**
    * The token service.

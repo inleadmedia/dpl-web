@@ -1,0 +1,6 @@
+eonext_servicebanner.settings:
+  title: 'Service banner'
+  description: 'Configure the service banner shown on the library website.'
+  route_name: eonext.servicebanner_settings
+  parent: dpl_library_agency.settings
+  weight: -90

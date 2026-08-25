@@ -1,0 +1,9 @@
+eonext.servicebanner_settings:
+  path: '/admin/config/eonext/service-banner'
+  defaults:
+    _title: 'Service banner settings'
+    _form: '\Drupal\eonext_servicebanner\Form\ServiceBannerForm'
+  requirements:
+    _permission: 'administer eonext service banner'
+  options:
+    _admin_route: TRUE

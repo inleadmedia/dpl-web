@@ -1,0 +1,39 @@
+<div class="opening-hours-wrapper">
+  {% if items is empty %}
+    <div class="no-opening">{{ 'No opening hours available'|t }}</div>
+  {% else %}
+    <table class="table primary-table">
+      <thead>
+        {% for item in header_items %}
+          <th>{{ item }}</th>
+        {% endfor %}
+      </thead>
+      <tbody>
+        {% for item in items %}
+          {% set class = cycle(['even', 'odd'], loop.index0) %}
+          <tr class="{{ class }}">
+            <td>{{ item.branch }}</td>
+            <td align="center" class="opening-hours-cell">
+              {% if item.opening_hours is not empty %}
+                <table class="table secondary-table">
+                  <tbody>
+                    {% for opening in item.opening_hours %}
+                      <tr>
+                        <td>{{ opening.categoryTerm.label }}</td>
+                        <td>{{ opening.startTime|date("H:i") }}
+                          -
+                          {{ opening.endTime|date("H:i") }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              {% else %}
+                <div class="no-opening">{{ 'Closed'|t }}</div>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>

@@ -7,10 +7,11 @@ describe("Reservation list", () => {
 
     const wednesday20220603 = new Date("2023-02-03T12:30:00.000Z").getTime();
 
-    // Sets time to a specific date
-    // https://github.com/cypress-io/cypress/issues/7577
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cy.clock(wednesday20220603).then((clock: any) => clock.bind(window));
+    // Sets time to a specific date. cy.clock() applies to the application
+    // under test automatically when called before cy.visit().
+    // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+    // notify scheduler, leaving every component stuck in its loading state.
+    cy.clock(wednesday20220603, ["Date"]);
 
     cy.interceptRest({
       aliasName: "work",
@@ -486,7 +487,6 @@ describe("Reservation list", () => {
     cy.visit(
       "/iframe.html?path=/story/apps-reservation-list--reservation-list-entry"
     );
-    cy.wait("@user");
 
     cy.getBySel("reservation-material")
       .eq(0)
@@ -496,7 +496,7 @@ describe("Reservation list", () => {
           "E-book"
         );
 
-        cy.get(".list-reservation__header__text").should(
+        cy.get(".list-reservation__title__text").should(
           "have.text",
           "Mordet i det blå tog"
         );
@@ -826,10 +826,19 @@ describe("Reservation list", () => {
       .find("h1")
       .should("have.text", "Your reservations");
 
-    // ID 11 2.b. Text: "At the moment you have 0 reservations"
-    cy.get(".dpl-list-empty")
-      .should("exist")
-      .should("have.text", "At the moment you have 0 reservations");
+    // ID 11 2.b. Each tab shows its own empty message when no reservations exist
+    cy.getBySel("reservation-list-ready-for-pickup-empty-list").should(
+      "have.text",
+      "At the moment you have 0 reservations ready for pickup"
+    );
+    cy.getBySel("reservation-list-physical-reservations-empty-list").should(
+      "have.text",
+      "At the moment you have 0 physical reservations"
+    );
+    cy.getBySel("reservation-list-digital-reservations-empty-list").should(
+      "have.text",
+      "At the moment you have 0 reservations on digital items"
+    );
   });
 
   it("Reservations list shows parallel reservation", () => {
@@ -898,7 +907,7 @@ describe("Reservation list", () => {
       // Even though we return multiple reservations they are parallel and
       // should be represented as one.
       .should("have.length", 1)
-      .get(".list-reservation__header")
+      .get(".list-reservation__title")
       // The title should be the one returned by the best representation
       // fixture.
       .should("contain", "Best representation of dummy title")
@@ -981,7 +990,7 @@ describe("Reservation list", () => {
 
     cy.getBySel("list-reservation-container")
       .find(".list-reservation")
-      .get(".list-reservation__header")
+      .get(".list-reservation__title")
       // The title should be the one returned by ilBibliographicRecord property
       // on the reservation.
       .should("contain", "Supermac : the life of Harold Macmillan")

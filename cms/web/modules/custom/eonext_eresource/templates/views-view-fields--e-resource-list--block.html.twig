@@ -1,0 +1,24 @@
+{#
+/**
+ * @file
+ * Theme override to display the fields.
+ *
+ * @see template_preprocess_views_view_fields__e_resource_list__block()
+ */
+#}
+
+<article>
+  <div class="data">
+    <div class="image">
+      {{ field_e_resource_list_image }}
+    </div>
+    <div class="content">
+      {{ title }}
+      {{ field_e_resource_lead }}
+    </div>
+  </div>
+  <div class="buttons">
+    {{ see_more }}
+    {{ field_e_resource_link }}
+  </div>
+</article>

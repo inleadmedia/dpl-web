@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { first } from "lodash";
 import Various from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/Various.svg";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useModalButtonHandler } from "../../core/utils/modal";
 import {
   convertPostIdsToFaustIds,
@@ -39,6 +39,7 @@ import {
   Work
 } from "../../core/utils/types/entities";
 import {
+  canSubmitOpenOrderReservation,
   getPreferredBranch,
   constructReservationData,
   getAuthorLine,
@@ -175,9 +176,14 @@ export const ReservationModalBody = ({
   const expiryDate = getFutureDateString(interestPeriod);
   const materialType = getMaterialType(selectedManifestations);
 
+  const userHasEmail = Boolean(patron?.emailAddress);
+
   const canSubmitFbs =
     manifestationsToReserve?.length && !materialIsReservableFromAnotherLibrary;
-  const canSubmitOpenOrder = materialIsReservableFromAnotherLibrary && patron;
+  const canSubmitOpenOrder = canSubmitOpenOrderReservation({
+    materialIsReservableFromAnotherLibrary,
+    patron
+  });
 
   const saveReservation = () => {
     if (canSubmitFbs) {
@@ -204,16 +210,18 @@ export const ReservationModalBody = ({
             // This state is used to show the success or error modal.
             setReservationResponse(res);
             // Because after a successful reservation the holdings (reservations) are updated.
-            queryClient.invalidateQueries(
-              getGetHoldingsLogisticsV1QueryKey({ recordid: faustIds })
-            );
+            queryClient.invalidateQueries({
+              queryKey: getGetHoldingsLogisticsV1QueryKey({
+                recordid: faustIds
+              })
+            });
           },
           onError: () => {
             setReservationStatus("error");
           }
         }
       );
-    } else if (canSubmitOpenOrder) {
+    } else if (canSubmitOpenOrder && patron) {
       setReservationStatus("pending");
       const { patronId, name, emailAddress, preferredPickupBranch } = patron;
       // Save reservation to open order.
@@ -269,8 +277,6 @@ export const ReservationModalBody = ({
       instantLoanBranchHoldings,
       instantLoanThreshold
     );
-
-  const userHasEmail = Boolean(patron?.emailAddress);
 
   // Disable submit based on the exact conditions used in saveReservation
   const isSubmitDisabled =

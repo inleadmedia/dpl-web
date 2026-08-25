@@ -1,0 +1,219 @@
+version: "3"
+
+dotenv: [".task.env"]
+
+vars:
+  GO_DIR: "../go"
+  GO_DEPLOY_PORT: '{{.GO_DEPLOY_PORT | default "3001"}}'
+  GO_PM2_APP_NAME: '{{.GO_PM2_APP_NAME | default "dpl-go"}}'
+  GO_DEPLOY_NODE_BIN: '{{.GO_DEPLOY_NODE_BIN | default "node"}}'
+
+env:
+  SKIP_LANGUAGE_IMPORT: false
+  SKIP_GO_DEPLOY: false
+  DRUSH_EXEC: "./vendor/bin/drush"
+
+tasks:
+  drupal:cache-clear:
+    cmds:
+      - ${DRUSH_EXEC} cache:rebuild -y
+
+  drupal:enable-dev-tools:
+    desc: Enable dev modules and settings, which are not to be used in Prod. They are config-ignored
+    cmds:
+      - ${DRUSH_EXEC} install -y devel dpl_example_content dpl_example_breadcrumb field_ui restui uuid_url views_ui dblog
+
+  drupal:create-users:
+    desc: Create test users, with test roles
+    cmds:
+      - ${DRUSH_EXEC} user:create editor --password="test"
+      - ${DRUSH_EXEC} user:role:add 'editor' editor
+
+      - ${DRUSH_EXEC} user:create administrator --password="test"
+      - ${DRUSH_EXEC} user:role:add 'administrator' administrator
+
+      - ${DRUSH_EXEC} user:create mediator --password="test"
+      - ${DRUSH_EXEC} user:role:add 'mediator' mediator
+
+      - ${DRUSH_EXEC} user:create local_administrator --password="test"
+      - ${DRUSH_EXEC} user:role:add 'local_administrator' local_administrator
+
+      - ${DRUSH_EXEC} user:create patron --password="test"
+      - ${DRUSH_EXEC} user:role:add 'patron' patron
+
+  drupal:update:
+    desc: Install/update composer dependencies and build/restart Go when ../go is present
+    deps:
+      - drupal:build-react
+    cmds:
+      - cp -n .env.example .env || true
+      - rm -rf web/libraries/dpl-react web/themes/custom/novel/assets/dpl-design-system
+      - composer install --no-cache
+      - composer reinstall inleadmedia/dpl-design-system inleadmedia/dpl-react --no-cache
+      - composer drupal:scaffold
+      - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
+      - |
+        if [ "${SKIP_GO_DEPLOY}" = true ]; then
+          echo "Skipping Go deploy due to SKIP_GO_DEPLOY environment variable"
+        elif [ ! -f ../go/package.json ]; then
+          echo "Skipping Go deploy (../go not found)"
+        elif [ ! -f ../go/.env.local ]; then
+          echo "Skipping Go deploy (../go/.env.local not found)"
+        else
+          task -t Taskfile.yaml go:deploy
+        fi
+
+  drupal:build-react:
+    desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild)
+    preconditions:
+      - sh: test -f ../react/bundle.sh && test -f ../design-system/bundle.sh
+        msg: Run from cms/ in the dpl-web monorepo (../react and ../design-system required).
+    sources:
+      - ../react/src/**/*
+      - ../react/package.json
+      - ../react/yarn.lock
+      - ../react/bundle.sh
+      - ../react/composer.json
+      - ../react/webpack*.js
+      - ../react/tsconfig.json
+      - ../design-system/src/**/*
+      - ../design-system/public/**/*
+      - ../design-system/package.json
+      - ../design-system/yarn.lock
+      - ../design-system/bundle.sh
+      - ../design-system/composer.json
+    generates:
+      - ../react/dist/.bundle-stamp
+    cmds:
+      - (cd ../react && ./bundle.sh)
+
+  drupal:assets:status:
+    desc: Report whether a react/design-system bundle build is needed (does not build)
+    cmds:
+      - |
+        STAMP=../react/dist/.bundle-stamp
+        if [ ! -f "$STAMP" ]; then
+          echo "NEEDS_BUILD (no bundle stamp — run: task -t Taskfile.yaml drupal:build-react)"
+          exit 0
+        fi
+        if task -t Taskfile.yaml drupal:build-react --dry 2>&1 | grep -q 'task up to date'; then
+          echo "UP_TO_DATE (stamp: $STAMP)"
+        else
+          echo "NEEDS_BUILD (sources newer than stamp: $STAMP)"
+        fi
+
+  drupal:locale:
+    desc: Update translation strings
+    cmds:
+      - ${DRUSH_EXEC} cache:rebuild -y
+      - |
+        if [ "${SKIP_LANGUAGE_IMPORT}" == true ]; then
+          echo "Skipping language import due to SKIP_LANGUAGE_IMPORT environment variable"
+        else
+          ${DRUSH_EXEC} locale-check
+          ${DRUSH_EXEC} locale-update
+          ${DRUSH_EXEC} dpl_po:import-remote-config-po da https://danskernesdigitalebibliotek.github.io/dpl-cms/translations/da.config.po
+        fi
+
+  drupal:reset:
+    desc: Clean install the instance
+    cmds:
+      - task -t Taskfile.yaml drupal:update
+      - ${DRUSH_EXEC} site-install --existing-config -y
+      - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
+      - task -t Taskfile.yaml drupal:locale
+      - task -t Taskfile.yaml drupal:cache-clear
+      - task -t Taskfile.yaml drupal:enable-dev-tools
+      - task -t Taskfile.yaml drupal:create-users
+      - ${DRUSH_EXEC} user-login
+
+  drupal:upgrade:
+    desc: Run database updates and config import on an existing instance
+    env:
+      EONEXT_MOBILESEARCH_SKIP: "1"
+    cmds:
+      - task -t Taskfile.yaml drupal:update
+      # Drop the compiled container so new module services (e.g.
+      # dpl_po.po_file_builder from 2026.34) exist before Drush instantiates
+      # every drush.services.yml command. sql:query bootstraps only to
+      # DATABASE, so it still works when the cached container is stale.
+      - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
+      # Ghost modules (removed from the tree, still in this site's DB) break
+      # ModuleInstaller and REST plugin discovery during updb.
+      - php dev-scripts/purge-missing-modules.php
+      - ${DRUSH_EXEC} pm-uninstall easyemail -y || true
+      - ${DRUSH_EXEC} en varnish_purger -y
+      - ${DRUSH_EXEC} updb -y
+      - ${DRUSH_EXEC} scr dev-scripts/delete-newsletter-material.php
+      - ${DRUSH_EXEC} cim -y
+      - ${DRUSH_EXEC} deploy:hook -y
+      - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
+      - task -t Taskfile.yaml drupal:locale
+
+  qa:
+    desc: Run code quality checks
+    ignore_error: true
+    cmds:
+      - php vendor/bin/phpcs
+      - php vendor/bin/twig-cs-fixer lint --fix
+      - php vendor/bin/phpstan
+
+  go:deploy:plan:
+    desc: Show Go build/restart settings (from cms/.task.env)
+    silent: true
+    cmds:
+      - |
+        cat <<EOF
+        ────────── Go build/restart ──────────
+        App path     : {{.GO_DIR}}
+        Port         : {{.GO_DEPLOY_PORT}}
+        PM2 app      : {{.GO_PM2_APP_NAME}}
+        Node binary  : {{.GO_DEPLOY_NODE_BIN}}
+        ─────────────────────────────────────
+        Run from cms/ after code is synced (e.g. Jenkins).
+        EOF
+
+  go:deploy:
+    desc: Build and restart Go (yarn install, yarn build, pm2 restart)
+    deps: [go:deploy:preconditions]
+    cmds:
+      - task -t Taskfile.yaml go:deploy:plan
+      - task -t Taskfile.yaml go:deploy:verify-env
+      - task -t Taskfile.yaml go:deploy:build
+      - task -t Taskfile.yaml go:deploy:pm2-restart
+
+  go:deploy:build:
+    desc: yarn install and yarn build
+    dir: "{{.GO_DIR}}"
+    cmds:
+      - yarn install --frozen-lockfile
+      - yarn build
+
+  go:deploy:pm2-restart:
+    desc: Restart PM2 app (start if missing)
+    dir: "{{.GO_DIR}}"
+    cmds:
+      - |
+        if pm2 describe {{.GO_PM2_APP_NAME}} >/dev/null 2>&1; then
+          pm2 restart {{.GO_PM2_APP_NAME}}
+        else
+          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/.bin/next start -p {{.GO_DEPLOY_PORT}}
+        fi
+        pm2 save
+
+  go:deploy:verify-env:
+    desc: Verify DPL_CMS_BASE_URL and DPL_GO_BASE_URL in .env.local
+    dir: "{{.GO_DIR}}"
+    preconditions:
+      - sh: test -f .env.local
+        msg: ".env.local not found in {{.GO_DIR}}"
+    cmds:
+      - |
+        grep -q '^DPL_CMS_BASE_URL=' .env.local && grep -q '^DPL_GO_BASE_URL=' .env.local \
+          || (echo 'ERROR: .env.local must define DPL_CMS_BASE_URL and DPL_GO_BASE_URL' && exit 1)
+
+  go:deploy:preconditions:
+    internal: true
+    preconditions:
+      - sh: test -d {{.GO_DIR}}
+        msg: "Go directory not found at {{.GO_DIR}} — run task from cms/ in the monorepo."

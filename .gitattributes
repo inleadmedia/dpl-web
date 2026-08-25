@@ -1,4 +1,30 @@
 # Mark generated files so they are collapsed in GitHub pull requests.
 # See https://docs.github.com/en/repositories/working-with-files/managing-files/customizing-how-changed-files-appear-on-github
+
+# Drupal lazy-service proxy classes (core/scripts/generate-proxy-class.php)
+cms/web/modules/custom/*/src/ProxyClass/** linguist-generated
+
+# GraphQL codegen
 go/lib/graphql/generated/** linguist-generated
 react/src/core/dbc-gateway/generated/** linguist-generated
+
+# WSDL codegen (go)
+go/lib/soap/unilogin/wsiinst-v6/generated/** linguist-generated
+go/lib/soap/publizon/v2_7/generated/** linguist-generated
+
+# Orval codegen (go)
+go/lib/rest/publizon/adapter/generated/** linguist-generated
+go/lib/rest/publizon/local-adapter/generated/** linguist-generated
+
+# Orval codegen (service layer)
+packages/service-layer/fbs/src/generated/** linguist-generated
+
+# Orval codegen (react)
+react/src/core/dpl-cms/dpl-cms.ts linguist-generated
+react/src/core/dpl-cms/model/** linguist-generated
+react/src/core/fbs/fbs.ts linguist-generated
+react/src/core/fbs/model/** linguist-generated
+react/src/core/material-list-api/material-list.ts linguist-generated
+react/src/core/material-list-api/model/** linguist-generated
+react/src/core/publizon/publizon.ts linguist-generated
+react/src/core/publizon/model/** linguist-generated

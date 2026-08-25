@@ -134,12 +134,26 @@
     }
   }
 
+  &__material-text {
+    @media screen and (min-width: 768px) {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
   &__material-title {
     color: #000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 250px;
+
+    @media screen and (min-width: 768px) {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      max-width: none;
+    }
   }
 }
 
