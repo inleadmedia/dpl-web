@@ -77,7 +77,7 @@ function initSwiper() {
       elementForCarousel.classList.add("swiper--centered");
     }
 
-    const swiperInit = new window.Swiper(elementForCarousel, {
+    new window.Swiper(elementForCarousel, {
       slidesPerView: "auto",
       freeMode: true,
       centerInsufficientSlides: isCentered != null,
@@ -102,7 +102,7 @@ function initSwiper() {
 }
 
 // Method to init Swiper carousel at storybook
-window.DPL_designSystem_initSwiper = function (scriptNode) {
+window.DPL_designSystem_initSwiper = function () {
   if (window.Swiper) {
     initSwiper();
   } else {
