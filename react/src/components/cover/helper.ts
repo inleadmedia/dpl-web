@@ -4,7 +4,6 @@ import type {
 } from "../../core/dbc-gateway/generated/graphql";
 
 import lodash, { first } from "lodash";
-import { CoverImageUrls } from "../../core/cover-service-api/model";
 import { Manifestation } from "../../core/utils/types/entities";
 import { Pid } from "../../core/utils/types/ids";
 import {
