@@ -30,21 +30,28 @@
         _package = Object.assign({}, _package);
 
       Object.keys(_package).forEach(minifiedKey => {
-        if (!_package[minifiedKey] || !_package[minifiedKey].toString)
+        try {
+          const exportValue = _package[minifiedKey];
+          if (exportValue == null)
+            return;
+
+          let unwrapped;
+          if (typeof exportValue === "object" && unwrapPackageObject) {
+            unwrapped = unwrapPackageObject(exportValue);
+          } else if (typeof exportValue === "function") {
+            unwrapped = unwrapPackageMethod(exportValue.toString());
+          } else {
+            return;
+          }
+
+          if (unwrapped) {
+            _package[unwrapped.methodKey] = exportValue;
+            _package[unwrapped.methodKey].minifiedKey = minifiedKey;
+
+            this._unwrappedPackages[unwrapped.packageKey] = _package;
+          }
+        } catch (_) {
           return;
-
-        let unwrapped;
-        if (typeof _package[minifiedKey] === "object" && unwrapPackageObject) {
-          unwrapped = unwrapPackageObject(_package[minifiedKey]);
-        } else {
-          unwrapped = unwrapPackageMethod(_package[minifiedKey].toString());
-        }
-
-        if (unwrapped) {
-          _package[unwrapped.methodKey] = _package[minifiedKey];
-          _package[unwrapped.methodKey].minifiedKey = minifiedKey;
-
-          this._unwrappedPackages[unwrapped.packageKey] = _package;
         }
       });
     }
