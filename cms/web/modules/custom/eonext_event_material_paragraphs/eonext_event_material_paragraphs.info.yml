@@ -1,0 +1,11 @@
+name: 'EO Next Event and Material Paragraphs'
+type: module
+description: 'Customizations for event and material paragraph types.'
+package: EO next
+core_version_requirement: ^10 || ^11
+dependencies:
+  - dpl_paragraphs:dpl_paragraphs
+  - drupal_typed:drupal_typed
+  - link:link
+  - options:options
+  - paragraphs:paragraphs

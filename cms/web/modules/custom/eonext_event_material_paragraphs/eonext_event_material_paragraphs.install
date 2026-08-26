@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for EO Next Event and Material Paragraphs.
+ */
+
+use Drupal\drupal_typed\DrupalTyped;
+use Drupal\eonext_event_material_paragraphs\ShowAllSetup;
+
+/**
+ * Implements hook_install().
+ */
+function eonext_event_material_paragraphs_install(): void {
+  DrupalTyped::service(ShowAllSetup::class)->install();
+}

@@ -1,0 +1,6 @@
+show_all_link:
+  js:
+    js/show-all-link.js: {}
+  dependencies:
+    - core/once
+    - novel/show-more
