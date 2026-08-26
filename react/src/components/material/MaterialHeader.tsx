@@ -46,7 +46,6 @@ interface MaterialHeaderProps {
   isAvailable: boolean | null;
 }
 
-const withQuickLoanInfo = document.querySelector("[data-material-quick-loan-info]")?.getAttribute("data-material-quick-loan-info") === "true";
 const MaterialHeader: React.FC<MaterialHeaderProps> = ({
   work: {
     creators,
@@ -144,7 +143,6 @@ const MaterialHeader: React.FC<MaterialHeaderProps> = ({
                 setSelectedManifestations={setSelectedManifestations}
               />
             )}
-            { withQuickLoanInfo ? <QuickLoanText manifestations={ selectedManifestations } /> : null }
           </div>
           {/* The CTA buttons apparently only make sense on a global work */}
           {!isGlobalMaterial && (
