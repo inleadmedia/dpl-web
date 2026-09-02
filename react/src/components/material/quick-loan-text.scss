@@ -1,0 +1,22 @@
+.quick-loan-text {
+  margin-top: 1.25rem;
+  margin-bottom: -2.5rem;
+  width: 100%;
+
+  &__text-wrapper {
+    background: #669f9e;
+    color: #ffffff;
+    font-size: 14px !important;
+    padding: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &__icon {
+    display: inline-block;
+    margin-right: 0.5rem;
+
+    /* Change a color if the svg icon from black to white */
+    filter: invert(1);
+  }
+}

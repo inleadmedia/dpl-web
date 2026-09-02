@@ -6,6 +6,7 @@
   class ReactInjector {
     constructor() {
       this._reactPackage;
+      this._jsxDEV;
       this._instantiatedInjections = [];
       this._packagesList = {};
       this._unwrappedPackages = {};
@@ -60,9 +61,9 @@
         return this._packagesList[foundPackageKey];
     }
 
-    setInjectionToReactLibrary(reactPackage) {
+    setInjectionToReactLibrary(reactPackage, jsxDEV) {
       // Do not apply injection handler twice
-      if (this._reactPackage === reactPackage)
+      if (this._reactPackage === reactPackage && this._jsxDEV === jsxDEV)
         return;
 
       // Remove injection from old package while re-initialization
@@ -70,7 +71,12 @@
         this._reactPackage.createElement = this._reactPackage.createElement._originalCreateElement;
       }
 
+      if (this?._jsxDEV?._jsxDEV?._originalJsxDEV) {
+        this._jsxDEV._jsxDEV = this._jsxDEV._jsxDEV._originalJsxDEV;
+      }
+
       this._reactPackage = reactPackage;
+      this._jsxDEV = jsxDEV;
 
       // Hook to the react createElement function to be possible to hook into templates from outside of main bundle.
       var originalCreateElement = reactPackage.createElement;
@@ -88,6 +94,20 @@
       };
 
       reactPackage.createElement._originalCreateElement = originalCreateElement;
+
+      var originalJsxDEV = jsxDEV.jsxDEV;
+      jsxDEV.jsxDEV = function(tag, options, maybeKey, isStaticChildren) {
+        options = Object.assign({}, options);
+        var updated = that.applyPossibleInjections({ tag, props: options, children: options?.children });
+
+        tag = updated.tag;
+        options = updated.props || {};
+        options.children = updated.children;
+
+        return originalJsxDEV.call(this, tag, options, maybeKey, isStaticChildren);
+      };
+
+      jsxDEV.jsxDEV._originalJsxDEV = originalJsxDEV;
     }
 
     _matchElement(reactNodeData, condition) {
@@ -206,10 +226,14 @@
             return _package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react.");
           });
 
+          var jsxDEV = window.InleadReactInjector.findPackage((_package) => {
+            return _package.jsxDEV;
+          });
+
           if (!reactPackage)
             return console.warn("React package not found! The external injection isn't possible!");
 
-          window.InleadReactInjector.setInjectionToReactLibrary(reactPackage);
+          window.InleadReactInjector.setInjectionToReactLibrary(reactPackage, jsxDEV);
         }
       },
       e => {

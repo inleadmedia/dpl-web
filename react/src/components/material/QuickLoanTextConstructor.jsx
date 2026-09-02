@@ -1,3 +1,5 @@
+import aboutIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/About.svg";
+
 export const QuickLoanTextConstructor = (React, externalLibraries) => {
   const useText = externalLibraries.useText;
   const useConfig = externalLibraries.useConfig;
@@ -37,8 +39,12 @@ export const QuickLoanTextConstructor = (React, externalLibraries) => {
       return null;
 
     // Inline style is used to leave the Quick loan text component without the requirement to use external styles
-    return <div className="mt-4 text-small-caption" style={{ width: "100%" }}>
-      { t("Kviklån - 14 dages lån:") } { quickLoanLibraries.join(", ") }
+    return <div className="quick-loan-text">
+      <span className="quick-loan-text__text-wrapper text-small-caption">
+        <img className="quick-loan-text__icon" src={aboutIcon} alt="About icon" />
+
+        { t("Hjemme som kviklån på lige nu på") } { quickLoanLibraries.join(", ") }
+      </span>
     </div>;
   };
 };
