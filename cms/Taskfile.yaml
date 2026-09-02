@@ -174,7 +174,7 @@ tasks:
         EOF
 
   go:deploy:
-    desc: Build and restart Go (yarn install, yarn build, pm2 restart)
+    desc: Build and restart Go (pnpm install, pnpm build, pm2 restart)
     deps: [go:deploy:preconditions]
     cmds:
       - task -t Taskfile.yaml go:deploy:plan
@@ -183,11 +183,16 @@ tasks:
       - task -t Taskfile.yaml go:deploy:pm2-restart
 
   go:deploy:build:
-    desc: yarn install and yarn build
+    desc: pnpm install and pnpm build
     dir: "{{.GO_DIR}}"
     cmds:
-      - yarn install --frozen-lockfile
-      - yarn build
+      - |
+        if command -v corepack >/dev/null 2>&1; then
+          corepack enable
+          corepack prepare pnpm@10.34.4 --activate
+        fi
+        pnpm install --frozen-lockfile
+        pnpm run build
 
   go:deploy:pm2-restart:
     desc: Restart PM2 app (start if missing)
