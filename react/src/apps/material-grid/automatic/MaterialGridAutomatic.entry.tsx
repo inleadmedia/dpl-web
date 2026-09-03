@@ -7,6 +7,7 @@ import { withText } from "../../../core/utils/text";
 import { withUrls } from "../../../core/utils/url";
 import MaterialGridAutomatic from "./MaterialGridAutomatic";
 import { parseBoolean } from "../../../core/utils/helpers/general";
+import { ManifestationMaterialType } from "../../../core/utils/types/material-type";
 
 interface MaterialGridAutomaticEntryConfigProps {
   blacklistedAvailabilityBranchesConfig: string;
@@ -34,6 +35,7 @@ export interface MaterialGridAutomaticEntryProps
   buttonText: string;
   materialUrl: string;
   firstaccessiondateitem?: string;
+  materialType?: string;
 }
 
 const MaterialGridAutomaticEntry: React.FC<MaterialGridAutomaticEntryProps> = ({
@@ -47,7 +49,8 @@ const MaterialGridAutomaticEntry: React.FC<MaterialGridAutomaticEntryProps> = ({
   title,
   description,
   requestedAmount,
-  firstaccessiondateitem
+  firstaccessiondateitem,
+  materialType
 }) => (
   <GuardedApp app="material-grid-automatic">
     <MaterialGridAutomatic
@@ -62,6 +65,7 @@ const MaterialGridAutomaticEntry: React.FC<MaterialGridAutomaticEntryProps> = ({
       description={description}
       requestedAmount={requestedAmount}
       firstaccessiondateitem={firstaccessiondateitem}
+      materialType={materialType as ManifestationMaterialType}
     />
   </GuardedApp>
 );
