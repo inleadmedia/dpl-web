@@ -2,5 +2,5 @@ type: module
 name: EO Next BIBDK Subject Hierarchy
 description: Expose subject hierarchy list.
 package: EO next
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 configure: eonext.bibdk_sh_settings

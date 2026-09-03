@@ -2,7 +2,7 @@ type: module
 name: EO Next E-Resource
 description: Allows editors to publish E-Resource articles.
 package: EO next
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 #configure: eonext.advanced_search_settings
 dependencies:
   - drupal:block

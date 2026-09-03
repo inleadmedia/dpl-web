@@ -212,6 +212,11 @@
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Drupal\\dpl_metrics\\": "web/modules/custom/dpl_metrics/src/"
+        }
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {

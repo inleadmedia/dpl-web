@@ -15,6 +15,7 @@ declare(strict_types=1);
 $missing = [
   'eonext_easysearch',
   'eonext_event_material_paragraphs',
+  'address_dawa',
 ];
 
 $host = getenv('MARIADB_HOST') ?: getenv('MYSQL_HOST') ?: 'db';
@@ -74,9 +75,18 @@ if ($extension !== NULL) {
 $delete_names = [
   'eonext_easysearch.settings',
   'rest.resource.eonext_easysearch.material_semantic_search',
+  'field.storage.node.field_address_dawa',
 ];
 $del = $pdo->prepare('DELETE FROM config WHERE name = :n');
 foreach ($delete_names as $name) {
+  $del->execute([':n' => $name]);
+  $log(sprintf('Deleted config %s (%d row(s)).', $name, $del->rowCount()));
+}
+
+$dawa_fields = $pdo->query(
+  "SELECT DISTINCT name FROM config WHERE name LIKE 'field.field.%.field_address_dawa'"
+)->fetchAll(PDO::FETCH_COLUMN);
+foreach ($dawa_fields as $name) {
   $del->execute([':n' => $name]);
   $log(sprintf('Deleted config %s (%d row(s)).', $name, $del->rowCount()));
 }

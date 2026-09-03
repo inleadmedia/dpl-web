@@ -146,6 +146,9 @@ tasks:
       - ${DRUSH_EXEC} updb -y
       - ${DRUSH_EXEC} scr dev-scripts/delete-newsletter-material.php
       - ${DRUSH_EXEC} cim -y
+      # dpl_go_deploy_0001 always creates next_site.go and fails if cim/DB
+      # already has it (every library that already runs GO).
+      - ${DRUSH_EXEC} scr dev-scripts/skip-existing-go-next-site.php
       - ${DRUSH_EXEC} deploy:hook -y
       - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
       - task -t Taskfile.yaml drupal:locale
