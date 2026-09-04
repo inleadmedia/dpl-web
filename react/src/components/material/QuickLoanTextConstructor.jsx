@@ -43,7 +43,7 @@ export const QuickLoanTextConstructor = (React, externalLibraries) => {
       <span className="quick-loan-text__text-wrapper text-small-caption">
         <img className="quick-loan-text__icon" src={aboutIcon} alt="About icon" />
 
-        { t("Hjemme som kviklån på lige nu på") } { quickLoanLibraries.join(", ") }
+        { t("Hjemme som kviklån lige nu på") } { quickLoanLibraries.join(", ") }
       </span>
     </div>;
   };
