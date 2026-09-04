@@ -1,5 +1,5 @@
 name: 'EO Next Marketing Script'
 type: module
 description: 'Provides a marketing_script paragraph type that renders a marketing signup form.'
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 package: EO Next

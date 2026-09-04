@@ -2,4 +2,4 @@ name: 'EO Next Staff'
 type: module
 description: 'Extends user profile with staff information.'
 package: 'EO next'
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11

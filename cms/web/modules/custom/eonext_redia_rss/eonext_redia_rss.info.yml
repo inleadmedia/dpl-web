@@ -1,7 +1,7 @@
 name: EO Next Redia RSS
 description: 'Exposed events and articles RSS feeds.'
 type: module
-core_version_requirement: ^10
+core_version_requirement: ^10 || ^11
 package: 'EO next'
 dependencies:
   - 'views_rss'

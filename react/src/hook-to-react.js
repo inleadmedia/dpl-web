@@ -6,6 +6,7 @@
   class ReactInjector {
     constructor() {
       this._reactPackage;
+      this._jsxRuntime;
       this._jsxDEV;
       this._instantiatedInjections = [];
       this._packagesList = {};
@@ -61,9 +62,34 @@
         return this._packagesList[foundPackageKey];
     }
 
-    setInjectionToReactLibrary(reactPackage, jsxDEV) {
+    wrapJsxFactory(runtime, name) {
+      if (!runtime || typeof runtime[name] !== "function" || runtime[name]._originalJsxFactory)
+        return;
+
+      var that = this;
+      var original = runtime[name];
+      runtime[name] = function(tag, options, maybeKey, isStaticChildren) {
+        options = Object.assign({}, options);
+        var updated = that.applyPossibleInjections({ tag, props: options, children: options?.children });
+
+        tag = updated.tag;
+        options = updated.props || {};
+        options.children = updated.children;
+
+        return original.call(this, tag, options, maybeKey, isStaticChildren);
+      };
+      runtime[name]._originalJsxFactory = original;
+    }
+
+    unwrapJsxFactory(runtime, name) {
+      if (runtime?.[name]?._originalJsxFactory) {
+        runtime[name] = runtime[name]._originalJsxFactory;
+      }
+    }
+
+    setInjectionToReactLibrary(reactPackage, jsxRuntime, jsxDEV) {
       // Do not apply injection handler twice
-      if (this._reactPackage === reactPackage && this._jsxDEV === jsxDEV)
+      if (this._reactPackage === reactPackage && this._jsxRuntime === jsxRuntime && this._jsxDEV === jsxDEV)
         return;
 
       // Remove injection from old package while re-initialization
@@ -71,11 +97,12 @@
         this._reactPackage.createElement = this._reactPackage.createElement._originalCreateElement;
       }
 
-      if (this?._jsxDEV?._jsxDEV?._originalJsxDEV) {
-        this._jsxDEV._jsxDEV = this._jsxDEV._jsxDEV._originalJsxDEV;
-      }
+      this.unwrapJsxFactory(this._jsxRuntime, "jsx");
+      this.unwrapJsxFactory(this._jsxRuntime, "jsxs");
+      this.unwrapJsxFactory(this._jsxDEV, "jsxDEV");
 
       this._reactPackage = reactPackage;
+      this._jsxRuntime = jsxRuntime;
       this._jsxDEV = jsxDEV;
 
       // Hook to the react createElement function to be possible to hook into templates from outside of main bundle.
@@ -95,19 +122,10 @@
 
       reactPackage.createElement._originalCreateElement = originalCreateElement;
 
-      var originalJsxDEV = jsxDEV.jsxDEV;
-      jsxDEV.jsxDEV = function(tag, options, maybeKey, isStaticChildren) {
-        options = Object.assign({}, options);
-        var updated = that.applyPossibleInjections({ tag, props: options, children: options?.children });
-
-        tag = updated.tag;
-        options = updated.props || {};
-        options.children = updated.children;
-
-        return originalJsxDEV.call(this, tag, options, maybeKey, isStaticChildren);
-      };
-
-      jsxDEV.jsxDEV._originalJsxDEV = originalJsxDEV;
+      // Production uses react/jsx-runtime (jsx/jsxs). Dev uses jsxDEV.
+      this.wrapJsxFactory(jsxRuntime, "jsx");
+      this.wrapJsxFactory(jsxRuntime, "jsxs");
+      this.wrapJsxFactory(jsxDEV, "jsxDEV");
     }
 
     _matchElement(reactNodeData, condition) {
@@ -226,14 +244,18 @@
             return _package.createElement && _package.useMemo && (_package.Fragment || "").toString().includes("react.");
           });
 
+          var jsxRuntime = window.InleadReactInjector.findPackage((_package) => {
+            return typeof _package.jsx === "function" && typeof _package.jsxs === "function";
+          });
+
           var jsxDEV = window.InleadReactInjector.findPackage((_package) => {
-            return _package.jsxDEV;
+            return typeof _package.jsxDEV === "function";
           });
 
           if (!reactPackage)
             return console.warn("React package not found! The external injection isn't possible!");
 
-          window.InleadReactInjector.setInjectionToReactLibrary(reactPackage, jsxDEV);
+          window.InleadReactInjector.setInjectionToReactLibrary(reactPackage, jsxRuntime, jsxDEV);
         }
       },
       e => {

@@ -138,14 +138,14 @@ tasks:
       # every drush.services.yml command. sql:query bootstraps only to
       # DATABASE, so it still works when the cached container is stale.
       - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
-      # Ghost modules (removed from the tree, still in this site's DB) break
-      # ModuleInstaller and REST plugin discovery during updb.
-      - php dev-scripts/purge-missing-modules.php
       - ${DRUSH_EXEC} pm-uninstall easyemail -y || true
       - ${DRUSH_EXEC} en varnish_purger -y
       - ${DRUSH_EXEC} updb -y
       - ${DRUSH_EXEC} scr dev-scripts/delete-newsletter-material.php
       - ${DRUSH_EXEC} cim -y
+      # dpl_go_deploy_0001 always creates next_site.go and fails if cim/DB
+      # already has it (every library that already runs GO).
+      - ${DRUSH_EXEC} scr dev-scripts/skip-existing-go-next-site.php
       - ${DRUSH_EXEC} deploy:hook -y
       - ${DRUSH_EXEC} pm-uninstall varnish_purger -y
       - task -t Taskfile.yaml drupal:locale
