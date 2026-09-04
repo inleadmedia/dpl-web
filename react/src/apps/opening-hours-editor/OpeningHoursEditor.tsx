@@ -104,7 +104,10 @@ const OpeningHoursEditor: React.FC<OpeningHoursEditorType> = ({
               titleFormat: { year: "numeric", month: "short", day: "numeric" }
             }
           }}
-          locale={da}
+          locale={
+            // @ts-ignore-next-line
+            window.DPL_fullCalendarCustomLocale || da
+          }
           selectable={!isLoading}
           select={
             isLoading
