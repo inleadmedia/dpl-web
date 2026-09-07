@@ -3,8 +3,12 @@ langcode: en
 status: true
 dependencies:
   module:
-    - color_field
-    - recurring_events
+  - color_field
+  - recurring_events
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
 id: eventinstance.field_ribbon_color
 field_name: field_ribbon_color
 entity_type: eventinstance
@@ -15,6 +19,6 @@ module: color_field
 locked: false
 cardinality: 1
 translatable: true
-indexes: {  }
+indexes: {}
 persist_with_no_fields: false
 custom_storage: false
