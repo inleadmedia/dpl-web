@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Hook\Attribute\LegacyModuleImplementsAlter;
 use Drupal\Core\Entity\ContentEntityFormInterface;
 use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
@@ -198,14 +199,35 @@ function eonext_event_status_ensure_fields_installed(): void {
  * Run form_alter after field_group so the ribbon group can be merged into
  * #fieldgroups before field_group's #process callback runs.
  */
+#[LegacyModuleImplementsAlter]
 function eonext_event_status_module_implements_alter(array &$implementations, string $hook): void {
   if ($hook !== 'form_alter' || !isset($implementations['field_group'], $implementations['eonext_event_status'])) {
     return;
   }
 
-  $weight = $implementations['field_group'];
+  $group = $implementations['eonext_event_status'];
   unset($implementations['eonext_event_status']);
-  $implementations['eonext_event_status'] = $weight + 1;
+
+  // Drupal 10 passes integer weights; Drupal 11 passes group strings and uses
+  // array order during container build.
+  if (is_int($implementations['field_group'])) {
+    $implementations['eonext_event_status'] = $implementations['field_group'] + 1;
+    return;
+  }
+
+  $reordered = [];
+  foreach ($implementations as $module => $module_group) {
+    $reordered[$module] = $module_group;
+    if ($module === 'field_group') {
+      $reordered['eonext_event_status'] = $group;
+    }
+  }
+
+  if (!isset($reordered['eonext_event_status'])) {
+    $reordered['eonext_event_status'] = $group;
+  }
+
+  $implementations = $reordered;
 }
 
 /**
