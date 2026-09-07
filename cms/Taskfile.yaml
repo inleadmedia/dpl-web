@@ -202,7 +202,7 @@ tasks:
         if pm2 describe {{.GO_PM2_APP_NAME}} >/dev/null 2>&1; then
           pm2 restart {{.GO_PM2_APP_NAME}}
         else
-          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/.bin/next start -p {{.GO_DEPLOY_PORT}}
+          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/next/dist/bin/next start -p {{.GO_DEPLOY_PORT}}
         fi
         pm2 save
 
