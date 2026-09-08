@@ -38,6 +38,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
   const searchUrl = u("searchUrl");
   const advancedSearchUrl = u("advancedSearchUrl");
   const materialUrl = u("materialUrl");
+  const seriesUrl = u("seriesUrl");
   const {
     fictionNonfiction,
     series,
@@ -116,12 +117,16 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
   return (
     <section className="material-description" data-cy="material-description">
       <>
-        {work.abstract && work.abstract[0] && (
+        {!!work.abstract?.length && (
           <>
             <h2 className="material-description__heading">
               {t("descriptionHeadlineText")}
             </h2>
-            <p className="material-description__content">{work.abstract[0]}</p>
+            {work.abstract.map((line, index) => (
+              <p key={index} className="material-description__content">
+                {line}
+              </p>
+            ))}
           </>
         )}
         {bestRepresentationContents && (
@@ -142,6 +147,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work }) => {
           <SeriesList
             series={series}
             searchUrl={searchUrl}
+            seriesUrl={seriesUrl}
             t={t}
             workId={work.workId}
             dataCy="material-description-series"

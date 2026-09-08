@@ -1,13 +1,16 @@
 import { Options } from "wiremock-rest-client/dist/model/options.model";
 import wiremock, { matchGraphqlQuery, matchWidVariable } from "../../lib/general";
 
-export default (baseUri?: string, options?: Options) => {
+export default async (baseUri?: string, options?: Options) => {
   // Get Work.
-  import("./data/fbi/getMaterial.json").then((json) => {
+  await import("./data/fbi/getMaterial.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {matchesJsonPath: matchGraphqlQuery("getMaterial")},
           {or: [
@@ -19,15 +22,18 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 
   // Work for proxy-url.cy.ts
-  import("./data/fbi/getMaterialOnline.json").then((json) => {
+  await import("./data/fbi/getMaterialOnline.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {matchesJsonPath: matchGraphqlQuery("getMaterial")},
           {matchesJsonPath: matchWidVariable("work-of:150060-pressdisp:9GVA")},
@@ -36,15 +42,18 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 
   // Get work info for work.cy.ts.
-  import("./data/fbi/WorkInfo.json").then((json) => {
+  await import("./data/fbi/WorkInfo.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {matchesJsonPath: matchGraphqlQuery("WorkInfo")},
           {matchesJsonPath: matchWidVariable("work-of:870970-basis:25245784")}
@@ -53,15 +62,18 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 
-    // Get work info for proxy-url.cy.ts.
-  import("./data/fbi/WorkInfoOnline.json").then((json) => {
+  // Get work info for proxy-url.cy.ts.
+  await import("./data/fbi/WorkInfoOnline.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {matchesJsonPath: matchGraphqlQuery("WorkInfo")},
           {matchesJsonPath: matchWidVariable("work-of:150060-pressdisp:9GVA")},
@@ -70,15 +82,18 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 
   // Get Infomedia.
-  import("./data/fbi/getInfomedia.json").then((json) => {
+  await import("./data/fbi/getInfomedia.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {
             matchesJsonPath: matchGraphqlQuery("getInfomedia"),
@@ -88,12 +103,15 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 
   // Get holdings.
-  import("./data/fbs/holdings.json").then((json) => {
+  await import("./data/fbs/holdings.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "GET",
         urlPattern:
@@ -102,19 +120,22 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json.default,
       },
-    });
-  });
-
-  wiremock(baseUri, options).mappings.createMapping({
-      request: {
-        method: "POST",
-        urlPattern: "/next.*/graphql",
-        bodyPatterns: [
-          {matchesJsonPath: matchGraphqlQuery("WorkRecommendations")},
-        ],
-      },
-      response: {
-        jsonBody: {"data":{"recommend":{"result":[]}}},
-      },
     })
+  );
+
+  await wiremock(baseUri, options).mappings.createMapping({
+    // Persistent so it survives cy.resetMappings() (the login/session flow
+    // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+    persistent: true,
+    request: {
+      method: "POST",
+      urlPathPattern: "/next.*/graphql",
+      bodyPatterns: [
+        {matchesJsonPath: matchGraphqlQuery("WorkRecommendations")},
+      ],
+    },
+    response: {
+      jsonBody: {"data":{"recommend":{"result":[]}}},
+    },
+  });
 };

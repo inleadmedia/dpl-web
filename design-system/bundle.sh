@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-yarn install
-yarn build
+corepack pnpm run build
 
 rm -rf ./build
 mkdir ./build

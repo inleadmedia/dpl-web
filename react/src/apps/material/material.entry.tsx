@@ -13,8 +13,10 @@ import { CopyLinkArgs } from "../../core/storybook/copyLinkArgs";
 import { MappArgs } from "../../core/storybook/mappArgs";
 import { EditionSwitchModalArgs } from "../../core/storybook/editionSwitchModalArgs";
 import { PlayerModalProps } from "../../core/storybook/playerModalArgs";
+import { OpenOrderProps } from "../../core/storybook/openOrderArgs";
 import withPageStatistics from "../../core/statistics/withPageStatistics";
 import useSetSmoothScroll from "../../core/utils/useSetSmoothScroll";
+import { MaterialUnavailableNoticeArgs } from "../../components/material/MaterialUnavailableNotice/MaterialUnavailableNoticeArgs";
 
 interface MaterialEntryTextProps {
   alreadyReservedText: string;
@@ -134,25 +136,6 @@ interface MaterialEntryTextProps {
   onlineMaterialPlayerText: string;
   onlineMaterialReaderText: string;
   onlineMaterialTeaserText: string;
-  openOrderAuthenticationErrorText: string;
-  openOrderErrorMissingPincodeText: string;
-  openOrderInvalidOrderText: string;
-  openOrderNoServicerequesterText: string;
-  openOrderNotOwnedIllLocText: string;
-  openOrderNotOwnedNoIllLocText: string;
-  openOrderNotOwnedWrongIllMediumtypeText: string;
-  openOrderOrsErrorText: string;
-  openOrderOwnedOwnCatalogueText: string;
-  openOrderOwnedWrongMediumtypeText: string;
-  openOrderResponseTitleText: string;
-  openOrderServiceUnavailableText: string;
-  openOrderStatusOwnedAcceptedText: string;
-  openOrderUnknownErrorText: string;
-  openOrderUnknownPickupagencyText: string;
-  openOrderUnknownUserText: string;
-  openOrderUserBlockedByAgencyText: string;
-  openOrderUserNoLongerExistOnAgencyText: string;
-  openOrderUserNotVerifiedText: string;
   orderDigitalCopyButtonLoadingText: string;
   orderDigitalCopyButtonText: string;
   orderDigitalCopyDescriptionText: string;
@@ -235,7 +218,9 @@ export interface MaterialEntryProps
     CopyLinkArgs,
     MappArgs,
     EditionSwitchModalArgs,
-    PlayerModalProps {
+    PlayerModalProps,
+    OpenOrderProps,
+    MaterialUnavailableNoticeArgs {
   wid: WorkId;
 }
 

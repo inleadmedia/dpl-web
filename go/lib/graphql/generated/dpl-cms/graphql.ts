@@ -65,6 +65,137 @@ export type AdgangsplatformenUserToken = {
   token?: Maybe<Scalars['String']['output']>;
 };
 
+export type AppCategory = {
+  __typename?: 'AppCategory';
+  elements: Array<AppContentElement>;
+  icon: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type AppContentElement = {
+  id: Scalars['String']['output'];
+};
+
+export type AppContentElementGoLinkbox = AppContentElement & {
+  __typename?: 'AppContentElementGoLinkbox';
+  color?: Maybe<Scalars['String']['output']>;
+  contentId: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  image?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type AppContentElementGoMaterialSliderAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementGoMaterialSliderAutomatic';
+  cql: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+};
+
+export type AppContentElementGoMaterialSliderManual = AppContentElement & {
+  __typename?: 'AppContentElementGoMaterialSliderManual';
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementMaterialGridAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementMaterialGridAutomatic';
+  cql: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  priorityMaterialType?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type AppContentElementMaterialGridManual = AppContentElement & {
+  __typename?: 'AppContentElementMaterialGridManual';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementNavSpotsManual = AppContentElement & {
+  __typename?: 'AppContentElementNavSpotsManual';
+  id: Scalars['String']['output'];
+  linkedPages: Array<Scalars['String']['output']>;
+};
+
+export type AppContentElementRecommendation = AppContentElement & {
+  __typename?: 'AppContentElementRecommendation';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  imagePositionRight: Scalars['Boolean']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  workId: Scalars['String']['output'];
+};
+
+export type AppContentElementText = AppContentElement & {
+  __typename?: 'AppContentElementText';
+  body: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+};
+
+export type AppContentElementVideo = AppContentElement & {
+  __typename?: 'AppContentElementVideo';
+  id: Scalars['String']['output'];
+  title?: Maybe<Scalars['String']['output']>;
+  video: AppVideo;
+};
+
+export type AppContentElementVideoBundleAutomatic = AppContentElement & {
+  __typename?: 'AppContentElementVideoBundleAutomatic';
+  cql: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  limit: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+  video: AppVideo;
+};
+
+export type AppContentElementVideoBundleManual = AppContentElement & {
+  __typename?: 'AppContentElementVideoBundleManual';
+  id: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  video: AppVideo;
+  workIds: Array<Scalars['String']['output']>;
+};
+
+export type AppFeesAndPaymentInfo = {
+  __typename?: 'AppFeesAndPaymentInfo';
+  feesAndReplacementCostsUrl?: Maybe<Scalars['String']['output']>;
+  paymentSiteButtonLabel?: Maybe<Scalars['String']['output']>;
+  paymentSiteUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type AppPage = {
+  __typename?: 'AppPage';
+  elements: Array<AppContentElement>;
+  image?: Maybe<Scalars['String']['output']>;
+  subtitle?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
+};
+
+export type AppType =
+  | 'BIBLO'
+  | 'BIBLOGO'
+  | 'MYBIBLO';
+
+export type AppVideo = {
+  __typename?: 'AppVideo';
+  orientation: AppVideoOrientation;
+  thumbnail: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type AppVideoOrientation =
+  | 'HORIZONTAL'
+  | 'VERTICAL';
+
 export type BetweenFloatInput = {
   max?: InputMaybe<Scalars['Float']['input']>;
   min?: InputMaybe<Scalars['Float']['input']>;
@@ -100,8 +231,21 @@ export type BranchAvailabilityContext = {
   search: Scalars['Boolean']['output'];
 };
 
+export type BrandSettings = {
+  __typename?: 'BrandSettings';
+  logoUrl?: Maybe<Scalars['String']['output']>;
+};
+
 export type CqlSearch = {
   __typename?: 'CQLSearch';
+  branch?: Maybe<Scalars['String']['output']>;
+  department?: Maybe<Scalars['String']['output']>;
+  firstAccessionDateOperator?: Maybe<Scalars['String']['output']>;
+  firstAccessionDateValue?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<Scalars['String']['output']>;
+  onshelf?: Maybe<Scalars['String']['output']>;
+  sort?: Maybe<Scalars['String']['output']>;
+  sublocation?: Maybe<Scalars['String']['output']>;
   value?: Maybe<Scalars['String']['output']>;
 };
 
@@ -169,6 +313,7 @@ export type GoConfigurationPrivate = {
 
 export type GoConfigurationPublic = {
   __typename?: 'GoConfigurationPublic';
+  blacklistedAvailabilityBranches?: Maybe<Array<Scalars['String']['output']>>;
   libraryInfo?: Maybe<GoLibraryInfo>;
   loginUrls?: Maybe<GoLoginUrls>;
   logoutUrls?: Maybe<GoLogoutUrls>;
@@ -949,6 +1094,10 @@ export type ParagraphWebform = ParagraphInterface & {
 export type Query = { go: { cacheTags: string[] } } & {
   __typename?: 'Query';
   dplTokens?: Maybe<DplTokens>;
+  getAppBrandSettings: BrandSettings;
+  getAppCategories: Array<AppCategory>;
+  getAppFeesAndPaymentInfo?: Maybe<AppFeesAndPaymentInfo>;
+  getAppPage?: Maybe<AppPage>;
   getBranches: Array<Branch>;
   goCategories?: Maybe<GoCategoriesResult>;
   goConfiguration?: Maybe<GoConfiguration>;
@@ -959,6 +1108,17 @@ export type Query = { go: { cacheTags: string[] } } & {
   preview?: Maybe<NodeUnion>;
   reservationSettings: ReservationSettings;
   route?: Maybe<RouteUnion>;
+};
+
+
+export type QueryGetAppCategoriesArgs = {
+  id?: InputMaybe<Scalars['String']['input']>;
+  type: AppType;
+};
+
+
+export type QueryGetAppPageArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1950,6 +2110,20 @@ export type GetArticleByPathQuery = { go: { cacheTags: string[] } } & { __typena
     | { __typename: 'RouteRedirect', url: string }
    | null };
 
+export type GetBranchesQueryVariables = Exact<{
+  isilId?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetBranchesQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', getBranches: Array<{ __typename?: 'Branch', isilId: string, title: string }> };
+
+export type GetBranchesByContextQueryVariables = Exact<{
+  availabilityContexts?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type GetBranchesByContextQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', getBranches: Array<{ __typename?: 'Branch', isilId: string }> };
+
 export type GetCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2125,7 +2299,7 @@ export type GetDplCmsPrivateConfigurationQuery = { go: { cacheTags: string[] } }
 export type GetDplCmsPublicConfigurationQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetDplCmsPublicConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', public?: { __typename?: 'GoConfigurationPublic', libraryInfo?: { __typename?: 'GoLibraryInfo', name?: string | null } | null, loginUrls?: { __typename?: 'GoLoginUrls', adgangsplatformen?: string | null } | null, logoutUrls?: { __typename?: 'GoLogoutUrls', adgangsplatformen?: string | null } | null, mapp?: { __typename?: 'MappTracking', domain?: string | null, id?: string | null } | null, unilogin?: { __typename?: 'UniloginConfigurationPublic', municipalityId?: string | null } | null } | null } | null };
+export type GetDplCmsPublicConfigurationQuery = { go: { cacheTags: string[] } } & { __typename?: 'Query', goConfiguration?: { __typename?: 'GoConfiguration', public?: { __typename?: 'GoConfigurationPublic', blacklistedAvailabilityBranches?: Array<string> | null, libraryInfo?: { __typename?: 'GoLibraryInfo', name?: string | null } | null, loginUrls?: { __typename?: 'GoLoginUrls', adgangsplatformen?: string | null } | null, logoutUrls?: { __typename?: 'GoLogoutUrls', adgangsplatformen?: string | null } | null, mapp?: { __typename?: 'MappTracking', domain?: string | null, id?: string | null } | null, unilogin?: { __typename?: 'UniloginConfigurationPublic', municipalityId?: string | null } | null } | null } | null };
 
 export type GetPageByPathQueryVariables = Exact<{
   path: Scalars['String']['input'];
@@ -3033,6 +3207,101 @@ useSuspenseGetArticleByPathQuery.getKey = (variables: GetArticleByPathQueryVaria
 
 useGetArticleByPathQuery.fetcher = (variables: GetArticleByPathQueryVariables, options?: RequestInit & { next?: NextFetchRequestConfig }) => fetcher<GetArticleByPathQuery, GetArticleByPathQueryVariables>(GetArticleByPathDocument, variables, options);
 
+export const GetBranchesDocument = `
+    query getBranches($isilId: String) {
+  getBranches(isilId: $isilId) {
+    isilId
+    title
+  }
+}
+    `;
+
+export const useGetBranchesQuery = <
+      TData = GetBranchesQuery,
+      TError = unknown
+    >(
+      variables?: GetBranchesQueryVariables,
+      options?: Omit<UseQueryOptions<GetBranchesQuery, TError, TData>, 'queryKey'> & { queryKey?: UseQueryOptions<GetBranchesQuery, TError, TData>['queryKey'] }
+    ) => {
+    
+    return useQuery<GetBranchesQuery, TError, TData>(
+      {
+    queryKey: variables === undefined ? ['getBranches'] : ['getBranches', variables],
+    queryFn: fetcher<GetBranchesQuery, GetBranchesQueryVariables>(GetBranchesDocument, variables),
+    ...options
+  }
+    )};
+
+useGetBranchesQuery.getKey = (variables?: GetBranchesQueryVariables) => variables === undefined ? ['getBranches'] : ['getBranches', variables];
+
+export const useSuspenseGetBranchesQuery = <
+      TData = GetBranchesQuery,
+      TError = unknown
+    >(
+      variables?: GetBranchesQueryVariables,
+      options?: Omit<UseSuspenseQueryOptions<GetBranchesQuery, TError, TData>, 'queryKey'> & { queryKey?: UseSuspenseQueryOptions<GetBranchesQuery, TError, TData>['queryKey'] }
+    ) => {
+    
+    return useSuspenseQuery<GetBranchesQuery, TError, TData>(
+      {
+    queryKey: variables === undefined ? ['getBranches'] : ['getBranches', variables],
+    queryFn: fetcher<GetBranchesQuery, GetBranchesQueryVariables>(GetBranchesDocument, variables),
+    ...options
+  }
+    )};
+
+useSuspenseGetBranchesQuery.getKey = (variables?: GetBranchesQueryVariables) => variables === undefined ? ['getBranches'] : ['getBranches', variables];
+
+
+useGetBranchesQuery.fetcher = (variables?: GetBranchesQueryVariables, options?: RequestInit & { next?: NextFetchRequestConfig }) => fetcher<GetBranchesQuery, GetBranchesQueryVariables>(GetBranchesDocument, variables, options);
+
+export const GetBranchesByContextDocument = `
+    query getBranchesByContext($availabilityContexts: [String!]) {
+  getBranches(availabilityContexts: $availabilityContexts) {
+    isilId
+  }
+}
+    `;
+
+export const useGetBranchesByContextQuery = <
+      TData = GetBranchesByContextQuery,
+      TError = unknown
+    >(
+      variables?: GetBranchesByContextQueryVariables,
+      options?: Omit<UseQueryOptions<GetBranchesByContextQuery, TError, TData>, 'queryKey'> & { queryKey?: UseQueryOptions<GetBranchesByContextQuery, TError, TData>['queryKey'] }
+    ) => {
+    
+    return useQuery<GetBranchesByContextQuery, TError, TData>(
+      {
+    queryKey: variables === undefined ? ['getBranchesByContext'] : ['getBranchesByContext', variables],
+    queryFn: fetcher<GetBranchesByContextQuery, GetBranchesByContextQueryVariables>(GetBranchesByContextDocument, variables),
+    ...options
+  }
+    )};
+
+useGetBranchesByContextQuery.getKey = (variables?: GetBranchesByContextQueryVariables) => variables === undefined ? ['getBranchesByContext'] : ['getBranchesByContext', variables];
+
+export const useSuspenseGetBranchesByContextQuery = <
+      TData = GetBranchesByContextQuery,
+      TError = unknown
+    >(
+      variables?: GetBranchesByContextQueryVariables,
+      options?: Omit<UseSuspenseQueryOptions<GetBranchesByContextQuery, TError, TData>, 'queryKey'> & { queryKey?: UseSuspenseQueryOptions<GetBranchesByContextQuery, TError, TData>['queryKey'] }
+    ) => {
+    
+    return useSuspenseQuery<GetBranchesByContextQuery, TError, TData>(
+      {
+    queryKey: variables === undefined ? ['getBranchesByContext'] : ['getBranchesByContext', variables],
+    queryFn: fetcher<GetBranchesByContextQuery, GetBranchesByContextQueryVariables>(GetBranchesByContextDocument, variables),
+    ...options
+  }
+    )};
+
+useSuspenseGetBranchesByContextQuery.getKey = (variables?: GetBranchesByContextQueryVariables) => variables === undefined ? ['getBranchesByContext'] : ['getBranchesByContext', variables];
+
+
+useGetBranchesByContextQuery.fetcher = (variables?: GetBranchesByContextQueryVariables, options?: RequestInit & { next?: NextFetchRequestConfig }) => fetcher<GetBranchesByContextQuery, GetBranchesByContextQueryVariables>(GetBranchesByContextDocument, variables, options);
+
 export const GetCategoriesDocument = `
     query getCategories {
   goCategories {
@@ -3244,6 +3513,7 @@ export const GetDplCmsPublicConfigurationDocument = `
       unilogin {
         municipalityId
       }
+      blacklistedAvailabilityBranches
     }
   }
 }
@@ -3648,6 +3918,8 @@ useGetLogoutUrlsQuery.fetcher = (variables?: GetLogoutUrlsQueryVariables, option
 export const operationNames = {
   Query: {
     getArticleByPath: 'getArticleByPath',
+    getBranches: 'getBranches',
+    getBranchesByContext: 'getBranchesByContext',
     getCategories: 'getCategories',
     getCategoryPageByPath: 'getCategoryPageByPath',
     getDplCmsPrivateConfiguration: 'getDplCmsPrivateConfiguration',

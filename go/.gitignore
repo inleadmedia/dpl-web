@@ -2,9 +2,6 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
 
 # testing
 /coverage
@@ -22,8 +19,6 @@
 
 # debug
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # local env files
 .env*.local
@@ -46,9 +41,11 @@ next-env.d.ts
 cypress/videos
 cypress/screenshots
 
-
 *storybook.log
 
 .env.local
 
 certificates
+
+# Storybook build output
+storybook-static/
