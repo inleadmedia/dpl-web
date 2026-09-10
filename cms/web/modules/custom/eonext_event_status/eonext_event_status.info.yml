@@ -1,5 +1,9 @@
 name: 'EO Next Event Status'
 type: module
-description: 'Module which gives possibility to editors to set custom status on event nodes, which further will be displayed as a &quot;ribbon&quot; or &quot;badge&quot; in the frontend.'
+description: 'Lets editors set a custom ribbon/badge on event series and instances, shown in the frontend and exposed via the events REST API.'
 package: EO next
 core_version_requirement: ^10 || ^11
+dependencies:
+  - dpl_event:dpl_event
+  - recurring_events:recurring_events
+  - color_field:color_field

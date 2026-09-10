@@ -1,0 +1,24 @@
+uuid: ff1a8ad5-d9f8-420b-8d76-8dd384c32d3a
+langcode: en
+status: true
+dependencies:
+  module:
+  - color_field
+  - recurring_events
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
+id: eventseries.field_ribbon_color
+field_name: field_ribbon_color
+entity_type: eventseries
+type: color_field_type
+settings:
+  format: '#HEXHEX'
+module: color_field
+locked: false
+cardinality: 1
+translatable: true
+indexes: {}
+persist_with_no_fields: false
+custom_storage: false

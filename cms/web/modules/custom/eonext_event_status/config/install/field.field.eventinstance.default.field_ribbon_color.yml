@@ -3,19 +3,23 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.eventinstance.field_ribbon_color
-    - recurring_events.eventinstance_type.default
+  - field.storage.eventinstance.field_ribbon_color
+  - recurring_events.eventinstance_type.default
   module:
-    - color_field
+  - color_field
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
 id: eventinstance.default.field_ribbon_color
 field_name: field_ribbon_color
 entity_type: eventinstance
 bundle: default
-label: 'Ribbon Color'
+label: Ribbon Color
 description: ''
 required: false
 translatable: false
-default_value: {  }
+default_value: {}
 default_value_callback: ''
 settings:
   opacity: 0

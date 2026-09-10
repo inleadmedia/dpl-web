@@ -1,0 +1,7 @@
+eonext_event_status.admin:
+  path: '/admin/config/system/eonext-event-status'
+  defaults:
+    _form: '\Drupal\eonext_event_status\Form\EventStatusAdminForm'
+    _title: 'Event status'
+  requirements:
+    _permission: 'administer site configuration'
