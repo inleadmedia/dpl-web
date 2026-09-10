@@ -7757,6 +7757,7 @@ export type ManifestationsSimpleFieldsFragment = {
   genreAndForm: Array<string>;
   source: Array<string>;
   publisher: Array<string>;
+  classifications?: Array<Classification>;
   subjects: {
     __typename?: "SubjectContainer";
     all: Array<
@@ -9434,10 +9435,21 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
     fragment ManifestationsSimpleFields on Manifestation {
   pid
   genreAndForm
+  genreForm {
+    display
+    language {
+      isoCode
+      display
+    }
+  }
   source
   subjects {
     all {
       display
+      language {
+        isoCode
+        display
+      }
     }
   }
   ...WithLanguages
@@ -9536,6 +9548,13 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   audience {
     generalAudience
+    audienceGeneral {
+      display
+      language {
+        isoCode
+        display
+      }
+    }
     ages {
       display
     }
@@ -9546,6 +9565,7 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
   }
   notes {
     display
+    type
   }
   languages {
     notes
