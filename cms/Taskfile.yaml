@@ -138,7 +138,6 @@ tasks:
       # every drush.services.yml command. sql:query bootstraps only to
       # DATABASE, so it still works when the cached container is stale.
       - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
-      - ${DRUSH_EXEC} pm-uninstall easyemail -y || true
       - ${DRUSH_EXEC} en varnish_purger -y
       - ${DRUSH_EXEC} updb -y
       - ${DRUSH_EXEC} scr dev-scripts/delete-newsletter-material.php
