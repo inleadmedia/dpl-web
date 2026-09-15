@@ -8,6 +8,7 @@ dependencies:
     - field.field.eonext_library_staff.eonext_library_staff.field_email
     - field.field.eonext_library_staff.eonext_library_staff.field_forename
     - field.field.eonext_library_staff.eonext_library_staff.field_image
+    - field.field.eonext_library_staff.eonext_library_staff.field_interest_description
     - field.field.eonext_library_staff.eonext_library_staff.field_phone
     - field.field.eonext_library_staff.eonext_library_staff.field_position
     - field.field.eonext_library_staff.eonext_library_staff.field_surname
@@ -54,6 +55,14 @@ content:
     region: content
     settings:
       media_types: {  }
+    third_party_settings: {  }
+  field_interest_description:
+    type: string_textarea
+    weight: 8
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
     third_party_settings: {  }
   field_phone:
     type: telephone_default

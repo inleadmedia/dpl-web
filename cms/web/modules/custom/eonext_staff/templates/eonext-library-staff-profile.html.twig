@@ -1,0 +1,28 @@
+{#
+/**
+ * @file
+ * Public profile page for a library staff member.
+ */
+#}
+<article class="eonext-library-staff-profile">
+  <header class="eonext-library-staff-profile__header">
+    {{ content.field_image }}
+    <div class="eonext-library-staff-profile__intro">
+      <h1 class="eonext-library-staff-profile__name">{{ staff_name }}</h1>
+      {{ content.field_position }}
+      {{ content.field_department }}
+    </div>
+  </header>
+
+  <div class="eonext-library-staff-profile__contact">
+    {{ content.field_phone }}
+    {{ content.field_email }}
+  </div>
+
+  {% if interest_description %}
+    <section class="eonext-library-staff-profile__interests">
+      <h2>{{ 'Interests'|t({}, {'context': 'eonext'}) }}</h2>
+      {{ content.field_interest_description }}
+    </section>
+  {% endif %}
+</article>

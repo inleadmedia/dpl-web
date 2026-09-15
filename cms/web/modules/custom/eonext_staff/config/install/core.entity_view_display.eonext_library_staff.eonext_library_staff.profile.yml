@@ -1,9 +1,9 @@
-uuid: 461ceb97-17e5-4cb6-a48c-e30421cf611d
+uuid: 9c8b7a6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d
 langcode: en
 status: true
 dependencies:
   config:
-    - field.field.eonext_library_staff.eonext_library_staff.field_branch
+    - core.entity_view_mode.eonext_library_staff.profile
     - field.field.eonext_library_staff.eonext_library_staff.field_department
     - field.field.eonext_library_staff.eonext_library_staff.field_email
     - field.field.eonext_library_staff.eonext_library_staff.field_forename
@@ -14,80 +14,63 @@ dependencies:
     - field.field.eonext_library_staff.eonext_library_staff.field_surname
   module:
     - eonext_staff
-id: eonext_library_staff.eonext_library_staff.default
+    - media
+id: eonext_library_staff.eonext_library_staff.profile
 targetEntityType: eonext_library_staff
 bundle: eonext_library_staff
-mode: default
+mode: profile
 content:
-  field_branch:
-    type: entity_reference_label
-    label: above
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 2
-    region: content
   field_department:
     type: entity_reference_label
-    label: above
+    label: hidden
     settings:
-      link: true
+      link: false
     third_party_settings: {  }
     weight: 3
     region: content
   field_email:
-    type: basic_string
-    label: above
+    type: email_mailto
+    label: inline
     settings: {  }
     third_party_settings: {  }
     weight: 5
     region: content
-  field_forename:
-    type: string
-    label: above
-    settings:
-      link_to_entity: false
-    third_party_settings: {  }
-    weight: 0
-    region: content
   field_image:
-    type: entity_reference_entity_view
-    label: above
+    type: media_thumbnail
+    label: hidden
     settings:
-      view_mode: default
-      link: false
+      image_link: ''
+      image_style: media_library
+      image_loading:
+        attribute: lazy
     third_party_settings: {  }
-    weight: 7
+    weight: 6
     region: content
   field_interest_description:
     type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 8
+    weight: 7
     region: content
   field_phone:
-    type: basic_string
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 6
-    region: content
-  field_position:
     type: string
-    label: above
+    label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
     weight: 4
     region: content
-  field_surname:
+  field_position:
     type: string
-    label: above
+    label: hidden
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 1
+    weight: 2
     region: content
 hidden:
+  field_branch: true
+  field_forename: true
+  field_surname: true
   search_api_excerpt: true

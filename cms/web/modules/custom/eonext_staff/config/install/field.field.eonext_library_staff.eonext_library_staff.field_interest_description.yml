@@ -1,0 +1,20 @@
+uuid: 7f3b2a1e-5c4d-4e8f-9a2b-1d0e3f4a5b6c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.eonext_library_staff.field_interest_description
+  module:
+    - eonext_staff
+id: eonext_library_staff.eonext_library_staff.field_interest_description
+field_name: field_interest_description
+entity_type: eonext_library_staff
+bundle: eonext_library_staff
+label: 'Interest description'
+description: 'Optional personal interest text shown on the public staff profile.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

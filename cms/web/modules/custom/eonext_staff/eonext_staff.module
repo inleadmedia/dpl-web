@@ -2,24 +2,30 @@
 
 /**
  * @file
+ * Library staff logic.
  */
 
+use Drupal\eonext_staff\Entity\LibraryStaff;
+use Drupal\paragraphs\ParagraphInterface;
 use Drupal\user\UserInterface;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Views;
-
-/**
- * @file
- * Library staff logic.
- */
 
 /**
  * Implements hook_theme().
  */
 function eonext_staff_theme($existing, $type, $theme, $path) {
   return [
+    'eonext_library_staff_profile' => [
+      'variables' => [
+        'staff_name' => NULL,
+        'interest_description' => FALSE,
+        'content' => NULL,
+      ],
+    ],
     'paragraph__eonext_library_staff' => [
-      'variables' => [],
+      'base hook' => 'paragraph',
+      'template' => 'paragraph--eonext-library-staff',
     ],
   ];
 }
@@ -27,23 +33,92 @@ function eonext_staff_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_preprocess_HOOK().
  *
- * The staff paragraphs is an empty paragraph, so set its
- * contents here.
+ * The staff paragraph is an empty shell, so set its contents here.
  */
 function eonext_staff_preprocess_paragraph__eonext_library_staff(array &$variables): void {
-  $view = Views::getView('staff');
+  $paragraph = $variables['paragraph'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
 
+  $view = Views::getView('staff');
   if (!($view instanceof ViewExecutable)) {
     return;
   }
 
   $view->setDisplay('block_1');
+  $view->setArguments(eonext_staff_get_branch_filter_argument($paragraph));
   $view->execute();
   $view_render = $view->render();
   $view_render['#attached']['library'][] = 'eonext_staff/general';
 
   $variables['header'] = t('Library staff', [], ['context' => 'eonext']);
-  $variables['staff'] = \Drupal::service('renderer')->render($view_render);
+  // Pass a render array; do not call renderer->render() during preprocess.
+  $variables['staff'] = $view_render;
+}
+
+/**
+ * Builds the branch filter argument for the staff view.
+ *
+ * @return string[]
+ *   Views contextual filter arguments.
+ */
+function eonext_staff_get_branch_filter_argument(ParagraphInterface $paragraph): array {
+  if (!$paragraph->hasField('field_filter_branches') || $paragraph->get('field_filter_branches')->isEmpty()) {
+    return [];
+  }
+
+  $branch_ids = array_column($paragraph->get('field_filter_branches')->getValue(), 'target_id');
+  $branch_ids = array_filter($branch_ids);
+
+  if ($branch_ids === []) {
+    return [];
+  }
+
+  return [implode('+', $branch_ids)];
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for views fields.
+ */
+function eonext_staff_preprocess_views_view_field(array &$variables): void {
+  $view = $variables['view'];
+  if ($view->id() !== 'staff' || $view->current_display !== 'block_1') {
+    return;
+  }
+
+  $field_id = $variables['field']->options['id'];
+  if (!in_array($field_id, ['field_forename', 'field_surname'], TRUE)) {
+    return;
+  }
+
+  $row = $variables['row'];
+  if (empty($row->_entity) || !$row->_entity instanceof LibraryStaff) {
+    return;
+  }
+
+  /** @var \Drupal\eonext_staff\Entity\LibraryStaff $staff */
+  $staff = $row->_entity;
+
+  // Render one profile link on the forename field with the full name.
+  if ($field_id === 'field_surname') {
+    $variables['output'] = '';
+    return;
+  }
+
+  $full_name = \Drupal\eonext_staff\Controller\LibraryStaffController::formatStaffName($staff);
+  if ($full_name === '') {
+    return;
+  }
+
+  $variables['output'] = [
+    '#type' => 'link',
+    '#title' => $full_name,
+    '#url' => $staff->toUrl('canonical'),
+    '#attributes' => [
+      'class' => ['eonext-library-staff__name-link'],
+    ],
+  ];
 }
 
 /**
