@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the manual recommendation module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function eonext_manual_recommendation_install(): void {
+  eonext_manual_recommendation_add_paragraph_type_to_content_types();
+}
+
+/**
+ * Adds the manual recommendation paragraph to all node field_paragraphs fields.
+ */
+function eonext_manual_recommendation_add_paragraph_type_to_content_types(): void {
+  $config_factory = \Drupal::configFactory();
+  $paragraph_type = 'manual_recommendation';
+
+  foreach ($config_factory->listAll('field.field.node.') as $config_name) {
+    if (!str_ends_with($config_name, '.field_paragraphs')) {
+      continue;
+    }
+
+    $config = $config_factory->getEditable($config_name);
+    if ($config->isNew()) {
+      continue;
+    }
+
+    $settings = $config->get('settings');
+    if (($settings['handler_settings']['target_bundles'][$paragraph_type] ?? NULL) === $paragraph_type) {
+      continue;
+    }
+
+    $settings['handler_settings']['target_bundles'][$paragraph_type] = $paragraph_type;
+    $settings['handler_settings']['target_bundles_drag_drop'][$paragraph_type] = [
+      'weight' => 39,
+      'enabled' => TRUE,
+    ];
+    $config->set('settings', $settings);
+
+    $dependencies = $config->get('dependencies');
+    $dependencies['config'] ??= [];
+    $dependencies['config'][] = 'paragraphs.paragraphs_type.' . $paragraph_type;
+    $dependencies['config'] = array_values(array_unique($dependencies['config']));
+    $config->set('dependencies', $dependencies);
+    $config->save(TRUE);
+  }
+}

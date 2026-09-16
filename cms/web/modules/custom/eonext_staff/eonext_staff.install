@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Config\FileStorage;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * New configuration shipped by the staff list extension.
@@ -61,6 +63,8 @@ function eonext_staff_install_extension_config(): void {
   foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
     _eonext_staff_ensure_config($name, TRUE);
   }
+
+  _eonext_staff_ensure_field_storage_table('eonext_library_staff', 'field_interest_description');
 }
 
 /**
@@ -75,10 +79,24 @@ function _eonext_staff_config_install_storage(): FileStorage {
 
 /**
  * Ensures a single config object exists in active storage.
+ *
+ * Field storage and field config must be saved through the Field API so Drupal
+ * creates the dedicated database tables. Writing field YAML directly to config
+ * storage skips table creation.
  */
 function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): void {
   $data = _eonext_staff_config_install_storage()->read($name);
   if (!is_array($data)) {
+    return;
+  }
+
+  if (str_starts_with($name, 'field.storage.')) {
+    _eonext_staff_ensure_field_storage_config($data);
+    return;
+  }
+
+  if (str_starts_with($name, 'field.field.')) {
+    _eonext_staff_ensure_field_config($data, $overwrite);
     return;
   }
 
@@ -88,6 +106,61 @@ function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): voi
   }
 
   $config->setData($data)->save(TRUE);
+}
+
+/**
+ * Ensures a field storage config exists and its database table is present.
+ */
+function _eonext_staff_ensure_field_storage_config(array $data): void {
+  $entity_type = $data['entity_type'];
+  $field_name = $data['field_name'];
+
+  if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
+    FieldStorageConfig::create($data)->save();
+  }
+
+  _eonext_staff_ensure_field_storage_table($entity_type, $field_name);
+}
+
+/**
+ * Ensures a field instance config exists.
+ */
+function _eonext_staff_ensure_field_config(array $data, bool $overwrite): void {
+  $entity_type = $data['entity_type'];
+  $bundle = $data['bundle'];
+  $field_name = $data['field_name'];
+
+  if (FieldConfig::loadByName($entity_type, $bundle, $field_name)) {
+    return;
+  }
+
+  if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
+    return;
+  }
+
+  FieldConfig::create($data)->save();
+}
+
+/**
+ * Creates a missing dedicated field table for an existing field storage.
+ */
+function _eonext_staff_ensure_field_storage_table(string $entity_type, string $field_name): void {
+  $field_storage = FieldStorageConfig::loadByName($entity_type, $field_name);
+  if (!$field_storage) {
+    return;
+  }
+
+  $table = $entity_type . '__' . $field_name;
+  if (\Drupal::database()->schema()->tableExists($table)) {
+    return;
+  }
+
+  \Drupal::entityDefinitionUpdateManager()->installFieldStorageDefinition(
+    $field_storage->getName(),
+    $field_storage->getTargetEntityTypeId(),
+    $field_storage->getProvider(),
+    $field_storage
+  );
 }
 
 /**
