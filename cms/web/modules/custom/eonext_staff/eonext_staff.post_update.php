@@ -16,3 +16,13 @@ function eonext_staff_post_update_extend_staff_list(): string {
 
   return 'Extended staff list with branch filter, public profiles, and interest descriptions.';
 }
+
+/**
+ * Repair missing field_interest_description table on existing sites.
+ */
+function eonext_staff_post_update_repair_interest_description_storage(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  _eonext_staff_ensure_field_storage_table('eonext_library_staff', 'field_interest_description');
+
+  return 'Ensured field_interest_description database tables exist.';
+}
