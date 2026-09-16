@@ -13,3 +13,19 @@
 msgctxt "eonext"
 msgid "Library staff"
 msgstr "Bibliotekets personale"
+
+msgctxt "eonext"
+msgid "Interests"
+msgstr "Interesser"
+
+msgid "Interest description"
+msgstr "Interessebeskrivelse"
+
+msgid "Optional personal interest text shown on the public staff profile."
+msgstr "Valgfri personlig interessetekst, der vises på medarbejderens offentlige profil."
+
+msgid "Filter by branches"
+msgstr "Filtrer efter filialer"
+
+msgid "If nothing is selected, staff from all branches will be shown."
+msgstr "Hvis intet er valgt, vises medarbejdere fra alle filialer."

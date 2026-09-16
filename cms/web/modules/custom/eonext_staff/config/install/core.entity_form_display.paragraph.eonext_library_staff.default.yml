@@ -1,0 +1,27 @@
+uuid: 1a2b3c4d-5e6f-7890-abcd-ef1234567890
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.eonext_library_staff.field_filter_branches
+    - paragraphs.paragraphs_type.eonext_library_staff
+  module:
+    - select2
+id: paragraph.eonext_library_staff.default
+targetEntityType: paragraph
+bundle: eonext_library_staff
+mode: default
+content:
+  field_filter_branches:
+    type: select2_entity_reference
+    weight: 0
+    region: content
+    settings:
+      width: 100%
+      autocomplete: false
+      match_operator: CONTAINS
+      match_limit: 10
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

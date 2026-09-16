@@ -1,0 +1,152 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the eonext_staff module.
+ */
+
+use Drupal\Core\Config\FileStorage;
+
+/**
+ * New configuration shipped by the staff list extension.
+ */
+const EONEXT_STAFF_NEW_CONFIG = [
+  'field.storage.eonext_library_staff.field_interest_description',
+  'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
+  'core.entity_view_mode.eonext_library_staff.profile',
+  'core.entity_view_display.eonext_library_staff.eonext_library_staff.profile',
+  'field.field.paragraph.eonext_library_staff.field_filter_branches',
+  'core.entity_form_display.paragraph.eonext_library_staff.default',
+  'core.entity_view_display.paragraph.eonext_library_staff.default',
+];
+
+/**
+ * Existing configuration updated by the staff list extension.
+ */
+const EONEXT_STAFF_UPDATED_CONFIG = [
+  'core.entity_form_display.eonext_library_staff.eonext_library_staff.default',
+  'core.entity_view_display.eonext_library_staff.eonext_library_staff.default',
+];
+
+/**
+ * Implements hook_install().
+ */
+function eonext_staff_install(): void {
+  eonext_staff_add_paragraph_type_to_content_types();
+}
+
+/**
+ * Installs extension configuration without a full module config import.
+ */
+function eonext_staff_install_extension_config(): void {
+  if (!\Drupal::configFactory()->get('field.storage.paragraph.field_filter_branches')->isNew()) {
+    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+      _eonext_staff_ensure_config($name);
+    }
+  }
+  else {
+    \Drupal::logger('eonext_staff')->warning(
+      'Skipped paragraph branch filter config because field.storage.paragraph.field_filter_branches is missing.',
+    );
+    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+      if ($name === 'field.field.paragraph.eonext_library_staff.field_filter_branches'
+        || str_starts_with($name, 'core.entity_form_display.paragraph.eonext_library_staff.')
+        || str_starts_with($name, 'core.entity_view_display.paragraph.eonext_library_staff.')) {
+        continue;
+      }
+      _eonext_staff_ensure_config($name);
+    }
+  }
+
+  foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+    _eonext_staff_ensure_config($name, TRUE);
+  }
+}
+
+/**
+ * Returns file storage for this module's default configuration.
+ */
+function _eonext_staff_config_install_storage(): FileStorage {
+  $path = \Drupal::service('extension.path.resolver')
+    ->getPath('module', 'eonext_staff') . '/config/install';
+
+  return new FileStorage($path);
+}
+
+/**
+ * Ensures a single config object exists in active storage.
+ */
+function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): void {
+  $data = _eonext_staff_config_install_storage()->read($name);
+  if (!is_array($data)) {
+    return;
+  }
+
+  $config = \Drupal::configFactory()->getEditable($name);
+  if (!$overwrite && !$config->isNew()) {
+    return;
+  }
+
+  $config->setData($data)->save(TRUE);
+}
+
+/**
+ * Adds the library staff paragraph to all node field_paragraphs fields.
+ */
+function eonext_staff_add_paragraph_type_to_content_types(): void {
+  $config_factory = \Drupal::configFactory();
+  $paragraph_type = 'eonext_library_staff';
+
+  foreach ($config_factory->listAll('field.field.node.') as $config_name) {
+    if (!str_ends_with($config_name, '.field_paragraphs')) {
+      continue;
+    }
+
+    $config = $config_factory->getEditable($config_name);
+    if ($config->isNew()) {
+      continue;
+    }
+
+    $settings = $config->get('settings');
+    if (($settings['handler_settings']['target_bundles'][$paragraph_type] ?? NULL) === $paragraph_type) {
+      continue;
+    }
+
+    $settings['handler_settings']['target_bundles'][$paragraph_type] = $paragraph_type;
+    $settings['handler_settings']['target_bundles_drag_drop'][$paragraph_type] = [
+      'weight' => 80,
+      'enabled' => TRUE,
+    ];
+    $config->set('settings', $settings);
+
+    $dependencies = $config->get('dependencies');
+    $dependencies['config'] ??= [];
+    $dependencies['config'][] = 'paragraphs.paragraphs_type.' . $paragraph_type;
+    $dependencies['config'] = array_values(array_unique($dependencies['config']));
+    $config->set('dependencies', $dependencies);
+    $config->save(TRUE);
+  }
+}
+
+/**
+ * Updates the staff view to use paragraph-driven branch filtering.
+ */
+function eonext_staff_update_staff_view_branch_filter(): void {
+  $config = \Drupal::configFactory()->getEditable('views.view.staff');
+  if ($config->isNew()) {
+    $data = _eonext_staff_config_install_storage()->read('views.view.staff');
+    if (is_array($data)) {
+      $config->setData($data)->save(TRUE);
+    }
+    return;
+  }
+
+  $argument = $config->get('display.default.display_options.arguments.field_branch_target_id') ?? [];
+  $argument['default_action'] = 'ignore';
+  $argument['default_argument_type'] = 'fixed';
+  $argument['default_argument_options'] = ['argument' => ''];
+  $argument['break_phrase'] = TRUE;
+
+  $config->set('display.default.display_options.arguments.field_branch_target_id', $argument);
+  $config->save(TRUE);
+}

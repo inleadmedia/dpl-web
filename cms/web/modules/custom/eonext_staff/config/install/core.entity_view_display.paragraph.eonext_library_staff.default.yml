@@ -1,0 +1,17 @@
+uuid: 0f1e2d3c-4b5a-6978-90ab-cdef12345678
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.eonext_library_staff.field_filter_branches
+    - paragraphs.paragraphs_type.eonext_library_staff
+  module:
+    - eonext_staff
+id: paragraph.eonext_library_staff.default
+targetEntityType: paragraph
+bundle: eonext_library_staff
+mode: default
+content: {  }
+hidden:
+  field_filter_branches: true
+  search_api_excerpt: true
