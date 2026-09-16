@@ -1,0 +1,81 @@
+uuid: 5bcb5368-1f20-4c0d-b1e1-d2fd084e5a16
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.paragraph.preview
+    - field.field.paragraph.manual_recommendation.field_image_position_right
+    - field.field.paragraph.manual_recommendation.field_mr_author
+    - field.field.paragraph.manual_recommendation.field_mr_cover
+    - field.field.paragraph.manual_recommendation.field_mr_publication_year
+    - field.field.paragraph.manual_recommendation.field_mr_title
+    - field.field.paragraph.manual_recommendation.field_recommendation_description
+    - field.field.paragraph.manual_recommendation.field_recommendation_title
+    - paragraphs.paragraphs_type.manual_recommendation
+  module:
+    - text
+id: paragraph.manual_recommendation.preview
+targetEntityType: paragraph
+bundle: manual_recommendation
+mode: preview
+content:
+  field_image_position_right:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_mr_author:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_mr_cover:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_mr_publication_year:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_mr_title:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_recommendation_description:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_recommendation_title:
+    type: text_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 6
+    region: content
+hidden:
+  search_api_excerpt: true

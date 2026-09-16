@@ -1,0 +1,27 @@
+uuid: 3fd54350-8c23-4b1c-a2e0-c1ebb250c8c2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.manual_recommendation.field_image_position_right
+    - field.field.paragraph.manual_recommendation.field_mr_author
+    - field.field.paragraph.manual_recommendation.field_mr_cover
+    - field.field.paragraph.manual_recommendation.field_mr_publication_year
+    - field.field.paragraph.manual_recommendation.field_mr_title
+    - field.field.paragraph.manual_recommendation.field_recommendation_description
+    - field.field.paragraph.manual_recommendation.field_recommendation_title
+    - paragraphs.paragraphs_type.manual_recommendation
+id: paragraph.manual_recommendation.default
+targetEntityType: paragraph
+bundle: manual_recommendation
+mode: default
+content: {  }
+hidden:
+  field_image_position_right: true
+  field_mr_author: true
+  field_mr_cover: true
+  field_mr_publication_year: true
+  field_mr_title: true
+  field_recommendation_description: true
+  field_recommendation_title: true
+  search_api_excerpt: true

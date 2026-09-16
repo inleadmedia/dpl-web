@@ -1,0 +1,12 @@
+name: 'EO Next Manual Recommendation'
+type: module
+description: 'Provides a manual recommendation paragraph for materials not yet in the data well.'
+package: 'EO next'
+core_version_requirement: ^10 || ^11
+dependencies:
+  - dpl_media:dpl_media
+  - drupal:media
+  - drupal:media_library
+  - drupal:paragraphs
+  - paragraphs_ee:paragraphs_ee
+  - drupal:text

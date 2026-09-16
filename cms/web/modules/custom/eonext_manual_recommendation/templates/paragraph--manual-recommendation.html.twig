@@ -1,0 +1,36 @@
+<div{{ attributes.addClass('recommendation', position_image_right ? 'recommendation--reversed') }}>
+  <div class="recommendation__material">
+    <div class="recommended-material">
+      <div class="cover cover--size-large cover--aspect-large bg-identity-tint-80">
+        {% if cover_url %}
+          <img
+            class="cover__img cover__img--shadow-medium"
+            src="{{ cover_url }}"
+            alt="{{ cover_alt }}"
+          />
+        {% endif %}
+      </div>
+      <div class="recommended-material__texts">
+        {% if material_title %}
+          <span class="recommended-material__description">{{ material_title }}</span>
+        {% endif %}
+        {% if material_author %}
+          <span class="recommended-material__author">{{ material_author }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if heading or description %}
+    <div class="recommendation__texts">
+      {% if heading %}
+        <h3 class="recommendation__title">{{ heading }}</h3>
+      {% endif %}
+      {% if description %}
+        <p class="recommendation__description">{{ description }}</p>
+      {% endif %}
+      {% if baseIconPath %}
+        {{ source(baseIconPath ~ '/arrow-ui/icon-arrow-ui-small-right.svg') }}
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
