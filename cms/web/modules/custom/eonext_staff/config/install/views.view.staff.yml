@@ -560,7 +560,7 @@ display:
               branch: branch
             access: false
             operation: view
-            multiple: 0
+            multiple: 1
           break_phrase: true
           not: false
       filters: {  }
@@ -591,7 +591,7 @@ display:
         options:
           query_comment: ''
           disable_sql_rewrite: false
-          distinct: false
+          distinct: true
           replica: false
           query_tags: {  }
       relationships:

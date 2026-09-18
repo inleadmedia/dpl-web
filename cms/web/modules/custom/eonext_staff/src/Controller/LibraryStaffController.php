@@ -15,18 +15,26 @@ final class LibraryStaffController extends ControllerBase {
 
   /**
    * Builds the public staff profile page.
+   *
+   * @return mixed[]
+   *   A render array.
    */
   public function profile(LibraryStaffInterface $eonext_library_staff): array {
-    /** @var \Drupal\Core\Entity\Entity\EntityViewDisplay $display */
-    $display = $this->entityTypeManager()
-      ->getStorage('entity_view_display')
-      ->load('eonext_library_staff.eonext_library_staff.profile');
+    // Build field render arrays so the profile template can print
+    // content.field_* individually. EntityViewBuilder::view() wraps the entity
+    // in a #pre_render callback, which Twig does not run when accessing child
+    // keys like content.field_image.
+    $content = EntityViewDisplay::collectRenderDisplay($eonext_library_staff, 'profile')
+      ->build($eonext_library_staff);
+
+    $has_interest_description = $eonext_library_staff->hasField('field_interest_description')
+      && !$eonext_library_staff->get('field_interest_description')->isEmpty();
 
     return [
       '#theme' => 'eonext_library_staff_profile',
-      '#staff_name' => self::formatStaffName($eonext_library_staff),
-      '#interest_description' => !$eonext_library_staff->get('field_interest_description')->isEmpty(),
-      '#content' => $display instanceof EntityViewDisplay ? $display->build($eonext_library_staff) : [],
+      '#staff_name' => $eonext_library_staff->getFullName(),
+      '#interest_description' => $has_interest_description,
+      '#content' => $content,
       '#attached' => [
         'library' => [
           'eonext_staff/general',
@@ -42,14 +50,7 @@ final class LibraryStaffController extends ControllerBase {
    * Builds the page title for a staff profile.
    */
   public function staffTitle(LibraryStaffInterface $eonext_library_staff): string {
-    return self::formatStaffName($eonext_library_staff);
-  }
-
-  /**
-   * Formats a staff member's full name.
-   */
-  public static function formatStaffName(LibraryStaffInterface $staff): string {
-    return trim($staff->get('field_forename')->value . ' ' . $staff->get('field_surname')->value);
+    return $eonext_library_staff->getFullName();
   }
 
 }

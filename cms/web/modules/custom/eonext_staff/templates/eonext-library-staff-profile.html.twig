@@ -6,7 +6,11 @@
 #}
 <article class="eonext-library-staff-profile">
   <header class="eonext-library-staff-profile__header">
-    {{ content.field_image }}
+    {% if content.field_image %}
+      <div class="eonext-library-staff-profile__image">
+        {{ content.field_image }}
+      </div>
+    {% endif %}
     <div class="eonext-library-staff-profile__intro">
       <h1 class="eonext-library-staff-profile__name">{{ staff_name }}</h1>
       {{ content.field_position }}
@@ -14,10 +18,12 @@
     </div>
   </header>
 
-  <div class="eonext-library-staff-profile__contact">
-    {{ content.field_phone }}
-    {{ content.field_email }}
-  </div>
+  {% if content.field_phone or content.field_email %}
+    <div class="eonext-library-staff-profile__contact">
+      {{ content.field_phone }}
+      {{ content.field_email }}
+    </div>
+  {% endif %}
 
   {% if interest_description %}
     <section class="eonext-library-staff-profile__interests">

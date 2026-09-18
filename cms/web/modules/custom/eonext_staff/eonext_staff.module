@@ -5,135 +5,62 @@
  * Library staff logic.
  */
 
-use Drupal\eonext_staff\Entity\LibraryStaff;
-use Drupal\paragraphs\ParagraphInterface;
+declare(strict_types=1);
+
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\drupal_typed\DrupalTyped;
+use Drupal\eonext_staff\Hook\StaffHooks;
 use Drupal\user\UserInterface;
 use Drupal\views\ViewExecutable;
-use Drupal\views\Views;
+
+/*
+ * The following LegacyHooks can be removed when upgrading to Drupal 11.2,
+ * together with the hook class service definitions.
+ */
 
 /**
- * Implements hook_theme().
+ * Registers theme implementations.
  */
-function eonext_staff_theme($existing, $type, $theme, $path) {
-  return [
-    'eonext_library_staff_profile' => [
-      'variables' => [
-        'staff_name' => NULL,
-        'interest_description' => FALSE,
-        'content' => NULL,
-      ],
-    ],
-    'paragraph__eonext_library_staff' => [
-      'base hook' => 'paragraph',
-      'template' => 'paragraph--eonext-library-staff',
-    ],
-  ];
+#[LegacyHook]
+function eonext_staff_theme(mixed $existing, string $type, string $theme, string $path): array {
+  return DrupalTyped::service(StaffHooks::class)->theme($existing, $type, $theme, $path);
 }
 
 /**
- * Implements hook_preprocess_HOOK().
- *
  * The staff paragraph is an empty shell, so set its contents here.
  */
+#[LegacyHook]
 function eonext_staff_preprocess_paragraph__eonext_library_staff(array &$variables): void {
-  $paragraph = $variables['paragraph'] ?? NULL;
-  if (!$paragraph instanceof ParagraphInterface) {
-    return;
-  }
-
-  $view = Views::getView('staff');
-  if (!($view instanceof ViewExecutable)) {
-    return;
-  }
-
-  $view->setDisplay('block_1');
-  $view->setArguments(eonext_staff_get_branch_filter_argument($paragraph));
-  $view->execute();
-  $view_render = $view->render();
-  $view_render['#attached']['library'][] = 'eonext_staff/general';
-
-  $variables['header'] = t('Library staff', [], ['context' => 'eonext']);
-  // Pass a render array; do not call renderer->render() during preprocess.
-  $variables['staff'] = $view_render;
+  DrupalTyped::service(StaffHooks::class)->preprocessParagraphEonextLibraryStaff($variables);
 }
 
 /**
- * Builds the branch filter argument for the staff view.
- *
- * @return string[]
- *   Views contextual filter arguments.
+ * Combines forename and surname into one profile link.
  */
-function eonext_staff_get_branch_filter_argument(ParagraphInterface $paragraph): array {
-  if (!$paragraph->hasField('field_filter_branches') || $paragraph->get('field_filter_branches')->isEmpty()) {
-    return [];
-  }
-
-  $branch_ids = array_column($paragraph->get('field_filter_branches')->getValue(), 'target_id');
-  $branch_ids = array_filter($branch_ids);
-
-  if ($branch_ids === []) {
-    return [];
-  }
-
-  return [implode('+', $branch_ids)];
-}
-
-/**
- * Implements hook_preprocess_HOOK() for views fields.
- */
+#[LegacyHook]
 function eonext_staff_preprocess_views_view_field(array &$variables): void {
-  $view = $variables['view'];
-  if ($view->id() !== 'staff' || $view->current_display !== 'block_1') {
-    return;
-  }
-
-  $field_id = $variables['field']->options['id'];
-  if (!in_array($field_id, ['field_forename', 'field_surname'], TRUE)) {
-    return;
-  }
-
-  $row = $variables['row'];
-  if (empty($row->_entity) || !$row->_entity instanceof LibraryStaff) {
-    return;
-  }
-
-  /** @var \Drupal\eonext_staff\Entity\LibraryStaff $staff */
-  $staff = $row->_entity;
-
-  // Render one profile link on the forename field with the full name.
-  if ($field_id === 'field_surname') {
-    $variables['output'] = '';
-    return;
-  }
-
-  $full_name = \Drupal\eonext_staff\Controller\LibraryStaffController::formatStaffName($staff);
-  if ($full_name === '') {
-    return;
-  }
-
-  $variables['output'] = [
-    '#type' => 'link',
-    '#title' => $full_name,
-    '#url' => $staff->toUrl('canonical'),
-    '#attributes' => [
-      'class' => ['eonext-library-staff__name-link'],
-    ],
-  ];
+  DrupalTyped::service(StaffHooks::class)->preprocessViewsViewField($variables);
 }
 
 /**
- * Implements hook_ENTITY_TYPE_predelete() for user entities.
+ * Deletes staff entities that belong to a user being deleted.
  */
+#[LegacyHook]
 function eonext_staff_user_predelete(UserInterface $account): void {
-  // Delete staff entities that belong to this account.
-  $storage = \Drupal::entityTypeManager()->getStorage('eonext_library_staff');
+  DrupalTyped::service(StaffHooks::class)->userPredelete($account);
+}
 
-  $staffEntities = $storage->getQuery()
-    ->condition('uid', $account->id())
-    ->accessCheck(FALSE)
-    ->execute();
-
-  $storage->delete(
-    $storage->loadMultiple($staffEntities)
-  );
+/**
+ * Accepts several branch IDs in the staff view contextual filter.
+ *
+ * @param \Drupal\views\ViewExecutable $view
+ *   The view being executed.
+ * @param string $display_id
+ *   The current display ID.
+ * @param mixed[] $args
+ *   Views arguments.
+ */
+#[LegacyHook]
+function eonext_staff_views_pre_view(ViewExecutable $view, string $display_id, array &$args): void {
+  DrupalTyped::service(StaffHooks::class)->viewsPreView($view, $display_id, $args);
 }

@@ -5,69 +5,40 @@
  * Manual recommendation paragraph rendering.
  */
 
-use Drupal\eonext_manual_recommendation\Entity\ManualRecommendationParagraph;
+declare(strict_types=1);
+
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\drupal_typed\DrupalTyped;
+use Drupal\eonext_manual_recommendation\Hook\ManualRecommendationHooks;
+
+/*
+ * The following LegacyHooks can be removed when upgrading to Drupal 11.2,
+ * together with the hook class service definitions.
+ */
 
 /**
- * Implements hook_entity_bundle_info_alter().
+ * Registers the manual recommendation paragraph bundle class.
  *
  * @param mixed[] $bundles
  *   Bundle info for altering.
  */
+#[LegacyHook]
 function eonext_manual_recommendation_entity_bundle_info_alter(array &$bundles): void {
-  if (isset($bundles['paragraph']['manual_recommendation'])) {
-    $bundles['paragraph']['manual_recommendation']['class'] = ManualRecommendationParagraph::class;
-  }
+  DrupalTyped::service(ManualRecommendationHooks::class)->entityBundleInfoAlter($bundles);
 }
 
 /**
- * Implements hook_theme().
+ * Registers theme implementations.
  */
-function eonext_manual_recommendation_theme($existing, $type, $theme, $path) {
-  return [
-    'paragraph__manual_recommendation' => [
-      'base hook' => 'paragraph',
-      'template' => 'paragraph--manual-recommendation',
-    ],
-  ];
+#[LegacyHook]
+function eonext_manual_recommendation_theme(mixed $existing, string $type, string $theme, string $path): array {
+  return DrupalTyped::service(ManualRecommendationHooks::class)->theme($existing, $type, $theme, $path);
 }
 
 /**
- * Prepares variables for paragraph--manual-recommendation.html.twig template.
+ * Prepares variables for the manual recommendation paragraph template.
  */
+#[LegacyHook]
 function eonext_manual_recommendation_preprocess_paragraph__manual_recommendation(array &$variables): void {
-  $paragraph = $variables['paragraph'] ?? NULL;
-  $view_mode = $variables['view_mode'] ?? NULL;
-
-  if ($view_mode === 'preview' || !($paragraph instanceof ManualRecommendationParagraph)) {
-    return;
-  }
-
-  $variables['position_image_right'] = $paragraph->isImagePositionRight();
-  $variables['heading'] = $paragraph->getRecommendationTitle();
-  $variables['description'] = $paragraph->getDescription();
-  $variables['material_title'] = $paragraph->getMaterialTitle();
-
-  $author = $paragraph->getAuthor();
-  $year = $paragraph->getPublicationYear();
-  if ($author && $year) {
-    $variables['material_author'] = t('@author (@year)', [
-      '@author' => $author,
-      '@year' => $year,
-    ]);
-  }
-  else {
-    $variables['material_author'] = $author ?? ($year ? (string) $year : NULL);
-  }
-
-  $cover_media = $paragraph->getCoverMedia();
-  $variables['cover_url'] = NULL;
-  $variables['cover_alt'] = $variables['material_title'] ?? '';
-
-  if ($cover_media !== NULL) {
-    $file = $cover_media->getImageFile();
-    if ($file !== NULL) {
-      $variables['cover_url'] = \Drupal::service('file_url_generator')
-        ->generateAbsoluteString($file->getFileUri());
-    }
-  }
+  DrupalTyped::service(ManualRecommendationHooks::class)->preprocessParagraphManualRecommendation($variables);
 }
