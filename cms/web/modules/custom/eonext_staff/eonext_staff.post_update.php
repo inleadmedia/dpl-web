@@ -28,3 +28,13 @@ function eonext_staff_post_update_repair_interest_description_storage(): string 
 
   return 'Ensured field_interest_description database tables exist.';
 }
+
+/**
+ * Allow the staff view to filter by more than one branch.
+ */
+function eonext_staff_post_update_staff_view_multiple_branches(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  eonext_staff_update_staff_view_branch_filter();
+
+  return 'Updated the staff view so multiple branch filters return matching staff.';
+}

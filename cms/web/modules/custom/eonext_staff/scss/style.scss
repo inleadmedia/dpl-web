@@ -95,6 +95,17 @@
     margin-bottom: 24px;
   }
 
+  &__image {
+    flex: 0 0 auto;
+
+    img {
+      display: block;
+      max-width: 220px;
+      width: 100%;
+      height: auto;
+    }
+  }
+
   &__name {
     margin: 0 0 8px;
     font-size: 40px;

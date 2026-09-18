@@ -207,7 +207,15 @@ function eonext_staff_update_staff_view_branch_filter(): void {
   $argument['default_argument_type'] = 'fixed';
   $argument['default_argument_options'] = ['argument' => ''];
   $argument['break_phrase'] = TRUE;
+  $argument['specify_validation'] = TRUE;
+  $argument['validate']['type'] = 'entity:node';
+  $argument['validate']['fail'] = 'empty';
+  $argument['validate_options']['bundles']['branch'] = 'branch';
+  $argument['validate_options']['access'] = FALSE;
+  $argument['validate_options']['operation'] = 'view';
+  $argument['validate_options']['multiple'] = 1;
 
   $config->set('display.default.display_options.arguments.field_branch_target_id', $argument);
+  $config->set('display.default.display_options.query.options.distinct', TRUE);
   $config->save(TRUE);
 }

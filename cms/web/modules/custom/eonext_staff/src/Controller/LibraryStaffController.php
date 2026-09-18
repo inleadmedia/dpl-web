@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\eonext_staff\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Entity\Entity\EntityViewDisplay;
 use Drupal\eonext_staff\LibraryStaffInterface;
 
 /**
@@ -19,9 +20,12 @@ final class LibraryStaffController extends ControllerBase {
    *   A render array.
    */
   public function profile(LibraryStaffInterface $eonext_library_staff): array {
-    $content = $this->entityTypeManager()
-      ->getViewBuilder('eonext_library_staff')
-      ->view($eonext_library_staff, 'profile');
+    // Build field render arrays so the profile template can print
+    // content.field_* individually. EntityViewBuilder::view() wraps the entity
+    // in a #pre_render callback, which Twig does not run when accessing child
+    // keys like content.field_image.
+    $content = EntityViewDisplay::collectRenderDisplay($eonext_library_staff, 'profile')
+      ->build($eonext_library_staff);
 
     $has_interest_description = $eonext_library_staff->hasField('field_interest_description')
       && !$eonext_library_staff->get('field_interest_description')->isEmpty();
@@ -35,6 +39,9 @@ final class LibraryStaffController extends ControllerBase {
         'library' => [
           'eonext_staff/general',
         ],
+      ],
+      '#cache' => [
+        'tags' => $eonext_library_staff->getCacheTags(),
       ],
     ];
   }

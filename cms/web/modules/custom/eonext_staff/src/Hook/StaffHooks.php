@@ -150,7 +150,7 @@ class StaffHooks {
     }
 
     $branch_ids = array_column($paragraph->get('field_filter_branches')->getValue(), 'target_id');
-    $branch_ids = array_filter($branch_ids);
+    $branch_ids = array_values(array_unique(array_filter($branch_ids)));
 
     if ($branch_ids === []) {
       return [];
