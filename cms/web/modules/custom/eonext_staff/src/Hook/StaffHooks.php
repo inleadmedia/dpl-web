@@ -67,6 +67,7 @@ class StaffHooks {
     }
 
     $view->setDisplay('block_1');
+    $this->allowMultipleBranchArguments($view);
     $view->setArguments($this->getBranchFilterArgument($paragraph));
     $view->execute();
     $view_render = $view->render();
@@ -136,6 +137,44 @@ class StaffHooks {
     }
 
     $storage->delete($storage->loadMultiple($staff_ids));
+  }
+
+  /**
+   * Accepts several branch IDs in the staff view contextual filter.
+   *
+   * Stored Views config may still validate a single ID only. Without this,
+   * arguments such as "12+34+56" fail validation and the list is empty.
+   *
+   * @param \Drupal\views\ViewExecutable $view
+   *   The view being executed.
+   * @param string $display_id
+   *   The current display ID.
+   * @param mixed[] $args
+   *   Views arguments.
+   */
+  #[Hook('views_pre_view')]
+  public function viewsPreView(ViewExecutable $view, string $display_id, array &$args): void {
+    if ($view->id() !== 'staff') {
+      return;
+    }
+
+    $this->allowMultipleBranchArguments($view);
+  }
+
+  /**
+   * Force the branch argument to treat + separated IDs as a list.
+   */
+  protected function allowMultipleBranchArguments(ViewExecutable $view): void {
+    $view->initHandlers();
+    if (!isset($view->argument['field_branch_target_id'])) {
+      return;
+    }
+
+    $argument = $view->argument['field_branch_target_id'];
+    $argument->options['break_phrase'] = TRUE;
+    $argument->options['validate']['type'] = 'none';
+    $argument->options['validate']['fail'] = 'ignore';
+    $argument->options['validate_options']['multiple'] = 1;
   }
 
   /**

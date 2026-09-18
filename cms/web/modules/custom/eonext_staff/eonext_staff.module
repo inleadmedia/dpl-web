@@ -11,6 +11,7 @@ use Drupal\Core\Hook\Attribute\LegacyHook;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\eonext_staff\Hook\StaffHooks;
 use Drupal\user\UserInterface;
+use Drupal\views\ViewExecutable;
 
 /*
  * The following LegacyHooks can be removed when upgrading to Drupal 11.2,
@@ -47,4 +48,19 @@ function eonext_staff_preprocess_views_view_field(array &$variables): void {
 #[LegacyHook]
 function eonext_staff_user_predelete(UserInterface $account): void {
   DrupalTyped::service(StaffHooks::class)->userPredelete($account);
+}
+
+/**
+ * Accepts several branch IDs in the staff view contextual filter.
+ *
+ * @param \Drupal\views\ViewExecutable $view
+ *   The view being executed.
+ * @param string $display_id
+ *   The current display ID.
+ * @param mixed[] $args
+ *   Views arguments.
+ */
+#[LegacyHook]
+function eonext_staff_views_pre_view(ViewExecutable $view, string $display_id, array &$args): void {
+  DrupalTyped::service(StaffHooks::class)->viewsPreView($view, $display_id, $args);
 }
