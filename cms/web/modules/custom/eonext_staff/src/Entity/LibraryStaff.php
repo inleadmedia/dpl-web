@@ -15,8 +15,8 @@ use Drupal\eonext_staff\LibraryStaffInterface;
  *
  * @ContentEntityType(
  *   id = "eonext_library_staff",
- *   label = @Translation("Library Staff"),
- *   label_singular = @Translation("library staff"),
+ *   label = @Translation("Library Staff", context = "eonext"),
+ *   label_singular = @Translation("library staff", context = "eonext"),
  *   handlers = {
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "access" = "Drupal\eonext_staff\LibraryStaffAccessControlHandler",
@@ -49,28 +49,24 @@ final class LibraryStaff extends ContentEntityBase implements LibraryStaffInterf
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type): array {
-
     $fields = parent::baseFieldDefinitions($entity_type);
 
     $fields['created'] = BaseFieldDefinition::create('created')
-      ->setLabel(t('Authored on'))
-      ->setDescription(t('The time that the library staff was created.'))
+      ->setLabel(t('Authored on', [], ['context' => 'eonext']))
+      ->setDescription(t('The time that the library staff was created.', [], ['context' => 'eonext']))
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', FALSE);
 
     $fields['changed'] = BaseFieldDefinition::create('changed')
-      ->setLabel(t('Changed'))
-      ->setDescription(t('The time that the library staff was last edited.'))
+      ->setLabel(t('Changed', [], ['context' => 'eonext']))
+      ->setDescription(t('The time that the library staff was last edited.', [], ['context' => 'eonext']))
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', FALSE);
 
     $fields['uid'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('User'))
+      ->setLabel(t('User', [], ['context' => 'eonext']))
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default:user')
-      ->setSetting('handler_settings', [
-
-      ])
       ->setCardinality(1)
       ->setDisplayConfigurable('form', FALSE)
       ->setDisplayConfigurable('view', FALSE);
@@ -78,8 +74,26 @@ final class LibraryStaff extends ContentEntityBase implements LibraryStaffInterf
     return $fields;
   }
 
-  public function setUserId(int $userId) {
+  /**
+   * {@inheritdoc}
+   */
+  public function setUserId(int $userId): static {
     $this->set('uid', $userId);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFullName(): string {
+    $forename = $this->hasField('field_forename')
+      ? (string) ($this->get('field_forename')->value ?? '')
+      : '';
+    $surname = $this->hasField('field_surname')
+      ? (string) ($this->get('field_surname')->value ?? '')
+      : '';
+
+    return trim($forename . ' ' . $surname);
   }
 
 }

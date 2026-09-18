@@ -8,7 +8,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Configuration form for a library staff entity type.
+ * Field UI landing form for the library staff entity type.
  */
 final class LibraryStaffSettingsForm extends FormBase {
 
@@ -23,17 +23,8 @@ final class LibraryStaffSettingsForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state): array {
-
-    $form['settings'] = [
-      '#markup' => $this->t('Settings form for a library staff entity type.'),
-    ];
-
-    $form['actions'] = [
-      '#type' => 'actions',
-      'submit' => [
-        '#type' => 'submit',
-        '#value' => $this->t('Save'),
-      ],
+    $form['help'] = [
+      '#markup' => $this->t('Manage Library Staff fields from the Field UI tabs on this page.', [], ['context' => 'eonext']),
     ];
 
     return $form;
@@ -43,7 +34,7 @@ final class LibraryStaffSettingsForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->messenger()->addStatus($this->t('The configuration has been updated.'));
+    // Field UI landing page; nothing to persist.
   }
 
 }

@@ -5,6 +5,7 @@ package: 'EO next'
 core_version_requirement: ^10 || ^11
 dependencies:
   - dpl_media:dpl_media
+  - drupal_typed:drupal_typed
   - drupal:media
   - drupal:media_library
   - drupal:paragraphs

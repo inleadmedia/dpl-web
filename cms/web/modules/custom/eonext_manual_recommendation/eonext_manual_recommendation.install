@@ -5,6 +5,8 @@
  * Install, update and uninstall functions for the manual recommendation module.
  */
 
+declare(strict_types=1);
+
 /**
  * Implements hook_install().
  */

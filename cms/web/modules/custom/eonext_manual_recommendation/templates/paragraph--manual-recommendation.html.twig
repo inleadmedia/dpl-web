@@ -1,6 +1,26 @@
+{#
+/**
+ * @file
+ * Default theme implementation for a manual recommendation paragraph.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the wrapping element.
+ * - position_image_right: Whether the cover sits on the right.
+ * - heading: Filtered editorial heading.
+ * - description: Editorial description.
+ * - material_title: Manually entered material title.
+ * - material_author: Author, optionally with publication year.
+ * - cover_url: Cover image URL.
+ * - cover_alt: Cover image alternative text.
+ */
+#}
 <div{{ attributes.addClass('recommendation', position_image_right ? 'recommendation--reversed') }}>
   <div class="recommendation__material">
     <div class="recommended-material">
+      {# First grid row matches Auto recommendation so cover/texts land on the right rows. #}
+      <div class="recommended-material__icon" aria-hidden="true">
+        <div class="icon-favourite"></div>
+      </div>
       <div class="cover cover--size-large cover--aspect-large bg-identity-tint-80">
         {% if cover_url %}
           <img

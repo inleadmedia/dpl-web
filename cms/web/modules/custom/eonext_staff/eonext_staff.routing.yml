@@ -12,7 +12,7 @@ entity.eonext_library_staff.edit_form:
     _entity_form: 'eonext_library_staff.edit'
     _title: 'Staff'
   requirements:
-    _access: 'TRUE'
+    _entity_access: 'user.update'
   options:
     parameters:
       user:

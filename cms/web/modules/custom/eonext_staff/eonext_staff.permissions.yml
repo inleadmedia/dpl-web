@@ -1,2 +1,4 @@
 edit eonext_library_staff:
   title: 'Edit library staff'
+delete eonext_library_staff:
+  title: 'Delete library staff'

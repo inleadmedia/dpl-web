@@ -5,6 +5,8 @@
  * Post update functions for the eonext_staff module.
  */
 
+declare(strict_types=1);
+
 /**
  * Extend staff list with branch filter, profiles, and interest descriptions.
  */

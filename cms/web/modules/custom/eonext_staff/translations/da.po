@@ -29,3 +29,11 @@ msgstr "Filtrer efter filialer"
 
 msgid "If nothing is selected, staff from all branches will be shown."
 msgstr "Hvis intet er valgt, vises medarbejdere fra alle filialer."
+
+msgctxt "eonext"
+msgid "Staff information for user %label has been updated."
+msgstr "Personaleoplysningerne for brugeren %label er blevet opdateret."
+
+msgctxt "eonext"
+msgid "Manage Library Staff fields from the Field UI tabs on this page."
+msgstr "Administrer felter for bibliotekspersonale via fanerne på denne side."

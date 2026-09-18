@@ -5,30 +5,12 @@
  * Install, update and uninstall functions for the eonext_staff module.
  */
 
+declare(strict_types=1);
+
 use Drupal\Core\Config\FileStorage;
+use Drupal\eonext_staff\StaffListExtension;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-
-/**
- * New configuration shipped by the staff list extension.
- */
-const EONEXT_STAFF_NEW_CONFIG = [
-  'field.storage.eonext_library_staff.field_interest_description',
-  'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
-  'core.entity_view_mode.eonext_library_staff.profile',
-  'core.entity_view_display.eonext_library_staff.eonext_library_staff.profile',
-  'field.field.paragraph.eonext_library_staff.field_filter_branches',
-  'core.entity_form_display.paragraph.eonext_library_staff.default',
-  'core.entity_view_display.paragraph.eonext_library_staff.default',
-];
-
-/**
- * Existing configuration updated by the staff list extension.
- */
-const EONEXT_STAFF_UPDATED_CONFIG = [
-  'core.entity_form_display.eonext_library_staff.eonext_library_staff.default',
-  'core.entity_view_display.eonext_library_staff.eonext_library_staff.default',
-];
 
 /**
  * Implements hook_install().
@@ -42,7 +24,7 @@ function eonext_staff_install(): void {
  */
 function eonext_staff_install_extension_config(): void {
   if (!\Drupal::configFactory()->get('field.storage.paragraph.field_filter_branches')->isNew()) {
-    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+    foreach (StaffListExtension::NEW_CONFIG as $name) {
       _eonext_staff_ensure_config($name);
     }
   }
@@ -50,7 +32,7 @@ function eonext_staff_install_extension_config(): void {
     \Drupal::logger('eonext_staff')->warning(
       'Skipped paragraph branch filter config because field.storage.paragraph.field_filter_branches is missing.',
     );
-    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+    foreach (StaffListExtension::NEW_CONFIG as $name) {
       if ($name === 'field.field.paragraph.eonext_library_staff.field_filter_branches'
         || str_starts_with($name, 'core.entity_form_display.paragraph.eonext_library_staff.')
         || str_starts_with($name, 'core.entity_view_display.paragraph.eonext_library_staff.')) {
@@ -60,7 +42,7 @@ function eonext_staff_install_extension_config(): void {
     }
   }
 
-  foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+  foreach (StaffListExtension::UPDATED_CONFIG as $name) {
     _eonext_staff_ensure_config($name, TRUE);
   }
 
@@ -96,7 +78,7 @@ function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): voi
   }
 
   if (str_starts_with($name, 'field.field.')) {
-    _eonext_staff_ensure_field_config($data, $overwrite);
+    _eonext_staff_ensure_field_config($data);
     return;
   }
 
@@ -110,6 +92,9 @@ function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): voi
 
 /**
  * Ensures a field storage config exists and its database table is present.
+ *
+ * @param mixed[] $data
+ *   Field storage config data.
  */
 function _eonext_staff_ensure_field_storage_config(array $data): void {
   $entity_type = $data['entity_type'];
@@ -124,8 +109,11 @@ function _eonext_staff_ensure_field_storage_config(array $data): void {
 
 /**
  * Ensures a field instance config exists.
+ *
+ * @param mixed[] $data
+ *   Field config data.
  */
-function _eonext_staff_ensure_field_config(array $data, bool $overwrite): void {
+function _eonext_staff_ensure_field_config(array $data): void {
   $entity_type = $data['entity_type'];
   $bundle = $data['bundle'];
   $field_name = $data['field_name'];
