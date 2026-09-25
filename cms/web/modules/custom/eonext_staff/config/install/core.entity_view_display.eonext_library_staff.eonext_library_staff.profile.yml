@@ -15,6 +15,7 @@ dependencies:
   module:
     - eonext_staff
     - media
+    - text
 id: eonext_library_staff.eonext_library_staff.profile
 targetEntityType: eonext_library_staff
 bundle: eonext_library_staff
@@ -47,7 +48,7 @@ content:
     weight: 6
     region: content
   field_interest_description:
-    type: basic_string
+    type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }

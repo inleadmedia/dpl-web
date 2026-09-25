@@ -204,6 +204,97 @@ function eonext_staff_add_paragraph_type_to_content_types(): void {
 /**
  * Updates the staff view to use paragraph-driven branch filtering.
  */
+/**
+ * Migrates interest description from plain text to formatted text (Basic HTML).
+ */
+function _eonext_staff_migrate_interest_description_to_text(): void {
+  $entity_type_id = 'eonext_library_staff';
+  $bundle = 'eonext_library_staff';
+  $field_name = 'field_interest_description';
+  $text_format = 'basic';
+  $table = $entity_type_id . '__' . $field_name;
+
+  $field_storage = FieldStorageConfig::loadByName($entity_type_id, $field_name);
+  if ($field_storage && $field_storage->getType() === 'text_long') {
+    foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+      _eonext_staff_ensure_config($name, TRUE);
+    }
+    _eonext_staff_ensure_config('core.entity_view_display.eonext_library_staff.eonext_library_staff.profile', TRUE);
+    return;
+  }
+
+  $saved_values = _eonext_staff_read_interest_description_values($table);
+
+  $field = FieldConfig::loadByName($entity_type_id, $bundle, $field_name);
+  $field?->delete();
+  $field_storage?->delete();
+
+  field_purge_batch(50);
+
+  foreach ([
+    'field.storage.eonext_library_staff.field_interest_description',
+    'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
+  ] as $name) {
+    _eonext_staff_ensure_config($name);
+  }
+
+  foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+    _eonext_staff_ensure_config($name, TRUE);
+  }
+
+  _eonext_staff_ensure_config('core.entity_view_display.eonext_library_staff.eonext_library_staff.profile', TRUE);
+
+  if (!$saved_values) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+  foreach ($saved_values as $entity_id => $value) {
+    $entity = $storage->load($entity_id);
+    if (!$entity) {
+      continue;
+    }
+    $entity->set($field_name, [
+      'value' => $value,
+      'format' => $text_format,
+    ]);
+    $entity->save();
+  }
+}
+
+/**
+ * Reads plain-text interest descriptions before a field type migration.
+ *
+ * @return array<int, string>
+ *   Entity ID keyed interest description values.
+ */
+function _eonext_staff_read_interest_description_values(string $table): array {
+  $database = \Drupal::database();
+  if (!$database->schema()->tableExists($table)) {
+    return [];
+  }
+
+  $schema = $database->schema()->fieldExists($table, $field_column = 'field_interest_description_value');
+  if (!$schema) {
+    return [];
+  }
+
+  $query = $database->select($table, 't')
+    ->fields('t', ['entity_id', $field_column])
+    ->condition($field_column, '', '<>');
+  $query->isNotNull($field_column);
+
+  $saved_values = [];
+  foreach ($query->execute() as $row) {
+    $saved_values[(int) $row->entity_id] = (string) $row->{$field_column};
+  }
+
+  return $saved_values;
+}
+
+/**
+ * Updates the staff view to use paragraph-driven branch filtering.
+ */
 function eonext_staff_update_staff_view_branch_filter(): void {
   $config = \Drupal::configFactory()->getEditable('views.view.staff');
   if ($config->isNew()) {

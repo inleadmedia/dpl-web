@@ -3,3 +3,6 @@ type: module
 description: 'Extends user profile with staff information.'
 package: 'EO next'
 core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:filter
+  - drupal:text

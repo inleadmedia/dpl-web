@@ -14,6 +14,7 @@ dependencies:
     - field.field.eonext_library_staff.eonext_library_staff.field_surname
   module:
     - eonext_staff
+    - text
 id: eonext_library_staff.eonext_library_staff.default
 targetEntityType: eonext_library_staff
 bundle: eonext_library_staff
@@ -60,7 +61,7 @@ content:
     weight: 7
     region: content
   field_interest_description:
-    type: basic_string
+    type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
