@@ -1,0 +1,25 @@
+{% set classes = [
+  dom_id ? 'js-view-dom-id-' ~ dom_id,
+  'content-list-page',
+  'ek-foreninger-listing-page',
+] %}
+<div{{ attributes.addClass(classes) }}>
+  {% if foreninger_listing_hero %}
+    {% include '@eonext_kultur_locale/ek-page-hero.html.twig' with foreninger_listing_hero only %}
+  {% elseif view.getTitle() %}
+    {{ title_prefix }}
+    <h1 class="content-list-page__heading ek-foreninger-listing-page__heading">{{ view.getTitle() }}</h1>
+    {{ title_suffix }}
+  {% endif %}
+
+  <div class="ek-foreninger-listing-page__inner">
+    {{ header }}
+    {{ attachment_before }}
+    {{ rows }}
+    {{ empty }}
+    {{ pager }}
+    {{ attachment_after }}
+    {{ footer }}
+  </div>
+  {{ feed_icons }}
+</div>

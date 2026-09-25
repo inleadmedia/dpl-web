@@ -1,0 +1,9 @@
+langcode: en
+status: true
+dependencies: {  }
+id: eonext_kultur_social_banner
+label: 'Social banner (Facebook + Instagram)'
+icon_uuid: null
+icon_default: null
+description: 'Banner with separate Facebook and Instagram logo links.'
+behavior_plugins: {  }

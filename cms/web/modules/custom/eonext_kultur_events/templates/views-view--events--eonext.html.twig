@@ -4,7 +4,10 @@
   'eonext-kultur-events',
 ] %}
 <div{{ attributes.addClass(classes) }}>
-  {% if view.getTitle() %}
+  {% if events_listing_hero %}
+    {% include '@eonext_kultur_locale/ek-page-hero.html.twig' with events_listing_hero only %}
+  {% endif %}
+  {% if view.getTitle() and not events_listing_hero %}
     {{ title_prefix }}
     <h1 class="content-list-page__heading">{{ view.getTitle() }}</h1>
     {{ title_suffix }}
@@ -15,11 +18,11 @@
 
   <div class="eonext-kultur-events__layout">
     <div class="eonext-kultur-events__filters">
-      <div class="eonext-kultur-events__filters-panel is-expanded">
+      <div class="eonext-kultur-events__filters-panel">
         <button
           type="button"
           class="eonext-kultur-events__filters-toggle"
-          aria-expanded="true"
+          aria-expanded="false"
           aria-controls="eonext-kultur-events-filters-content"
         >
           <span class="eonext-kultur-events__filters-toggle-label">{{ 'Filters'|t({}, {'context': 'eonext_kultur_events'}) }}</span>

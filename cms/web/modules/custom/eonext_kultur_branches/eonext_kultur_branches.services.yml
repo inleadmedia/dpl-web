@@ -1,0 +1,16 @@
+services:
+  eonext_kultur_branches.listing_hero_builder:
+    class: Drupal\eonext_kultur_branches\ForeningerListingHeroBuilder
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+  eonext_kultur_branches.upcoming_events:
+    class: Drupal\eonext_kultur_branches\BranchUpcomingEventsLoader
+    arguments:
+      - '@entity_type.manager'
+      - '@eonext_kultur_main.hero_slide_builder'
+  eonext_kultur_branches.listing_registry:
+    class: Drupal\eonext_kultur_branches\ForeningerListingRegistry
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'

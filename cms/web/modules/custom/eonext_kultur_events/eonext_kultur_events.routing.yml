@@ -1,0 +1,7 @@
+eonext_kultur_events.listing_settings:
+  path: '/admin/config/kultur/events-listing'
+  defaults:
+    _form: '\Drupal\eonext_kultur_events\Form\EventsListingSettingsForm'
+    _title: 'Events listing page'
+  requirements:
+    _permission: 'administer kultur events listing'

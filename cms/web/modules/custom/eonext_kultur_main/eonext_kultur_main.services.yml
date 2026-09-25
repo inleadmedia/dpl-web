@@ -9,6 +9,7 @@ services:
     class: Drupal\eonext_kultur_main\HeroSlideBuilder
     arguments:
       - '@entity_type.manager'
+      - '@dpl_event.reoccurring_date_formatter'
       - '@string_translation'
   eonext_kultur_main.nav_teaser_builder:
     class: Drupal\eonext_kultur_main\NavTeaserBuilder

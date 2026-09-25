@@ -1,0 +1,9 @@
+{% if rows %}
+  <div class="ek-foreninger-listing__grid">
+    {% for row in rows %}
+      <div{{ row.attributes.addClass('ek-foreninger-listing__item') }}>
+        {{- row.content -}}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

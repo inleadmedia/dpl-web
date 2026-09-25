@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for EO Next Kultur Branches.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_install().
+ */
+function eonext_kultur_branches_install(): void {
+  eonext_kultur_branches_ensure_main_menu_link();
+  \Drupal::service('eonext_kultur_branches.listing_registry')->initializeListingItems();
+}
+
+/**
+ * Seeds curated branch listing from promoted branches.
+ */
+function eonext_kultur_branches_update_9001(): void {
+  \Drupal::service('eonext_kultur_branches.listing_registry')->initializeListingItems();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eonext_kultur_branches_uninstall(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('menu_link_content');
+  foreach ($storage->loadByProperties(['menu_name' => 'main']) as $link) {
+    if (!method_exists($link, 'getTitle') || !method_exists($link, 'getUrlObject')) {
+      continue;
+    }
+    $title = (string) $link->getTitle();
+    $path = $link->getUrlObject()->toString();
+    if ($title === 'Foreninger' || str_starts_with($path, '/foreninger')) {
+      $link->delete();
+    }
+  }
+}

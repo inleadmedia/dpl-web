@@ -1,0 +1,9 @@
+langcode: en
+status: true
+dependencies: {  }
+id: eonext_kultur_map_link
+label: 'Find os her (map link)'
+icon_uuid: null
+icon_default: null
+description: 'Link to the location in a map service.'
+behavior_plugins: {  }

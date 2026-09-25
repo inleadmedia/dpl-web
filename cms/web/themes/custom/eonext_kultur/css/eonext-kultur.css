@@ -936,7 +936,7 @@ article .rich-text ol > li::before {
 .ek-hero-slider__nav {
   position: absolute;
   z-index: 4;
-  top: calc(50% - 5.5rem);
+  top: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1106,13 +1106,13 @@ article .rich-text ol > li::before {
 
 @media (min-width: 768px) {
   .ek-hero-slide__image {
-    min-height: 810px;
-    height: 810px;
+    min-height: 567px;
+    height: 567px;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__image {
-    min-height: 560px;
-    height: 560px;
+    min-height: 392px;
+    height: 392px;
   }
 
   .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slide__title {
@@ -1142,9 +1142,6 @@ article .rich-text ol > li::before {
     padding: 0 1.25rem;
   }
 
-  .ek-hero-slider[data-items-per-view]:not([data-items-per-view="1"]) .ek-hero-slider__nav {
-    top: calc(50% - 5.25rem);
-  }
 }
 
 @media (max-width: 767px) {
@@ -1153,7 +1150,7 @@ article .rich-text ol > li::before {
   }
 
   .ek-hero-slider__nav {
-    top: calc(50% - 2.5rem);
+    top: 50%;
     width: 40px;
     height: 88px;
   }
@@ -1215,4 +1212,44 @@ article .rich-text ol > li::before {
 .banner--light-background .banner__description + svg .arrow__head,
 .banner--light-background .banner__title + svg .arrow__head {
   fill: var(--ek-navy, #235881);
+}
+
+.ek-social-banner {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: var(--ek-cream, #f5f0e8);
+}
+
+.ek-social-banner__icons {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.ek-social-banner__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  color: #fff;
+  background: var(--ek-teal, #089aa7);
+  border-radius: 50%;
+}
+
+.ek-map-link {
+  padding: 1.5rem 1rem;
+  text-align: center;
+}
+
+.ek-map-link__anchor {
+  font-weight: 600;
+  color: var(--ek-navy, #235881);
+  text-decoration: underline;
+}
+
+.ek-map-link__anchor:hover,
+.ek-map-link__anchor:focus-visible {
+  color: var(--ek-teal, #089aa7);
 }

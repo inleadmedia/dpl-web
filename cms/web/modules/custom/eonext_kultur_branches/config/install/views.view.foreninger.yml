@@ -1,0 +1,146 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.list_teaser
+    - field.field.node.branch.field_promoted_on_lists
+    - node.type.branch
+  module:
+    - node
+    - user
+  enforced:
+    module:
+      - eonext_kultur_branches
+id: foreninger
+label: Foreninger
+module: views
+description: 'Lists promoted branches with upcoming events on /foreninger.'
+tag: ''
+base_table: node_field_data
+base_field: nid
+display:
+  default:
+    id: default
+    display_title: Default
+    display_plugin: default
+    position: 0
+    display_options:
+      title: Foreninger
+      fields: {  }
+      pager:
+        type: none
+        options:
+          offset: 0
+      access:
+        type: perm
+        options:
+          perm: 'access content'
+      cache:
+        type: tag
+        options: {  }
+      empty:
+        area:
+          id: area
+          table: views
+          field: area
+          plugin_id: text
+          empty: true
+          content:
+            value: 'Ingen foreninger fundet.'
+            format: basic_html
+      sorts:
+        field_promoted_on_lists_value:
+          id: field_promoted_on_lists_value
+          table: node__field_promoted_on_lists
+          field: field_promoted_on_lists_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: field_promoted_on_lists
+          plugin_id: standard
+          order: DESC
+          expose:
+            label: ''
+          exposed: false
+        title:
+          id: title
+          table: node_field_data
+          field: title
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: title
+          plugin_id: standard
+          order: ASC
+          expose:
+            label: ''
+          exposed: false
+      arguments: {  }
+      filters:
+        status:
+          id: status
+          table: node_field_data
+          field: status
+          entity_type: node
+          entity_field: status
+          plugin_id: boolean
+          value: '1'
+        type:
+          id: type
+          table: node_field_data
+          field: type
+          entity_type: node
+          entity_field: type
+          plugin_id: bundle
+          value:
+            branch: branch
+        field_promoted_on_lists_value:
+          id: field_promoted_on_lists_value
+          table: node__field_promoted_on_lists
+          field: field_promoted_on_lists_value
+          relationship: none
+          group_type: group
+          admin_label: ''
+          entity_type: node
+          entity_field: field_promoted_on_lists
+          plugin_id: boolean
+          value: '1'
+      style:
+        type: default
+        options:
+          row_class: ek-foreninger-listing__branch
+          default_row_class: true
+      row:
+        type: 'entity:node'
+        options:
+          view_mode: list_teaser
+      query:
+        type: views_query
+        options:
+          disable_sql_rewrite: false
+      css_class: ek-foreninger-listing
+      header: {  }
+      footer: {  }
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+      tags: {  }
+  page_1:
+    id: page_1
+    display_title: Page
+    display_plugin: page
+    position: 1
+    display_options:
+      display_extenders: {  }
+      path: foreninger
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_interface'
+        - url
+      tags: {  }

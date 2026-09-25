@@ -11,7 +11,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
 use Drupal\dpl_event\ReoccurringDateFormatter;
-use Drupal\drupal_typed\DrupalTyped;
 use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
 use Drupal\recurring_events\Entity\EventInstance;
@@ -27,6 +26,7 @@ final class HeroSlideBuilder {
 
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
+    private readonly ReoccurringDateFormatter $recurringDateFormatter,
     TranslationInterface $translation,
   ) {
     $this->stringTranslation = $translation;
@@ -51,8 +51,7 @@ final class HeroSlideBuilder {
    * @return array<string, mixed>
    */
   private function fromEventSeries(EventSeries $eventSeries): array {
-    $formatter = DrupalTyped::service(ReoccurringDateFormatter::class, 'dpl_event.reoccurring_date_formatter');
-    $details = $formatter->getUpcomingEventDetails($eventSeries);
+    $details = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
     $start = $details['start'] ?? NULL;
     $end = $details['end'] ?? NULL;
 
@@ -61,7 +60,7 @@ final class HeroSlideBuilder {
       'category' => $this->getCategoryLabel($eventSeries),
       'tagline' => $this->getTagline($eventSeries, 'field_description'),
       'date_display' => ($start instanceof DrupalDateTime)
-        ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $formatter->isAllDay($eventSeries))
+        ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $this->recurringDateFormatter->isAllDay($eventSeries))
         : NULL,
       'url' => $eventSeries->toUrl()->toString(),
       'image' => $this->buildBannerImage($eventSeries, ['field_event_image', 'field_teaser_image']),
@@ -194,14 +193,16 @@ final class HeroSlideBuilder {
    * Format date/time like "13. SEP. | KL 15.00 - 17.00".
    */
   private function formatHeroDate(DrupalDateTime $start, ?DrupalDateTime $end, bool $allDay): string {
-    $datePart = mb_strtoupper($start->format('j. M.'));
+    $datePart = mb_strtoupper($this->recurringDateFormatter->formatDate($start, 'j. M.'));
 
     if ($allDay) {
       return $datePart;
     }
 
-    $startTime = $start->format('H.i');
-    $endTime = $end instanceof DrupalDateTime ? $end->format('H.i') : NULL;
+    $startTime = $this->recurringDateFormatter->formatDate($start, 'H.i');
+    $endTime = $end instanceof DrupalDateTime
+      ? $this->recurringDateFormatter->formatDate($end, 'H.i')
+      : NULL;
 
     if ($endTime) {
       return (string) $this->t('@date | KL @start - @end', [

@@ -1,0 +1,14 @@
+name: 'EO Next Kultur Branches'
+type: module
+description: 'Foreninger overview listing branches and their upcoming events at /foreninger.'
+package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+  - drupal:views
+  - drupal:user
+  - eonext_kultur_events:eonext_kultur_events
+  - eonext_kultur_locale:eonext_kultur_locale
+  - eonext_kultur_main:eonext_kultur_main
+  - dpl_event:dpl_event
+  - recurring_events:recurring_events

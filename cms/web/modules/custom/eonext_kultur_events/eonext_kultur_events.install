@@ -24,6 +24,7 @@ function eonext_kultur_events_install(): void {
   eonext_kultur_events_configure_events_view();
   eonext_kultur_events_configure_facet_weights();
   eonext_kultur_events_ensure_publication_date_field();
+  eonext_kultur_events_add_linkit_matcher();
   eonext_kultur_events_reindex();
 }
 
@@ -364,6 +365,38 @@ function eonext_kultur_events_update_9007(): void {
   $inheritance?->delete();
 
   eonext_kultur_events_configure_publication_date_form_display();
+}
+
+/**
+ * Adds Linkit suggestions for kultur site pages (e.g. /arrangementer).
+ */
+function eonext_kultur_events_update_9008(): void {
+  eonext_kultur_events_add_linkit_matcher();
+}
+
+/**
+ * Registers the kultur site page matcher on the default Linkit profile.
+ */
+function eonext_kultur_events_add_linkit_matcher(): void {
+  if (!\Drupal::moduleHandler()->moduleExists('linkit')) {
+    return;
+  }
+
+  $profile = \Drupal::entityTypeManager()->getStorage('linkit_profile')->load('default');
+  if ($profile === NULL) {
+    return;
+  }
+
+  foreach ($profile->getMatchers() as $matcher) {
+    if ($matcher->getPluginId() === 'kultur_site_page') {
+      return;
+    }
+  }
+
+  /** @var \Drupal\linkit\MatcherInterface $plugin */
+  $plugin = \Drupal::service('plugin.manager.linkit.matcher')->createInstance('kultur_site_page');
+  $profile->addMatcher($plugin->getConfiguration());
+  $profile->save();
 }
 
 /**

@@ -22,26 +22,14 @@
       {% endif %}
     </h2>
 
-    {% if booking_mode == 'contact' %}
-      {% if contact_text %}
-        <p class="ek-lokale-row__contact-text">{{ contact_text }}</p>
-      {% endif %}
-      {% if description %}
-        <div class="ek-lokale-row__desc">{{ description|raw }}</div>
-      {% endif %}
-      <div class="ek-lokale-row__actions">
-        {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
-      </div>
-    {% else %}
-      {% if capacity_text %}
-        <p class="ek-lokale-row__capacity">{{ capacity_text }}</p>
-      {% endif %}
-      {% if description %}
-        <div class="ek-lokale-row__desc">{{ description|raw }}</div>
-      {% endif %}
-      <div class="ek-lokale-row__actions">
-        {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
-      </div>
+    {% if capacity_text %}
+      <p class="ek-lokale-row__capacity">{{ capacity_text }}</p>
     {% endif %}
+    {% if description %}
+      <div class="ek-lokale-row__desc">{{ description|raw }}</div>
+    {% endif %}
+    <div class="ek-lokale-row__actions">
+      {% include '@eonext_kultur_locale/eonext-kultur-locale-actions.html.twig' %}
+    </div>
   </div>
 </article>

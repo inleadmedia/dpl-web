@@ -1,0 +1,11 @@
+eonext_kultur_branches.branch_listing:
+  route_name: eonext_kultur_branches.branch_listing
+  title: Branches
+  base_route: eonext_kultur_branches.listing_settings
+  weight: 10
+
+eonext_kultur_branches.listing_settings_tab:
+  route_name: eonext_kultur_branches.listing_settings
+  title: 'Page settings'
+  base_route: eonext_kultur_branches.listing_settings
+  weight: 0

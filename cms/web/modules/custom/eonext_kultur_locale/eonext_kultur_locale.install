@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\eonext_kultur_locale\LokaleConstants;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -262,4 +263,202 @@ function eonext_kultur_locale_update_9005(): void {
  */
 function eonext_kultur_locale_update_9007(): void {
   eonext_kultur_locale_update_9005();
+}
+
+/**
+ * Show lokale booking terms on room pages and simplify booking URL field.
+ */
+function eonext_kultur_locale_update_9008(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  $form_display = $storage->read('core.entity_form_display.node.lokale.default');
+  if ($form_display) {
+    \Drupal::configFactory()->getEditable('core.entity_form_display.node.lokale.default')
+      ->setData($form_display)
+      ->save(TRUE);
+  }
+
+  $booking_url = $storage->read('field.field.node.lokale.field_booking_url');
+  if ($booking_url && ($config = FieldConfig::load($booking_url['id']))) {
+    $config->set('settings', $booking_url['settings']);
+    $config->save();
+  }
+
+  $terms_text = $storage->read('field.field.node.lokale.field_booking_betingelser');
+  if ($terms_text && ($config = FieldConfig::load($terms_text['id']))) {
+    $config->set('description', $terms_text['description']);
+    $config->save();
+  }
+}
+
+/**
+ * Add list order field and admin UI for Book lokale room ordering.
+ */
+function eonext_kultur_locale_update_9009(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.node.field_lokale_list_order',
+    'field.field.node.lokale.field_lokale_list_order',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  foreach ([
+    'core.entity_view_display.node.lokale.default',
+    'core.entity_view_display.node.lokale.row',
+    'views.view.lokaler',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
+  }
+
+  $node_storage = \Drupal::entityTypeManager()->getStorage('node');
+  $nids = $node_storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', LokaleConstants::NODE_BUNDLE)
+    ->sort('created', 'ASC')
+    ->sort('nid', 'ASC')
+    ->execute();
+
+  $order = 0;
+  foreach ($nids as $nid) {
+    /** @var \Drupal\node\NodeInterface|null $node */
+    $node = $node_storage->load($nid);
+    if (!$node instanceof \Drupal\node\NodeInterface || !$node->hasField('field_lokale_list_order')) {
+      continue;
+    }
+    $node->set('field_lokale_list_order', $order);
+    $node->save();
+    $order++;
+  }
+}
+
+/**
+ * Adds optional Winkas resource id field on lokale nodes.
+ */
+function eonext_kultur_locale_update_9010(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_locale');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.node.field_winkas_resource_id',
+    'field.field.node.lokale.field_winkas_resource_id',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  $form_display = EntityFormDisplay::load('node.lokale.default');
+  if ($form_display instanceof EntityFormDisplay) {
+    $form_display
+      ->setComponent('field_winkas_resource_id', [
+        'type' => 'string_textfield',
+        'weight' => 12,
+      ])
+      ->save();
+  }
+}
+
+/**
+ * Removes organization modules, routes, and menu links (foreninger use branches).
+ */
+function eonext_kultur_locale_update_9011(): void {
+  _eonext_kultur_locale_remove_organization_artifacts();
+}
+
+/**
+ * Enables the branches foreninger listing (/foreninger) and main menu link.
+ */
+function eonext_kultur_locale_update_9012(): void {
+  $module_installer = \Drupal::service('module_installer');
+  $module_handler = \Drupal::moduleHandler();
+
+  if (!$module_handler->moduleExists('eonext_kultur_branches')) {
+    $module_installer->install(['eonext_kultur_branches'], TRUE);
+  }
+  elseif (function_exists('eonext_kultur_branches_ensure_main_menu_link')) {
+    eonext_kultur_branches_ensure_main_menu_link();
+  }
+}
+
+/**
+ * Uninstalls organization modules and deletes related configuration.
+ */
+function _eonext_kultur_locale_remove_organization_artifacts(): void {
+  $config_names = [
+    'views.view.organizations',
+    'kultur_site_page.organizations',
+    'core.entity_view_mode.organization.teaser',
+    'core.entity_view_mode.organization.nav_teaser',
+    'core.entity_view_mode.kultur_site_page.nav_teaser',
+  ];
+
+  foreach ($config_names as $config_name) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    if (!$config->isNew()) {
+      $config->delete();
+    }
+  }
+
+  $menu_storage = \Drupal::entityTypeManager()->getStorage('menu_link_content');
+  foreach ($menu_storage->loadByProperties(['menu_name' => 'main']) as $link) {
+    if (!method_exists($link, 'getTitle') || !method_exists($link, 'getUrlObject')) {
+      continue;
+    }
+    $title = (string) $link->getTitle();
+    $path = $link->getUrlObject()->toString();
+    if ($title === 'Foreninger' || str_starts_with($path, '/foreninger')) {
+      $link->delete();
+    }
+  }
+
+  $module_installer = \Drupal::service('module_installer');
+  $module_handler = \Drupal::moduleHandler();
+
+  if ($module_handler->moduleExists('eonext_kultur_organizations')) {
+    $module_installer->uninstall(['eonext_kultur_organizations'], FALSE);
+  }
+
+  if ($module_handler->moduleExists('eonext_kultur_organization')) {
+    if (\Drupal::entityTypeManager()->hasDefinition('organization')) {
+      $storage = \Drupal::entityTypeManager()->getStorage('organization');
+      $entities = $storage->loadMultiple();
+      if ($entities !== []) {
+        $storage->delete($entities);
+      }
+    }
+    $module_installer->uninstall(['eonext_kultur_organization'], FALSE);
+  }
 }

@@ -5,16 +5,14 @@
  */
 #}
 <div class="ek-lokale-actions">
+  {% if terms_url %}
+    <a class="ek-lokale-actions__terms" href="{{ terms_url }}">{{ terms_text }}</a>
+  {% endif %}
   {% if booking_mode == 'contact' %}
     {% if contact_url %}
       <a class="ek-lokale-actions__btn ek-lokale-actions__btn--outline" href="{{ contact_url }}">{{ 'Kontakt'|t }}</a>
     {% endif %}
-  {% else %}
-    {% if terms_url %}
-      <a class="ek-lokale-actions__terms" href="{{ terms_url }}">{{ terms_text }}</a>
-    {% endif %}
-    {% if booking_url %}
-      <a class="ek-lokale-actions__btn ek-lokale-actions__btn--solid" href="{{ booking_url }}" target="_blank" rel="noopener">{{ 'Book'|t }}</a>
-    {% endif %}
+  {% elseif booking_url %}
+    <a class="ek-lokale-actions__btn ek-lokale-actions__btn--solid" href="{{ booking_url }}" target="_blank" rel="noopener">{{ 'Book'|t }}</a>
   {% endif %}
 </div>

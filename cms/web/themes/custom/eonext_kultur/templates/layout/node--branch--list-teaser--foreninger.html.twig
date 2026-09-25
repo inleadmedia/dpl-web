@@ -1,0 +1,47 @@
+<article{{ attributes.addClass('ek-foreninger-card') }}>
+  <a href="{{ url }}" class="ek-foreninger-card__media-link">
+    <div class="ek-foreninger-card__media">
+      {% if content.field_main_media %}
+        {{ content.field_main_media }}
+      {% else %}
+        <div class="ek-foreninger-card__media-placeholder" aria-hidden="true"></div>
+      {% endif %}
+    </div>
+  </a>
+
+  <div class="ek-foreninger-card__body">
+    <h2 class="ek-foreninger-card__title">
+      <a href="{{ url }}">{{ label }}</a>
+    </h2>
+
+    {% if foreninger_address %}
+      <p class="ek-foreninger-card__address">
+        <span class="ek-foreninger-card__address-icon" aria-hidden="true">{{ source(baseIconPath ~ '/collection/icon-pin.svg') }}</span>
+        <span>{{ foreninger_address }}</span>
+      </p>
+    {% endif %}
+
+    <div class="ek-foreninger-card__events">
+      <h3 class="ek-foreninger-card__events-heading">{{ 'Kommende arrangementer'|t({}, {'context': 'eonext_kultur_branches'}) }}</h3>
+
+      {% if foreninger_event_items is not empty %}
+        <ul class="ek-foreninger-card__events-list">
+          {% for item in foreninger_event_items %}
+            <li class="ek-foreninger-card__events-item">
+              <a class="ek-foreninger-card__event-link" href="{{ item.url }}">
+                <span class="ek-foreninger-card__event-title">{{ item.title }}</span>
+                {% if item.date %}
+                  <time class="ek-foreninger-card__event-date">{{ item.date }}</time>
+                {% endif %}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% elseif foreninger_show_empty_events %}
+        <p class="ek-foreninger-card__events-empty">{{ 'Ingen kommende arrangementer.'|t({}, {'context': 'eonext_kultur_branches'}) }}</p>
+      {% endif %}
+    </div>
+
+    <a class="ek-foreninger-card__branch-link" href="{{ url }}">{{ 'Læs mere om foreningen'|t({}, {'context': 'eonext_kultur_branches'}) }}</a>
+  </div>
+</article>

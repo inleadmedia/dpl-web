@@ -11,6 +11,7 @@ dependencies:
     - field.field.node.lokale.field_contact
     - field.field.node.lokale.field_description
     - field.field.node.lokale.field_images
+    - field.field.node.lokale.field_lokale_list_order
     - field.field.node.lokale.field_size_m2
     - node.type.lokale
   module:
@@ -37,4 +38,5 @@ hidden:
   field_contact: true
   field_description: true
   field_images: true
+  field_lokale_list_order: true
   field_size_m2: true

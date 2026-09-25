@@ -415,6 +415,16 @@ function eonext_kultur_events_preprocess_views_view(array &$variables): void {
   if ($view->id() === EventsConstants::VIEW_ID) {
     $variables['#attached']['library'][] = 'eonext_kultur_events/events-listing';
     $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
+
+    if (eonext_kultur_events_is_events_listing_page()) {
+      $default_heading = $view->getTitle() ?: (string) t('Kalender', [], ['context' => 'eonext_kultur_events']);
+      $hero = \Drupal::service('eonext_kultur_events.listing_hero_builder')->build($default_heading);
+      if ($hero !== NULL) {
+        $variables['events_listing_hero'] = $hero;
+        $variables['#attached']['library'][] = 'eonext_kultur_locale/lokale';
+        $variables['#cache']['tags'][] = 'config:eonext_kultur_events.settings';
+      }
+    }
     return;
   }
 

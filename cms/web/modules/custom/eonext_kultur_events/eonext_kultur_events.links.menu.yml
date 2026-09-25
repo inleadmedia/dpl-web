@@ -1,0 +1,6 @@
+eonext_kultur_events.listing_settings:
+  title: 'Events listing page'
+  description: 'Hero and settings for the /arrangementer page.'
+  route_name: eonext_kultur_events.listing_settings
+  parent: system.admin_config
+  weight: 50

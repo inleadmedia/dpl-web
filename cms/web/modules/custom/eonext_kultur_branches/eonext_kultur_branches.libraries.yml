@@ -1,0 +1,4 @@
+foreninger-listing:
+  css:
+    theme:
+      css/foreninger-listing.css: {}

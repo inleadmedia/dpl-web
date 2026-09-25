@@ -225,7 +225,7 @@
   function isFiltersExpanded() {
     const stored = sessionStorage.getItem(FILTERS_STORAGE_KEY);
     if (stored === null) {
-      return window.matchMedia("(min-width: 768px)").matches;
+      return false;
     }
 
     return stored === "1";

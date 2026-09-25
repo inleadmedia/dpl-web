@@ -1,0 +1,320 @@
+/* Foreninger branches overview – flat CSS only. */
+
+.content-list-page.ek-foreninger-listing-page {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.ek-foreninger-listing-page__heading {
+  max-width: 72.25rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+.ek-foreninger-listing-page__inner {
+  max-width: 72.25rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 3rem 1rem 4rem;
+  box-sizing: border-box;
+}
+
+.content-list-page.ek-foreninger-listing-page:has(.ek-page-hero) .ek-foreninger-listing-page__inner {
+  padding-top: 3rem;
+}
+
+.ek-foreninger-listing.ek-foreninger-listing {
+  margin: 0;
+}
+
+.ek-foreninger-listing__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ek-foreninger-listing__item {
+  min-width: 0;
+  height: 100%;
+}
+
+.ek-foreninger-listing__item > .views-row {
+  height: 100%;
+}
+
+.ek-foreninger-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--c-text-primary-white, #fff);
+  border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+}
+
+.ek-foreninger-card__media-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ek-foreninger-card__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--ek-navy, #235881);
+}
+
+.ek-foreninger-card__media .field,
+.ek-foreninger-card__media .field__item,
+.ek-foreninger-card__media .media,
+.ek-foreninger-card__media .media-container,
+.ek-foreninger-card__media .image-credited,
+.ek-foreninger-card__media .image-credited__image {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.ek-foreninger-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.ek-foreninger-card__media-link:hover img,
+.ek-foreninger-card__media-link:focus-visible img {
+  transform: scale(1.04);
+}
+
+.ek-foreninger-card__media-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--ek-navy, #235881) 0%, var(--ek-teal, #089aa7) 100%);
+}
+
+.ek-foreninger-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+}
+
+.ek-foreninger-card__title {
+  margin: 0;
+  font-family: var(--ek-font-heading, "Futura PT", sans-serif);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.ek-foreninger-card__title a {
+  color: var(--ek-navy, #235881);
+  text-decoration: none;
+}
+
+.ek-foreninger-card__title a:hover,
+.ek-foreninger-card__title a:focus-visible {
+  color: var(--ek-teal, #089aa7);
+}
+
+.ek-foreninger-card__address {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--c-text-secondary, #555);
+}
+
+.ek-foreninger-card__address-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  margin-top: 0.125rem;
+}
+
+.ek-foreninger-card__address-icon svg {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.ek-foreninger-card__events {
+  flex: 1 1 auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--c-global-tertiary-1, #dbdbdb);
+}
+
+.ek-foreninger-card__events-heading {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ek-navy, #235881);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ek-foreninger-card__events-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ek-foreninger-card__events-item + .ek-foreninger-card__events-item {
+  margin-top: 0.5rem;
+}
+
+.ek-foreninger-card__event-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem;
+  color: inherit;
+  text-decoration: none;
+  background: var(--c-global-primary, #f6f5f0);
+  border-left: 3px solid var(--ek-teal, #089aa7);
+  transition: background-color 0.2s ease;
+}
+
+.ek-foreninger-card__event-link:hover,
+.ek-foreninger-card__event-link:focus-visible {
+  background: rgb(8 154 167 / 8%);
+}
+
+.ek-foreninger-card__event-title {
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ek-navy, #235881);
+}
+
+.ek-foreninger-card__event-date {
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ek-teal, #089aa7);
+  letter-spacing: 0.02em;
+}
+
+.ek-foreninger-card__events-empty {
+  margin: 0;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--c-text-secondary, #555);
+}
+
+.ek-foreninger-card__branch-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0.625rem 1rem;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ek-teal, #089aa7);
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--ek-teal, #089aa7);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.ek-foreninger-card__branch-link:hover,
+.ek-foreninger-card__branch-link:focus-visible {
+  color: var(--c-text-primary-white, #fff);
+  background: var(--ek-teal, #089aa7);
+}
+
+@media (min-width: 640px) {
+  .ek-foreninger-listing__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .ek-foreninger-listing__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+  }
+
+  .ek-foreninger-listing-page__inner {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.ek-branch-events {
+  margin-top: 3rem;
+  padding: 3rem 1rem 4rem;
+  background: var(--c-global-primary, #f6f5f0);
+}
+
+.ek-branch-events__inner {
+  max-width: 72.25rem;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.ek-branch-events__heading {
+  margin: 0 0 1.5rem;
+  font-family: var(--ek-font-heading, "Futura PT", sans-serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ek-navy, #235881);
+}
+
+.ek-branch-events__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.ek-branch-events__more {
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ek-teal, #089aa7);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@media (min-width: 640px) {
+  .ek-branch-events__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .ek-branch-events {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .ek-branch-events__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

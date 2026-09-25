@@ -1,0 +1,27 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_lokale_list_order
+    - node.type.lokale
+  enforced:
+    module:
+      - eonext_kultur_locale
+id: node.lokale.field_lokale_list_order
+field_name: field_lokale_list_order
+entity_type: node
+bundle: lokale
+label: 'List order'
+description: 'Controls the order on the Book lokale page. Managed on the room order admin page.'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

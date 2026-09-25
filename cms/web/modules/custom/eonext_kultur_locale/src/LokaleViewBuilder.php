@@ -64,6 +64,14 @@ final class LokaleViewBuilder {
     $terms = $link('field_booking_terms');
     $contact = $link('field_contact');
 
+    $booking_url = self::resolveBookingUrl($node, $booking['url']);
+
+    $terms_content = '';
+    if ($node->hasField('field_booking_betingelser') && !$node->get('field_booking_betingelser')->isEmpty()) {
+      $item = $node->get('field_booking_betingelser')->first();
+      $terms_content = check_markup($item->value, self::resolveTextFormat($item->format ?? ''));
+    }
+
     return [
       'node_id' => $node->id(),
       'url' => $node->toUrl()->toString(),
@@ -73,12 +81,34 @@ final class LokaleViewBuilder {
       'description' => $description,
       'booking_mode' => ($node->hasField('field_booking_mode') && !$node->get('field_booking_mode')->isEmpty())
         ? $node->get('field_booking_mode')->value : 'book',
-      'booking_url' => $booking['url'],
+      'booking_url' => $booking_url,
       'terms_url' => $terms['url'],
       'terms_text' => $terms['title'] ?: (string) t('Bookingbetingelser'),
+      'terms_content' => $terms_content,
       'contact_url' => $contact['url'],
-      'contact_text' => $contact['title'] ?: (string) t('Mere info om lån og kontakt'),
     ];
+  }
+
+  /**
+   * Appends a Winkas resource id to the booking URL when configured on the room.
+   */
+  private static function resolveBookingUrl(NodeInterface $node, string $base_url): string {
+    if ($base_url === '') {
+      return '';
+    }
+
+    if (!$node->hasField('field_winkas_resource_id') || $node->get('field_winkas_resource_id')->isEmpty()) {
+      return $base_url;
+    }
+
+    $resource_id = trim((string) $node->get('field_winkas_resource_id')->value);
+    if ($resource_id === '') {
+      return $base_url;
+    }
+
+    $separator = str_contains($base_url, '?') ? '&' : '?';
+
+    return $base_url . $separator . 'resourceId=' . rawurlencode($resource_id);
   }
 
   /**

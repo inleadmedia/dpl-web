@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_footer_facebook
+    - field.storage.paragraph.field_kultur_footer_instagram
+    - paragraphs.paragraphs_type.eonext_kultur_social_banner
+  module:
+    - link
+id: paragraph.eonext_kultur_social_banner.field_kultur_footer_facebook
+field_name: field_kultur_footer_facebook
+entity_type: paragraph
+bundle: eonext_kultur_social_banner
+label: 'Facebook URL'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 16
+  title: 0
+field_type: link

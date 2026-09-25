@@ -1,0 +1,34 @@
+eonext_kultur_branches.settings:
+  type: config_object
+  label: 'Kultur foreninger listing settings'
+  mapping:
+    hero_heading:
+      type: string
+      label: 'Hero heading'
+    hero_media:
+      type: integer
+      label: 'Hero media ID'
+    teaser_title:
+      type: string
+      label: 'Overview teaser title'
+    teaser_text:
+      type: text
+      label: 'Overview teaser text'
+    teaser_media:
+      type: integer
+      label: 'Overview teaser media ID'
+    excluded_branch_ids:
+      type: sequence
+      label: 'Excluded branch node IDs (legacy)'
+      sequence:
+        type: integer
+    listing_items:
+      type: sequence
+      label: 'Foreninger branch listing'
+      sequence:
+        type: mapping
+        mapping:
+          nid:
+            type: integer
+          enabled:
+            type: boolean

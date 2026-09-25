@@ -29,6 +29,11 @@
       slidesPerView: 1,
       spaceBetween: 0,
       loop: canLoop,
+      autoplay: canLoop ? {
+        delay: 6000,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+      } : false,
       breakpoints: {
         768: {
           slidesPerView: itemsPerView,

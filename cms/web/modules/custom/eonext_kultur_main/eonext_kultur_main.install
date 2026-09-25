@@ -759,3 +759,125 @@ function _eonext_kultur_main_ensure_nav_spot_fields(): void {
     FieldConfig::create($data)->save();
   }
 }
+
+/**
+ * Adds page-level social banner and map link paragraph types.
+ */
+function eonext_kultur_main_update_9027(): string {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'paragraphs.paragraphs_type.eonext_kultur_social_banner',
+    'paragraphs.paragraphs_type.eonext_kultur_map_link',
+    'field.storage.paragraph.field_kultur_map_link',
+    'field.field.paragraph.eonext_kultur_social_banner.field_kultur_footer_facebook',
+    'field.field.paragraph.eonext_kultur_social_banner.field_kultur_footer_instagram',
+    'field.field.paragraph.eonext_kultur_map_link.field_kultur_map_link',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.field.')) {
+      if (!FieldConfig::load($data['id'])) {
+        FieldConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+  }
+
+  foreach (['eonext_kultur_social_banner', 'eonext_kultur_map_link'] as $bundle) {
+    _eonext_kultur_main_enable_page_paragraph_bundle($bundle);
+  }
+
+  _eonext_kultur_main_configure_social_map_paragraph_displays();
+
+  return 'Social banner and map link paragraphs can be placed on content pages.';
+}
+
+/**
+ * Uses custom paragraph templates instead of default link field formatters.
+ */
+function eonext_kultur_main_update_9028(): string {
+  _eonext_kultur_main_configure_social_map_paragraph_displays();
+  return 'Social banner and map link paragraphs render with designed templates.';
+}
+
+/**
+ * Enables a paragraph bundle on page nodes.
+ */
+function _eonext_kultur_main_enable_page_paragraph_bundle(string $bundle): void {
+  $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
+  if (!$field instanceof FieldConfig) {
+    return;
+  }
+
+  $settings = $field->getSetting('handler_settings');
+  $settings['target_bundles'][$bundle] = $bundle;
+  $settings['target_bundles_drag_drop'][$bundle] = [
+    'weight' => 85,
+    'enabled' => TRUE,
+  ];
+  $field->setSetting('handler_settings', $settings);
+  $field->save();
+}
+
+/**
+ * Configures edit forms for social/map paragraph types.
+ */
+function _eonext_kultur_main_configure_social_map_paragraph_displays(): void {
+  $social_form = EntityFormDisplay::load('paragraph.eonext_kultur_social_banner.default')
+    ?? EntityFormDisplay::create([
+      'targetEntityType' => 'paragraph',
+      'bundle' => 'eonext_kultur_social_banner',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  $social_form
+    ->setComponent('field_kultur_footer_facebook', ['type' => 'link_default', 'weight' => 0])
+    ->setComponent('field_kultur_footer_instagram', ['type' => 'link_default', 'weight' => 1])
+    ->save();
+
+  $map_form = EntityFormDisplay::load('paragraph.eonext_kultur_map_link.default')
+    ?? EntityFormDisplay::create([
+      'targetEntityType' => 'paragraph',
+      'bundle' => 'eonext_kultur_map_link',
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  $map_form
+    ->setComponent('field_kultur_map_link', ['type' => 'link_default', 'weight' => 0])
+    ->save();
+
+  foreach (['eonext_kultur_social_banner', 'eonext_kultur_map_link'] as $bundle) {
+    $view = EntityViewDisplay::load("paragraph.{$bundle}.default")
+      ?? EntityViewDisplay::create([
+        'targetEntityType' => 'paragraph',
+        'bundle' => $bundle,
+        'mode' => 'default',
+        'status' => TRUE,
+      ]);
+    if ($bundle === 'eonext_kultur_social_banner') {
+      $view
+        ->removeComponent('field_kultur_footer_facebook')
+        ->removeComponent('field_kultur_footer_instagram')
+        ->save();
+      continue;
+    }
+
+    $view
+      ->removeComponent('field_kultur_map_link')
+      ->save();
+  }
+}

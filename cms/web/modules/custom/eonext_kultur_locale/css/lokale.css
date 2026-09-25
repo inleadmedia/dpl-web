@@ -33,7 +33,7 @@ section:has(.ek-lokaler-listing) .paragraphs__item--text_body .rich-text p:last-
   align-items: center;
   justify-content: center;
   width: 100vw;
-  min-height: 22rem;
+  min-height: 15rem;
   margin-inline: calc(50% - 50vw);
   overflow: hidden;
   color: #fff;
@@ -323,6 +323,21 @@ section:has(.ek-lokaler-listing) .paragraphs__item--text_body .rich-text p:last-
 }
 
 .ek-lokale-detail__desc p:last-child {
+  margin-bottom: 0;
+}
+
+.ek-lokale-detail__terms {
+  margin: 0 0 2rem;
+  color: var(--ek-navy, #235881);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.ek-lokale-detail__terms p {
+  margin: 0 0 1rem;
+}
+
+.ek-lokale-detail__terms p:last-child {
   margin-bottom: 0;
 }
 

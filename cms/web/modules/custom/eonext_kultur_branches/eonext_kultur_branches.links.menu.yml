@@ -1,0 +1,6 @@
+eonext_kultur_branches.listing_settings:
+  title: 'Foreninger listing page'
+  description: 'Hero and settings for the /foreninger branches overview.'
+  route_name: eonext_kultur_branches.listing_settings
+  parent: system.admin_config
+  weight: 51

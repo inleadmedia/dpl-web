@@ -9,6 +9,19 @@
   box-sizing: border-box;
 }
 
+.eonext-kultur-events.content-list-page {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.content-list-page.eonext-kultur-events .eonext-kultur-events__layout {
+  padding-top: 32px;
+}
+
+.content-list-page.eonext-kultur-events:has(.ek-page-hero) .eonext-kultur-events__layout {
+  padding-top: 48px;
+}
+
 .content-list-page.eonext-kultur-events .content-list-page__heading {
   max-width: 1156px;
   margin-left: auto;
@@ -20,14 +33,17 @@
 
 /* Top filter bar */
 .eonext-kultur-events__filters {
+  width: 100%;
   margin-bottom: 32px;
 }
 
 .eonext-kultur-events__filters-panel {
+  width: 100%;
   border: 1px solid var(--c-global-tertiary-1, #dbdbdb);
   background-color: var(--c-text-primary-white, #fff);
   padding: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .eonext-kultur-events__filters-toggle {
@@ -35,6 +51,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  min-height: 56px;
   margin: 0;
   padding: 16px 24px;
   border: none;
@@ -48,6 +65,7 @@
   letter-spacing: 0.04em;
   cursor: pointer;
   box-sizing: border-box;
+  text-align: left;
 }
 
 .eonext-kultur-events__filters-toggle-label {

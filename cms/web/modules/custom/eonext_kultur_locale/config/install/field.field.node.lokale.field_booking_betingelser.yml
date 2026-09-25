@@ -14,7 +14,7 @@ field_name: field_booking_betingelser
 entity_type: node
 bundle: lokale
 label: Bookingbetingelser
-description: 'Booking terms shown in a dialog when the DPL dialog component is available.'
+description: 'Booking terms text shown on the room page when filled in.'
 required: false
 translatable: true
 default_value: {  }

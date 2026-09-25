@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_map_link
+    - paragraphs.paragraphs_type.eonext_kultur_map_link
+  module:
+    - link
+id: paragraph.eonext_kultur_map_link.field_kultur_map_link
+field_name: field_kultur_map_link
+entity_type: paragraph
+bundle: eonext_kultur_map_link
+label: 'Map link'
+description: 'URL to Google Maps or similar for the address.'
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 16
+  title: 1
+field_type: link

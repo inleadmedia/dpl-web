@@ -4,6 +4,10 @@ description: 'Grid events listing with extended filters for /arrangementer.'
 package: Custom
 core_version_requirement: ^10 || ^11
 dependencies:
+  - dpl_link:dpl_link
+  - drupal:linkit
+  - eonext_kultur_locale:eonext_kultur_locale
+  - paragraphs:paragraphs
   - eonext_kultur_main:eonext_kultur_main
   - eonext_editorial_search:eonext_editorial_search
   - dpl_event:dpl_event

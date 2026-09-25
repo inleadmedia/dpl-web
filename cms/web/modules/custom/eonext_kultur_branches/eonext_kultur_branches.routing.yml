@@ -1,0 +1,15 @@
+eonext_kultur_branches.listing_settings:
+  path: '/admin/config/kultur/foreninger-listing'
+  defaults:
+    _form: '\Drupal\eonext_kultur_branches\Form\ForeningerListingSettingsForm'
+    _title: 'Foreninger listing page'
+  requirements:
+    _permission: 'administer kultur foreninger listing'
+
+eonext_kultur_branches.branch_listing:
+  path: '/admin/config/kultur/foreninger-listing/branches'
+  defaults:
+    _form: '\Drupal\eonext_kultur_branches\Form\ForeningerBranchListingForm'
+    _title: 'Foreninger branches'
+  requirements:
+    _permission: 'administer kultur foreninger listing'

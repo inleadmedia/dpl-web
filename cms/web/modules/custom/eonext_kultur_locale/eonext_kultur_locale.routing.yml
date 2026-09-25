@@ -1,0 +1,7 @@
+eonext_kultur_locale.lokale_list_order:
+  path: '/admin/content/lokale/order'
+  defaults:
+    _form: '\Drupal\eonext_kultur_locale\Form\LokaleListOrderForm'
+    _title: 'Book lokale room order'
+  requirements:
+    _custom_access: '\Drupal\eonext_kultur_locale\Form\LokaleListOrderForm::access'

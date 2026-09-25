@@ -11,6 +11,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
 use Drupal\dpl_event\PriceFormatter;
+use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\media\MediaInterface;
 use Drupal\recurring_events\Entity\EventInstance;
@@ -28,6 +29,7 @@ final class EventDetailBuilder {
    */
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
+    private readonly ReoccurringDateFormatter $recurringDateFormatter,
     TranslationInterface $translation,
   ) {
     $this->stringTranslation = $translation;
@@ -63,6 +65,8 @@ final class EventDetailBuilder {
     $allDay = $eventInstance->hasField('event_all_day')
       && !empty($eventInstance->get('event_all_day')->getString());
 
+    $series = $eventInstance->getEventSeries();
+
     return $this->buildDetail(
       $eventInstance,
       $eventInstance->label(),
@@ -76,6 +80,7 @@ final class EventDetailBuilder {
       ['event_location', 'field_event_location'],
       ['branch', 'field_branch'],
       ['event_ticket_categories', 'field_ticket_categories'],
+      $series,
     );
   }
 
@@ -85,17 +90,17 @@ final class EventDetailBuilder {
   private function fromEventSeries(EventSeries $eventSeries): array {
     $start = NULL;
     $end = NULL;
-    $allDay = FALSE;
+    $allDay = $this->recurringDateFormatter->isAllDay($eventSeries);
 
-    if (!$eventSeries->get('date')->isEmpty()) {
+    $upcoming = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
+    if ($upcoming !== NULL) {
+      $start = $upcoming['start'] ?? NULL;
+      $end = $upcoming['end'] ?? NULL;
+    }
+    elseif (!$eventSeries->get('date')->isEmpty()) {
       $dateField = $eventSeries->get('date')->first();
       $start = $dateField->start_date ?? NULL;
       $end = $dateField->end_date ?? NULL;
-    }
-
-    if ($eventSeries->hasField('field_event_all_day')
-      && !empty($eventSeries->get('field_event_all_day')->getString())) {
-      $allDay = TRUE;
     }
 
     return $this->buildDetail(
@@ -138,6 +143,7 @@ final class EventDetailBuilder {
     array $locationFields,
     array $branchFields,
     array $ticketCategoryFields,
+    ?EntityInterface $locationFallback = NULL,
   ): array {
     $image = $this->buildBannerImage($entity, $imageFields);
 
@@ -146,9 +152,11 @@ final class EventDetailBuilder {
       'tagline' => $this->getTagline($entity, ...$taglineFields),
       'date_display' => $start instanceof DrupalDateTime ? $this->formatDetailDate($start) : NULL,
       'time_display' => $this->formatDetailTime($start, $end, $allDay),
-      'datetime_attribute' => $start instanceof DrupalDateTime ? $start->format(DATE_ATOM) : NULL,
+      'datetime_attribute' => $start instanceof DrupalDateTime
+        ? $this->recurringDateFormatter->formatDate($start, DATE_ATOM)
+        : NULL,
       'price_display' => $this->formatTicketPrice($entity, $ticketCategoryFields),
-      'location_display' => $this->getLocationLabel($entity, $placeFields, $locationFields, $branchFields),
+      'location_display' => $this->getLocationLabel($entity, $placeFields, $locationFields, $branchFields, $locationFallback),
       'ticket_url' => $this->getTicketUrl($entity, $linkFields),
       'image' => $image,
       'banner_image' => $image,
@@ -228,29 +236,68 @@ final class EventDetailBuilder {
     array $placeFields,
     array $locationFields,
     array $branchFields,
+    ?EntityInterface $fallback = NULL,
   ): ?string {
-    foreach ($placeFields as $fieldName) {
+    $place = $this->getFirstNonEmptyStringField($entity, $placeFields, $fallback);
+    $sublocation = $this->getFirstNonEmptyStringField($entity, $locationFields, $fallback);
+    $branchLabel = $this->getBranchLabel($entity, $branchFields)
+      ?? ($fallback !== NULL ? $this->getBranchLabel($fallback, $branchFields) : NULL);
+
+    $primary = $place ?: $branchLabel;
+
+    if ($primary === NULL && $sublocation !== NULL) {
+      return $sublocation;
+    }
+
+    if ($primary === NULL) {
+      return NULL;
+    }
+
+    if ($sublocation === NULL || strcasecmp($primary, $sublocation) === 0) {
+      return $primary;
+    }
+
+    return $primary . ', ' . $sublocation;
+  }
+
+  /**
+   * @param string[] $fieldNames
+   */
+  private function getFirstNonEmptyStringField(
+    EntityInterface $entity,
+    array $fieldNames,
+    ?EntityInterface $fallback = NULL,
+  ): ?string {
+    $value = $this->readFirstNonEmptyStringField($entity, $fieldNames);
+    if ($value !== NULL || $fallback === NULL) {
+      return $value;
+    }
+
+    return $this->readFirstNonEmptyStringField($fallback, $fieldNames);
+  }
+
+  /**
+   * @param string[] $fieldNames
+   */
+  private function readFirstNonEmptyStringField(EntityInterface $entity, array $fieldNames): ?string {
+    foreach ($fieldNames as $fieldName) {
       if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
         continue;
       }
 
       $value = trim((string) $entity->get($fieldName)->value);
-      if ($value !== '') {
+      if ($value !== '' && !ctype_space($value)) {
         return $value;
       }
     }
 
-    foreach ($locationFields as $fieldName) {
-      if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
-        continue;
-      }
+    return NULL;
+  }
 
-      $value = trim((string) $entity->get($fieldName)->value);
-      if ($value !== '') {
-        return $value;
-      }
-    }
-
+  /**
+   * @param string[] $branchFields
+   */
+  private function getBranchLabel(EntityInterface $entity, array $branchFields): ?string {
     foreach ($branchFields as $fieldName) {
       if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
         continue;
@@ -331,7 +378,11 @@ final class EventDetailBuilder {
    *
    */
   private function formatDetailDate(DrupalDateTime $start): string {
-    return $start->format('j') . '. ' . mb_strtolower($start->format('F')) . ' ' . $start->format('Y');
+    $day = $this->recurringDateFormatter->formatDate($start, 'j');
+    $month = mb_strtolower($this->recurringDateFormatter->formatDate($start, 'F'));
+    $year = $this->recurringDateFormatter->formatDate($start, 'Y');
+
+    return $day . '. ' . $month . ' ' . $year;
   }
 
   /**
@@ -346,8 +397,10 @@ final class EventDetailBuilder {
       return (string) $this->t('Hele dagen', [], ['context' => 'eonext_kultur_events']);
     }
 
-    $startTime = $start->format('H.i');
-    $endTime = $end instanceof DrupalDateTime ? $end->format('H.i') : NULL;
+    $startTime = $this->recurringDateFormatter->formatDate($start, 'H.i');
+    $endTime = $end instanceof DrupalDateTime
+      ? $this->recurringDateFormatter->formatDate($end, 'H.i')
+      : NULL;
 
     if ($endTime) {
       return "$startTime - $endTime";

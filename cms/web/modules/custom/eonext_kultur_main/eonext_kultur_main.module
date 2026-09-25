@@ -18,6 +18,43 @@ use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
 
 /**
+ * Implements hook_preprocess_HOOK() for social banner paragraphs.
+ */
+function eonext_kultur_main_preprocess_paragraph__eonext_kultur_social_banner(array &$variables): void {
+  $paragraph = $variables['paragraph'] ?? $variables['elements']['#paragraph'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  foreach (['field_kultur_footer_facebook' => 'facebook_url', 'field_kultur_footer_instagram' => 'instagram_url'] as $field => $key) {
+    if (!$paragraph->hasField($field) || $paragraph->get($field)->isEmpty()) {
+      $variables[$key] = '';
+      continue;
+    }
+
+    $variables[$key] = $paragraph->get($field)->first()->getUrl()->toString();
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for map link paragraphs.
+ */
+function eonext_kultur_main_preprocess_paragraph__eonext_kultur_map_link(array &$variables): void {
+  $paragraph = $variables['paragraph'] ?? $variables['elements']['#paragraph'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  if (!$paragraph->hasField('field_kultur_map_link') || $paragraph->get('field_kultur_map_link')->isEmpty()) {
+    return;
+  }
+
+  $link = $paragraph->get('field_kultur_map_link')->first();
+  $variables['map_url'] = $link->getUrl()->toString();
+  $variables['map_label'] = $link->title ?: (string) t('Find os her', [], ['context' => 'eonext_kultur_main']);
+}
+
+/**
  * Implements hook_preprocess_HOOK() for page.
  *
  * Use the editorial search header form instead of the React material header.
@@ -144,6 +181,14 @@ function eonext_kultur_main_theme(): array {
         'image' => NULL,
       ],
       'template' => 'hero-slide',
+    ],
+    'paragraph__eonext_kultur_social_banner' => [
+      'render element' => 'elements',
+      'base hook' => 'paragraph',
+    ],
+    'paragraph__eonext_kultur_map_link' => [
+      'render element' => 'elements',
+      'base hook' => 'paragraph',
     ],
   ];
 }

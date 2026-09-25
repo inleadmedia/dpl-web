@@ -1,0 +1,6 @@
+eonext_kultur_locale.lokale_list_order:
+  title: 'Book lokale room order'
+  description: 'Change the order rooms appear on the Book lokale page.'
+  route_name: eonext_kultur_locale.lokale_list_order
+  parent: system.admin_content
+  weight: 15
