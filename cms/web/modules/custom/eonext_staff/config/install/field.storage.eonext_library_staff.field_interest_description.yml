@@ -4,13 +4,13 @@ status: true
 dependencies:
   module:
     - eonext_staff
+    - text
 id: eonext_library_staff.field_interest_description
 field_name: field_interest_description
 entity_type: eonext_library_staff
-type: string_long
-settings:
-  case_sensitive: false
-module: core
+type: text_long
+settings: {  }
+module: text
 locked: false
 cardinality: 1
 translatable: true

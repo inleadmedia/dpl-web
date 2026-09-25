@@ -26,3 +26,23 @@ function eonext_staff_post_update_repair_interest_description_storage(): string 
 
   return 'Ensured field_interest_description database tables exist.';
 }
+
+/**
+ * Use Basic HTML (rich text) for staff interest descriptions.
+ */
+function eonext_staff_post_update_interest_description_basic_html(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  _eonext_staff_migrate_interest_description_to_text();
+
+  return 'Interest description uses the Basic HTML text format with a rich text editor.';
+}
+
+/**
+ * Ensures interest description rich text migration completed (idempotent).
+ */
+function eonext_staff_post_update_interest_description_rich_text(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  _eonext_staff_migrate_interest_description_to_text();
+
+  return 'Interest description rich text field is configured.';
+}

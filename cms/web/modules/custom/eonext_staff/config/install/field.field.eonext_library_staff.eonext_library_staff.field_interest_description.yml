@@ -4,8 +4,10 @@ status: true
 dependencies:
   config:
     - field.storage.eonext_library_staff.field_interest_description
+    - filter.format.basic
   module:
     - eonext_staff
+    - text
 id: eonext_library_staff.eonext_library_staff.field_interest_description
 field_name: field_interest_description
 entity_type: eonext_library_staff
@@ -16,5 +18,7 @@ required: false
 translatable: true
 default_value: {  }
 default_value_callback: ''
-settings: {  }
-field_type: string_long
+settings:
+  allowed_formats:
+    - basic
+field_type: text_long
