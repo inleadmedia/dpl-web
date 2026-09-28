@@ -1,7 +1,7 @@
 {#
 /**
  * @file
- * Kultur theme override: preload kulturnat fonts instead of default DPL stack.
+ * Kultur theme override: preload Rubik instead of the default DPL stack.
  */
 #}
 {%
@@ -14,9 +14,7 @@
     <head>
     <head-placeholder token="{{ placeholder_token }}">
     <title>{{ head_title|safe_join(' | ') }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="/themes/custom/eonext_kultur/fonts/futura-pt-book.otf" as="font" type="font/otf" crossorigin="anonymous"/>
+    <link rel="preload" href="/themes/custom/eonext_kultur/fonts/Rubik.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
     <css-placeholder token="{{ placeholder_token }}">
     <js-placeholder token="{{ placeholder_token }}">
   </head>

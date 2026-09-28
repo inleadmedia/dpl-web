@@ -1,15 +1,22 @@
 /**
- * Kulturnat-inspired footer and typography overrides.
+ * Kulturnat branding: logo, main color, footer, and Rubik.
+ * Layout and components are unchanged.
  */
 
 :root {
-  --ek-navy: #235881;
-  --ek-teal: #089aa7;
+  /* Kulturnat main color. White text on this color is about 14:1. */
+  --ek-navy: #1E0195;
+  --ek-teal: #1E0195;
   --ek-orange: #d4761c;
   --ek-cream: #fefaf1;
   --ek-white: #fff;
-  --ek-font-body: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --ek-font-heading: "Futura PT", "Futura", "Century Gothic", "Trebuchet MS", sans-serif;
+  --ek-footer-bg: #000119;
+  --identity-color-h: 251.7568 !important;
+  --identity-color-s: 98.6667% !important;
+  --identity-color-l: 29.4118% !important;
+  --ek-font-body: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ek-font-heading: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ek-search-icon-filter: brightness(0) saturate(100%) invert(29%) sepia(99%) saturate(529%) hue-rotate(215deg) brightness(71%) contrast(176%);
   --ek-chrome-padding-x: clamp(24px, 6vw, 96px);
   --ek-header-item-gap: clamp(48px, 5vw, 96px);
   --ek-header-search-clock-gap: 32px;
@@ -17,9 +24,10 @@
   --font-title: var(--ek-font-heading);
 }
 
-/* Global typography — Open Sans body, Futura PT headings. */
+/* Global typography — Rubik Regular for body, Rubik Light for headings. */
 body {
   font-family: var(--ek-font-body) !important;
+  font-synthesis: style;
 }
 
 h1,
@@ -30,6 +38,7 @@ h5,
 h6,
 [class*="text-header"] {
   font-family: var(--ek-font-heading) !important;
+  font-weight: 300;
 }
 
 [class*="text-body"],
@@ -48,6 +57,9 @@ h6,
   display: block;
   width: auto;
   height: 52px;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
 
 /* Compact header — below 1440px (phones + tablets). */
@@ -134,7 +146,8 @@ h6,
   }
 
   .header.ek-header .header__menu-navigation-logo .ek-logo {
-    height: 40px;
+    height: 34px;
+    width: auto;
   }
 
   .header.ek-header .header__button-responsive-switch > *:first-child {
@@ -203,7 +216,7 @@ h6,
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
-    filter: brightness(0) saturate(100%) invert(46%) sepia(65%) saturate(749%) hue-rotate(145deg) brightness(93%) contrast(101%);
+    filter: var(--ek-search-icon-filter);
   }
 
   /* Tablet: slightly taller top row to match Novel touch targets. */
@@ -305,6 +318,18 @@ h6,
   .header.ek-header .ek-logo {
     height: 72px;
     max-width: 100%;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  /* The Kulturnat wordmark is wide. Keep it inside the logo column on
+     desktops where the menu still fills the header. */
+  @media (max-width: 1759px) {
+    .header.ek-header .header__logo-desktop .ek-logo {
+      width: 150px;
+      max-width: 150px;
+      height: 72px;
+    }
   }
 
   .header.ek-header .header__menu-first {
@@ -426,7 +451,7 @@ h6,
     transform: translateY(-50%);
     width: 20px;
     height: 20px;
-    filter: brightness(0) saturate(100%) invert(46%) sepia(65%) saturate(749%) hue-rotate(145deg) brightness(93%) contrast(101%);
+    filter: var(--ek-search-icon-filter);
   }
 
   .header.ek-header .header__button--left-border,
@@ -520,6 +545,7 @@ body.eonext-editorial-autosuggest-only .eonext-editorial-overlay--standalone {
   width: 190px;
   max-width: 100%;
   height: auto;
+  object-fit: contain;
 }
 
 /* Component titles compiled with the default DPL title stack (Lora). */
@@ -706,7 +732,7 @@ article .rich-text ol > li::before {
 .ek-footer__main {
   padding: 2.5rem var(--ek-chrome-padding-x);
   color: var(--ek-white);
-  background-color: var(--ek-teal);
+  background-color: var(--ek-footer-bg);
 }
 
 .ek-footer__inner {
@@ -1028,7 +1054,7 @@ article .rich-text ol > li::before {
   min-height: 11rem;
   max-height: 11rem;
   padding: 1.5rem clamp(1.5rem, 5vw, 4rem);
-  background: rgb(35 88 129 / 30%);
+  background: rgb(30 1 149 / 30%);
   backdrop-filter: blur(8px);
 }
 
@@ -1200,21 +1226,21 @@ article .rich-text ol > li::before {
 .banner--light-background:not(.banner--has-image) .banner__title,
 .banner--light-background .banner__description,
 .banner--light-background .banner__title {
-  color: var(--ek-navy, #235881);
+  color: var(--ek-navy, #1E0195);
 }
 
 .banner--light-background:not(.banner--has-image) .banner__description + svg .arrow__body,
 .banner--light-background:not(.banner--has-image) .banner__title + svg .arrow__body,
 .banner--light-background .banner__description + svg .arrow__body,
 .banner--light-background .banner__title + svg .arrow__body {
-  stroke: var(--ek-navy, #235881);
+  stroke: var(--ek-navy, #1E0195);
 }
 
 .banner--light-background:not(.banner--has-image) .banner__description + svg .arrow__head,
 .banner--light-background:not(.banner--has-image) .banner__title + svg .arrow__head,
 .banner--light-background .banner__description + svg .arrow__head,
 .banner--light-background .banner__title + svg .arrow__head {
-  fill: var(--ek-navy, #235881);
+  fill: var(--ek-navy, #1E0195);
 }
 
 /* ---- Language translation selector in ek-header ---- */
