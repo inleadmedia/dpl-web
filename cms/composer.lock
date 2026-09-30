@@ -10741,12 +10741,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/eonext_event_engine.git",
-                "reference": "06dc30ff86bbc516e5e7b06facf5d058d49af4f2"
+                "reference": "3305ad99cf59c14d302caf8472d9c3a252cb8c97"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/06dc30ff86bbc516e5e7b06facf5d058d49af4f2",
-                "reference": "06dc30ff86bbc516e5e7b06facf5d058d49af4f2",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/3305ad99cf59c14d302caf8472d9c3a252cb8c97",
+                "reference": "3305ad99cf59c14d302caf8472d9c3a252cb8c97",
                 "shasum": ""
             },
             "require": {
@@ -10769,7 +10769,7 @@
                 "source": "https://github.com/inleadmedia/eonext_event_engine",
                 "issues": "https://github.com/inleadmedia/eonext_event_engine/issues"
             },
-            "time": "2026-09-30T16:40:53+00:00"
+            "time": "2026-09-30T17:40:55+00:00"
         },
         {
             "name": "itamair/geophp",
