@@ -60,13 +60,34 @@ fi
 
 HTTPS_PREFIX="https://${TOKEN}@github.com/"
 
-# git config has no -C flag; use "git -C <repo> config --local" when needed.
-git config --global url."${HTTPS_PREFIX}".insteadOf git@github.com:
-git config --global --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
+# Idempotent: repeated deploys used --add and plain set, leaving multi-valued insteadOf keys.
+clear_github_url_rewrites() {
+  local scope="$1" # --global | --local
+  local git_cmd=(git config "$scope")
+  if [[ "$scope" == "--local" ]]; then
+    git_cmd=(git -C "$REPO_ROOT" config --local)
+  fi
+  while IFS= read -r key; do
+    [[ -n "$key" ]] || continue
+    "${git_cmd[@]}" --unset-all "$key" 2>/dev/null || true
+  done < <("${git_cmd[@]}" --get-regexp '^url\..*@github\.com/' 2>/dev/null | awk '{print $1}' | sort -u)
+}
+
+apply_github_url_rewrites() {
+  local scope="$1"
+  local git_cmd=(git config "$scope")
+  if [[ "$scope" == "--local" ]]; then
+    git_cmd=(git -C "$REPO_ROOT" config --local)
+  fi
+  clear_github_url_rewrites "$scope"
+  "${git_cmd[@]}" --add url."${HTTPS_PREFIX}".insteadOf git@github.com:
+  "${git_cmd[@]}" --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
+}
+
+apply_github_url_rewrites --global
 
 if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  git -C "$REPO_ROOT" config --local url."${HTTPS_PREFIX}".insteadOf git@github.com:
-  git -C "$REPO_ROOT" config --local --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
+  apply_github_url_rewrites --local
 fi
 
 php -r '
