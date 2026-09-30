@@ -60,16 +60,14 @@ fi
 
 HTTPS_PREFIX="https://${TOKEN}@github.com/"
 
-apply_git_rewrite() {
-  # Composer lock uses git@github.com:org/repo.git (not only ssh:// URLs).
-  git config "$@" url."${HTTPS_PREFIX}".insteadOf git@github.com:
-  git config "$@" --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
-}
+# git config has no -C flag; use "git -C <repo> config --local" when needed.
+git config --global url."${HTTPS_PREFIX}".insteadOf git@github.com:
+git config --global --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
 
 if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  apply_git_rewrite -C "$REPO_ROOT" --local
+  git -C "$REPO_ROOT" config --local url."${HTTPS_PREFIX}".insteadOf git@github.com:
+  git -C "$REPO_ROOT" config --local --add url."${HTTPS_PREFIX}".insteadOf ssh://git@github.com/
 fi
-apply_git_rewrite --global
 
 php -r '
   file_put_contents(
