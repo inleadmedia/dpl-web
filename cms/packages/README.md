@@ -24,3 +24,9 @@ There may be multiple reasons for doing so:
 We need PHP clients for communicating with external APIs. A package containing
 such a client auto-generated from an API specification does not contain much
 value outside this project. Consequently, we can place it here.
+
+## Event Engine module (`eonext_event_engine`)
+
+Installed by Composer from GitHub (VCS) into `web/modules/custom/eonext_event_engine`
+with `preferred-install: source`, so the directory is a **git clone** (not a zip).
+See `composer.json` repositories and `dev-scripts/composer-github-auth.sh` for auth.

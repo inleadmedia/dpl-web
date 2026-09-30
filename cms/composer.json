@@ -260,6 +260,10 @@
     "prefer-stable": true,
     "config": {
         "github-protocols": ["https", "ssh"],
+        "preferred-install": {
+            "inleadmedia/eonext_event_engine": "source",
+            "inleadmedia/ee_frontend": "source"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "composer/installers": true,

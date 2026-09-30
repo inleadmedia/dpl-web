@@ -64,6 +64,9 @@ drush/sites/lagoon.site.yml
 # Ignore docker compose override file. Not everybody needs it.
 docker-compose.override.yml
 
+# Composer VCS clone (inleadmedia/eonext_event_engine), not tracked in dpl-web.
+/web/modules/custom/eonext_event_engine
+
 # Module upload folder
 /web/modules/local
 
