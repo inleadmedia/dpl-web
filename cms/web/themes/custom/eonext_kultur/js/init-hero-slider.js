@@ -28,6 +28,9 @@
       slideClass: 'ek-hero-slider__slide',
       slidesPerView: 1,
       spaceBetween: 0,
+      preventClicks: false,
+      preventClicksPropagation: false,
+      noSwipingClass: 'swiper-no-swiping',
       loop: canLoop,
       autoplay: canLoop ? {
         delay: 6000,
@@ -46,6 +49,27 @@
       },
       a11y: {
         slideRole: 'listitem',
+      },
+      on: {
+        click(swiper, event) {
+          const target = event.target;
+          if (!(target instanceof Element)) {
+            return;
+          }
+          const directLink = target.closest('a.ek-hero-slide__link');
+          if (directLink instanceof HTMLAnchorElement) {
+            return;
+          }
+          const overlay = target.closest('.ek-hero-slide__overlay--linked');
+          if (!overlay) {
+            return;
+          }
+          const slideLink = overlay.querySelector('a.ek-hero-slide__link');
+          if (slideLink instanceof HTMLAnchorElement) {
+            event.preventDefault();
+            slideLink.click();
+          }
+        },
       },
     });
   }

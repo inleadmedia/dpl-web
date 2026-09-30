@@ -157,15 +157,19 @@ class TranslationService implements TranslationServiceInterface {
     // Sort the enabledLanguages, set the active language first.
     foreach ($enabledLanguages as $langCode => $langName) {
 
-      $langUrl = $languageManagerLinks->links[$langCode]['url'] ?? FALSE;
+      $link = $languageManagerLinks->links[$langCode] ?? NULL;
+      $langUrl = $link['url'] ?? NULL;
 
       // This may happen if the language is enabled in eonext config
       // but disabled later in the language manager.
-      if (!$langUrl) {
+      if (!$langUrl instanceof Url) {
         continue;
       }
 
-      $langUrl->setOption('language', $languageManagerLinks->links[$langCode]['language']);
+      $language = $link['language'] ?? $this->languageManager->getLanguage($langCode);
+      if ($language !== NULL) {
+        $langUrl->setOption('language', $language);
+      }
 
       $links[$langCode] = [
         'name' => $langName,

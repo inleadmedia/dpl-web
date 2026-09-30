@@ -51,7 +51,7 @@ final class HeroSlideBuilder {
    * @return array<string, mixed>
    */
   private function fromEventSeries(EventSeries $eventSeries): array {
-    $details = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
+    $details = $this->resolveEventSeriesSchedule($eventSeries);
     $start = $details['start'] ?? NULL;
     $end = $details['end'] ?? NULL;
 
@@ -62,6 +62,7 @@ final class HeroSlideBuilder {
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $this->recurringDateFormatter->isAllDay($eventSeries))
         : NULL,
+      'date_iso' => $start instanceof DrupalDateTime ? $this->formatIsoDate($start) : NULL,
       'url' => $eventSeries->toUrl()->toString(),
       'image' => $this->buildBannerImage($eventSeries, ['field_event_image', 'field_teaser_image']),
     ];
@@ -90,6 +91,7 @@ final class HeroSlideBuilder {
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $allDay)
         : NULL,
+      'date_iso' => $start instanceof DrupalDateTime ? $this->formatIsoDate($start) : NULL,
       'url' => Url::fromRoute('entity.eventinstance.canonical', [
         'eventinstance' => $eventInstance->id(),
       ])->toString(),
@@ -105,7 +107,8 @@ final class HeroSlideBuilder {
       'title' => $node->label(),
       'category' => $this->getCategoryLabel($node),
       'tagline' => $this->getTagline($node, 'field_teaser_text', 'body'),
-      'date_display' => NULL,
+      'date_display' => $this->getNodeDateDisplay($node),
+      'date_iso' => $this->getNodeDateIso($node),
       'url' => $node->toUrl()->toString(),
       'image' => $this->buildBannerImage($node, ['field_teaser_image']),
     ];
@@ -187,6 +190,91 @@ final class HeroSlideBuilder {
     }
 
     return NULL;
+  }
+
+  /**
+   * Resolve start/end for a series (upcoming first, else earliest instance).
+   *
+   * @return array{start: ?\Drupal\Core\Datetime\DrupalDateTime, end: ?\Drupal\Core\Datetime\DrupalDateTime}
+   */
+  private function resolveEventSeriesSchedule(EventSeries $eventSeries): array {
+    $upcoming = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
+    if ($upcoming !== NULL) {
+      return [
+        'start' => $upcoming['start'] ?? NULL,
+        'end' => $upcoming['end'] ?? NULL,
+      ];
+    }
+
+    $instanceIds = $this->entityTypeManager->getStorage('eventinstance')->getQuery()
+      ->condition('eventseries_id', $eventSeries->id())
+      ->condition('status', TRUE)
+      ->accessCheck(TRUE)
+      ->sort('date.value', 'ASC')
+      ->range(0, 1)
+      ->execute();
+
+    $instanceId = reset($instanceIds);
+    if ($instanceId === FALSE) {
+      return ['start' => NULL, 'end' => NULL];
+    }
+
+    $eventInstance = EventInstance::load($instanceId);
+    if (!$eventInstance instanceof EventInstance || $eventInstance->get('date')->isEmpty()) {
+      return ['start' => NULL, 'end' => NULL];
+    }
+
+    $dateField = $eventInstance->get('date')->first();
+
+    return [
+      'start' => $dateField->start_date ?? NULL,
+      'end' => $dateField->end_date ?? NULL,
+    ];
+  }
+
+  /**
+   * Publication date for editorial hero slides (articles/pages).
+   */
+  private function formatIsoDate(DrupalDateTime $date): string {
+    return $date->format('Y-m-d\TH:i');
+  }
+
+  private function getNodeDateIso(NodeInterface $node): ?string {
+    if (!$node->hasField('field_publication_date') || $node->get('field_publication_date')->isEmpty()) {
+      return NULL;
+    }
+
+    $value = $node->get('field_publication_date')->value ?? NULL;
+    if (!is_string($value) || trim($value) === '') {
+      return NULL;
+    }
+
+    try {
+      return $this->formatIsoDate(new DrupalDateTime($value));
+    }
+    catch (\Exception) {
+      return NULL;
+    }
+  }
+
+  private function getNodeDateDisplay(NodeInterface $node): ?string {
+    if (!$node->hasField('field_publication_date') || $node->get('field_publication_date')->isEmpty()) {
+      return NULL;
+    }
+
+    $value = $node->get('field_publication_date')->value ?? NULL;
+    if (!is_string($value) || trim($value) === '') {
+      return NULL;
+    }
+
+    try {
+      $start = new DrupalDateTime($value);
+    }
+    catch (\Exception) {
+      return NULL;
+    }
+
+    return mb_strtoupper($this->recurringDateFormatter->formatDate($start, 'j. M.'));
   }
 
   /**

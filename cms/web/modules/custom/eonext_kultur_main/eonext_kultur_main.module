@@ -403,7 +403,9 @@ function _eonext_kultur_main_apply_nav_grid_overlay_color(array &$variables, Par
  * Whether the current request is rendering editorial search results.
  */
 function _eonext_kultur_main_is_editorial_search_page(): bool {
-  if (eonext_editorial_search_is_active_view()) {
+  if (\Drupal::moduleHandler()->moduleExists('eonext_editorial_search')
+    && function_exists('eonext_editorial_search_is_active_view')
+    && eonext_editorial_search_is_active_view()) {
     return TRUE;
   }
 

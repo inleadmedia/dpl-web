@@ -97,11 +97,6 @@ final class EventDetailBuilder {
       $start = $upcoming['start'] ?? NULL;
       $end = $upcoming['end'] ?? NULL;
     }
-    elseif (!$eventSeries->get('date')->isEmpty()) {
-      $dateField = $eventSeries->get('date')->first();
-      $start = $dateField->start_date ?? NULL;
-      $end = $dateField->end_date ?? NULL;
-    }
 
     return $this->buildDetail(
       $eventSeries,
