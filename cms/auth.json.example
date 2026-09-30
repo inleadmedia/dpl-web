@@ -1,0 +1,5 @@
+{
+    "github-oauth": {
+        "github.com": "YOUR_GITHUB_FINE_GRAINED_OR_CLASSIC_TOKEN"
+    }
+}

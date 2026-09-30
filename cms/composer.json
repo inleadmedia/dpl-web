@@ -89,6 +89,14 @@
                     "danskernesdigitalebibliotek/cms-api": "dev-main"
                 }
             }
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/eonext_event_engine"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/ee_frontend"
         }
     ],
     "require": {
@@ -209,6 +217,8 @@
         "drush/drush": "^13",
         "inleadmedia/dpl-design-system": "0.0.2-dev",
         "inleadmedia/dpl-react": "0.0.2-dev",
+        "inleadmedia/ee_frontend": "dev-development",
+        "inleadmedia/eonext_event_engine": "dev-development",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/select2": "^4.0",
@@ -247,6 +257,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
+        "github-protocols": ["https", "ssh"],
         "sort-packages": true,
         "allow-plugins": {
             "composer/installers": true,
@@ -377,9 +388,6 @@
             },
             "drupal/entity_clone": {
                 "2708731: Allow redirect to edit form after cloning": "https://www.drupal.org/files/issues/2024-07-25/improve-workflow-of-cloned-entity-2708731-40_patch.patch"
-            },
-            "drupal/entity_reference_revisions": {
-                "3039442: Circular dependencies in EntityReferenceRevisionsFieldItemList::hasAffectingChanges()": "https://www.drupal.org/files/issues/2023-11-20/entity_reference_revisions-fix_infinite_loop-3039442-8.patch"
             },
             "drupal/facets": {
                 "DDFSAL-279: Fix infinite scroll with facet filters": "patches/facets-infinite-scroll-fix-custom.patch"

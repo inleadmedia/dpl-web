@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ef86ea1fa23f4ee697fc2f99474851a1",
+    "content-hash": "ec6301b9d70eea2d774604f04a04fbec",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10560,6 +10560,75 @@
                 "symlink": true,
                 "relative": true
             }
+        },
+        {
+            "name": "inleadmedia/ee_frontend",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/ee_frontend.git",
+                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/ee_frontend/zipball/9a52d7bf8393eb155b197e708e85731c518ad6a4",
+                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11"
+            },
+            "suggest": {
+                "inleadmedia/eonext_event_engine": "Required for Event Engine routes, navigation, and theme negotiation.",
+                "novel": "Parent theme (Novel) must be present under web/themes/custom/novel and enabled before this theme."
+            },
+            "type": "drupal-custom-theme",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Event Engine frontend subtheme of Novel for organisation-owner and onboarding UI.",
+            "homepage": "https://github.com/inleadmedia/ee_frontend",
+            "support": {
+                "source": "https://github.com/inleadmedia/ee_frontend",
+                "issues": "https://github.com/inleadmedia/ee_frontend/issues"
+            },
+            "time": "2026-09-30T11:35:53+00:00"
+        },
+        {
+            "name": "inleadmedia/eonext_event_engine",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/eonext_event_engine.git",
+                "reference": "ea841cefc34a5b2a6e32a13dabb59c8b87f28835"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/ea841cefc34a5b2a6e32a13dabb59c8b87f28835",
+                "reference": "ea841cefc34a5b2a6e32a13dabb59c8b87f28835",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10",
+                "drupal/entity_reference_revisions": "^1.11",
+                "drupal/enum_field": "^1.0",
+                "drupal/gsearch": "^1",
+                "drupal/paragraphs": "^1.16"
+            },
+            "suggest": {
+                "dpl_event": "Custom Drupal module dependency; must be present in the host project (see eonext_event_engine.info.yml)."
+            },
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Provides an organization event content entity for drafting events before publishing to the event platform.",
+            "homepage": "https://github.com/inleadmedia/eonext_event_engine",
+            "support": {
+                "source": "https://github.com/inleadmedia/eonext_event_engine",
+                "issues": "https://github.com/inleadmedia/eonext_event_engine/issues"
+            },
+            "time": "2026-09-30T11:32:07+00:00"
         },
         {
             "name": "jms/metadata",
@@ -23911,7 +23980,9 @@
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
         "inleadmedia/dpl-design-system": 20,
-        "inleadmedia/dpl-react": 20
+        "inleadmedia/dpl-react": 20,
+        "inleadmedia/ee_frontend": 20,
+        "inleadmedia/eonext_event_engine": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
