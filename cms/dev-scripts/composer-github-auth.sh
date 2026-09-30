@@ -13,6 +13,14 @@ set -euo pipefail
 CMS_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_ROOT="$(git -C "$CMS_ROOT" rev-parse --show-toplevel 2>/dev/null || dirname "$CMS_ROOT")"
 
+# Task loads .task.env for task cmds; sourcing here covers direct script runs and CI shells.
+if [[ -f "$CMS_ROOT/.task.env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$CMS_ROOT/.task.env"
+  set +a
+fi
+
 is_placeholder() {
   case "$1" in
     ''|'YOUR_'*|'replace-with-'*|'ghp_REPLACE'*) return 0 ;;
@@ -32,7 +40,21 @@ if is_placeholder "$TOKEN" || [[ -z "$TOKEN" ]]; then
 fi
 
 if is_placeholder "$TOKEN" || [[ -z "$TOKEN" ]]; then
-  echo "composer-github-auth: No GitHub token. Set COMPOSER_GITHUB_TOKEN in cms/.task.env, or cms/auth.json." >&2
+  for composer_auth in "${COMPOSER_HOME:-$HOME/.composer}/auth.json" "$HOME/.config/composer/auth.json"; do
+    if [[ -f "$composer_auth" ]]; then
+      TOKEN="$(php -r '
+        $data = json_decode(file_get_contents($argv[1]), true);
+        echo $data["github-oauth"]["github.com"] ?? "";
+      ' "$composer_auth")"
+      if ! is_placeholder "$TOKEN" && [[ -n "$TOKEN" ]]; then
+        break
+      fi
+    fi
+  done
+fi
+
+if is_placeholder "$TOKEN" || [[ -z "$TOKEN" ]]; then
+  echo "composer-github-auth: No GitHub token. On deploy hosts create cms/.task.env (see .task.env.example) with COMPOSER_GITHUB_TOKEN, or export it in ci_dplcms5.sh before task drupal:update." >&2
   exit 1
 fi
 
