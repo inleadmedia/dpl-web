@@ -1,0 +1,26 @@
+---
+name: Composer GitHub VCS auth
+description: >-
+  Rewrites git@github.com to HTTPS and writes cms/auth.json for private VCS packages.
+inputs:
+  token:
+    description: GitHub token with read access to required Composer VCS repositories
+    required: true
+  working-directory:
+    description: Composer project root (directory containing composer.json)
+    required: false
+    default: cms
+runs:
+  using: composite
+  steps:
+    - name: Configure git to clone GitHub over HTTPS
+      shell: bash
+      run: |
+        git config --global url."https://${{ inputs.token }}@github.com/".insteadOf ssh://git@github.com/
+    - name: Write Composer auth.json
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        php -r 'file_put_contents("auth.json", json_encode(["github-oauth" => ["github.com" => getenv("COMPOSER_VCS_TOKEN")]], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");'
+      env:
+        COMPOSER_VCS_TOKEN: ${{ inputs.token }}

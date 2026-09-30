@@ -26,6 +26,10 @@ jobs:
         working-directory: cms
     steps:
       - uses: actions/checkout@v6
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -39,7 +43,7 @@ jobs:
         run: |
           composer install --no-interaction --no-progress
       - name: Ensure install does not modify VCS
-        run: git diff --exit-code
+        run: git diff --exit-code -- . ':!auth.json'
 
   Phpcs:
     name: CMS / Check code style
@@ -49,6 +53,10 @@ jobs:
         working-directory: cms
     steps:
     - uses: actions/checkout@v6
+    - name: Authenticate Composer for private GitHub packages
+      uses: ./.github/actions/composer-vcs-auth
+      with:
+        token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
     - name: Setup PHP, with composer and extensions
       uses: shivammathur/setup-php@v2
       with:
@@ -71,6 +79,10 @@ jobs:
         working-directory: cms
     steps:
       - uses: actions/checkout@v6
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -93,6 +105,10 @@ jobs:
         working-directory: cms
     steps:
       - uses: actions/checkout@v6
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -116,6 +132,10 @@ jobs:
         working-directory: cms
     steps:
       - uses: actions/checkout@v6
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -141,6 +161,10 @@ jobs:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:
@@ -167,6 +191,10 @@ jobs:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:
@@ -327,6 +355,10 @@ jobs:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:
@@ -356,6 +388,10 @@ jobs:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:
@@ -381,6 +417,10 @@ jobs:
           # Our Taskfile requires a proper checkout to function because of
           # certain vars.
           fetch-depth: 0
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:

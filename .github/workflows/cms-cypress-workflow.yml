@@ -23,6 +23,11 @@ jobs:
           # certain vars.
           fetch-depth: 0
 
+      - name: Authenticate Composer for private GitHub packages
+        uses: ./.github/actions/composer-vcs-auth
+        with:
+          token: ${{ secrets.COMPOSER_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+
       - name: Install go-task
         uses: arduino/setup-task@v2
         with:
