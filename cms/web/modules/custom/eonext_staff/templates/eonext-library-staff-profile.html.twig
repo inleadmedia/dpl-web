@@ -22,7 +22,9 @@
   {% if interest_description %}
     <section class="eonext-library-staff-profile__interests">
       <h2>{{ 'Interests'|t({}, {'context': 'eonext'}) }}</h2>
-      {{ content.field_interest_description }}
+      <div class="rich-text">
+        {{ content.field_interest_description }}
+      </div>
     </section>
   {% endif %}
 </article>

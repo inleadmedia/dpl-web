@@ -22,11 +22,20 @@ final class LibraryStaffController extends ControllerBase {
       ->getStorage('entity_view_display')
       ->load('eonext_library_staff.eonext_library_staff.profile');
 
+    $content = $display instanceof EntityViewDisplay ? $display->build($eonext_library_staff) : [];
+    $has_interest_text = !$eonext_library_staff->get('field_interest_description')->isEmpty();
+    // Profile display config on some envs omits the interest field; render it anyway.
+    if ($has_interest_text && empty($content['field_interest_description'])) {
+      $content['field_interest_description'] = $eonext_library_staff
+        ->get('field_interest_description')
+        ->view('profile');
+    }
+
     return [
       '#theme' => 'eonext_library_staff_profile',
       '#staff_name' => self::formatStaffName($eonext_library_staff),
-      '#interest_description' => !$eonext_library_staff->get('field_interest_description')->isEmpty(),
-      '#content' => $display instanceof EntityViewDisplay ? $display->build($eonext_library_staff) : [],
+      '#interest_description' => $has_interest_text,
+      '#content' => $content,
       '#attached' => [
         'library' => [
           'eonext_staff/general',
