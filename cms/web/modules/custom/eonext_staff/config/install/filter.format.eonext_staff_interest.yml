@@ -1,0 +1,26 @@
+uuid: 4a8c1e2f-9b3d-4f6a-a1c2-3d5e7f8091ab
+langcode: en
+status: true
+dependencies:
+  module:
+    - linkit
+name: 'Staff interest'
+format: eonext_staff_interest
+weight: 0
+filters:
+  filter_html:
+    id: filter_html
+    provider: filter
+    status: true
+    weight: -10
+    settings:
+      allowed_html: '<br> <p> <h2> <h3> <strong> <em> <blockquote> <a href target="_blank" data-entity-type data-entity-uuid data-entity-substitution> <ul> <ol reversed start> <li> <table> <tr> <td rowspan colspan> <th rowspan colspan> <thead> <tbody> <tfoot> <caption> <figure class="image"> <figcaption> <img src alt width height data-entity-uuid data-entity-type data-entity-substitution>'
+      filter_html_help: true
+      filter_html_nofollow: false
+  linkit:
+    id: linkit
+    provider: linkit
+    status: true
+    weight: 0
+    settings:
+      title: true
