@@ -4,5 +4,8 @@ description: 'Extends user profile with staff information.'
 package: 'EO next'
 core_version_requirement: ^10 || ^11
 dependencies:
+  - ckeditor5:ckeditor5
+  - drupal:editor
   - drupal:filter
   - drupal:text
+  - linkit:linkit

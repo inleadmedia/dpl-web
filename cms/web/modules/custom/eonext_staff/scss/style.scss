@@ -134,9 +134,15 @@
       font-weight: 400;
     }
 
-    .field--name-field-interest-description {
+    .field--name-field-interest-description,
+    .rich-text {
       line-height: 1.6;
       color: rgba(38, 38, 38, 0.9);
+
+      img {
+        max-width: 100%;
+        height: auto;
+      }
     }
   }
 }
