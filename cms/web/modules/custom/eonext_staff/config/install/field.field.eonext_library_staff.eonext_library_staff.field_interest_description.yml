@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - field.storage.eonext_library_staff.field_interest_description
+    - filter.format.basic
     - filter.format.eonext_staff_interest
   module:
     - eonext_staff
@@ -21,4 +22,5 @@ default_value_callback: ''
 settings:
   allowed_formats:
     - eonext_staff_interest
+    - basic
 field_type: text_long

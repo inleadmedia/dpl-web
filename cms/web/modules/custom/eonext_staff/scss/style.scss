@@ -134,7 +134,6 @@
       font-weight: 400;
     }
 
-    .field--name-field-interest-description,
     .rich-text {
       line-height: 1.6;
       color: rgba(38, 38, 38, 0.9);
@@ -142,6 +141,64 @@
       img {
         max-width: 100%;
         height: auto;
+      }
+
+      // WYSIWYG tables (matches design-system .rich-text when base.css is absent).
+      table {
+        table-layout: fixed;
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 16px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #808184;
+        padding: 8px 12px;
+        box-sizing: border-box;
+      }
+
+      thead {
+        background-color: #808184;
+        color: #ffffff;
+      }
+
+      tbody tr {
+        background-color: #ffffff;
+      }
+
+      tbody tr:nth-child(even) {
+        background-color: #f5f5f5;
+      }
+
+      th {
+        text-align: left;
+        font-weight: 600;
+      }
+
+      blockquote {
+        border-left: 3px solid #073c4c;
+        margin: 16px 0;
+        padding: 8px 0 8px 16px;
+      }
+
+      ul > li {
+        list-style: none;
+        position: relative;
+        padding-left: 28px;
+        margin-bottom: 12px;
+
+        &::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0.75em;
+          width: 21px;
+          height: 2px;
+          background-color: #262626;
+        }
       }
     }
   }
