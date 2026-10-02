@@ -7,11 +7,14 @@ vars:
   GO_DEPLOY_PORT: '{{.GO_DEPLOY_PORT | default "3001"}}'
   GO_PM2_APP_NAME: '{{.GO_PM2_APP_NAME | default "dpl-go"}}'
   GO_DEPLOY_NODE_BIN: '{{.GO_DEPLOY_NODE_BIN | default "node"}}'
+  # From cms/.task.env, shell, or root env: block below (used by drupal:composer-auth).
+  COMPOSER_GITHUB_TOKEN: '{{.COMPOSER_GITHUB_TOKEN | default ""}}'
 
 env:
   SKIP_LANGUAGE_IMPORT: false
   SKIP_GO_DEPLOY: false
   DRUSH_EXEC: "./vendor/bin/drush"
+  COMPOSER_GITHUB_TOKEN: '{{.COMPOSER_GITHUB_TOKEN}}'
 
 tasks:
   drupal:cache-clear:
@@ -41,12 +44,18 @@ tasks:
       - ${DRUSH_EXEC} user:create patron --password="test"
       - ${DRUSH_EXEC} user:role:add 'patron' patron
 
+  drupal:composer-auth:
+    desc: Configure Git/Composer for private inleadmedia/* packages (token from .task.env or auth.json)
+    cmds:
+      - ./dev-scripts/composer-github-auth.sh
+
   drupal:update:
     desc: Install/update composer dependencies and build/restart Go when ../go is present
     deps:
       - drupal:build-react
     cmds:
       - cp -n .env.example .env || true
+      - ./dev-scripts/composer-github-auth.sh
       - rm -rf web/libraries/dpl-react web/themes/custom/novel/assets/dpl-design-system
       - composer install --no-cache
       - composer reinstall inleadmedia/dpl-design-system inleadmedia/dpl-react --no-cache
