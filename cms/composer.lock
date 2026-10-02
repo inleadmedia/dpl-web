@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "564e0530db741d1a5a36c66dfb1521c1",
+    "content-hash": "2c8bf54f1ca326ea730838bea4b97247",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -8837,55 +8837,6 @@
             }
         },
         {
-            "name": "drupal/telephone",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://git.drupalcode.org/project/telephone.git",
-                "reference": "1.0.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/telephone-1.0.1.zip",
-                "reference": "1.0.1",
-                "shasum": "53a17f5a0b30daec9c97f52618358c0bc7768adc"
-            },
-            "require": {
-                "drupal/core": "^11.3 || ^12"
-            },
-            "type": "drupal-module",
-            "extra": {
-                "drupal": {
-                    "version": "1.0.1",
-                    "datestamp": "1786639598",
-                    "security-coverage": {
-                        "status": "covered",
-                        "message": "Covered by Drupal's security advisory policy"
-                    }
-                }
-            },
-            "notification-url": "https://packages.drupal.org/8/downloads",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "dave reid",
-                    "homepage": "https://www.drupal.org/user/53892"
-                },
-                {
-                    "name": "smustgrave",
-                    "homepage": "https://www.drupal.org/user/3252890"
-                }
-            ],
-            "description": "Defines a field type for telephone numbers.",
-            "homepage": "https://drupal.org/project/telephone",
-            "support": {
-                "source": "https://git.drupalcode.org/project/telephone",
-                "issues": "https://drupal.org/project/issues/telephone"
-            }
-        },
-        {
             "name": "drupal/telephone_formatter",
             "version": "1.3.0",
             "source": {
@@ -10689,6 +10640,37 @@
                 "symlink": true,
                 "relative": true
             }
+        },
+        {
+            "name": "inleadmedia/easyemail",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/easyemail.git",
+                "reference": "dbc6512f53a3fb66a66e683f526a94a66df33d29"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/dbc6512f53a3fb66a66e683f526a94a66df33d29",
+                "reference": "dbc6512f53a3fb66a66e683f526a94a66df33d29",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11",
+                "drupal/entity_reference_revisions": "^1.10",
+                "drupal/paragraphs": "^1.12"
+            },
+            "default-branch": true,
+            "type": "drupal-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Newsletter management system with Peytz Mailer integration.",
+            "support": {
+                "source": "https://github.com/inleadmedia/easyemail",
+                "issues": "https://github.com/inleadmedia/easyemail/issues"
+            },
+            "time": "2026-10-02T13:46:24+00:00"
         },
         {
             "name": "jms/metadata",
@@ -24431,7 +24413,8 @@
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
         "inleadmedia/dpl-design-system": 20,
-        "inleadmedia/dpl-react": 20
+        "inleadmedia/dpl-react": 20,
+        "inleadmedia/easyemail": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

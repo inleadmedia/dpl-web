@@ -54,6 +54,10 @@
                     "danskernesdigitalebibliotek/cms-api": "dev-main"
                 }
             }
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/easyemail"
         }
     ],
     "require": {
@@ -173,6 +177,7 @@
         "drush/drush": "^13",
         "inleadmedia/dpl-design-system": "0.0.2-dev",
         "inleadmedia/dpl-react": "0.0.2-dev",
+        "inleadmedia/easyemail": "dev-development",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
         "npm-asset/flatpickr": "^4.6.13",
@@ -250,6 +255,9 @@
             "npm-asset"
         ],
         "installer-paths": {
+            "web/modules/custom/easyemail": [
+                "inleadmedia/easyemail"
+            ],
             "web/themes/custom/novel/assets/{$name}": [
                 "inleadmedia/dpl-design-system"
             ],
