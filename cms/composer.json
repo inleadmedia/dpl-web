@@ -447,6 +447,9 @@
             "drupal/theme_permission": {
                 "3105637: Edit, install and uninstall permission": "https://www.drupal.org/files/issues/2024-02-01/theme-permission-edit-install-uninstall-3105637-7.patch"
             },
+            "drupal/workflow": {
+                "3567761: WorkflowTransition::getFieldLabel() must return string": "patches/workflow-getfieldlabel-3567761.patch"
+            },
             "sparkpost/sparkpost": {
                 "212: Compatibility with psr/http-message 2.0": "patches/sparkpost-psr-http-message-v2.patch"
             }

@@ -61,10 +61,10 @@ final class NavTeaserBuilder {
       'subtitle' => '',
       'teaser_text' => $this->getTeaserText($eventSeries, ['field_teaser_text', 'event_teaser_text']),
       'background_image_url' => $this->getBackgroundImageUrl($eventSeries, [
-        'field_teaser_image',
         'field_event_image',
-        'event_teaser_image',
+        'field_teaser_image',
         'event_image',
+        'event_teaser_image',
       ]),
     ];
   }
@@ -80,6 +80,21 @@ final class NavTeaserBuilder {
         'eventinstance' => $eventInstance->id(),
       ])->toString();
 
+    $image_entity = $eventInstance;
+    $image_fields = [
+      'field_event_image',
+      'field_teaser_image',
+      'event_image',
+      'event_teaser_image',
+    ];
+    if ($eventSeries instanceof EventSeries && (
+      ($eventSeries->hasField('field_event_image') && !$eventSeries->get('field_event_image')->isEmpty())
+      || ($eventSeries->hasField('field_teaser_image') && !$eventSeries->get('field_teaser_image')->isEmpty())
+    )) {
+      $image_entity = $eventSeries;
+      $image_fields = ['field_event_image', 'field_teaser_image'];
+    }
+
     return [
       'title' => $eventInstance->label(),
       'url' => $url,
@@ -88,12 +103,7 @@ final class NavTeaserBuilder {
         'field_teaser_text',
         'event_teaser_text',
       ]),
-      'background_image_url' => $this->getBackgroundImageUrl($eventInstance, [
-        'field_teaser_image',
-        'field_event_image',
-        'event_teaser_image',
-        'event_image',
-      ]),
+      'background_image_url' => $this->getBackgroundImageUrl($image_entity, $image_fields),
     ];
   }
 

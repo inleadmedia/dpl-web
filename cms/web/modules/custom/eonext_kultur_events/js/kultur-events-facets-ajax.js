@@ -219,6 +219,12 @@
             return;
           }
 
+          getEventsView()
+            .find(".js-facets-widget.facets-disabled")
+            .removeClass("facets-disabled")
+            .find("input.facets-checkbox, input.facets-link")
+            .prop("disabled", false);
+
           syncFreeEventsToggle(document);
         });
       });

@@ -10,3 +10,14 @@ services:
     arguments:
       - '@config.factory'
       - '@entity_type.manager'
+  eonext_kultur_events.listing_redirect_subscriber:
+    class: Drupal\eonext_kultur_events\EventSubscriber\EventsListingRedirectSubscriber
+    tags:
+      - { name: event_subscriber }
+  eonext_kultur_events.listing_facet_url_subscriber:
+    class: Drupal\eonext_kultur_events\EventSubscriber\EventsListingFacetUrlSubscriber
+    arguments:
+      - '@request_stack'
+      - '@path.current'
+    tags:
+      - { name: event_subscriber }

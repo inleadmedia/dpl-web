@@ -8,10 +8,11 @@
 declare(strict_types=1);
 
 use Drupal\Core\Config\FileStorage;
-use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\eonext_kultur_events\EventsConstants;
+use Drupal\node\Entity\Node;
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
 
@@ -26,6 +27,9 @@ function eonext_kultur_events_install(): void {
   eonext_kultur_events_ensure_publication_date_field();
   eonext_kultur_events_add_linkit_matcher();
   eonext_kultur_events_reindex();
+  eonext_kultur_events_ensure_events_listing_paragraph();
+  eonext_kultur_events_enable_events_listing_paragraph();
+  eonext_kultur_events_create_listing_page();
 }
 
 /**
@@ -372,6 +376,100 @@ function eonext_kultur_events_update_9007(): void {
  */
 function eonext_kultur_events_update_9008(): void {
   eonext_kultur_events_add_linkit_matcher();
+}
+
+/**
+ * Adds an events listing paragraph and a calendar page at /arrangementer.
+ */
+function eonext_kultur_events_update_9009(): string {
+  eonext_kultur_events_ensure_events_listing_paragraph();
+  eonext_kultur_events_enable_events_listing_paragraph();
+  return eonext_kultur_events_create_listing_page();
+}
+
+/**
+ * Imports the events listing paragraph type when it is not already installed.
+ */
+function eonext_kultur_events_ensure_events_listing_paragraph(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_events');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'paragraphs.paragraphs_type.eonext_kultur_events_listing',
+    'core.entity_form_display.paragraph.eonext_kultur_events_listing.default',
+    'core.entity_view_display.paragraph.eonext_kultur_events_listing.default',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data || !\Drupal::config($config_name)->isNew()) {
+      continue;
+    }
+
+    \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+  }
+
+  \Drupal::entityTypeManager()->getStorage('paragraphs_type')->resetCache();
+}
+
+/**
+ * Allows the events listing paragraph on page nodes.
+ */
+function eonext_kultur_events_enable_events_listing_paragraph(): void {
+  $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
+  if (!$field instanceof FieldConfig) {
+    return;
+  }
+
+  $bundle = EventsConstants::PARAGRAPH_BUNDLE;
+  $settings = $field->getSetting('handler_settings');
+  $settings['target_bundles'][$bundle] = $bundle;
+  $settings['target_bundles_drag_drop'][$bundle] = [
+    'weight' => 83,
+    'enabled' => TRUE,
+  ];
+  $field->setSetting('handler_settings', $settings);
+  $field->save();
+}
+
+/**
+ * Creates the calendar page containing only the events listing paragraph.
+ */
+function eonext_kultur_events_create_listing_page(): string {
+  $alias_manager = \Drupal::service('path_alias.manager');
+  $existing = $alias_manager->getPathByAlias(EventsConstants::LISTING_ALIAS);
+  if (str_starts_with($existing, '/node/')) {
+    return 'Events listing page already exists at /arrangementer.';
+  }
+
+  $alias_storage = \Drupal::entityTypeManager()->getStorage('path_alias');
+  $ids = $alias_storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('alias', EventsConstants::LISTING_ALIAS)
+    ->execute();
+  foreach ($alias_storage->loadMultiple($ids) as $alias) {
+    if ($alias->getPath() === '/events') {
+      $alias->delete();
+    }
+  }
+
+  $paragraph = Paragraph::create([
+    'type' => EventsConstants::PARAGRAPH_BUNDLE,
+  ]);
+  $node = Node::create([
+    'type' => 'page',
+    'title' => 'Kalender',
+    'uid' => 1,
+    'status' => 1,
+    'langcode' => \Drupal::languageManager()->getDefaultLanguage()->getId(),
+    'field_display_titles' => 0,
+    'field_paragraphs' => [$paragraph],
+    'path' => [
+      'alias' => EventsConstants::LISTING_ALIAS,
+      'pathauto' => 0,
+    ],
+  ]);
+  $node->save();
+
+  return 'Created the events listing page at /arrangementer (node ' . $node->id() . ').';
 }
 
 /**

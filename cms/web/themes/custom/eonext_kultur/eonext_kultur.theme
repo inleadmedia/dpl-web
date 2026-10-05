@@ -11,8 +11,11 @@ use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\ColorContrast;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
+use Drupal\recurring_events\Entity\EventInstance;
+use Drupal\recurring_events\Entity\EventSeries;
 
 /**
  * Implements hook_preprocess().
@@ -361,6 +364,15 @@ function eonext_kultur_preprocess_eventinstance(array &$variables): void {
   if (in_array($view_mode, ['card', 'default'], TRUE) && eonext_kultur_events_is_events_listing_page()) {
     $variables['theme_hook_suggestions'][] = 'eventinstance__card__eonext_kultur_grid';
   }
+
+  if (in_array($view_mode, ['card', 'default'], TRUE) && isset($variables['eventinstance'])) {
+    $eventinstance = $variables['eventinstance'];
+    $source = $eventinstance instanceof EventInstance ? $eventinstance->getEventSeries() : NULL;
+    if (!$source instanceof EventSeries) {
+      $source = $eventinstance;
+    }
+    _eonext_kultur_use_event_image($variables, $source, 'event_teaser_image');
+  }
 }
 
 /**
@@ -443,6 +455,10 @@ function eonext_kultur_preprocess_eventseries(array &$variables): void {
     return;
   }
 
+  if (in_array($view_mode, ['card', 'default'], TRUE) && isset($variables['eventseries'])) {
+    _eonext_kultur_use_event_image($variables, $variables['eventseries'], 'field_teaser_image');
+  }
+
   if ($view_mode !== 'nav_spot') {
     return;
   }
@@ -451,4 +467,34 @@ function eonext_kultur_preprocess_eventseries(array &$variables): void {
   if (isset($variables['eventseries'])) {
     _eonext_kultur_set_nav_spot_subtitle($variables, $variables['eventseries']);
   }
+}
+
+/**
+ * Renders the event image in the card slot when one is set.
+ *
+ * Cards otherwise print only the teaser image, which can be a different
+ * picture than the one stored as the event image.
+ *
+ * @param array<string, mixed> $variables
+ *   The preprocess variables.
+ * @param mixed $entity
+ *   The event series or instance.
+ * @param string $content_key
+ *   Content key the card template prints as its media.
+ */
+function _eonext_kultur_use_event_image(array &$variables, mixed $entity, string $content_key): void {
+  if (!$entity instanceof EntityInterface
+    || !$entity->hasField('field_event_image')
+    || $entity->get('field_event_image')->isEmpty()) {
+    return;
+  }
+
+  $media = $entity->get('field_event_image')->entity;
+  if (!$media instanceof MediaInterface) {
+    return;
+  }
+
+  $variables['content'][$content_key] = \Drupal::entityTypeManager()
+    ->getViewBuilder('media')
+    ->view($media, 'card');
 }

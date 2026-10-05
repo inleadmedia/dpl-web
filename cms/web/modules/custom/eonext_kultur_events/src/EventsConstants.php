@@ -13,6 +13,16 @@ final class EventsConstants {
 
   public const VIEW_DISPLAY = 'all';
 
+  /**
+   * Paragraph bundle that embeds the events listing view.
+   */
+  public const PARAGRAPH_BUNDLE = 'eonext_kultur_events_listing';
+
+  /**
+   * Public path of the calendar page.
+   */
+  public const LISTING_ALIAS = '/arrangementer';
+
   public const INDEX_ID = 'events';
 
   public const FACET_SOURCE_ID = 'search_api:views_page__events__all';

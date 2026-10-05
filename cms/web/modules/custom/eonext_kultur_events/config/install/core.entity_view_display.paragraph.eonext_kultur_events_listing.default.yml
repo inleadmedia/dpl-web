@@ -1,0 +1,14 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - paragraphs.paragraphs_type.eonext_kultur_events_listing
+  enforced:
+    module:
+      - eonext_kultur_events
+id: paragraph.eonext_kultur_events_listing.default
+targetEntityType: paragraph
+bundle: eonext_kultur_events_listing
+mode: default
+content: {  }
+hidden: {  }

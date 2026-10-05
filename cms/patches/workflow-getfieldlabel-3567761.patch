@@ -1,0 +1,18 @@
+diff --git a/src/Entity/WorkflowTransition.php b/src/Entity/WorkflowTransition.php
+index 1111111..2222222 100644
+--- a/src/Entity/WorkflowTransition.php
++++ b/src/Entity/WorkflowTransition.php
+@@ -941,9 +941,12 @@ public function getFieldName(): string {
+    */
+   public function getFieldLabel(): string {
+     $entity = $this->getTargetEntity();
+     $field_name = $this->getFieldName();
++    if ($field_name === '') {
++      return '';
++    }
+     $label = $entity?->{$field_name}?->getFieldLabel();
+-    return $label;
++    return $label ?? '';
+   }
+ 
+   /**

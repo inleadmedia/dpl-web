@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_kultur_events
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      content_elements: content_elements
+id: eonext_kultur_events_listing
+label: 'Events listing'
+icon_uuid: null
+icon_default: null
+description: 'Embeds the calendar listing used on /arrangementer.'
+behavior_plugins: {  }

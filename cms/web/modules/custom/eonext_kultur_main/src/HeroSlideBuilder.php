@@ -84,6 +84,14 @@ final class HeroSlideBuilder {
     $allDay = $eventInstance->hasField('event_all_day')
       && !empty($eventInstance->get('event_all_day')->getString());
 
+    $series = $eventInstance->getEventSeries();
+    $image = $series instanceof EventSeries
+      ? $this->buildBannerImage($series, ['field_event_image', 'field_teaser_image'])
+      : NULL;
+    if ($image === NULL) {
+      $image = $this->buildBannerImage($eventInstance, ['event_image', 'field_event_image', 'event_teaser_image', 'field_teaser_image']);
+    }
+
     return [
       'title' => $eventInstance->label(),
       'category' => $this->getCategoryLabel($eventInstance),
@@ -95,7 +103,7 @@ final class HeroSlideBuilder {
       'url' => Url::fromRoute('entity.eventinstance.canonical', [
         'eventinstance' => $eventInstance->id(),
       ])->toString(),
-      'image' => $this->buildBannerImage($eventInstance, ['event_image', 'field_event_image', 'event_teaser_image', 'field_teaser_image']),
+      'image' => $image,
     ];
   }
 

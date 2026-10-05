@@ -247,11 +247,10 @@
     const panel = root.querySelector(".eonext-kultur-events__filters-panel");
     const toggle = root.querySelector(".eonext-kultur-events__filters-toggle");
 
-    if (!panel || !toggle || toggle.dataset.kulturFiltersToggleInit) {
+    if (!panel || !toggle) {
       return;
     }
 
-    toggle.dataset.kulturFiltersToggleInit = "true";
     updateFiltersPanelState(panel, toggle, isFiltersExpanded());
 
     toggle.addEventListener("click", () => {
@@ -263,19 +262,50 @@
     });
   }
 
+  /**
+   * Returns listing roots within a behavior context.
+   *
+   * Views AJAX passes the replaced view root as context. querySelectorAll()
+   * does not include the context element itself, so a plain once() selector
+   * misses the filters toggle after a refresh.
+   */
+  function listingRoots(context) {
+    const roots = [];
+    const base =
+      context instanceof Element || context instanceof Document
+        ? context
+        : document;
+
+    if (base instanceof Element && base.matches(ROOT_SELECTOR)) {
+      roots.push(base);
+    }
+
+    if (base.querySelectorAll) {
+      base.querySelectorAll(ROOT_SELECTOR).forEach((root) => {
+        roots.push(root);
+      });
+    }
+
+    return roots.filter((root, index, all) => all.indexOf(root) === index);
+  }
+
+  function initListing(root) {
+    once("kultur-events-root", root).forEach(() => {
+      initFiltersPanel(root);
+    });
+
+    root
+      .querySelectorAll(".eonext-kultur-events__facet-group")
+      .forEach((facetGroup) => {
+        once("kultur-events-facet-groups", facetGroup).forEach(() => {
+          window.setTimeout(() => initFacetGroup(facetGroup), 0);
+        });
+      });
+  }
+
   Drupal.behaviors.kulturEventsFacets = {
     attach(context) {
-      once("kultur-events-root", ROOT_SELECTOR, context).forEach((root) => {
-        initFiltersPanel(root);
-      });
-
-      once(
-        "kultur-events-facet-groups",
-        ROOT_SELECTOR + " .eonext-kultur-events__facet-group",
-        context
-      ).forEach((facetGroup) => {
-        window.setTimeout(() => initFacetGroup(facetGroup), 0);
-      });
+      listingRoots(context).forEach(initListing);
     },
   };
 })(Drupal, once);

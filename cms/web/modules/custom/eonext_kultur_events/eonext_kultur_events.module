@@ -9,8 +9,11 @@ declare(strict_types=1);
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\eonext_kultur_events\EventsConstants;
+use Drupal\paragraphs\ParagraphInterface;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\views\ViewExecutable;
@@ -236,13 +239,48 @@ function eonext_kultur_events_theme_suggestions_eventseries_alter(array &$sugges
  * Returns TRUE on the kultur events listing page.
  */
 function eonext_kultur_events_is_events_listing_page(): bool {
+  if (\Drupal::request()->attributes->get('eonext_kultur_events_listing')) {
+    return TRUE;
+  }
+
   $route = \Drupal::routeMatch()->getRouteName();
   if (in_array($route, ['view.events.all', 'entity.eventinstance.collection'], TRUE)) {
     return TRUE;
   }
 
-  $path = trim(\Drupal::service('path.current')->getPath(), '/');
-  return in_array($path, ['arrangementer', 'events'], TRUE);
+  if ($route === 'views.ajax') {
+    $request = \Drupal::request();
+    $view_name = $request->request->get('view_name') ?? $request->query->get('view_name');
+    $display_id = $request->request->get('view_display_id') ?? $request->query->get('view_display_id');
+    if ($view_name === EventsConstants::VIEW_ID && $display_id === EventsConstants::VIEW_DISPLAY) {
+      return TRUE;
+    }
+  }
+
+  $current = \Drupal::service('path.current')->getPath();
+  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($current);
+  $candidates = [trim($current, '/'), trim($alias, '/')];
+  return in_array('arrangementer', $candidates, TRUE) || in_array('events', $candidates, TRUE);
+}
+
+/**
+ * Returns the path of the page that embeds the events listing.
+ *
+ * Views AJAX strips view_path from the request before the view renders, but
+ * sets the current path from that value first.
+ */
+function eonext_kultur_events_listing_page_path(): ?string {
+  $route = \Drupal::routeMatch()->getRouteName();
+  if ($route === 'view.events.all') {
+    return NULL;
+  }
+
+  $path = \Drupal::service('path.current')->getPath();
+  if ($path === '' || $path === '/views/ajax') {
+    return NULL;
+  }
+
+  return $path;
 }
 
 /**
@@ -261,6 +299,13 @@ function eonext_kultur_events_form_views_exposed_form_alter(array &$form, FormSt
 
   if (isset($form['actions']['submit'])) {
     $form['actions']['submit']['#attributes']['class'][] = 'eonext-kultur-events__submit';
+  }
+
+  // Keep filters on the content page that embeds the view. The page display
+  // otherwise posts back to /events.
+  $listing_path = eonext_kultur_events_listing_page_path();
+  if ($listing_path !== NULL) {
+    $form['#action'] = Url::fromUserInput($listing_path)->toString();
   }
 }
 
@@ -459,6 +504,89 @@ function eonext_kultur_events_get_base_icon_path(): string {
   $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
 
   return '/' . $theme_path . '/assets/dpl-design-system/icons';
+}
+
+/**
+ * Implements hook_views_pre_view().
+ */
+function eonext_kultur_events_views_pre_view(ViewExecutable $view, string $display_id, array &$args): void {
+  if ($view->id() !== EventsConstants::VIEW_ID || $display_id !== EventsConstants::VIEW_DISPLAY) {
+    return;
+  }
+
+  $request = \Drupal::request();
+  $request->attributes->set('eonext_kultur_events_listing', TRUE);
+
+  if (\Drupal::routeMatch()->getRouteName() === 'view.events.all') {
+    return;
+  }
+
+  if ($request->attributes->get('_route') === 'views.ajax') {
+    $listing_path = eonext_kultur_events_listing_page_path();
+    if ($listing_path !== NULL) {
+      $view->override_url = Url::fromUserInput($listing_path);
+    }
+    return;
+  }
+
+  if (!empty($view->override_path)) {
+    return;
+  }
+
+  $current = \Drupal::service('path.current')->getPath();
+  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($current);
+  $view->override_path = ltrim($alias !== $current ? $alias : $current, '/');
+  $view->override_url = Url::fromRoute('<current>');
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for field.
+ */
+function eonext_kultur_events_preprocess_field(array &$variables): void {
+  if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
+    return;
+  }
+
+  foreach ($variables['items'] as &$item) {
+    $paragraph = _eonext_kultur_events_item_paragraph($item);
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== EventsConstants::PARAGRAPH_BUNDLE) {
+      continue;
+    }
+
+    $item['content'] = views_embed_view(EventsConstants::VIEW_ID, EventsConstants::VIEW_DISPLAY);
+    $item['content']['#paragraph'] = $paragraph;
+  }
+}
+
+/**
+ * Resolve the paragraph entity from a field item render array.
+ */
+function _eonext_kultur_events_item_paragraph(array $item): ?ParagraphInterface {
+  $content = $item['content'] ?? [];
+  $candidates = [
+    $content['#paragraph'] ?? NULL,
+    $content['#entity'] ?? NULL,
+    $content[0]['#paragraph'] ?? NULL,
+    $content[0]['#entity'] ?? NULL,
+  ];
+
+  foreach ($candidates as $candidate) {
+    if ($candidate instanceof ParagraphInterface) {
+      return $candidate;
+    }
+  }
+
+  if (!is_array($content)) {
+    return NULL;
+  }
+
+  foreach (Element::children($content, TRUE) as $child) {
+    if (isset($content[$child]['#paragraph']) && $content[$child]['#paragraph'] instanceof ParagraphInterface) {
+      return $content[$child]['#paragraph'];
+    }
+  }
+
+  return NULL;
 }
 
 /**

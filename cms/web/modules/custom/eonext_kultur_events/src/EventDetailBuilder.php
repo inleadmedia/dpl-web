@@ -67,7 +67,7 @@ final class EventDetailBuilder {
 
     $series = $eventInstance->getEventSeries();
 
-    return $this->buildDetail(
+    $detail = $this->buildDetail(
       $eventInstance,
       $eventInstance->label(),
       $start,
@@ -82,6 +82,16 @@ final class EventDetailBuilder {
       ['event_ticket_categories', 'field_ticket_categories'],
       $series,
     );
+
+    if ($series instanceof EventSeries) {
+      $series_image = $this->buildBannerImage($series, ['field_event_image', 'field_teaser_image']);
+      if ($series_image !== NULL) {
+        $detail['image'] = $series_image;
+        $detail['banner_image'] = $series_image;
+      }
+    }
+
+    return $detail;
   }
 
   /**

@@ -36,6 +36,7 @@ dependencies:
     - paragraphs.paragraphs_type.eonext_kultur_footer_social
     - paragraphs.paragraphs_type.eonext_kultur_locale_listing
     - paragraphs.paragraphs_type.eonext_kultur_page_hero
+    - paragraphs.paragraphs_type.eonext_kultur_events_listing
   module:
     - entity_reference_revisions
 id: node.page.field_paragraphs
@@ -83,6 +84,7 @@ settings:
       eonext_kultur_footer_social: eonext_kultur_footer_social
       eonext_kultur_locale_listing: eonext_kultur_locale_listing
       eonext_kultur_page_hero: eonext_kultur_page_hero
+      eonext_kultur_events_listing: eonext_kultur_events_listing
     negate: 0
     target_bundles_drag_drop:
       accordion:
@@ -192,6 +194,9 @@ settings:
         enabled: true
       eonext_kultur_page_hero:
         weight: 82
+        enabled: true
+      eonext_kultur_events_listing:
+        weight: 83
         enabled: true
       simple_links:
         weight: 60
