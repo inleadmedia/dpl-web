@@ -65,7 +65,22 @@ function eonext_staff_install_extension_config(): void {
     _eonext_staff_ensure_config($name, TRUE);
   }
 
-  _eonext_staff_ensure_field_storage_table('eonext_library_staff', 'field_interest_description');
+  _eonext_staff_ensure_interest_description_field();
+}
+
+/**
+ * Ensures interest description field config and its database table exist.
+ */
+function _eonext_staff_ensure_interest_description_field(): void {
+  $entity_type = 'eonext_library_staff';
+  $field_name = 'field_interest_description';
+
+  if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
+    _eonext_staff_ensure_config('field.storage.eonext_library_staff.field_interest_description');
+    _eonext_staff_ensure_config('field.field.eonext_library_staff.eonext_library_staff.field_interest_description');
+  }
+
+  _eonext_staff_ensure_field_storage_table($entity_type, $field_name);
 }
 
 /**
@@ -214,6 +229,10 @@ function _eonext_staff_migrate_interest_description_to_text(): void {
   $field_name = 'field_interest_description';
   $text_format = 'basic';
   $table = $entity_type_id . '__' . $field_name;
+
+  // Field deletion checks the dedicated table; create it when config exists
+  // but a prior deploy imported config without running the Field API.
+  _eonext_staff_ensure_interest_description_field();
 
   $field_storage = FieldStorageConfig::loadByName($entity_type_id, $field_name);
   if ($field_storage && $field_storage->getType() === 'text_long') {

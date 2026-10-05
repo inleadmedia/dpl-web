@@ -18,11 +18,24 @@ function eonext_staff_post_update_extend_staff_list(): string {
 }
 
 /**
- * Repair missing field_interest_description table on existing sites.
+ * Ensures the interest description field table exists before later migrations.
+ *
+ * Runs after extend_staff_list and before interest_description_* hooks
+ * (post updates are executed in alphabetical order).
+ */
+function eonext_staff_post_update_fix_interest_description_storage(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  _eonext_staff_ensure_interest_description_field();
+
+  return 'Ensured field_interest_description database tables exist.';
+}
+
+/**
+ * Legacy post update name; table repair now runs in fix_interest_description_storage.
  */
 function eonext_staff_post_update_repair_interest_description_storage(): string {
   \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
-  _eonext_staff_ensure_field_storage_table('eonext_library_staff', 'field_interest_description');
+  _eonext_staff_ensure_interest_description_field();
 
   return 'Ensured field_interest_description database tables exist.';
 }
