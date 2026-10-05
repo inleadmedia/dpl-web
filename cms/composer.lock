@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2c8bf54f1ca326ea730838bea4b97247",
+    "content-hash": "89b9809ce39555a2f22a9e1310369c84",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10647,12 +10647,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "dbc6512f53a3fb66a66e683f526a94a66df33d29"
+                "reference": "f333fc7396197456a3ae81d90cfd6324c5a7510b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/dbc6512f53a3fb66a66e683f526a94a66df33d29",
-                "reference": "dbc6512f53a3fb66a66e683f526a94a66df33d29",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/f333fc7396197456a3ae81d90cfd6324c5a7510b",
+                "reference": "f333fc7396197456a3ae81d90cfd6324c5a7510b",
                 "shasum": ""
             },
             "require": {
@@ -10670,7 +10670,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-10-02T13:46:24+00:00"
+            "time": "2026-10-05T13:46:20+00:00"
         },
         {
             "name": "jms/metadata",
