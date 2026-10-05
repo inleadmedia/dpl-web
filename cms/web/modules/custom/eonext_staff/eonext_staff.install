@@ -218,9 +218,6 @@ function eonext_staff_add_paragraph_type_to_content_types(): void {
 }
 
 /**
- * Updates the staff view to use paragraph-driven branch filtering.
- */
-/**
  * Migrates interest description from plain text to formatted text (Basic HTML).
  */
 function _eonext_staff_migrate_interest_description_to_text(): void {
@@ -236,6 +233,7 @@ function _eonext_staff_migrate_interest_description_to_text(): void {
 
   $field_storage = FieldStorageConfig::loadByName($entity_type_id, $field_name);
   if ($field_storage && $field_storage->getType() === 'text_long') {
+    _eonext_staff_ensure_field_storage_table($entity_type_id, $field_name);
     foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
       _eonext_staff_ensure_config($name, TRUE);
     }
@@ -244,12 +242,17 @@ function _eonext_staff_migrate_interest_description_to_text(): void {
   }
 
   $saved_values = _eonext_staff_read_interest_description_values($table);
+  $table_exists = \Drupal::database()->schema()->tableExists($table);
 
   $field = FieldConfig::loadByName($entity_type_id, $bundle, $field_name);
-  $field?->delete();
-  $field_storage?->delete();
-
-  field_purge_batch(50);
+  if ($table_exists) {
+    $field?->delete();
+    $field_storage?->delete();
+    field_purge_batch(50);
+  }
+  else {
+    _eonext_staff_remove_interest_description_field_config();
+  }
 
   foreach ([
     'field.storage.eonext_library_staff.field_interest_description',
@@ -310,6 +313,34 @@ function _eonext_staff_read_interest_description_values(string $table): array {
   }
 
   return $saved_values;
+}
+
+/**
+ * Removes interest description field config when the SQL table was never created.
+ *
+ * Field API delete() queries the dedicated table; config import can register the
+ * field without creating that table.
+ */
+function _eonext_staff_remove_interest_description_field_config(): void {
+  foreach ([
+    'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
+    'field.storage.eonext_library_staff.field_interest_description',
+  ] as $config_name) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    if (!$config->isNew()) {
+      $config->delete();
+    }
+  }
+
+  \Drupal::entityTypeManager()->getStorage('field_config')->resetCache();
+  \Drupal::entityTypeManager()->getStorage('field_storage_config')->resetCache();
+}
+
+/**
+ * Creates the interest description field table before post-updates run.
+ */
+function eonext_staff_update_9001(): void {
+  _eonext_staff_ensure_interest_description_field();
 }
 
 /**
