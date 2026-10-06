@@ -223,6 +223,9 @@
         }
     },
     "config": {
+        "preferred-install": {
+            "inleadmedia/easyemail": "source"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "composer/installers": true,
