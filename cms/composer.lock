@@ -10647,12 +10647,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "d335ae006a06dde7ff9b9d545003c965c5c77aec"
+                "reference": "d9257cf28555cd0476f6235da8e1030ddb3b2cdd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/d335ae006a06dde7ff9b9d545003c965c5c77aec",
-                "reference": "d335ae006a06dde7ff9b9d545003c965c5c77aec",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/d9257cf28555cd0476f6235da8e1030ddb3b2cdd",
+                "reference": "d9257cf28555cd0476f6235da8e1030ddb3b2cdd",
                 "shasum": ""
             },
             "require": {
@@ -10670,7 +10670,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-10-07T06:24:21+00:00"
+            "time": "2026-10-07T11:52:24+00:00"
         },
         {
             "name": "jms/metadata",
