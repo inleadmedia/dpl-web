@@ -195,24 +195,27 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   return (
     <section className="material-description" data-cy="material-description">
       <>
-        { (descriptionOverride || work.abstract?.length) && (
-          <>
-            <h2 className="material-description__heading">
-              {t("descriptionHeadlineText")}
-            </h2>
-            {descriptionOverride === null
-              ? work.abstract?.map((line, index) => (
-                  <p key={index} className="material-description__content">
-                    {line}
-                  </p>
-                ))
-              : (
-                  <p className="material-description__content">
-                    {descriptionOverride}
-                  </p>
-                )}
-          </>
-        )}
+        {
+          descriptionOverride || work.abstract?.length
+            ? <>
+              <h2 className="material-description__heading">
+                {t("descriptionHeadlineText")}
+              </h2>
+              {descriptionOverride === null
+                ? work.abstract?.map((line, index) => (
+                    <p key={index} className="material-description__content">
+                      {line}
+                    </p>
+                  ))
+                : (
+                    <p className="material-description__content">
+                      {descriptionOverride}
+                    </p>
+                  )}
+            </>
+            : null
+        }
+
         {bestRepresentationContents && (
           <MaterialContents contents={bestRepresentationContents} />
         )}
