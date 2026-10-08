@@ -14,9 +14,13 @@ const MaterialAdditionalDescription: React.FC<MaterialAdditionalDescriptionProps
     if (!fieldsOptions)
       return {};
 
+    let body = fieldsOptions.merge([], fieldsOptions.getter(work), { outputType: "text" });
+    if (Array.isArray(body))
+      body = body.join(" ").trim();
+
     return {
       label: fieldsOptions.label,
-      body: fieldsOptions.merge([], fieldsOptions.getter(work), { outputType: "text" }),
+      body: body,
       tags: (fieldsOptions.tags || []).map((tagData: any) => {
         return {
           label: tagData.label,
