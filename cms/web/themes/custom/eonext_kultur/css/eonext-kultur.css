@@ -72,6 +72,8 @@ h6,
     display: block;
     position: sticky;
     top: 0 !important;
+    /* Anchor for the language switcher overlay on the top row. */
+    isolation: isolate;
     padding: 0;
     min-height: 0;
     height: auto !important;
@@ -89,8 +91,23 @@ h6,
     min-height: 0;
   }
 
-  .header.ek-header .header__menu.ek-header-menu > div {
-    display: contents;
+  .header.ek-header .header__menu-first {
+    padding-right: 72px;
+  }
+
+  .header.ek-header .ek-header__toolbar {
+    display: block;
+    width: 100%;
+    grid-row: 2;
+  }
+
+  .header.ek-header .ek-header-translation {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 56px;
+    pointer-events: auto;
+    z-index: 10;
   }
 
   .header.ek-header .header__menu-first {
@@ -240,8 +257,9 @@ h6,
 @media (min-width: 1440px) {
   .header.ek-header {
     display: grid !important;
-    grid-template-columns: auto 1fr auto auto;
-    column-gap: var(--ek-header-search-clock-gap);
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    column-gap: clamp(16px, 2vw, 32px);
     align-items: center;
     min-height: 0;
     width: 100%;
@@ -251,6 +269,7 @@ h6,
     border-left: none;
     border-right: none;
     border-bottom: 1px solid #dbdbdb;
+    position: relative;
   }
 
   .header.ek-header .header__logo-desktop {
@@ -258,14 +277,22 @@ h6,
     grid-row: 1;
     display: flex !important;
     align-items: center;
+    align-self: center;
     padding: 0;
     margin: 0;
     border-right: none;
     min-width: 0;
+    max-width: 220px;
   }
 
-  .header.ek-header .header__menu.ek-header-menu {
+  /* Flatten menu + toolbar so logo, nav, search, and language share one row. */
+  .header.ek-header .header__menu.ek-header-menu,
+  .header.ek-header .ek-header__toolbar {
     display: contents !important;
+  }
+
+  .header.ek-header .ek-header__toolbar {
+    gap: 0;
   }
 
   .header.ek-header .header__menu-navigation-mobile,
@@ -295,23 +322,26 @@ h6,
     grid-row: 1;
     display: flex !important;
     align-items: center;
-    justify-content: center;
-    justify-self: center;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     min-height: 0;
     height: auto !important;
-    overflow: visible;
+    overflow: hidden;
     border-bottom: none;
-    pointer-events: none;
+    box-sizing: border-box;
   }
 
   .header.ek-header .header__menu-first > div:first-child {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    width: auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 0;
-    pointer-events: auto;
+    overflow: hidden;
   }
 
   .header.ek-header .header__menu-first .header__button-responsive-switch {
@@ -321,15 +351,17 @@ h6,
   .header.ek-header .header__menu-navigation {
     position: static;
     transform: none;
-    display: inline-flex;
+    display: flex;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 48px;
+    justify-content: flex-start;
+    gap: clamp(6px, 0.6vw, 12px) clamp(10px, 1vw, 24px);
     padding: 0;
-    max-width: none;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
     white-space: nowrap;
     visibility: visible;
-    pointer-events: auto;
     height: auto !important;
   }
 
@@ -341,11 +373,20 @@ h6,
   .header.ek-header .header__menu-navigation-link {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     padding: 0;
     color: var(--ek-navy);
+    font-size: clamp(0.8125rem, 0.75rem + 0.25vw, 0.9375rem);
+    line-height: 1.25;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
   }
 
   .header.ek-header .header__menu-navigation-item {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: none;
     border-top: 1px solid transparent;
     border-bottom: 1px solid transparent;
   }
@@ -358,12 +399,12 @@ h6,
   .header.ek-header .header__menu-second {
     grid-column: 3;
     grid-row: 1;
-    justify-self: end;
     position: relative;
     z-index: 1;
+    flex: 0 0 auto;
     min-width: 0;
-    width: auto;
-    max-width: none;
+    width: min(240px, 18vw);
+    max-width: 280px;
     height: auto !important;
     display: flex;
     align-items: center;
@@ -373,7 +414,7 @@ h6,
   }
 
   .header.ek-header .header__menu-search {
-    width: 300px;
+    width: 100%;
     max-width: 100%;
     height: 40px !important;
     background-color: var(--ek-cream);
@@ -421,16 +462,6 @@ h6,
   .header.ek-header .header__button {
     height: auto;
     width: 104px;
-  }
-}
-
-@media (min-width: 1440px) and (max-width: 1599px) {
-  .header.ek-header .header__menu-navigation {
-    gap: 32px;
-  }
-
-  .header.ek-header .header__menu-search {
-    width: 260px;
   }
 }
 
@@ -1242,15 +1273,9 @@ article .rich-text ol > li::before {
  * the empty mount node so the header does not jump when React paints.
  */
 .header.ek-header .ek-header-translation {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 56px;
   min-width: 70px;
   display: flex;
   align-items: center;
-  pointer-events: auto;
-  z-index: 10;
 }
 
 .header.ek-header .ek-header-translation [data-dpl-app="menu"] {
@@ -1269,16 +1294,40 @@ article .rich-text ol > li::before {
   }
 }
 
-/* Desktop: translation selector in the header grid. */
+/* Desktop: translation sits in the toolbar next to search. */
 @media (min-width: 1440px) {
   .header.ek-header .ek-header-translation {
-    position: static;
     grid-column: 4;
     grid-row: 1;
-    height: auto;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    flex: 0 0 auto;
+    height: auto !important;
     min-width: 70px;
-    justify-self: end;
     align-items: center;
+  }
+}
+
+/* Novel burger grid rules must not collapse the kultur desktop header. */
+@media (min-width: 1440px) {
+  .has-burger-menu .header.ek-header,
+  .has-desktop-menu .header.ek-header {
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) auto auto !important;
+  }
+
+  .has-burger-menu .header.ek-header .header__logo-desktop {
+    display: flex !important;
+  }
+
+  .has-burger-menu .header.ek-header .header__menu-navigation {
+    position: static;
+    visibility: visible;
+    top: auto;
+  }
+
+  .has-burger-menu .header.ek-header .header__menu-navigation-mobile {
+    display: none !important;
   }
 }
 

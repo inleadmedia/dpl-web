@@ -66,7 +66,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
     $fields = parent::baseFieldDefinitions($entity_type);
 
     $fields['organisation_name'] = BaseFieldDefinition::create('string')
-      ->setLabel(new TranslatableMarkup('Organisation name', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setLabel(new TranslatableMarkup('Event title', [], ['context' => 'eonext_kultur_event_submissions']))
       ->setRequired(TRUE)
       ->setSetting('max_length', 255)
       ->setDisplayConfigurable('form', TRUE)
@@ -105,7 +105,6 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
           AddressField::GIVEN_NAME => ['override' => FieldOverride::HIDDEN],
           AddressField::ADDITIONAL_NAME => ['override' => FieldOverride::HIDDEN],
           AddressField::FAMILY_NAME => ['override' => FieldOverride::HIDDEN],
-          AddressField::ORGANIZATION => ['override' => FieldOverride::HIDDEN],
           AddressField::ADDRESS_LINE2 => ['override' => FieldOverride::HIDDEN],
           AddressField::ADDRESS_LINE3 => ['override' => FieldOverride::HIDDEN],
           AddressField::SORTING_CODE => ['override' => FieldOverride::HIDDEN],

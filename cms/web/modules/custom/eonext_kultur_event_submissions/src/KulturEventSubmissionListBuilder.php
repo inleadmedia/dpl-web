@@ -20,7 +20,7 @@ final class KulturEventSubmissionListBuilder extends EntityListBuilder {
    */
   public function buildHeader(): array {
     return [
-      'organisation_name' => $this->t('Organisation', [], ['context' => 'eonext_kultur_event_submissions']),
+      'organisation_name' => $this->t('Event title', [], ['context' => 'eonext_kultur_event_submissions']),
       'city' => $this->t('City', [], ['context' => 'eonext_kultur_event_submissions']),
       'event_start' => $this->t('Event start', [], ['context' => 'eonext_kultur_event_submissions']),
       'status' => $this->t('Status', [], ['context' => 'eonext_kultur_event_submissions']),

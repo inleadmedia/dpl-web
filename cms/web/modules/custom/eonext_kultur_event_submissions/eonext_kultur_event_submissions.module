@@ -200,7 +200,6 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
     AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
     AddressField::FAMILY_NAME => FieldOverride::HIDDEN,
-    AddressField::ORGANIZATION => FieldOverride::HIDDEN,
     AddressField::ADDRESS_LINE2 => FieldOverride::HIDDEN,
     AddressField::ADDRESS_LINE3 => FieldOverride::HIDDEN,
     AddressField::SORTING_CODE => FieldOverride::HIDDEN,

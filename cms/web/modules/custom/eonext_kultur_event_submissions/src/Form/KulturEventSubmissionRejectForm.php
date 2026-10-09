@@ -26,8 +26,8 @@ final class KulturEventSubmissionRejectForm extends ContentEntityConfirmFormBase
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Reject submission from @organisation?', [
-      '@organisation' => $this->entity->get('organisation_name')->value,
+    return $this->t('Reject submission “@event_title”?', [
+      '@event_title' => $this->entity->get('organisation_name')->value,
     ], ['context' => 'eonext_kultur_event_submissions']);
   }
 

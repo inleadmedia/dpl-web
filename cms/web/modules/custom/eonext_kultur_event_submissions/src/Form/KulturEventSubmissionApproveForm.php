@@ -53,8 +53,8 @@ final class KulturEventSubmissionApproveForm extends ContentEntityConfirmFormBas
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Approve submission from @organisation?', [
-      '@organisation' => $this->entity->get('organisation_name')->value,
+    return $this->t('Approve submission “@event_title”?', [
+      '@event_title' => $this->entity->get('organisation_name')->value,
     ], ['context' => 'eonext_kultur_event_submissions']);
   }
 

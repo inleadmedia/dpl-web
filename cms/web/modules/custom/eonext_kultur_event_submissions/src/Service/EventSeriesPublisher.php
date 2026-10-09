@@ -36,6 +36,13 @@ final class EventSeriesPublisher {
    *   When saving the event series fails.
    */
   public function publish(KulturEventSubmission $submission): EventSeries {
+    if (!$submission->get('eventseries')->isEmpty()) {
+      $existing = $submission->get('eventseries')->entity;
+      if ($existing instanceof EventSeries) {
+        return $existing;
+      }
+    }
+
     $descriptionGl = trim((string) $submission->get('description_gl')->value);
     $descriptionDa = trim((string) $submission->get('description_da')->value);
 
@@ -46,27 +53,43 @@ final class EventSeriesPublisher {
     $greenlandicLangcode = SubmissionConstants::LANG_GREENLANDIC;
     $danishLangcode = SubmissionConstants::LANG_DANISH;
 
-    $values = $this->buildSharedSeriesValues($submission, $descriptionGl, $descriptionDa);
+    $values = $this->buildSharedSeriesValues($submission, $descriptionGl);
     $values['langcode'] = $greenlandicLangcode;
-    $values['field_event_paragraphs'] = $this->createDescriptionParagraphs($descriptionGl, $descriptionDa);
+    $values['field_event_paragraphs'] = $this->createDescriptionParagraphs($descriptionGl);
 
     /** @var \Drupal\recurring_events\Entity\EventSeries $series */
     $series = $this->entityTypeManager->getStorage('eventseries')->create($values);
-    $series->save();
 
-    if ($series->isTranslatable() && $this->languageExists($danishLangcode)) {
-      $translationValues = [
-        'title' => $submission->get('organisation_name')->value,
-      ];
-      if ($series->hasField('field_description') && $descriptionDa !== $descriptionGl) {
-        $translationValues['field_description'] = $descriptionDa;
-      }
-      if ($series->hasField('field_teaser_text')) {
-        $translationValues['field_teaser_text'] = $this->buildTeaserText($submission, $descriptionDa);
-      }
+    try {
+      $series->save();
 
-      $translation = $series->addTranslation($danishLangcode, $translationValues);
-      $translation->save();
+      if ($series->isTranslatable() && $this->languageExists($danishLangcode)) {
+        $translationValues = [
+          'title' => $submission->get('organisation_name')->value,
+        ];
+        if ($series->hasField('field_description') && $descriptionDa !== $descriptionGl) {
+          $translationValues['field_description'] = $descriptionDa;
+        }
+        if ($series->hasField('field_teaser_text')) {
+          $translationValues['field_teaser_text'] = $this->buildTeaserText($submission, $descriptionDa);
+        }
+
+        $translation = $series->addTranslation($danishLangcode, $translationValues);
+        $translation->save();
+      }
+    }
+    catch (\Exception $exception) {
+      if (!$series->isNew()) {
+        try {
+          $series->delete();
+        }
+        catch (\Exception $deleteException) {
+          $this->logger->error('Failed to roll back event series after publish error: @message', [
+            '@message' => $deleteException->getMessage(),
+          ]);
+        }
+      }
+      throw $exception;
     }
 
     return $series;
@@ -81,7 +104,6 @@ final class EventSeriesPublisher {
   private function buildSharedSeriesValues(
     KulturEventSubmission $submission,
     string $descriptionGl,
-    string $descriptionDa,
   ): array {
     $start = $submission->get('event_start')->value;
     $end = $submission->get('event_end')->value;
@@ -102,7 +124,7 @@ final class EventSeriesPublisher {
       'field_event_partners' => [
         ['value' => $submission->get('organisation_name')->value],
       ],
-      'field_description' => $descriptionDa,
+      'field_description' => $descriptionGl,
       'field_teaser_text' => $this->buildTeaserText($submission, $descriptionGl),
     ];
 
@@ -121,18 +143,12 @@ final class EventSeriesPublisher {
    * @return array<int, array{target_id: int, target_revision_id: int}>
    *   Paragraph reference values.
    */
-  private function createDescriptionParagraphs(string $descriptionGl, string $descriptionDa): array {
-    $paragraphs = [];
-
-    if ($descriptionGl !== '') {
-      $paragraphs[] = $this->createTextBodyParagraph($descriptionGl);
+  private function createDescriptionParagraphs(string $descriptionGl): array {
+    if ($descriptionGl === '') {
+      return [];
     }
 
-    if ($descriptionDa !== '' && $descriptionDa !== $descriptionGl) {
-      $paragraphs[] = $this->createTextBodyParagraph($descriptionDa);
-    }
-
-    return $paragraphs;
+    return [$this->createTextBodyParagraph($descriptionGl)];
   }
 
   /**
@@ -170,6 +186,7 @@ final class EventSeriesPublisher {
     $address = $submission->get('address')->first();
     if ($address !== NULL) {
       $parts = array_filter([
+        trim((string) ($address->organization ?? '')),
         trim((string) ($address->address_line1 ?? '')),
         trim((string) ($address->postal_code ?? '')),
         trim((string) ($address->locality ?? '')),

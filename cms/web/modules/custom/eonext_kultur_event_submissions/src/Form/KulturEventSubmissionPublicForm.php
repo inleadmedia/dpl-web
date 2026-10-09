@@ -261,7 +261,7 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
    */
   private function applySectionWrappers(array &$form): void {
     $this->wrapFieldSection($form, 'city', $this->t('City', [], ['context' => 'eonext_kultur_event_submissions']));
-    $this->wrapFieldSection($form, 'organisation_name', $this->t('Organisation', [], ['context' => 'eonext_kultur_event_submissions']));
+    $this->wrapFieldSection($form, 'organisation_name', $this->t('Event title', [], ['context' => 'eonext_kultur_event_submissions']));
     $this->wrapFieldSection($form, 'address', $this->t('Location', [], ['context' => 'eonext_kultur_event_submissions']));
 
     if (isset($form['event_start'])) {

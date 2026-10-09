@@ -162,6 +162,35 @@ function eonext_kultur_event_submissions_update_9010(): void {
 }
 
 /**
+ * Shows the organization subfield on submission and event address fields.
+ */
+function eonext_kultur_event_submissions_update_9011(): void {
+  _eonext_kultur_event_submissions_update_address_field_settings();
+  _eonext_kultur_event_submissions_enable_address_organization_on_events();
+}
+
+/**
+ * Enables organization on synced event address field config.
+ */
+function _eonext_kultur_event_submissions_enable_address_organization_on_events(): void {
+  $config_names = [
+    'field.field.eventseries.default.field_event_address',
+    'field.field.eventinstance.default.field_event_address',
+  ];
+
+  foreach ($config_names as $config_name) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    if ($config->isNew()) {
+      continue;
+    }
+
+    $overrides = $config->get('settings.field_overrides') ?? [];
+    unset($overrides['organization']);
+    $config->set('settings.field_overrides', $overrides)->save(TRUE);
+  }
+}
+
+/**
  * Syncs address field storage settings with the module definition.
  */
 function _eonext_kultur_event_submissions_update_address_field_settings(): void {
@@ -175,7 +204,6 @@ function _eonext_kultur_event_submissions_update_address_field_settings(): void 
       'givenName' => ['override' => 'hidden'],
       'additionalName' => ['override' => 'hidden'],
       'familyName' => ['override' => 'hidden'],
-      'organization' => ['override' => 'hidden'],
       'addressLine2' => ['override' => 'hidden'],
       'addressLine3' => ['override' => 'hidden'],
       'sortingCode' => ['override' => 'hidden'],
