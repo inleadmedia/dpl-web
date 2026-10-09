@@ -42,6 +42,24 @@ function _eonext_kultur_event_submissions_grant_permissions(): void {
     $authenticated->grantPermission($submitPermission);
     $authenticated->save();
   }
+
+  _eonext_kultur_event_submissions_grant_text_format_basic();
+}
+
+/**
+ * Allows public submitters to use the Basic text format (CKEditor on descriptions).
+ */
+function _eonext_kultur_event_submissions_grant_text_format_basic(): void {
+  $permission = 'use text format basic';
+
+  foreach ([Role::ANONYMOUS_ID, Role::AUTHENTICATED_ID] as $role_id) {
+    $role = Role::load($role_id);
+    if ($role === NULL || $role->hasPermission($permission)) {
+      continue;
+    }
+    $role->grantPermission($permission);
+    $role->save();
+  }
 }
 
 /**
@@ -174,6 +192,13 @@ function eonext_kultur_event_submissions_update_9011(): void {
  */
 function eonext_kultur_event_submissions_update_9012(): void {
   _eonext_kultur_event_submissions_unprotect_admin_forms_from_honeypot();
+}
+
+/**
+ * Grant Basic text format so anonymous submitters get CKEditor on descriptions.
+ */
+function eonext_kultur_event_submissions_update_9013(): void {
+  _eonext_kultur_event_submissions_grant_text_format_basic();
 }
 
 /**

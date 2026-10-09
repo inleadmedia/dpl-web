@@ -3,6 +3,7 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.basic
     - filter.format.webform_default
     - rest.resource.campaign.match
     - rest.resource.dpl_opening_hours_list
@@ -26,6 +27,7 @@ permissions:
   - 'restful get events'
   - 'restful get proxy-url'
   - 'restful post campaign:match'
+  - 'use text format basic'
   - 'use text format webform_default'
   - 'view eventinstance entity'
   - 'view eventseries entity'

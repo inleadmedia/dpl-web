@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_events;
 
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -72,7 +71,6 @@ final class EventDetailBuilder {
       $start,
       $end,
       $allDay,
-      ['event_teaser_text', 'field_teaser_text'],
       ['event_image', 'field_event_image', 'event_teaser_image', 'field_teaser_image'],
       ['event_link', 'field_event_link'],
       ['event_place', 'field_event_place'],
@@ -116,7 +114,6 @@ final class EventDetailBuilder {
       $start,
       $end,
       $allDay,
-      ['field_teaser_text'],
       ['field_event_image', 'field_teaser_image'],
       ['field_event_link'],
       ['field_event_place'],
@@ -127,7 +124,6 @@ final class EventDetailBuilder {
   }
 
   /**
-   * @param string[] $taglineFields
    * @param string[] $imageFields
    * @param string[] $linkFields
    * @param string[] $placeFields
@@ -143,7 +139,6 @@ final class EventDetailBuilder {
     ?DrupalDateTime $start,
     ?DrupalDateTime $end,
     bool $allDay,
-    array $taglineFields,
     array $imageFields,
     array $linkFields,
     array $placeFields,
@@ -155,7 +150,7 @@ final class EventDetailBuilder {
 
     return [
       'title' => $title,
-      'tagline' => $this->getTagline($entity, ...$taglineFields),
+      'tagline' => NULL,
       'date_display' => $start instanceof DrupalDateTime
         ? $this->formatDetailDate($start, $end instanceof DrupalDateTime ? $end : NULL)
         : NULL,
@@ -171,31 +166,6 @@ final class EventDetailBuilder {
       'back_url' => Url::fromUserInput('/arrangementer')->toString(),
       'calendar_label' => (string) $this->t('Kalender', [], ['context' => 'eonext_kultur_events']),
     ];
-  }
-
-  /**
-   * @param string[] $fieldNames
-   */
-  private function getTagline(EntityInterface $entity, string ...$fieldNames): ?string {
-    foreach ($fieldNames as $fieldName) {
-      if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
-        continue;
-      }
-
-      $value = $entity->get($fieldName)->value ?? NULL;
-      if (!is_string($value) || trim($value) === '') {
-        continue;
-      }
-
-      $text = Html::decodeEntities(strip_tags($value));
-      $text = str_replace("\xc2\xa0", ' ', $text);
-      $text = preg_replace('/\s+/u', ' ', trim($text)) ?? '';
-      if ($text !== '') {
-        return $text;
-      }
-    }
-
-    return NULL;
   }
 
   /**

@@ -56,7 +56,9 @@
             const checked = form.querySelector('input[name="city"]:checked');
             const isNuuk = checked && checked.value === 'nuuk';
 
-            textarea.required = isNuuk;
+            // Do not set textarea.required: CKEditor hides the textarea and the
+            // browser then blocks submit with "not focusable" errors.
+            textarea.removeAttribute('required');
 
             const formItem = textarea.closest('.form-item');
             if (formItem) {

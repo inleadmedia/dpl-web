@@ -55,7 +55,7 @@ final class EventSeriesPublisher {
 
     $values = $this->buildSharedSeriesValues($submission, $descriptionGl);
     $values['langcode'] = $greenlandicLangcode;
-    $values['field_event_paragraphs'] = $this->createDescriptionParagraphs($descriptionGl);
+    $values['field_event_paragraphs'] = $this->createDescriptionParagraphs($descriptionGl, $descriptionDa);
 
     /** @var \Drupal\recurring_events\Entity\EventSeries $series */
     $series = $this->entityTypeManager->getStorage('eventseries')->create($values);
@@ -145,15 +145,26 @@ final class EventSeriesPublisher {
   /**
    * Builds paragraph references for event body content.
    *
+   * One shared text_body paragraph: Greenlandic default, Danish translation when
+   * it differs. Event detail renders field_event_paragraphs in the active language.
+   *
    * @return array<int, array{target_id: int, target_revision_id: int}>
    *   Paragraph reference values.
    */
-  private function createDescriptionParagraphs(string $descriptionGl): array {
+  private function createDescriptionParagraphs(string $descriptionGl, string $descriptionDa): array {
     if ($descriptionGl === '') {
       return [];
     }
 
-    return [$this->createTextBodyParagraph($descriptionGl)];
+    $paragraph = $this->createTextBodyParagraph($descriptionGl, SubmissionConstants::LANG_GREENLANDIC);
+    if ($descriptionDa !== '' && $descriptionDa !== $descriptionGl) {
+      $this->addTextBodyTranslation($paragraph, SubmissionConstants::LANG_DANISH, $descriptionDa);
+    }
+
+    return [[
+      'target_id' => (int) $paragraph->id(),
+      'target_revision_id' => (int) $paragraph->getRevisionId(),
+    ]];
   }
 
   /**
@@ -206,14 +217,11 @@ final class EventSeriesPublisher {
 
   /**
    * Creates a text_body paragraph for event descriptions.
-   *
-   * @return array{target_id: int, target_revision_id: int}
-   *   Paragraph reference value.
    */
-  private function createTextBodyParagraph(string $body): array {
+  private function createTextBodyParagraph(string $body, string $langcode): Paragraph {
     $paragraph = Paragraph::create([
       'type' => 'text_body',
-      'langcode' => SubmissionConstants::LANG_GREENLANDIC,
+      'langcode' => $langcode,
       'field_body' => [
         'value' => $body,
         'format' => 'basic',
@@ -221,10 +229,33 @@ final class EventSeriesPublisher {
     ]);
     $paragraph->save();
 
-    return [
-      'target_id' => (int) $paragraph->id(),
-      'target_revision_id' => (int) $paragraph->getRevisionId(),
+    return $paragraph;
+  }
+
+  /**
+   * Adds or updates a translated body on an existing text_body paragraph.
+   */
+  private function addTextBodyTranslation(Paragraph $paragraph, string $langcode, string $body): void {
+    if (!$paragraph->isTranslatable() || !$this->languageExists($langcode)) {
+      return;
+    }
+
+    $values = [
+      'field_body' => [
+        'value' => $body,
+        'format' => 'basic',
+      ],
     ];
+
+    if ($paragraph->hasTranslation($langcode)) {
+      $translation = $paragraph->getTranslation($langcode);
+      $translation->set('field_body', $values['field_body']);
+    }
+    else {
+      $translation = $paragraph->addTranslation($langcode, $values);
+    }
+
+    $translation->save();
   }
 
   /**

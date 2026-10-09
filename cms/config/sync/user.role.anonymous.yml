@@ -3,12 +3,14 @@ langcode: en
 status: true
 dependencies:
   config:
+    - filter.format.basic
     - rest.resource.campaign.match
     - rest.resource.dpl_opening_hours_legacy_list
     - rest.resource.dpl_opening_hours_list
     - rest.resource.events
     - rest.resource.proxy-url
   module:
+    - filter
     - media
     - openapi
     - recurring_events
@@ -30,5 +32,6 @@ permissions:
   - 'restful post campaign:match'
   - 'view eventinstance entity'
   - 'view eventseries entity'
+  - 'use text format basic'
   - 'view media'
   - 'view the administration theme'

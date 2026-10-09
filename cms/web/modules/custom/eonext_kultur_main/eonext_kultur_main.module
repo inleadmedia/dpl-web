@@ -48,7 +48,12 @@ function eonext_kultur_main_preprocess_page(array &$variables): void {
   }
 
   $header = $variables['search']['header'] ?? NULL;
-  if (isset($variables['search']) && is_array($header) && ($header['#theme'] ?? '') === 'dpl_search_header') {
+  if (
+    isset($variables['search'])
+    && is_array($header)
+    && ($header['#theme'] ?? '') === 'dpl_search_header'
+    && $route_name !== 'eonext_kultur_event_submissions.public_form'
+  ) {
     _eonext_kultur_main_attach_editorial_search_overlay($variables);
   }
 }

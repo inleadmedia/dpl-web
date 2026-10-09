@@ -7,6 +7,8 @@
 
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use CommerceGuys\Addressing\AddressFormat\FieldOverride;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Datetime\Element\Datetime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -204,11 +206,23 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     return;
   }
 
-  if (($context['items']->getFieldDefinition()->getName() ?? '') !== 'address') {
+  $field_name = $context['items']->getFieldDefinition()->getName() ?? '';
+  if (in_array($field_name, ['description_gl', 'description_da'], TRUE)) {
+    $element['#after_build'][] = 'eonext_kultur_event_submissions_text_format_hide_help_after_build';
     return;
   }
 
-  if (!isset($element['address'])) {
+  if (in_array($field_name, ['event_start', 'event_end'], TRUE) && isset($element['value'])) {
+    // One datetime-local control: Safari often drops separate date/time fields.
+    $element['value']['#date_date_element'] = 'datetime-local';
+    $element['value']['#date_time_element'] = 'none';
+    $element['value']['#date_increment'] = 60;
+    $element['value']['#value_callback'] = 'eonext_kultur_event_submissions_public_datetime_value_callback';
+    $element['value']['#after_build'][] = 'eonext_kultur_event_submissions_public_datetime_local_after_build';
+    return;
+  }
+
+  if ($field_name !== 'address' || !isset($element['address'])) {
     return;
   }
 
@@ -230,6 +244,70 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     AddressField::DEPENDENT_LOCALITY => FieldOverride::HIDDEN,
     AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
   ];
+}
+
+/**
+ * Value callback for public event date/time fields (Safari-friendly parsing).
+ */
+function eonext_kultur_event_submissions_public_datetime_value_callback(array &$element, $input, FormStateInterface $form_state) {
+  if ($input !== FALSE && is_array($input) && ($element['#date_date_element'] ?? '') === 'datetime-local') {
+    $raw = trim((string) ($input['date'] ?? ''));
+    if ($raw === '') {
+      return [
+        'date' => '',
+        'time' => '',
+        'object' => NULL,
+      ];
+    }
+
+    $timezone = $element['#date_timezone'] ?? date_default_timezone_get();
+    foreach (['Y-m-d\TH:i', 'Y-m-d\TH:i:s'] as $format) {
+      $date = DrupalDateTime::createFromFormat($format, $raw, $timezone);
+      if ($date instanceof DrupalDateTime && !$date->hasErrors()) {
+        return [
+          'date' => $raw,
+          'time' => '',
+          'object' => $date,
+        ];
+      }
+    }
+
+    return [
+      'date' => $raw,
+      'time' => '',
+      'object' => NULL,
+    ];
+  }
+
+  return Datetime::valueCallback($element, $input, $form_state);
+}
+
+/**
+ * Formats default values for HTML5 datetime-local inputs.
+ */
+function eonext_kultur_event_submissions_public_datetime_local_after_build(array $element, FormStateInterface $form_state): array {
+  if (($element['#date_date_element'] ?? '') !== 'datetime-local' || !isset($element['date'])) {
+    return $element;
+  }
+
+  $date = $element['#value']['object'] ?? NULL;
+  if ($date instanceof DrupalDateTime && !$date->hasErrors()) {
+    $formatted = $date->format('Y-m-d\TH:i');
+    $element['date']['#value'] = $formatted;
+    $element['date']['#default_value'] = $formatted;
+  }
+
+  return $element;
+}
+
+/**
+ * After-build callback: hide core "About text formats" on public description fields.
+ */
+function eonext_kultur_event_submissions_text_format_hide_help_after_build(array $element, FormStateInterface $form_state): array {
+  if (isset($element['format']['help'])) {
+    $element['format']['help']['#access'] = FALSE;
+  }
+  return $element;
 }
 
 /**

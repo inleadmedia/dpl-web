@@ -54,6 +54,8 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['#attached']['library'][] = 'eonext_kultur_event_submissions/submission-form';
     $form['#attributes']['class'][] = 'dpl-form';
+    // CKEditor hides the native textarea; browser constraint validation cannot focus it.
+    $form['#attributes']['novalidate'] = 'novalidate';
 
     if ($form_state->get('submission_success')) {
       $form['confirmation'] = $this->confirmationMessage();
@@ -79,17 +81,23 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
     $form = parent::buildForm($form, $form_state);
     $form['#after_build'][] = 'eonext_kultur_event_submissions_public_form_after_build';
 
-    if (isset($form['description_da'])) {
-      $form['description_da']['widget'][0]['value']['#attributes']['class'][] = 'dpl-input--full-width';
-      $form['description_da']['widget'][0]['value']['#states'] = [
-        'required' => [
-          ':input[name="city"]' => ['value' => SubmissionConstants::CITY_NUUK],
-        ],
-      ];
+    foreach (['description_gl', 'description_da'] as $field_name) {
+      if (!isset($form[$field_name]['widget'][0])) {
+        continue;
+      }
+      $element = &$form[$field_name]['widget'][0];
+      $element['#format'] = 'basic';
+      $element['#allowed_formats'] = ['basic'];
+      if (isset($element['value'])) {
+        $element['value']['#attributes']['class'][] = 'dpl-input--full-width';
+      }
     }
 
-    if (isset($form['description_gl']['widget'][0]['value'])) {
-      $form['description_gl']['widget'][0]['value']['#attributes']['class'][] = 'dpl-input--full-width';
+    if (isset($form['description_da']['widget'][0]['value'])) {
+      $element = &$form['description_da']['widget'][0]['value'];
+      // Nuuk requirement is enforced in validateForm(); avoid HTML5 required (CKEditor).
+      $element['#required'] = FALSE;
+      $element['#attributes']['required'] = NULL;
     }
 
     if (isset($form['image']['widget'][0])) {

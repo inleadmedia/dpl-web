@@ -10,5 +10,6 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@string_translation'
+      - '@dpl_event.reoccurring_date_formatter'
   eonext_kultur_main.nav_teaser_builder:
     class: Drupal\eonext_kultur_main\NavTeaserBuilder

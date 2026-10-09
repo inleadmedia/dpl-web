@@ -122,8 +122,13 @@
 
 .ek-submission-form__datetime-fields .container-inline,
 .ek-submission-form__datetime-fields .form-datetime-wrapper {
-  display: grid;
-  gap: 1rem;
+  display: block;
+}
+
+.ek-submission-form__datetime-fields input[type='datetime-local'] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
@@ -131,11 +136,6 @@
     grid-template-columns: 1fr 1fr;
     column-gap: 1.5rem;
     align-items: start;
-  }
-
-  .ek-submission-form__datetime-fields .container-inline,
-  .ek-submission-form__datetime-fields .form-datetime-wrapper {
-    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -161,4 +161,9 @@
 
 .ek-submission-form.dpl-form .dpl-button {
   margin-top: 2.75rem;
+}
+
+/* Core text_format "About text formats" (hidden via #access when possible). */
+.ek-submission-form .js-filter-wrapper [data-drupal-selector$="-format-help"] {
+  display: none;
 }
