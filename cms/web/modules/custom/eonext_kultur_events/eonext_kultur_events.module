@@ -9,10 +9,12 @@ declare(strict_types=1);
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\eonext_kultur_events\EventsConstants;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -449,6 +451,29 @@ function eonext_kultur_events_get_base_icon_path(): string {
   $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
 
   return '/' . $theme_path . '/assets/dpl-design-system/icons';
+}
+
+/**
+ * Implements hook_views_query_alter().
+ */
+function eonext_kultur_events_views_query_alter(ViewExecutable $view, $query): void {
+  if ($view->id() !== EventsConstants::VIEW_ID || $view->current_display !== EventsConstants::VIEW_DISPLAY) {
+    return;
+  }
+
+  if (!$query instanceof SearchApiQuery) {
+    return;
+  }
+
+  $search_api_query = $query->getSearchApiQuery();
+  if ($search_api_query === NULL) {
+    return;
+  }
+
+  // Each event instance translation is indexed separately; without this filter
+  // /da/arrangementer lists both da and en (etc.) as duplicate cards.
+  $langcode = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
+  $search_api_query->addCondition('search_api_language', $langcode);
 }
 
 /**
