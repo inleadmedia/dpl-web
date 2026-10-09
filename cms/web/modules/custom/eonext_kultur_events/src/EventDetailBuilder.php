@@ -11,6 +11,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
 use Drupal\dpl_event\PriceFormatter;
+use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\drupal_typed\DrupalTyped;
 use Drupal\media\MediaInterface;
 use Drupal\recurring_events\Entity\EventInstance;
@@ -54,7 +55,7 @@ final class EventDetailBuilder {
     $start = NULL;
     $end = NULL;
 
-    if (!$eventInstance->get('date')->isEmpty()) {
+    if ($eventInstance->hasField('date') && !$eventInstance->get('date')->isEmpty()) {
       $dateField = $eventInstance->get('date')->first();
       $start = $dateField->start_date ?? NULL;
       $end = $dateField->end_date ?? NULL;
@@ -87,16 +88,14 @@ final class EventDetailBuilder {
     $end = NULL;
     $allDay = FALSE;
 
-    if (!$eventSeries->get('date')->isEmpty()) {
-      $dateField = $eventSeries->get('date')->first();
-      $start = $dateField->start_date ?? NULL;
-      $end = $dateField->end_date ?? NULL;
+    $formatter = DrupalTyped::service(ReoccurringDateFormatter::class, 'dpl_event.reoccurring_date_formatter');
+    $upcoming = $formatter->getUpcomingEventDetails($eventSeries);
+    if (is_array($upcoming)) {
+      $start = $upcoming['start'] ?? NULL;
+      $end = $upcoming['end'] ?? NULL;
     }
 
-    if ($eventSeries->hasField('field_event_all_day')
-      && !empty($eventSeries->get('field_event_all_day')->getString())) {
-      $allDay = TRUE;
-    }
+    $allDay = $formatter->isAllDay($eventSeries);
 
     return $this->buildDetail(
       $eventSeries,

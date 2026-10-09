@@ -347,11 +347,55 @@ function eonext_kultur_preprocess_html(array &$variables): void {
 }
 
 /**
+ * Cleans footer WYSIWYG HTML (leading nbsp, headings used as body lines).
+ */
+function _eonext_kultur_clean_footer_html(string $html): string {
+  if ($html === '') {
+    return $html;
+  }
+
+  $html = str_replace(["\xE2\x80\x8B", "\xEF\xBB\xBF"], '', $html);
+
+  $html = preg_replace(
+    '/(<(?:p|h[1-6]|li|div|strong)[^>]*>)(?:\s|&nbsp;|&#160;|\x{00A0})+/iu',
+    '$1',
+    $html,
+  ) ?? $html;
+
+  $html = preg_replace(
+    '/<h[1-6]([^>]*)>/i',
+    '<p$1>',
+    $html,
+  ) ?? $html;
+  $html = preg_replace(
+    '/<\/h[1-6]>/i',
+    '</p>',
+    $html,
+  ) ?? $html;
+
+  $html = preg_replace(
+    '/<(?:p|div)[^>]*>(?:\s|&nbsp;|&#160;|\x{00A0}|<br\s*\/?>)*<\/(?:p|div)>/iu',
+    '',
+    $html,
+  ) ?? $html;
+
+  return trim($html);
+}
+
+/**
  * Implements hook_preprocess_HOOK() for page.
  */
 function eonext_kultur_preprocess_page(array &$variables): void {
   // dpl_footer only provides this for the novel theme directly.
   $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
+  if (!empty($variables['footer_settings']['footer_items'])) {
+    foreach ($variables['footer_settings']['footer_items'] as &$item) {
+      if (!empty($item['content']['value'])) {
+        $item['content']['value'] = _eonext_kultur_clean_footer_html((string) $item['content']['value']);
+      }
+    }
+    unset($item);
+  }
   $variables['#cache']['tags'][] = 'dpl_footer';
   $variables['#cache']['tags'][] = 'config:eonext_kultur.settings';
 

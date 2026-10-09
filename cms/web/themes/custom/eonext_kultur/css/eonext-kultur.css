@@ -146,10 +146,6 @@ h6,
     width: auto;
   }
 
-  .header.ek-header .header__button-responsive-switch > *:first-child {
-    display: flex !important;
-  }
-
   .header.ek-header .header__button-responsive-switch .header__button-icon {
     width: 28px;
     height: 28px;
@@ -762,18 +758,51 @@ article .rich-text ol > li::before {
   line-height: 1.7;
 }
 
-.ek-footer__content a {
-  text-decoration: underline;
+.ek-footer__content {
+  text-align: left;
 }
 
-.ek-footer__content ul {
-  padding: 0;
+.ek-footer__content a {
+  display: inline;
   margin: 0;
+  padding: 0;
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+/* Rich text from the footer admin often mixes align classes / lists — one left edge. */
+.ek-footer__content :is(p, ul, ol, li, h2, h3, h4, blockquote, address, div) {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  text-align: left !important;
+  text-indent: 0;
+}
+
+.ek-footer__content > :first-child {
+  margin-top: 0;
+}
+
+.ek-footer__content > :last-child {
+  margin-bottom: 0;
+}
+
+.ek-footer__content ul,
+.ek-footer__content ol {
   list-style: none;
 }
 
 .ek-footer__content li + li {
   margin-top: 0.35rem;
+}
+
+.ek-footer__content .visually-hidden,
+.ek-footer__content .sr-only {
+  position: absolute !important;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  width: 1px;
+  height: 1px;
+  word-wrap: normal;
 }
 
 .ek-footer__col-social {
@@ -1207,21 +1236,36 @@ article .rich-text ol > li::before {
 
 /*
  * Mobile/tablet: position the translation container absolutely in the top-right of the header.
+ *
+ * The language UI is rendered by the patron menu React app (data-dpl-app="menu"), which
+ * mounts only after menu.js loads and /dpl-react/user-tokens returns. Reserve space on
+ * the empty mount node so the header does not jump when React paints.
  */
 .header.ek-header .ek-header-translation {
   position: absolute;
   right: 0;
   top: 0;
   height: 56px;
+  min-width: 70px;
   display: flex;
   align-items: center;
   pointer-events: auto;
   z-index: 10;
 }
 
+.header.ek-header .ek-header-translation [data-dpl-app="menu"] {
+  display: block;
+  min-width: 70px;
+  min-height: 56px;
+}
+
 @media (min-width: 768px) {
   .header.ek-header .ek-header-translation {
     height: 70px;
+  }
+
+  .header.ek-header .ek-header-translation [data-dpl-app="menu"] {
+    min-height: 70px;
   }
 }
 
@@ -1232,6 +1276,8 @@ article .rich-text ol > li::before {
     grid-column: 4;
     grid-row: 1;
     height: auto;
+    min-width: 70px;
+    justify-self: end;
     align-items: center;
   }
 }

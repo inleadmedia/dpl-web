@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_event_submissions\Service;
 
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
@@ -17,6 +18,11 @@ use Drupal\recurring_events\Entity\EventSeries;
  * Creates event series entities from approved Kulturnat submissions.
  */
 final class EventSeriesPublisher {
+
+  /**
+   * Matches field.storage.eventseries.field_teaser_text max_length.
+   */
+  private const TEASER_TEXT_MAX_LENGTH = 255;
 
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
@@ -133,12 +139,28 @@ final class EventSeriesPublisher {
    * Builds a short teaser shown in cards and the event hero.
    */
   private function buildTeaserText(KulturEventSubmission $submission, string $description): string {
-    $description = trim($description);
+    $description = trim(strip_tags($description));
     if ($description !== '') {
-      return $description;
+      return $this->truncateTeaserText($description);
     }
 
-    return (string) $submission->get('organisation_name')->value;
+    return $this->truncateTeaserText((string) $submission->get('organisation_name')->value);
+  }
+
+  /**
+   * Ensures teaser text fits the eventseries string field (255 chars).
+   */
+  private function truncateTeaserText(string $text): string {
+    $text = trim($text);
+    if ($text === '') {
+      return '';
+    }
+
+    if (mb_strlen($text) <= self::TEASER_TEXT_MAX_LENGTH) {
+      return $text;
+    }
+
+    return Unicode::truncate($text, self::TEASER_TEXT_MAX_LENGTH, TRUE, TRUE);
   }
 
   /**
