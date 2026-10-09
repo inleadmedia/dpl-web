@@ -633,6 +633,14 @@
   -webkit-line-clamp: 2;
 }
 
+.eonext-kultur-event-card__place {
+  margin: 0.375rem 0 0;
+  font-family: var(--font-body, "Open Sans", sans-serif);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--ek-navy, #235881);
+}
+
 .eonext-kultur-event-card__footer {
   display: flex;
   flex-wrap: nowrap;

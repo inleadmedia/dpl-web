@@ -12,6 +12,7 @@ dependencies:
     - paragraphs.paragraphs_type.go_material_slider_automatic
     - paragraphs.paragraphs_type.go_material_slider_manual
     - paragraphs.paragraphs_type.go_text_body
+    - paragraphs.paragraphs_type.text_body
     - paragraphs.paragraphs_type.go_video
     - paragraphs.paragraphs_type.go_video_bundle_automatic
     - paragraphs.paragraphs_type.go_video_bundle_manual
@@ -40,6 +41,7 @@ settings:
       go_material_slider_automatic: go_material_slider_automatic
       go_material_slider_manual: go_material_slider_manual
       go_text_body: go_text_body
+      text_body: text_body
       go_video: go_video
       go_video_bundle_automatic: go_video_bundle_automatic
       go_video_bundle_manual: go_video_bundle_manual
@@ -146,7 +148,7 @@ settings:
         enabled: false
       text_body:
         weight: 10
-        enabled: false
+        enabled: true
       user_registration_item:
         weight: 72
         enabled: false

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_main;
 
+use Drupal\Component\Utility\Html;
+use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -59,7 +61,8 @@ final class HeroSlideBuilder {
     return [
       'title' => $eventSeries->label(),
       'category' => $this->getCategoryLabel($eventSeries),
-      'tagline' => $this->getTagline($eventSeries, 'field_description'),
+      'tagline' => $this->getTagline($eventSeries, 'field_teaser_text'),
+      'place' => $this->getPlaceLabel($eventSeries),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $formatter->isAllDay($eventSeries))
         : NULL,
@@ -87,7 +90,8 @@ final class HeroSlideBuilder {
     return [
       'title' => $eventInstance->label(),
       'category' => $this->getCategoryLabel($eventInstance),
-      'tagline' => $this->getTagline($eventInstance, 'event_description', 'field_description'),
+      'tagline' => $this->getTagline($eventInstance, 'field_teaser_text', 'event_teaser_text'),
+      'place' => $this->getPlaceLabel($eventInstance),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $allDay)
         : NULL,
@@ -181,13 +185,69 @@ final class HeroSlideBuilder {
         continue;
       }
 
-      $text = trim(strip_tags($value));
+      $text = Html::decodeEntities(strip_tags($value));
+      $text = str_replace("\xc2\xa0", ' ', $text);
+      $text = preg_replace('/\s+/u', ' ', trim($text)) ?? '';
       if ($text !== '') {
-        return $text;
+        return Unicode::truncate($text, 255, TRUE, TRUE);
       }
     }
 
     return NULL;
+  }
+
+  /**
+   * Resolves a short place/address label for cards.
+   */
+  private function getPlaceLabel(EntityInterface $entity): ?string {
+    foreach (['field_event_place', 'event_place'] as $fieldName) {
+      if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+        continue;
+      }
+      $value = trim((string) $entity->get($fieldName)->value);
+      if ($value !== '') {
+        return $value;
+      }
+    }
+
+    foreach (['field_event_address', 'event_address'] as $fieldName) {
+      $formatted = $this->formatAddressField($entity, $fieldName);
+      if ($formatted !== NULL) {
+        return $formatted;
+      }
+    }
+
+    if ($entity instanceof EventInstance) {
+      $series = $entity->get('eventseries_id')->entity;
+      if ($series instanceof EventSeries) {
+        return $this->getPlaceLabel($series);
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Builds a single-line label from an address field.
+   */
+  private function formatAddressField(EntityInterface $entity, string $fieldName): ?string {
+    if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+      return NULL;
+    }
+
+    $address = $entity->get($fieldName)->first();
+    if ($address === NULL) {
+      return NULL;
+    }
+
+    $parts = array_filter([
+      trim((string) ($address->organization ?? '')),
+      trim((string) ($address->address_line1 ?? '')),
+      trim((string) ($address->postal_code ?? '')),
+      trim((string) ($address->locality ?? '')),
+    ]);
+
+    return $parts === [] ? NULL : implode(', ', $parts);
   }
 
   /**

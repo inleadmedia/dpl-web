@@ -59,6 +59,10 @@ final class EventSeriesPublisher {
 
     /** @var \Drupal\recurring_events\Entity\EventSeries $series */
     $series = $this->entityTypeManager->getStorage('eventseries')->create($values);
+    $paragraph_ids = array_map(
+      static fn(array $ref): int => (int) $ref['target_id'],
+      $values['field_event_paragraphs'] ?? [],
+    );
 
     try {
       $series->save();
@@ -89,6 +93,7 @@ final class EventSeriesPublisher {
           ]);
         }
       }
+      $this->deleteParagraphs($paragraph_ids);
       throw $exception;
     }
 
@@ -200,14 +205,15 @@ final class EventSeriesPublisher {
   }
 
   /**
-   * Creates a go_text_body paragraph for event descriptions.
+   * Creates a text_body paragraph for event descriptions.
    *
    * @return array{target_id: int, target_revision_id: int}
    *   Paragraph reference value.
    */
   private function createTextBodyParagraph(string $body): array {
     $paragraph = Paragraph::create([
-      'type' => 'go_text_body',
+      'type' => 'text_body',
+      'langcode' => SubmissionConstants::LANG_GREENLANDIC,
       'field_body' => [
         'value' => $body,
         'format' => 'basic',
@@ -224,6 +230,34 @@ final class EventSeriesPublisher {
   /**
    * Creates a media entity from the submission image field.
    */
+  /**
+   * Deletes paragraphs created during a failed publish rollback.
+   *
+   * @param int[] $paragraph_ids
+   */
+  private function deleteParagraphs(array $paragraph_ids): void {
+    if ($paragraph_ids === []) {
+      return;
+    }
+
+    $storage = $this->entityTypeManager->getStorage('paragraph');
+    foreach ($paragraph_ids as $paragraph_id) {
+      if ($paragraph_id <= 0) {
+        continue;
+      }
+      try {
+        $paragraph = $storage->load($paragraph_id);
+        $paragraph?->delete();
+      }
+      catch (\Exception $exception) {
+        $this->logger->warning('Could not delete paragraph @id during publish rollback: @message', [
+          '@id' => $paragraph_id,
+          '@message' => $exception->getMessage(),
+        ]);
+      }
+    }
+  }
+
   private function createImageMedia(KulturEventSubmission $submission): ?int {
     if ($submission->get('image')->isEmpty()) {
       return NULL;

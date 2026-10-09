@@ -18,6 +18,9 @@
         {% if hero_slide.tagline %}
           <p class="eonext-kultur-event-card__tagline">{{ hero_slide.tagline }}</p>
         {% endif %}
+        {% if hero_slide.place %}
+          <p class="eonext-kultur-event-card__place">{{ hero_slide.place }}</p>
+        {% endif %}
 
         <div class="eonext-kultur-event-card__footer">
           {% if hero_slide.date_display %}

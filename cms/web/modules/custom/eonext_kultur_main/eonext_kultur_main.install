@@ -14,6 +14,9 @@ use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\language\Entity\ContentLanguageSettings;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\paragraphs\ParagraphInterface;
 
 /**
@@ -758,4 +761,158 @@ function _eonext_kultur_main_ensure_nav_spot_fields(): void {
 
     FieldConfig::create($data)->save();
   }
+}
+
+/**
+ * Enable per-language text body paragraphs and repair wrong default languages.
+ */
+function eonext_kultur_main_update_9027(): string {
+  return _eonext_kultur_main_enable_text_body_translation();
+}
+
+/**
+ * Makes text body translatable and fixes paragraphs saved in the wrong language.
+ */
+function _eonext_kultur_main_enable_text_body_translation(): string {
+  $messages = [];
+
+  if (!\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return 'Content translation is not enabled; skipped text body translation setup.';
+  }
+
+  $manager = \Drupal::service('content_translation.manager');
+  if (!$manager->isEnabled('paragraph', 'text_body')) {
+    $manager->setEnabled('paragraph', 'text_body', TRUE);
+    $messages[] = 'Enabled content translation for text body paragraphs.';
+  }
+
+  $language_settings = ContentLanguageSettings::load('paragraph.text_body');
+  if (!$language_settings instanceof ContentLanguageSettings) {
+    $language_settings = ContentLanguageSettings::create([
+      'target_entity_type_id' => 'paragraph',
+      'target_bundle' => 'text_body',
+    ]);
+  }
+  if ($language_settings->getDefaultLangcode() !== 'da') {
+    $language_settings->setDefaultLangcode('da');
+    $language_settings->setLanguageAlterable(FALSE);
+    $language_settings->save();
+    $messages[] = 'Set text body paragraph default language to Danish.';
+  }
+
+  $field = FieldConfig::loadByName('paragraph', 'text_body', 'field_body');
+  if ($field instanceof FieldConfig && !$field->isTranslatable()) {
+    $field->setTranslatable(TRUE);
+    $field->save();
+    $messages[] = 'Made text body field translatable.';
+  }
+
+  foreach (['page', 'article'] as $bundle) {
+    $paragraph_field = FieldConfig::loadByName('node', $bundle, 'field_paragraphs');
+    if ($paragraph_field instanceof FieldConfig && $paragraph_field->isTranslatable()) {
+      $paragraph_field->setTranslatable(FALSE);
+      $paragraph_field->save();
+      $messages[] = "Kept node {$bundle} paragraph references shared across translations.";
+    }
+  }
+
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  $repaired = _eonext_kultur_main_repair_text_body_paragraph_languages();
+  if ($repaired > 0) {
+    $messages[] = "Repaired {$repaired} text body paragraph(s) with a non-Danish default language.";
+  }
+
+  return implode(' ', $messages) ?: 'Text body translation is already configured.';
+}
+
+/**
+ * Moves mis-labeled paragraph defaults to Danish and preserves body as translation.
+ */
+function _eonext_kultur_main_repair_text_body_paragraph_languages(): int {
+  $storage = \Drupal::entityTypeManager()->getStorage('paragraph');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->condition('type', 'text_body')
+    ->execute();
+
+  if ($ids === []) {
+    return 0;
+  }
+
+  $repaired = 0;
+  foreach ($storage->loadMultiple($ids) as $paragraph) {
+    if (!$paragraph instanceof ParagraphInterface) {
+      continue;
+    }
+
+    $parent = $paragraph->getParentEntity();
+    if (!$parent instanceof NodeInterface || !in_array($parent->bundle(), ['page', 'article'], TRUE)) {
+      continue;
+    }
+
+    $target_langcode = 'da';
+    $settings = ContentLanguageSettings::load('node.' . $parent->bundle());
+    if ($settings instanceof ContentLanguageSettings) {
+      $configured_default = $settings->getDefaultLangcode();
+      if (is_string($configured_default) && $configured_default !== '') {
+        $target_langcode = $configured_default;
+      }
+    }
+
+    if (_eonext_kultur_main_repair_single_text_body_paragraph($paragraph, $target_langcode)) {
+      $repaired++;
+    }
+  }
+
+  return $repaired;
+}
+
+/**
+ * Reassigns a single-language text body paragraph default langcode on its host node.
+ */
+function _eonext_kultur_main_repair_single_text_body_paragraph(ParagraphInterface $paragraph, string $target_langcode): bool {
+  if ($paragraph->bundle() !== 'text_body') {
+    return FALSE;
+  }
+
+  if (count($paragraph->getTranslationLanguages()) > 1) {
+    return FALSE;
+  }
+
+  $source_langcode = $paragraph->language()->getId();
+  if ($source_langcode === $target_langcode) {
+    return FALSE;
+  }
+
+  $body = $paragraph->get('field_body')->getValue();
+  $id = (int) $paragraph->id();
+  if ($id === 0) {
+    return FALSE;
+  }
+
+  $connection = \Drupal::database();
+  foreach (['paragraphs_item_field_data', 'paragraphs_item_revision_field_data'] as $table) {
+    $connection->update($table)
+      ->fields(['langcode' => $target_langcode])
+      ->condition('id', $id)
+      ->condition('default_langcode', 1)
+      ->execute();
+  }
+
+  \Drupal::entityTypeManager()->getStorage('paragraph')->resetCache([$id]);
+  $paragraph = Paragraph::load($id);
+  if (!$paragraph instanceof ParagraphInterface) {
+    return FALSE;
+  }
+
+  $paragraph->set('field_body', []);
+  $paragraph->save();
+
+  if ($body !== []) {
+    $paragraph->addTranslation($source_langcode, ['field_body' => $body]);
+    $paragraph->save();
+  }
+
+  return TRUE;
 }

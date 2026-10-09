@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_events;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -70,7 +71,7 @@ final class EventDetailBuilder {
       $start,
       $end,
       $allDay,
-      ['event_teaser_text', 'field_teaser_text', 'event_description', 'field_description'],
+      ['event_teaser_text', 'field_teaser_text'],
       ['event_image', 'field_event_image', 'event_teaser_image', 'field_teaser_image'],
       ['event_link', 'field_event_link'],
       ['event_place', 'field_event_place'],
@@ -103,7 +104,7 @@ final class EventDetailBuilder {
       $start,
       $end,
       $allDay,
-      ['field_teaser_text', 'field_description'],
+      ['field_teaser_text'],
       ['field_event_image', 'field_teaser_image'],
       ['field_event_link'],
       ['field_event_place'],
@@ -147,7 +148,7 @@ final class EventDetailBuilder {
       'time_display' => $this->formatDetailTime($start, $end, $allDay),
       'datetime_attribute' => $start instanceof DrupalDateTime ? $start->format(DATE_ATOM) : NULL,
       'price_display' => $this->formatTicketPrice($entity, $ticketCategoryFields),
-      'location_display' => $this->getLocationLabel($entity, $placeFields, $locationFields, $branchFields),
+      'location_display' => $this->resolveLocationDisplay($entity, $placeFields, $locationFields, $branchFields),
       'ticket_url' => $this->getTicketUrl($entity, $linkFields),
       'image' => $image,
       'banner_image' => $image,
@@ -170,7 +171,9 @@ final class EventDetailBuilder {
         continue;
       }
 
-      $text = trim(strip_tags($value));
+      $text = Html::decodeEntities(strip_tags($value));
+      $text = str_replace("\xc2\xa0", ' ', $text);
+      $text = preg_replace('/\s+/u', ' ', trim($text)) ?? '';
       if ($text !== '') {
         return $text;
       }
@@ -262,6 +265,87 @@ final class EventDetailBuilder {
     }
 
     return NULL;
+  }
+
+  /**
+   * Resolves a location line for the detail meta block.
+   *
+   * @param string[] $placeFields
+   * @param string[] $locationFields
+   * @param string[] $branchFields
+   */
+  private function resolveLocationDisplay(
+    EntityInterface $entity,
+    array $placeFields,
+    array $locationFields,
+    array $branchFields,
+  ): ?string {
+    $label = $this->getLocationLabel($entity, $placeFields, $locationFields, $branchFields);
+    if ($label !== NULL) {
+      return $label;
+    }
+
+    foreach (['field_event_address', 'event_address'] as $fieldName) {
+      $formatted = $this->formatAddressField($entity, $fieldName);
+      if ($formatted !== NULL) {
+        return $formatted;
+      }
+    }
+
+    foreach (['field_event_address_gsearch', 'event_address_gsearch'] as $fieldName) {
+      $formatted = $this->getPlainTextField($entity, $fieldName);
+      if ($formatted !== NULL) {
+        return $formatted;
+      }
+    }
+
+    if ($entity instanceof EventInstance) {
+      $series = $entity->get('eventseries_id')->entity;
+      if ($series instanceof EventSeries) {
+        return $this->resolveLocationDisplay($series, ['field_event_place'], ['field_event_location'], ['field_branch']);
+      }
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Builds a single-line label from an address field.
+   */
+  private function formatAddressField(EntityInterface $entity, string $fieldName): ?string {
+    if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+      return NULL;
+    }
+
+    $address = $entity->get($fieldName)->first();
+    if ($address === NULL) {
+      return NULL;
+    }
+
+    $parts = array_filter([
+      trim((string) ($address->organization ?? '')),
+      trim((string) ($address->address_line1 ?? '')),
+      trim((string) ($address->postal_code ?? '')),
+      trim((string) ($address->locality ?? '')),
+    ]);
+
+    if ($parts === []) {
+      return NULL;
+    }
+
+    return implode(', ', $parts);
+  }
+
+  /**
+   * Returns trimmed string field value when present.
+   */
+  private function getPlainTextField(EntityInterface $entity, string $fieldName): ?string {
+    if (!$entity->hasField($fieldName) || $entity->get($fieldName)->isEmpty()) {
+      return NULL;
+    }
+
+    $value = trim((string) ($entity->get($fieldName)->value ?? ''));
+    return $value !== '' ? $value : NULL;
   }
 
   /**

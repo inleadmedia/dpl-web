@@ -12,6 +12,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\eonext_kultur_events\EventsConstants;
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\IndexInterface;
 
@@ -364,6 +365,173 @@ function eonext_kultur_events_update_9007(): void {
   $inheritance?->delete();
 
   eonext_kultur_events_configure_publication_date_form_display();
+}
+
+/**
+ * Removes broken paragraph references from event series (fixes edit form errors).
+ */
+function eonext_kultur_events_update_9008(): string {
+  return eonext_kultur_events_prune_invalid_event_paragraph_references();
+}
+
+/**
+ * Replaces GO Text Body paragraphs on events with standard Text body paragraphs.
+ */
+function eonext_kultur_events_update_9009(): string {
+  return eonext_kultur_events_migrate_go_text_body_event_paragraphs();
+}
+
+/**
+ * Allows Text body paragraphs on event paragraph fields and migrates GO bodies.
+ */
+function eonext_kultur_events_update_9010(): string {
+  $config_names = [
+    'field.field.eventseries.default.field_event_paragraphs',
+    'field.field.eventinstance.default.field_event_paragraphs',
+  ];
+  $storage = new FileStorage(\Drupal::root() . '/../config/sync');
+  $imported = 0;
+
+  foreach ($config_names as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+    $field = FieldConfig::load($data['id']);
+    if ($field === NULL) {
+      continue;
+    }
+    $field->set('settings', $data['settings']);
+    $field->set('dependencies', $data['dependencies']);
+    $field->save();
+    $imported++;
+  }
+
+  $migration = eonext_kultur_events_migrate_go_text_body_event_paragraphs();
+
+  return "Updated {$imported} event paragraph field(s). {$migration}";
+}
+
+/**
+ * Converts go_text_body paragraph references on events to text_body.
+ */
+function eonext_kultur_events_migrate_go_text_body_event_paragraphs(): string {
+  $entity_types = ['eventseries', 'eventinstance'];
+  $converted = 0;
+  $entities_touched = 0;
+  $old_paragraph_ids = [];
+
+  foreach ($entity_types as $entity_type_id) {
+    $storage = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+    foreach ($storage->loadMultiple() as $entity) {
+      if (!$entity->hasField('field_event_paragraphs') || $entity->get('field_event_paragraphs')->isEmpty()) {
+        continue;
+      }
+
+      $changed = FALSE;
+      foreach ($entity->get('field_event_paragraphs') as $delta => $item) {
+        $paragraph = Paragraph::load($item->target_id);
+        if (!$paragraph instanceof Paragraph || $paragraph->bundle() !== 'go_text_body') {
+          continue;
+        }
+
+        $body_values = $paragraph->get('field_body')->getValue();
+        foreach ($body_values as &$body_item) {
+          $body_item['format'] = 'basic';
+        }
+        unset($body_item);
+
+        $replacement = Paragraph::create([
+          'type' => 'text_body',
+          'langcode' => $paragraph->language()->getId(),
+          'field_body' => $body_values,
+        ]);
+        $replacement->save();
+
+        $entity->get('field_event_paragraphs')->set($delta, [
+          'target_id' => (int) $replacement->id(),
+          'target_revision_id' => (int) $replacement->getRevisionId(),
+        ]);
+
+        $old_paragraph_ids[(int) $paragraph->id()] = TRUE;
+        $converted++;
+        $changed = TRUE;
+      }
+
+      if ($changed) {
+        $entity->save();
+        $entities_touched++;
+      }
+    }
+  }
+
+  foreach (array_keys($old_paragraph_ids) as $paragraph_id) {
+    $old = Paragraph::load($paragraph_id);
+    $old?->delete();
+  }
+
+  return "Converted {$converted} go_text_body paragraph(s) on {$entities_touched} event(s).";
+}
+
+/**
+ * Drops paragraph references that fail entity reference validation.
+ *
+ * @return string
+ *   Summary for update log output.
+ */
+function eonext_kultur_events_prune_invalid_event_paragraph_references(): string {
+  $field = FieldConfig::load('eventseries.default.field_event_paragraphs');
+  if ($field === NULL) {
+    return 'Skipped: field_event_paragraphs not found.';
+  }
+
+  $selection = \Drupal::service('plugin.manager.entity_reference_selection')
+    ->getSelectionHandler($field);
+  $storage = \Drupal::entityTypeManager()->getStorage('eventseries');
+  $removed = 0;
+  $series_touched = 0;
+
+  foreach ($storage->loadMultiple() as $series) {
+    if (!$series->hasField('field_event_paragraphs') || $series->get('field_event_paragraphs')->isEmpty()) {
+      continue;
+    }
+
+    $target_ids = [];
+    foreach ($series->get('field_event_paragraphs') as $item) {
+      if (!empty($item->target_id)) {
+        $target_ids[] = (int) $item->target_id;
+      }
+    }
+    if ($target_ids === []) {
+      continue;
+    }
+
+    $valid_ids = array_map('intval', $selection->validateReferenceableEntities($target_ids));
+    $invalid_ids = array_diff($target_ids, $valid_ids);
+    if ($invalid_ids === []) {
+      continue;
+    }
+
+    $deltas_to_remove = [];
+    foreach ($series->get('field_event_paragraphs') as $delta => $item) {
+      if (in_array((int) $item->target_id, $invalid_ids, TRUE)) {
+        $deltas_to_remove[] = $delta;
+      }
+    }
+    if ($deltas_to_remove === []) {
+      continue;
+    }
+
+    foreach (array_reverse($deltas_to_remove) as $delta) {
+      $series->get('field_event_paragraphs')->removeItem($delta);
+      $removed++;
+    }
+
+    $series->save();
+    $series_touched++;
+  }
+
+  return "Removed {$removed} invalid paragraph reference(s) from {$series_touched} event series.";
 }
 
 /**
