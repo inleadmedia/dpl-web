@@ -81,10 +81,6 @@ h6,
     border-bottom: 1px solid #dbdbdb;
   }
 
-  .header.ek-header .header__clock {
-    display: none !important;
-  }
-
   .header.ek-header .header__menu.ek-header-menu {
     display: grid;
     grid-template-rows: auto auto !important;
@@ -281,40 +277,6 @@ h6,
     display: none !important;
   }
 
-  .header.ek-header .header__clock {
-    grid-column: 4;
-    grid-row: 1;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    height: auto !important;
-    border-left: none;
-    width: auto;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  .header.ek-header .header__clock-items {
-    gap: 6px;
-    text-align: center;
-    align-items: center;
-    width: auto;
-  }
-
-  .header.ek-header .header__clock-items img {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 0 !important;
-  }
-
-  .header.ek-header .header__clock-items .text-small-caption {
-    font-size: 13px;
-    line-height: 1.2;
-    white-space: nowrap;
-  }
-
   .header.ek-header .ek-logo {
     height: 72px;
     max-width: 100%;
@@ -486,13 +448,6 @@ body.eonext-editorial-autosuggest-only .eonext-editorial-overlay--standalone {
 .header.ek-header .pagefold-triangle--small,
 .header.ek-header .pagefold-triangle--medium {
   display: none;
-}
-
-.header.ek-header .header__clock .pagefold-parent--medium {
-  display: none !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  clip-path: none !important;
 }
 
 .header.ek-header .header__menu-navigation-pagefold.pagefold-parent--small {
@@ -1270,19 +1225,8 @@ article .rich-text ol > li::before {
   }
 }
 
-/*
- * Desktop: participate in the header grid.
- * Expand to 5 columns and move the clock to column 5 to make room.
- */
+/* Desktop: translation selector in the header grid. */
 @media (min-width: 1440px) {
-  .header.ek-header {
-    grid-template-columns: auto 1fr auto auto auto;
-  }
-
-  .header.ek-header .header__clock {
-    grid-column: 5 !important;
-  }
-
   .header.ek-header .ek-header-translation {
     position: static;
     grid-column: 4;
