@@ -172,6 +172,30 @@ function eonext_kultur_event_submissions_apply_webform_styling(array &$element):
 }
 
 /**
+ * Implements hook_honeypot_form_protections_alter().
+ */
+function eonext_kultur_event_submissions_honeypot_form_protections_alter(array &$options, array &$form): void {
+  $form_id = $form['#form_id'] ?? '';
+  if (in_array($form_id, eonext_kultur_event_submissions_honeypot_unprotected_form_ids(), TRUE)) {
+    $options = [];
+  }
+}
+
+/**
+ * Form IDs that must not use Honeypot (admin moderation, not public spam targets).
+ *
+ * @return string[]
+ *   Honeypot-unprotected form IDs.
+ */
+function eonext_kultur_event_submissions_honeypot_unprotected_form_ids(): array {
+  return [
+    'kultur_event_submission_approve_form',
+    'kultur_event_submission_reject_form',
+    'kultur_event_submission_delete_form',
+  ];
+}
+
+/**
  * Implements hook_field_widget_single_element_form_alter().
  */
 function eonext_kultur_event_submissions_field_widget_single_element_form_alter(array &$element, FormStateInterface $form_state, array $context): void {

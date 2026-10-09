@@ -170,6 +170,37 @@ function eonext_kultur_event_submissions_update_9011(): void {
 }
 
 /**
+ * Excludes submission moderation forms from Honeypot time limits.
+ */
+function eonext_kultur_event_submissions_update_9012(): void {
+  _eonext_kultur_event_submissions_unprotect_admin_forms_from_honeypot();
+}
+
+/**
+ * Adds Kulturnat submission admin forms to Honeypot unprotected list.
+ */
+function _eonext_kultur_event_submissions_unprotect_admin_forms_from_honeypot(): void {
+  if (!\Drupal::moduleHandler()->moduleExists('honeypot')) {
+    return;
+  }
+
+  $config = \Drupal::configFactory()->getEditable('honeypot.settings');
+  $unprotected = $config->get('unprotected_forms') ?? [];
+  $changed = FALSE;
+
+  foreach (eonext_kultur_event_submissions_honeypot_unprotected_form_ids() as $form_id) {
+    if (!in_array($form_id, $unprotected, TRUE)) {
+      $unprotected[] = $form_id;
+      $changed = TRUE;
+    }
+  }
+
+  if ($changed) {
+    $config->set('unprotected_forms', $unprotected)->save(TRUE);
+  }
+}
+
+/**
  * Enables organization on synced event address field config.
  */
 function _eonext_kultur_event_submissions_enable_address_organization_on_events(): void {

@@ -31,6 +31,7 @@ final class EventDetailBuilder {
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     TranslationInterface $translation,
+    private readonly ReoccurringDateFormatter $recurringDateFormatter,
   ) {
     $this->stringTranslation = $translation;
   }
@@ -89,14 +90,25 @@ final class EventDetailBuilder {
     $end = NULL;
     $allDay = FALSE;
 
-    $formatter = DrupalTyped::service(ReoccurringDateFormatter::class, 'dpl_event.reoccurring_date_formatter');
-    $upcoming = $formatter->getUpcomingEventDetails($eventSeries);
+    $upcoming = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
     if (is_array($upcoming)) {
       $start = $upcoming['start'] ?? NULL;
       $end = $upcoming['end'] ?? NULL;
+
+      $upcomingIds = $upcoming['upcoming_ids'] ?? [];
+      if (count($upcomingIds) > 1) {
+        $lastInstance = $this->entityTypeManager->getStorage('eventinstance')->load(end($upcomingIds));
+        if ($lastInstance instanceof EventInstance && !$lastInstance->get('date')->isEmpty()) {
+          $lastDate = $lastInstance->get('date')->first();
+          $lastEnd = $lastDate->end_date ?? NULL;
+          if ($lastEnd instanceof DrupalDateTime) {
+            $end = $lastEnd;
+          }
+        }
+      }
     }
 
-    $allDay = $formatter->isAllDay($eventSeries);
+    $allDay = $this->recurringDateFormatter->isAllDay($eventSeries);
 
     return $this->buildDetail(
       $eventSeries,
@@ -144,9 +156,13 @@ final class EventDetailBuilder {
     return [
       'title' => $title,
       'tagline' => $this->getTagline($entity, ...$taglineFields),
-      'date_display' => $start instanceof DrupalDateTime ? $this->formatDetailDate($start) : NULL,
+      'date_display' => $start instanceof DrupalDateTime
+        ? $this->formatDetailDate($start, $end instanceof DrupalDateTime ? $end : NULL)
+        : NULL,
       'time_display' => $this->formatDetailTime($start, $end, $allDay),
-      'datetime_attribute' => $start instanceof DrupalDateTime ? $start->format(DATE_ATOM) : NULL,
+      'datetime_attribute' => $start instanceof DrupalDateTime
+        ? $this->recurringDateFormatter->formatDate($start, DATE_ATOM)
+        : NULL,
       'price_display' => $this->formatTicketPrice($entity, $ticketCategoryFields),
       'location_display' => $this->resolveLocationDisplay($entity, $placeFields, $locationFields, $branchFields),
       'ticket_url' => $this->getTicketUrl($entity, $linkFields),
@@ -413,8 +429,31 @@ final class EventDetailBuilder {
   /**
    *
    */
-  private function formatDetailDate(DrupalDateTime $start): string {
-    return $start->format('j') . '. ' . mb_strtolower($start->format('F')) . ' ' . $start->format('Y');
+  private function formatDetailDate(DrupalDateTime $start, ?DrupalDateTime $end = NULL): string {
+    $formatter = $this->recurringDateFormatter;
+
+    if (!$end instanceof DrupalDateTime) {
+      return $formatter->formatDate($start, 'j. F Y');
+    }
+
+    $startDay = $formatter->formatDate($start, 'Y-m-d');
+    $endDay = $formatter->formatDate($end, 'Y-m-d');
+    if ($startDay === $endDay) {
+      return $formatter->formatDate($start, 'j. F Y');
+    }
+
+    $startYear = $formatter->formatDate($start, 'Y');
+    $endYear = $formatter->formatDate($end, 'Y');
+    if ($startYear === $endYear && $formatter->formatDate($start, 'n') === $formatter->formatDate($end, 'n')) {
+      return $formatter->formatDate($start, 'j') . '.–' . $formatter->formatDate($end, 'j') . '. '
+        . $formatter->formatDate($start, 'F Y');
+    }
+
+    if ($startYear === $endYear) {
+      return $formatter->formatDate($start, 'j. F') . ' – ' . $formatter->formatDate($end, 'j. F Y');
+    }
+
+    return $formatter->formatDate($start, 'j. F Y') . ' – ' . $formatter->formatDate($end, 'j. F Y');
   }
 
   /**
@@ -429,11 +468,12 @@ final class EventDetailBuilder {
       return (string) $this->t('Hele dagen', [], ['context' => 'eonext_kultur_events']);
     }
 
-    $startTime = $start->format('H.i');
-    $endTime = $end instanceof DrupalDateTime ? $end->format('H.i') : NULL;
+    $formatter = $this->recurringDateFormatter;
+    $startTime = $formatter->formatDate($start, 'H.i');
+    $endTime = $end instanceof DrupalDateTime ? $formatter->formatDate($end, 'H.i') : NULL;
 
     if ($endTime) {
-      return "$startTime - $endTime";
+      return "$startTime – $endTime";
     }
 
     return $startTime;

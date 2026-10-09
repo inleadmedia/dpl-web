@@ -6,6 +6,9 @@ unprotected_forms:
   - search_block_form
   - views_exposed_form
   - honeypot_settings_form
+  - kultur_event_submission_approve_form
+  - kultur_event_submission_reject_form
+  - kultur_event_submission_delete_form
 protect_all_forms: false
 log: false
 element_name: url
