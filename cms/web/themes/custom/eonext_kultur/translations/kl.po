@@ -1,0 +1,25 @@
+# Kalaallisut interface strings for EO NEXT Kultur (header search, etc.).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: eonext_kultur\n"
+"Language: kl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Search the website"
+msgstr "Nittartagaq ujarleruk"
+
+msgid "Search content"
+msgstr "Nittartakkat ujarleruk"
+
+msgid "Search"
+msgstr "Ujarleruk"
+
+msgid "Show all"
+msgstr "Tamarmik takuk"
+
+msgid "Show less"
+msgstr "Assigiuk"

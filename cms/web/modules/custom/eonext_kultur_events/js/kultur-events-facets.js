@@ -8,6 +8,7 @@
   const FACET_VISIBLE_LIMIT = 8;
   const ROOT_SELECTOR = ".eonext-kultur-events";
   const FILTERS_STORAGE_KEY = "eonext-kultur-events-filters-expanded";
+  const UI_STRINGS = drupalSettings.eonextKulturEvents?.strings || {};
   const CHECKBOX_ICON_SVG =
     '<svg width="20" height="20" aria-hidden="true">' +
     '<polyline points="1.5 6 4.5 9 10.5 1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></polyline>' +
@@ -138,8 +139,8 @@
     }
 
     toggle.textContent = isExpanded
-      ? Drupal.t("Show less")
-      : Drupal.t("View all");
+      ? UI_STRINGS.showLess || "Show less"
+      : UI_STRINGS.showAll || "Show all";
     toggle.setAttribute("aria-expanded", isExpanded ? "true" : "false");
   }
 
@@ -237,8 +238,8 @@
     toggle.setAttribute(
       "aria-label",
       expanded
-        ? Drupal.t("Hide filters", {}, { context: "eonext_kultur_events" })
-        : Drupal.t("Show filters", {}, { context: "eonext_kultur_events" })
+        ? UI_STRINGS.hideFilters || "Hide filters"
+        : UI_STRINGS.showFilters || "Show filters"
     );
     sessionStorage.setItem(FILTERS_STORAGE_KEY, expanded ? "1" : "0");
   }

@@ -5,3 +5,12 @@ services:
       - '@entity_type.manager'
       - '@string_translation'
       - '@dpl_event.reoccurring_date_formatter'
+
+  eonext_kultur_events.event_list_teaser_builder:
+    class: Drupal\eonext_kultur_events\EventListTeaserBuilder
+    arguments:
+      - '@dpl_event.reoccurring_date_formatter'
+      - '@date.formatter'
+      - '@language_manager'
+      - '@dpl_event.price_formatter'
+      - '@string_translation'

@@ -1,0 +1,42 @@
+# Kalaallisut translations for EO Next Kultur Events (facets, filters).
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: eonext_kultur_events\n"
+"Language: kl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "eonext_kultur_events"
+msgid "Show all"
+msgstr "Tamarmik takuk"
+
+msgctxt "eonext_kultur_events"
+msgid "Show less"
+msgstr "Assigiuk"
+
+msgctxt "eonext_kultur_events"
+msgid "Show filters"
+msgstr "Filterit takuk"
+
+msgctxt "eonext_kultur_events"
+msgid "Hide filters"
+msgstr "Filterit tunnit"
+
+msgctxt "eonext_kultur_events"
+msgid "Søg"
+msgstr "Ujarleruk"
+
+msgctxt "eonext_kultur_events"
+msgid "Gratis"
+msgstr "Akikitsuusaq"
+
+msgctxt "eonext_kultur_events"
+msgid "All day"
+msgstr "Ulloq tamakkerlugu"
+
+msgctxt "eonext_kultur_events"
+msgid "Expired"
+msgstr "Naammassivoq"

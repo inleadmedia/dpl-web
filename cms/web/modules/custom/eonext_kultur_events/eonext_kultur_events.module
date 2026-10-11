@@ -64,6 +64,16 @@ function eonext_kultur_events_theme($existing, $type, $theme, $path): array {
       'path' => $templates_path,
       'template' => 'input--search-api-fulltext--events',
     ],
+    'eventinstance__list_teaser' => [
+      'base hook' => 'eventinstance',
+      'path' => $templates_path,
+      'template' => 'eventinstance--list-teaser',
+    ],
+    'eventinstance__list_teaser_stacked_parent' => [
+      'base hook' => 'eventinstance',
+      'path' => $templates_path,
+      'template' => 'eventinstance--list-teaser-stacked-parent',
+    ],
     'eventinstance__card__eonext_kultur_grid' => [
       'base hook' => 'eventinstance',
       'path' => $templates_path,
@@ -342,6 +352,14 @@ function eonext_kultur_events_preprocess_eventinstance(array &$variables): void 
     return;
   }
 
+  if (eonext_kultur_events_is_list_teaser_view_mode($view_mode)) {
+    $eventinstance = $variables['eventinstance'] ?? NULL;
+    if ($eventinstance instanceof EventInstance) {
+      eonext_kultur_events_apply_eventinstance_list_teaser($variables, $eventinstance);
+    }
+    return;
+  }
+
   if (!in_array($view_mode, [EventsConstants::CARD_VIEW_MODE, 'default'], TRUE)) {
     return;
   }
@@ -369,11 +387,73 @@ function eonext_kultur_events_preprocess_eventinstance(array &$variables): void 
 function eonext_kultur_events_preprocess_eventseries(array &$variables): void {
   $view_mode = $variables['view_mode'] ?? '';
 
+  if (eonext_kultur_events_is_list_teaser_view_mode($view_mode)) {
+    $eventseries = $variables['eventseries'] ?? NULL;
+    if ($eventseries instanceof EventSeries) {
+      eonext_kultur_events_apply_eventseries_list_teaser($variables, $eventseries);
+    }
+    return;
+  }
+
   if ($view_mode !== 'full' || !eonext_kultur_events_is_event_detail_page()) {
     return;
   }
 
   eonext_kultur_events_preprocess_event_detail($variables, $variables['eventseries'] ?? NULL);
+}
+
+/**
+ * Whether an entity view mode is a horizontal list teaser.
+ */
+function eonext_kultur_events_is_list_teaser_view_mode(string $view_mode): bool {
+  return in_array($view_mode, ['list_teaser', 'list_teaser_stacked_parent'], TRUE);
+}
+
+/**
+ * Localizes list teaser output for an event series.
+ */
+function eonext_kultur_events_apply_eventseries_list_teaser(array &$variables, EventSeries $eventseries): void {
+  /** @var \Drupal\eonext_kultur_events\EventListTeaserBuilder $builder */
+  $builder = \Drupal::service('eonext_kultur_events.event_list_teaser_builder');
+  $list_date = $builder->formatSeriesListDate($eventseries);
+  $variables['formatted_date'] = $list_date;
+  if ($list_date !== NULL) {
+    $variables['content']['date'] = ['#markup' => $list_date];
+  }
+  if (isset($variables['ticket_price_display'])) {
+    $variables['ticket_price_display'] = $builder->localizePriceDisplay($variables['ticket_price_display']);
+  }
+  eonext_kultur_events_localize_list_teaser_all_day($variables, $eventseries);
+}
+
+/**
+ * Localizes list teaser output for an event instance.
+ */
+function eonext_kultur_events_apply_eventinstance_list_teaser(array &$variables, EventInstance $eventinstance): void {
+  /** @var \Drupal\eonext_kultur_events\EventListTeaserBuilder $builder */
+  $builder = \Drupal::service('eonext_kultur_events.event_list_teaser_builder');
+  $list_date = $builder->formatInstanceListDate($eventinstance);
+  $variables['formatted_list_date'] = $list_date;
+  if ($list_date !== NULL) {
+    $variables['content']['date'] = ['#markup' => $list_date];
+  }
+  if (isset($variables['ticket_price_display'])) {
+    $variables['ticket_price_display'] = $builder->localizePriceDisplay($variables['ticket_price_display']);
+  }
+  eonext_kultur_events_localize_list_teaser_all_day($variables, $eventinstance);
+}
+
+/**
+ * Replaces core "All day" with a contextual translation when applicable.
+ */
+function eonext_kultur_events_localize_list_teaser_all_day(array &$variables, EventSeries|EventInstance $entity): void {
+  $all_day = $entity->hasField('field_event_all_day') && !empty($entity->get('field_event_all_day')->getString());
+  if (!$all_day || !isset($variables['start_time'])) {
+    return;
+  }
+
+  $variables['start_time'] = (string) t('All day', [], ['context' => 'eonext_kultur_events']);
+  unset($variables['end_time']);
 }
 
 /**
@@ -416,6 +496,7 @@ function eonext_kultur_events_preprocess_views_view(array &$variables): void {
 
   if ($view->id() === EventsConstants::VIEW_ID) {
     $variables['#attached']['library'][] = 'eonext_kultur_events/events-listing';
+    eonext_kultur_events_attach_events_listing_settings($variables);
     $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
     return;
   }
@@ -485,6 +566,20 @@ function eonext_kultur_events_views_pre_render(ViewExecutable $view): void {
   }
 
   $view->element['#attached']['library'][] = 'eonext_kultur_events/events-listing';
+  eonext_kultur_events_attach_events_listing_settings($view->element);
+}
+
+/**
+ * Attaches translated UI strings for the events listing JavaScript.
+ */
+function eonext_kultur_events_attach_events_listing_settings(array &$element): void {
+  $translation_options = ['context' => 'eonext_kultur_events'];
+  $element['#attached']['drupalSettings']['eonextKulturEvents']['strings'] = [
+    'showAll' => (string) t('Show all', [], $translation_options),
+    'showLess' => (string) t('Show less', [], $translation_options),
+    'showFilters' => (string) t('Show filters', [], $translation_options),
+    'hideFilters' => (string) t('Hide filters', [], $translation_options),
+  ];
 }
 
 /**
