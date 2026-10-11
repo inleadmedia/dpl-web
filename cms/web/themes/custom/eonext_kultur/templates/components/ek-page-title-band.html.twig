@@ -1,0 +1,18 @@
+{#
+/**
+ * @file
+ * Full-width Kulturnat page title band (navy background, centered title).
+ *
+ * Variables:
+ * - title: Plain text or renderable page title.
+ * - intro: Optional subtitle / intro (field render array or markup).
+ */
+#}
+<div class="ek-page-title-band">
+  <div class="ek-page-title-band__inner">
+    <h1 class="ek-page-title-band__title">{{ title }}</h1>
+    {% if intro %}
+      <div class="ek-page-title-band__intro">{{ intro }}</div>
+    {% endif %}
+  </div>
+</div>

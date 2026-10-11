@@ -424,5 +424,8 @@ display:
       tags:
         - 'config:facets.facet.branch'
         - 'config:facets.facet.event_categories'
+        - 'config:facets.facet.event_is_free'
+        - 'config:facets.facet.event_screen_names'
+        - 'config:facets.facet.event_tags'
         - 'config:search_api.index.events'
         - 'search_api_list:events'

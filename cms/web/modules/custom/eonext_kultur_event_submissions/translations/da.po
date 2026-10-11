@@ -1,20 +1,130 @@
-# Only completed translations belong in this file. An empty msgstr
-# DELETES any existing translation for the same string site-wide.
-# Untranslated strings live in eonext_kultur_event_submissions.pot.
-# Danish translation of EO Next Kultur Event Submissions
+# Danish translation of EO Next Kultur Event Submissions (public form).
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2026-08-05 14:51+0200\n"
-"PO-Revision-Date: 2026-08-05 14:51+0200\n"
-"Last-Translator: NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Project-Id-Version: eonext_kultur_event_submissions\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "eonext_kultur_event_submissions"
 msgid "Register event"
 msgstr "Registrer arrangement"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Fill in the details below to submit your event for Kulturnat. All "
+"fields marked with * are required."
+msgstr ""
+"Udfyld oplysningerne nedenfor for at indsende dit arrangement til "
+"Kulturnat. Alle felter markeret med * skal udfyldes."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submit event"
+msgstr "Indsend arrangement"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "City"
+msgstr "By"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Country"
+msgstr "Land"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organization"
+msgstr "Organisation"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Street address"
+msgstr "Gadeadresse"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Postal code"
+msgstr "Postnummer"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event title"
+msgstr "Titel på arrangement"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Location"
+msgstr "Sted"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Date and time"
+msgstr "Dato og tid"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event start"
+msgstr "Start"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end"
+msgstr "Slut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact"
+msgstr "Kontakt"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact name"
+msgstr "Kontaktnavn"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact email"
+msgstr "Kontakt e-mail"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact phone"
+msgstr "Kontakttelefon"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Image"
+msgstr "Billede"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event description"
+msgstr "Beskrivelse af arrangementet"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Greenlandic"
+msgstr "Arrangementsinformation på grønlandsk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Danish"
+msgstr "Arrangementsinformation på dansk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Accepted formats: PNG, JPG, JPEG, WEBP."
+msgstr "Accepterede formater: PNG, JPG, JPEG, WEBP."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Danish description is required when Nuuk is selected."
+msgstr "Dansk beskrivelse er påkrævet, når Nuuk er valgt."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end must be after event start."
+msgstr "Sluttidspunkt skal være efter starttidspunkt."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Thank you. Your event has been submitted for review."
+msgstr "Tak. Dit arrangement er indsendt til gennemgang."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Nuuk"
+msgstr "Nuuk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "All other cities"
+msgstr "Alle andre byer"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Greenland postal codes are 4 digits starting with 39 (e.g. 3900). "
+"Danish postal codes are 4 digits (e.g. 1000)."
+msgstr ""
+"Grønlandske postnumre er 4 cifre, der starter med 39 (f.eks. 3900). "
+"Danske postnumre er 4 cifre (f.eks. 1000)."

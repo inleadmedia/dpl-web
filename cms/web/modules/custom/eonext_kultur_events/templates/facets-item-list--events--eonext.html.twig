@@ -20,8 +20,8 @@
 <li class="eonext-kultur-events__facet-group eonext-search-facet-group{{ is_free_facet ? ' eonext-kultur-events__facet-group--free-toggle' : '' }}">
   <span class="eonext-kultur-events__facet-label eonext-search-facet-group__label">{{ facet.label }}</span>
 
-  {% if items or empty %}
-    {%- if items -%}
+  {% if items|length or empty %}
+    {%- if items|length -%}
       <ul
         id="{{ facet_group_id }}"
         {{ attributes.addClass([

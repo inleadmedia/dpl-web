@@ -22,41 +22,7 @@
   padding: 0;
 }
 
-.ek-submission-form__hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100vw;
-  min-height: 14rem;
-  margin-inline: calc(50% - 50vw);
-  margin-bottom: 2.5rem;
-  padding: 2rem 1.5rem;
-  color: #fff;
-  text-align: center;
-  background-color: var(--ek-navy, #235881);
-}
-
-.ek-submission-form__hero-inner {
-  max-width: 42rem;
-}
-
-.ek-submission-form__title {
-  margin: 0 0 0.75rem;
-  font-family: var(--ek-font-heading, inherit);
-  font-size: clamp(2rem, 4vw, 2.75rem);
-  font-weight: 600;
-  line-height: 1.1;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-.ek-submission-form__intro {
-  margin: 0 auto;
-  max-width: 36rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.92);
-}
+/* Title band: @eonext_kultur/components/ek-page-title-band.html.twig + eonext-kultur.css */
 
 /* Bottom spacing is padding, not margin: the form is the last element inside
    main, so a bottom margin would collapse out of the cream area and leave the

@@ -648,6 +648,73 @@ article .rich-text ol > li::before {
   display: none;
 }
 
+/* Full-width page title band (basic pages + shared with event submission form). */
+.overflow-hidden:has(.ek-page-title-band) {
+  overflow: visible;
+}
+
+main:has(.ek-page-title-band) {
+  padding-top: 0;
+  background-color: var(--ek-cream, #fefaf1);
+}
+
+.eonext-kultur-events.content-list-page:has(.ek-page-title-band) {
+  margin-top: 0;
+}
+
+.page-frontpage .ek-page-title-band {
+  display: none;
+}
+
+.ek-page-title-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  min-height: 14rem;
+  margin-inline: calc(50% - 50vw);
+  margin-bottom: 2.5rem;
+  padding: 2rem 1.5rem;
+  color: var(--ek-white, #fff);
+  text-align: center;
+  background-color: var(--ek-navy, #1e0195);
+}
+
+.ek-page-title-band__inner {
+  max-width: 42rem;
+}
+
+.ek-page-title-band__title {
+  margin: 0 0 0.75rem;
+  font-family: var(--ek-font-heading, inherit);
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ek-white, #fff);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.ek-page-title-band__intro,
+.ek-page-title-band__intro p {
+  margin: 0 auto;
+  max-width: 36rem;
+  font-family: var(--ek-font-body, inherit);
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: none;
+}
+
+.ek-content-page:has(.ek-page-title-band) section.paragraphs .rich-text {
+  box-sizing: border-box;
+  max-width: 42rem;
+  margin-inline: auto;
+  padding: 0 1rem 3rem;
+  color: var(--ek-navy);
+}
+
 .ek-footer__social {
   padding: 3rem var(--ek-chrome-padding-x);
   text-align: center;

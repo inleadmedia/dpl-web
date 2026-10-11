@@ -1,17 +1,132 @@
-# Only completed translations belong in this file. An empty msgstr
-# DELETES any existing translation for the same string site-wide.
-# Untranslated strings live in eonext_kultur_event_submissions.pot.
-# Greenlandic translation of EO Next Kultur Event Submissions
+# Kalaallisut translation of EO Next Kultur Event Submissions (public form).
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2026-08-05 14:47+0200\n"
-"PO-Revision-Date: 2026-08-05 14:47+0200\n"
-"Last-Translator: NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"Project-Id-Version: eonext_kultur_event_submissions\n"
 "Language: kl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Register event"
+msgstr "Pilersaarut ikinngutigiuk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Fill in the details below to submit your event for Kulturnat. All "
+"fields marked with * are required."
+msgstr ""
+"Paasissutissat allassimasuataat ataani Kulturnat-imut pilersaarut "
+"ikinngutigiuk. *-malilluni pinneqaanermi allassimasut tamarmik "
+"allassimaffiusumik piumasaqarput."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Submit event"
+msgstr "Pilersaarut ikinngutigiuk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "City"
+msgstr "Illoqarfik"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Country"
+msgstr "Nuna"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organization"
+msgstr "Organisationi"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Street address"
+msgstr "Aqqusineq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Postal code"
+msgstr "Postnormu"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event title"
+msgstr "Pilersaarut aqqa"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Location"
+msgstr "Najugaq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Date and time"
+msgstr "Ulloq aamma piffissaq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event start"
+msgstr "Aallariffik"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end"
+msgstr "Naammassiffik"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact"
+msgstr "Attaveqarfigeqatigiinneq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact name"
+msgstr "Attaveqaataa aqqa"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact email"
+msgstr "Attaveqaataa e-mail"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact phone"
+msgstr "Attaveqaataa oqarasuaat"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Image"
+msgstr "Assersuut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event description"
+msgstr "Pilersaarut nalunaarusiaa"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Greenlandic"
+msgstr "Pilersaarut paasissutissat kalaallisut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event information in Danish"
+msgstr "Pilersaarut paasissutissat qallunaatut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Accepted formats: PNG, JPG, JPEG, WEBP."
+msgstr "Formatit akuerisaat: PNG, JPG, JPEG, WEBP."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Danish description is required when Nuuk is selected."
+msgstr "Qallunaatut nalunaarusiaq piumasaqarpoq Nuuk toqqarneqarpat."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event end must be after event start."
+msgstr "Naammassiffik aallariffimmut kingornaavoq."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Thank you. Your event has been submitted for review."
+msgstr "Qujanaq. Pilersaarutit misissuinermut nassiunneqarpoq."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Nuuk"
+msgstr "Nuuk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "All other cities"
+msgstr "Illoqarfik allat tamanut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Greenland postal codes are 4 digits starting with 39 (e.g. 3900). "
+"Danish postal codes are 4 digits (e.g. 1000)."
+msgstr ""
+"Kalaallit Nunaat postnormu 4-nik kisitsisit 39-mik aallartartut "
+"(suut eskepul 3900). Danmarkimi postnormu 4-nik kisitsisit (suut "
+"eskepul 1000)."

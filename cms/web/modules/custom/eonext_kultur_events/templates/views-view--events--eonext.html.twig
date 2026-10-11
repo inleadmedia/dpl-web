@@ -6,7 +6,9 @@
 <div{{ attributes.addClass(classes) }}>
   {% if view.getTitle() %}
     {{ title_prefix }}
-    <h1 class="content-list-page__heading">{{ view.getTitle() }}</h1>
+    {{ include('@eonext_kultur/components/ek-page-title-band.html.twig', {
+      title: view.getTitle(),
+    }, with_context = false) }}
     {{ title_suffix }}
   {% endif %}
 

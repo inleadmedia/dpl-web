@@ -219,6 +219,14 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     $element['value']['#date_increment'] = 60;
     $element['value']['#value_callback'] = 'eonext_kultur_event_submissions_public_datetime_value_callback';
     $element['value']['#after_build'][] = 'eonext_kultur_event_submissions_public_datetime_local_after_build';
+    $element['value']['#after_build'][] = 'eonext_kultur_event_submissions_public_datetime_label_after_build';
+    $element['value']['#ek_datetime_title'] = $context['items']->getFieldDefinition()->getLabel();
+    if (isset($element['#theme_wrappers'])) {
+      $element['#theme_wrappers'] = array_values(array_filter(
+        $element['#theme_wrappers'],
+        static fn ($wrapper) => $wrapper !== 'fieldset',
+      ));
+    }
     return;
   }
 
@@ -227,13 +235,7 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
   }
 
   $element['address']['#available_countries'] = ['GL', 'DK'];
-  if (isset($element['address']['postal_code'])) {
-    $element['address']['postal_code']['#description'] = t(
-      'Greenland postal codes are 4 digits starting with 39 (e.g. 3900). Danish postal codes are 4 digits (e.g. 1000).',
-      [],
-      ['context' => 'eonext_kultur_event_submissions']
-    );
-  }
+  $element['address']['#after_build'][] = 'eonext_kultur_event_submissions_public_address_labels_after_build';
   $element['address']['#field_overrides'] = [
     AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
     AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
@@ -244,6 +246,53 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     AddressField::DEPENDENT_LOCALITY => FieldOverride::HIDDEN,
     AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
   ];
+}
+
+/**
+ * After-build callback: translated labels on public address subfields.
+ */
+function eonext_kultur_event_submissions_public_address_labels_after_build(array $element, FormStateInterface $form_state): array {
+  $translation_options = ['context' => 'eonext_kultur_event_submissions'];
+  $labels = [
+    'country_code' => t('Country', [], $translation_options),
+    'organization' => t('Organization', [], $translation_options),
+    'address_line1' => t('Street address', [], $translation_options),
+    'postal_code' => t('Postal code', [], $translation_options),
+    'locality' => t('City', [], $translation_options),
+  ];
+  foreach ($labels as $key => $title) {
+    if ($key === 'country_code' && isset($element['country_code']['country_code'])) {
+      $element['country_code']['country_code']['#title'] = $title;
+      $element['country_code']['#title'] = $title;
+    }
+    elseif (isset($element[$key])) {
+      $element[$key]['#title'] = $title;
+    }
+  }
+  if (isset($element['postal_code'])) {
+    $element['postal_code']['#description'] = t(
+      'Greenland postal codes are 4 digits starting with 39 (e.g. 3900). Danish postal codes are 4 digits (e.g. 1000).',
+      [],
+      $translation_options
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * After-build callback: use field label instead of core "Date" on datetime-local.
+ */
+function eonext_kultur_event_submissions_public_datetime_label_after_build(array $element, FormStateInterface $form_state): array {
+  if (($element['#date_date_element'] ?? '') !== 'datetime-local' || !isset($element['date'])) {
+    return $element;
+  }
+  if (isset($element['#ek_datetime_title'])) {
+    $element['date']['#title'] = $element['#ek_datetime_title'];
+    $element['date']['#title_display'] = 'before';
+  }
+
+  return $element;
 }
 
 /**

@@ -14,12 +14,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+msgctxt "eonext_kultur_event_submissions"
 msgid "Register event"
 msgstr ""
 
+msgctxt "eonext_kultur_event_submissions"
 msgid ""
 "Fill in the details below to submit your event for Kulturnat. All "
 "fields marked with * are required."
+msgstr ""
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event title"
 msgstr ""
 
 msgid "Submitted"

@@ -340,8 +340,8 @@ function eonext_kultur_preprocess_html(array &$variables): void {
     return;
   }
 
-  $alias = \Drupal::service('path_alias.manager')->getAliasByPath('/node/' . $node->id());
-  if ($alias === '/frontpage') {
+  $front_nid = _eonext_kultur_front_page_node_id();
+  if ($front_nid !== NULL && (int) $node->id() === $front_nid) {
     $variables['attributes']['class'][] = 'page-frontpage';
   }
 }
@@ -386,6 +386,9 @@ function _eonext_kultur_clean_footer_html(string $html): string {
  * Implements hook_preprocess_HOOK() for page.
  */
 function eonext_kultur_preprocess_page(array &$variables): void {
+  // Kulturnat: hide DPL breadcrumb trail sitewide until structure is finalized.
+  unset($variables['breadcrumb']);
+
   // dpl_footer only provides this for the novel theme directly.
   $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
   if (!empty($variables['footer_settings']['footer_items'])) {
@@ -524,13 +527,82 @@ function _eonext_kultur_set_nav_spot_subtitle(array &$variables, \Drupal\Core\En
 }
 
 /**
+ * Node ID of the configured site front page, if resolvable.
+ */
+function _eonext_kultur_front_page_node_id(): ?int {
+  static $cached = NULL;
+  if ($cached !== NULL) {
+    return $cached > 0 ? $cached : NULL;
+  }
+
+  $cached = 0;
+  $front = \Drupal::config('system.site')->get('page.front');
+  if (!is_string($front) || $front === '') {
+    return NULL;
+  }
+
+  if (preg_match('#^/node/(\d+)$#', $front, $matches)) {
+    $cached = (int) $matches[1];
+    return $cached;
+  }
+
+  $path = \Drupal::service('path_alias.manager')->getPathByAlias($front);
+  if (preg_match('#^/node/(\d+)$#', $path, $matches)) {
+    $cached = (int) $matches[1];
+    return $cached;
+  }
+
+  return NULL;
+}
+
+/**
+ * Whether a basic page should render a visible title (not only in page hero).
+ */
+function _eonext_kultur_page_should_show_visible_title(NodeInterface $node): bool {
+  $front_nid = _eonext_kultur_front_page_node_id();
+  if ($front_nid !== NULL && (int) $node->id() === $front_nid) {
+    return FALSE;
+  }
+
+  if (!$node->hasField('field_paragraphs')) {
+    return TRUE;
+  }
+
+  foreach ($node->get('field_paragraphs')->referencedEntities() as $paragraph) {
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'eonext_kultur_page_hero') {
+      continue;
+    }
+
+    if ($paragraph->hasField('field_locale_heading') && !$paragraph->get('field_locale_heading')->isEmpty()) {
+      $heading = trim((string) $paragraph->get('field_locale_heading')->value);
+      if ($heading !== '') {
+        return FALSE;
+      }
+    }
+
+    break;
+  }
+
+  return TRUE;
+}
+
+/**
  * Implements hook_preprocess_HOOK() for node templates.
  */
 function eonext_kultur_preprocess_node(array &$variables): void {
   $view_mode = $variables['view_mode'] ?? '';
+  $node = $variables['node'] ?? NULL;
 
-  if ($view_mode === 'nav_teaser' && isset($variables['node'])) {
-    _eonext_kultur_apply_nav_teaser_variables($variables, $variables['node']);
+  if ($node instanceof NodeInterface && $node->bundle() === 'page' && $view_mode === 'full') {
+    $front_nid = _eonext_kultur_front_page_node_id();
+    $variables['is_front_page'] = $front_nid !== NULL && (int) $node->id() === $front_nid;
+    $variables['show_visible_page_title'] = !$variables['is_front_page']
+      && _eonext_kultur_page_should_show_visible_title($node);
+    $variables['#cache']['contexts'][] = 'url.site';
+  }
+
+  if ($view_mode === 'nav_teaser' && $node instanceof NodeInterface) {
+    _eonext_kultur_apply_nav_teaser_variables($variables, $node);
     return;
   }
 

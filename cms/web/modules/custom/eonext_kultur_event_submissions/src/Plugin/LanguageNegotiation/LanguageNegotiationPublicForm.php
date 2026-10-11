@@ -11,7 +11,7 @@ use Drupal\language\LanguageNegotiationMethodBase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Forces English on the public Kulturnat event submission form.
+ * Reserved negotiation slot for the public submission form (URL language wins).
  */
 #[LanguageNegotiation(
   id: LanguageNegotiationPublicForm::METHOD_ID,
@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
     LanguageInterface::TYPE_CONTENT,
   ],
   weight: -20,
-  description: new TranslatableMarkup('Uses English on the public event submission form.'),
+  description: new TranslatableMarkup('Defers to URL language on the public event submission form.'),
 )]
 final class LanguageNegotiationPublicForm extends LanguageNegotiationMethodBase {
 
@@ -43,7 +43,8 @@ final class LanguageNegotiationPublicForm extends LanguageNegotiationMethodBase 
       return NULL;
     }
 
-    return 'en';
+    // Use language prefix from the URL (/da/, /kl/, /en/, …).
+    return NULL;
   }
 
 }
