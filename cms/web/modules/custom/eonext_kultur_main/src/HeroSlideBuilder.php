@@ -18,6 +18,7 @@ use Drupal\Core\Url;
 use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
+use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\taxonomy\TermInterface;
@@ -82,7 +83,7 @@ final class HeroSlideBuilder {
     return [
       'title' => $eventSeries->label(),
       'category' => $this->getCategoryLabel($eventSeries),
-      'tagline' => $this->getTagline($eventSeries, 'field_teaser_text'),
+      'tagline' => $this->getEventDescriptionTagline($eventSeries),
       'place' => $this->getPlaceLabel($eventSeries),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $this->recurringDateFormatter->isAllDay($eventSeries))
@@ -111,7 +112,7 @@ final class HeroSlideBuilder {
     return [
       'title' => $eventInstance->label(),
       'category' => $this->getCategoryLabel($eventInstance),
-      'tagline' => $this->getTagline($eventInstance, 'field_teaser_text', 'event_teaser_text'),
+      'tagline' => $this->getEventInstanceTagline($eventInstance),
       'place' => $this->getPlaceLabel($eventInstance),
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $allDay)
@@ -186,6 +187,77 @@ final class HeroSlideBuilder {
     }
 
     return NULL;
+  }
+
+  /**
+   * Resolves tagline for event instances (inheritance uses series default language).
+   */
+  private function getEventInstanceTagline(EventInstance $eventInstance): ?string {
+    $series = $this->loadEventSeries($eventInstance);
+    if ($series instanceof EventSeries) {
+      $tagline = $this->getEventDescriptionTagline($this->getTranslatedEntity($series));
+      if ($tagline !== NULL) {
+        return $tagline;
+      }
+    }
+
+    return $this->getEventDescriptionTagline($eventInstance)
+      ?? $this->getTagline($eventInstance, 'field_teaser_text', 'event_teaser_text');
+  }
+
+  /**
+   * Tagline from translated body paragraphs, then teaser fields (matches event detail).
+   */
+  private function getEventDescriptionTagline(EntityInterface $entity): ?string {
+    $fromParagraphs = $this->getTaglineFromParagraphs($entity);
+    if ($fromParagraphs !== NULL) {
+      return $fromParagraphs;
+    }
+
+    return $this->getTagline($entity, 'field_teaser_text', 'event_teaser_text');
+  }
+
+  /**
+   * Loads the parent series without a stale reference copy from the instance.
+   */
+  private function loadEventSeries(EventInstance $eventInstance): ?EventSeries {
+    $series_id = $eventInstance->get('eventseries_id')->target_id;
+    if ($series_id === NULL) {
+      return NULL;
+    }
+
+    $series = $this->entityTypeManager->getStorage('eventseries')->load($series_id);
+    return $series instanceof EventSeries ? $series : NULL;
+  }
+
+  /**
+   * First text body paragraph in the current content language.
+   */
+  private function getTaglineFromParagraphs(EntityInterface $entity): ?string {
+    if (!$entity->hasField('field_event_paragraphs') || $entity->get('field_event_paragraphs')->isEmpty()) {
+      return NULL;
+    }
+
+    $paragraph = $entity->get('field_event_paragraphs')->entity;
+    if (!$paragraph instanceof Paragraph) {
+      return NULL;
+    }
+
+    $paragraph = $this->getTranslatedEntity($paragraph);
+    if (!$paragraph->hasField('field_body') || $paragraph->get('field_body')->isEmpty()) {
+      return NULL;
+    }
+
+    $value = $paragraph->get('field_body')->value ?? NULL;
+    if (!is_string($value) || trim($value) === '') {
+      return NULL;
+    }
+
+    $text = Html::decodeEntities(strip_tags($value));
+    $text = str_replace("\xc2\xa0", ' ', $text);
+    $text = preg_replace('/\s+/u', ' ', trim($text)) ?? '';
+
+    return $text === '' ? NULL : Unicode::truncate($text, 255, TRUE, TRUE);
   }
 
   /**
