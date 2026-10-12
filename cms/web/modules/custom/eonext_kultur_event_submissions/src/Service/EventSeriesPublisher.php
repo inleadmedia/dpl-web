@@ -45,6 +45,7 @@ final class EventSeriesPublisher {
 
     $descriptionGl = trim((string) $submission->get('description_gl')->value);
     $descriptionDa = trim((string) $submission->get('description_da')->value);
+    [$titleGl, $titleDa] = $this->resolveSubmissionTitles($submission);
 
     if ($descriptionDa === '') {
       $descriptionDa = $descriptionGl;
@@ -53,7 +54,7 @@ final class EventSeriesPublisher {
     $greenlandicLangcode = SubmissionConstants::LANG_GREENLANDIC;
     $danishLangcode = SubmissionConstants::LANG_DANISH;
 
-    $values = $this->buildSharedSeriesValues($submission, $descriptionGl);
+    $values = $this->buildSharedSeriesValues($submission, $descriptionGl, $titleGl);
     $values['langcode'] = $greenlandicLangcode;
     $values['field_event_paragraphs'] = $this->createDescriptionParagraphs($descriptionGl, $descriptionDa);
 
@@ -69,7 +70,7 @@ final class EventSeriesPublisher {
 
       if ($series->isTranslatable() && $this->languageExists($danishLangcode)) {
         $translationValues = [
-          'title' => $submission->get('organisation_name')->value,
+          'title' => $titleDa,
         ];
         if ($series->hasField('field_description') && $descriptionDa !== $descriptionGl) {
           $translationValues['field_description'] = $descriptionDa;
@@ -109,13 +110,14 @@ final class EventSeriesPublisher {
   private function buildSharedSeriesValues(
     KulturEventSubmission $submission,
     string $descriptionGl,
+    string $titleGl,
   ): array {
     $start = $submission->get('event_start')->value;
     $end = $submission->get('event_end')->value;
 
     $values = [
       'type' => 'default',
-      'title' => $submission->get('organisation_name')->value,
+      'title' => $titleGl,
       'status' => TRUE,
       'recur_type' => 'custom',
       'custom_date' => [
@@ -126,9 +128,6 @@ final class EventSeriesPublisher {
       'field_event_place' => $this->buildEventPlace($submission),
       'field_event_location_type' => 'physical',
       'field_event_state' => 'Active',
-      'field_event_partners' => [
-        ['value' => $submission->get('organisation_name')->value],
-      ],
       'field_description' => $descriptionGl,
       'field_teaser_text' => $this->buildTeaserText($submission, $descriptionGl),
     ];
@@ -139,7 +138,50 @@ final class EventSeriesPublisher {
       $values['field_event_image'] = ['target_id' => $mediaTarget];
     }
 
+    $categoryIds = array_column($submission->get('event_categories')->getValue(), 'target_id');
+    if ($categoryIds !== []) {
+      $values['field_categories'] = array_map(
+        static fn ($id): array => ['target_id' => (int) $id],
+        $categoryIds,
+      );
+    }
+
+    $organization = $this->resolveOrganizationFromAddress($submission);
+    if ($organization !== '') {
+      $values['field_event_partners'] = [
+        ['value' => $organization],
+      ];
+    }
+
     return $values;
+  }
+
+  /**
+   * Reads the organisation name from the submission address (Partners field).
+   */
+  private function resolveOrganizationFromAddress(KulturEventSubmission $submission): string {
+    $address = $submission->get('address')->first();
+    if ($address === NULL) {
+      return '';
+    }
+
+    return trim((string) ($address->organization ?? ''));
+  }
+
+  /**
+   * Resolves Greenlandic and Danish titles from a submission.
+   *
+   * @return array{0: string, 1: string}
+   *   Greenlandic title and Danish title (falls back to Greenlandic when empty).
+   */
+  private function resolveSubmissionTitles(KulturEventSubmission $submission): array {
+    $titleGl = trim((string) $submission->get('organisation_name')->value);
+    $titleDa = trim((string) $submission->get('title_da')->value);
+    if ($titleDa === '') {
+      $titleDa = $titleGl;
+    }
+
+    return [$titleGl, $titleDa];
   }
 
   /**

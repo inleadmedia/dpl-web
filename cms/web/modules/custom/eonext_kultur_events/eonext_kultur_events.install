@@ -21,7 +21,9 @@ use Drupal\search_api\IndexInterface;
  */
 function eonext_kultur_events_install(): void {
   eonext_kultur_events_ensure_free_processor();
+  eonext_kultur_events_ensure_city_processor();
   eonext_kultur_events_ensure_index_fields();
+  eonext_kultur_events_install_event_city_facet();
   eonext_kultur_events_configure_events_view();
   eonext_kultur_events_configure_facet_weights();
   eonext_kultur_events_ensure_publication_date_field();
@@ -32,7 +34,7 @@ function eonext_kultur_events_install(): void {
  * Implements hook_uninstall().
  */
 function eonext_kultur_events_uninstall(): void {
-  foreach (['event_tags', 'event_screen_names', 'event_categories', 'event_is_free'] as $facet_id) {
+  foreach (['event_tags', 'event_screen_names', 'event_categories', 'event_city', 'event_is_free'] as $facet_id) {
     $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
     $facet?->delete();
   }
@@ -42,7 +44,7 @@ function eonext_kultur_events_uninstall(): void {
     return;
   }
 
-  foreach (['event_screen_names', 'event_is_free'] as $field_id) {
+  foreach (['event_screen_names', 'event_is_free', 'event_city'] as $field_id) {
     $fields = $index->getFields();
     if (isset($fields[$field_id])) {
       $index->removeField($field_id);
@@ -80,6 +82,16 @@ function eonext_kultur_events_ensure_index_fields(): void {
       'label' => 'Event is free',
       'property_path' => 'aggregated_field',
       'type' => 'boolean',
+      'configuration' => [
+        'type' => 'union',
+        'separator' => '-not used-',
+        'fields' => [],
+      ],
+    ],
+    'event_city' => [
+      'label' => 'Event city',
+      'property_path' => 'aggregated_field',
+      'type' => 'string',
       'configuration' => [
         'type' => 'union',
         'separator' => '-not used-',
@@ -128,6 +140,51 @@ function eonext_kultur_events_ensure_free_processor(): void {
     ->createProcessorPlugin($index, 'event_is_free');
   $index->addProcessor($processor);
   $index->save();
+}
+
+/**
+ * Ensures the event_city processor is enabled on the events index.
+ */
+function eonext_kultur_events_ensure_city_processor(): void {
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
+  $processor_settings = $index->get('processor_settings') ?? [];
+  unset($processor_settings['event_city']);
+  $index->set('processor_settings', $processor_settings);
+
+  if ($index->getProcessorIfAvailable('event_city') !== NULL) {
+    return;
+  }
+
+  \Drupal::service('plugin.manager.search_api.processor')->clearCachedDefinitions();
+
+  $processor = \Drupal::getContainer()
+    ->get('search_api.plugin_helper')
+    ->createProcessorPlugin($index, 'event_city');
+  $index->addProcessor($processor);
+  $index->save();
+}
+
+/**
+ * Installs the event city facet from module config if missing.
+ */
+function eonext_kultur_events_install_event_city_facet(): void {
+  $facet_storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  if ($facet_storage->load('event_city') !== NULL) {
+    return;
+  }
+
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_events');
+  $source_storage = new FileStorage($module_path . '/config/install');
+  $data = $source_storage->read('facets.facet.event_city');
+  if ($data === FALSE) {
+    return;
+  }
+
+  $facet_storage->create($data)->save();
 }
 
 /**
@@ -225,7 +282,7 @@ function eonext_kultur_events_configure_events_view(): void {
   $display['default']['display_options']['exposed_form']['options']['bef']['filter'] = $bef;
 
   $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
-  foreach (['config:facets.facet.event_tags', 'config:facets.facet.event_screen_names', 'config:facets.facet.event_categories', 'config:facets.facet.event_is_free'] as $tag) {
+  foreach (['config:facets.facet.event_tags', 'config:facets.facet.event_screen_names', 'config:facets.facet.event_categories', 'config:facets.facet.event_city', 'config:facets.facet.event_is_free'] as $tag) {
     if (!in_array($tag, $cache_tags, TRUE)) {
       $cache_tags[] = $tag;
     }
@@ -243,7 +300,8 @@ function eonext_kultur_events_configure_facet_weights(): void {
     'event_is_free' => 1,
     'event_screen_names' => 2,
     'event_categories' => 3,
-    'event_tags' => 4,
+    'event_city' => 4,
+    'event_tags' => 5,
   ];
 
   foreach ($weights as $facet_id => $weight) {
@@ -276,7 +334,7 @@ function eonext_kultur_events_configure_facet_weights(): void {
  * Disables "sort by active state" so selected facets stay in place.
  */
 function eonext_kultur_events_disable_active_facet_reorder(): void {
-  foreach (['event_categories', 'event_screen_names', 'event_tags', 'event_is_free'] as $facet_id) {
+  foreach (['event_categories', 'event_screen_names', 'event_city', 'event_tags', 'event_is_free'] as $facet_id) {
     $facet = \Drupal::entityTypeManager()->getStorage('facets_facet')->load($facet_id);
     if ($facet === NULL) {
       continue;
@@ -410,6 +468,21 @@ function eonext_kultur_events_update_9010(): string {
   $migration = eonext_kultur_events_migrate_go_text_body_event_paragraphs();
 
   return "Updated {$imported} event paragraph field(s). {$migration}";
+}
+
+/**
+ * Adds city facet for the kultur events listing (/arrangementer).
+ */
+function eonext_kultur_events_update_9011(): string {
+  eonext_kultur_events_ensure_city_processor();
+  eonext_kultur_events_ensure_index_fields();
+  eonext_kultur_events_install_event_city_facet();
+  eonext_kultur_events_configure_events_view();
+  eonext_kultur_events_configure_facet_weights();
+  eonext_kultur_events_disable_active_facet_reorder();
+  eonext_kultur_events_reindex();
+
+  return 'Event city search field, processor, and facet enabled; events index rebuilt.';
 }
 
 /**

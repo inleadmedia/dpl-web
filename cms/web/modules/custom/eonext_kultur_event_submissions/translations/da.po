@@ -50,6 +50,22 @@ msgid "Event title"
 msgstr "Titel på arrangement"
 
 msgctxt "eonext_kultur_event_submissions"
+msgid "Event title in Greenlandic"
+msgstr "Titel på grønlandsk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Event title in Danish"
+msgstr "Titel på dansk"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Categories"
+msgstr "Kategorier"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Danish title is required when Nuuk is selected."
+msgstr "Dansk titel er påkrævet, når Nuuk er valgt."
+
+msgctxt "eonext_kultur_event_submissions"
 msgid "Location"
 msgstr "Sted"
 

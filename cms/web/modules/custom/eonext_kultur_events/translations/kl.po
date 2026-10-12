@@ -9,6 +9,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "facets.facet.event_city:name"
+msgid "City"
+msgstr "Illoqarfik"
+
 msgctxt "eonext_kultur_events"
 msgid "Show all"
 msgstr "Tamarmik takuk"

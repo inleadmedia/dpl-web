@@ -145,6 +145,22 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
     }
     $descriptionDa = trim((string) $descriptionDa);
 
+    $titleDa = $form_state->getValue('title_da');
+    if (is_array($titleDa)) {
+      $titleDa = $titleDa[0]['value'] ?? '';
+    }
+    $titleDa = trim((string) $titleDa);
+
+    if ($city === SubmissionConstants::CITY_NUUK && $titleDa === '') {
+      $message = $this->t('Danish title is required when Nuuk is selected.', [], ['context' => 'eonext_kultur_event_submissions']);
+      if (isset($form['title_da']['widget'][0]['value'])) {
+        $form_state->setError($form['title_da']['widget'][0]['value'], $message);
+      }
+      else {
+        $form_state->setErrorByName('title_da', $message);
+      }
+    }
+
     if ($city === SubmissionConstants::CITY_NUUK && $descriptionDa === '') {
       $message = $this->t('Danish description is required when Nuuk is selected.', [], ['context' => 'eonext_kultur_event_submissions']);
       if (isset($form['description_da']['widget'][0]['value'])) {
@@ -269,7 +285,23 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
    */
   private function applySectionWrappers(array &$form): void {
     $this->wrapFieldSection($form, 'city', $this->t('City', [], ['context' => 'eonext_kultur_event_submissions']));
-    $this->wrapFieldSection($form, 'organisation_name', $this->t('Event title', [], ['context' => 'eonext_kultur_event_submissions']));
+
+    if (isset($form['organisation_name'])) {
+      $title_heading = '<h2 class="ek-submission-form__section-title text-header-h4">'
+        . $this->t('Event title', [], ['context' => 'eonext_kultur_event_submissions'])
+        . '</h2>';
+      $existing_prefix = $form['organisation_name']['#prefix'] ?? '';
+      $form['organisation_name']['#prefix'] = $existing_prefix
+        . '<div class="ek-submission-form__section">'
+        . $title_heading;
+    }
+
+    if (isset($form['title_da'])) {
+      $existing_suffix = $form['title_da']['#suffix'] ?? '';
+      $form['title_da']['#suffix'] = $existing_suffix . '</div>';
+    }
+
+    $this->wrapFieldSection($form, 'event_categories', $this->t('Categories', [], ['context' => 'eonext_kultur_event_submissions']));
     $this->wrapFieldSection($form, 'address', $this->t('Location', [], ['context' => 'eonext_kultur_event_submissions']));
 
     if (isset($form['event_start'])) {

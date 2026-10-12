@@ -29,6 +29,8 @@ function eonext_kultur_event_submissions_theme($existing, $type, $theme, $path):
     'kultur_event_submission' => [
       'variables' => [
         'organisation_name' => NULL,
+        'title_da' => NULL,
+        'event_categories' => [],
         'status' => NULL,
         'status_label' => NULL,
         'city_label' => NULL,

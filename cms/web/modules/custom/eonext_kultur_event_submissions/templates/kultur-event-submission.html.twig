@@ -27,13 +27,25 @@
       <h2 class="ek-submission-admin__section-title">{{ 'Event'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</h2>
       <dl class="ek-submission-admin__definition-list">
         <div>
-          <dt>{{ 'Event title'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+          <dt>{{ 'Event title in Greenlandic'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
           <dd>{{ organisation_name }}</dd>
         </div>
+        {% if title_da %}
+          <div>
+            <dt>{{ 'Event title in Danish'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+            <dd>{{ title_da }}</dd>
+          </div>
+        {% endif %}
         <div>
           <dt>{{ 'City'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
           <dd>{{ city_label }}</dd>
         </div>
+        {% if event_categories %}
+          <div>
+            <dt>{{ 'Categories'|t({}, {'context': 'eonext_kultur_event_submissions'}) }}</dt>
+            <dd>{{ event_categories|join(', ') }}</dd>
+          </div>
+        {% endif %}
       </dl>
     </section>
 

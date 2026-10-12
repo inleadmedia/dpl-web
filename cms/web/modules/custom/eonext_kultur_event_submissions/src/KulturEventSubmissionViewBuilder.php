@@ -51,9 +51,16 @@ final class KulturEventSubmissionViewBuilder extends EntityViewBuilder {
       }
     }
 
+    $categoryLabels = [];
+    foreach ($entity->get('event_categories')->referencedEntities() as $term) {
+      $categoryLabels[] = $term->label();
+    }
+
     return [
       '#theme' => 'kultur_event_submission',
       '#organisation_name' => $entity->label(),
+      '#title_da' => trim((string) $entity->get('title_da')->value),
+      '#event_categories' => $categoryLabels,
       '#status' => $status,
       '#status_label' => SubmissionConstants::statusOptions()[$status] ?? $status,
       '#city_label' => SubmissionConstants::cityOptions()[(string) $entity->get('city')->value] ?? '',

@@ -202,6 +202,142 @@ function eonext_kultur_event_submissions_update_9013(): void {
 }
 
 /**
+ * Adds Danish title and event categories to Kulturnat event submissions.
+ */
+function eonext_kultur_event_submissions_update_9014(): void {
+  $entity_type_id = 'kultur_event_submission';
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+  $field_definitions = \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission::baseFieldDefinitions($entity_type);
+
+  foreach (['title_da', 'event_categories'] as $field_name) {
+    if ($update_manager->getFieldStorageDefinition($field_name, $entity_type_id) !== NULL) {
+      continue;
+    }
+    $update_manager->installFieldStorageDefinition(
+      $field_name,
+      $entity_type_id,
+      $entity_type_id,
+      $field_definitions[$field_name],
+    );
+  }
+
+  _eonext_kultur_event_submissions_update_9014_form_displays();
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+  \Drupal::entityTypeManager()->clearCachedDefinitions();
+}
+
+/**
+ * Adds new submission fields to form and view displays.
+ */
+function _eonext_kultur_event_submissions_update_9014_form_displays(): void {
+  $form_displays = [
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.public' => [
+      'title_da' => [
+        'type' => 'string_textfield',
+        'weight' => 2,
+        'region' => 'content',
+        'settings' => [
+          'size' => 60,
+          'placeholder' => '',
+        ],
+      ],
+      'event_categories' => [
+        'type' => 'options_buttons',
+        'weight' => 3,
+        'region' => 'content',
+        'settings' => [],
+      ],
+      'address' => ['weight' => 4],
+      'event_start' => ['weight' => 5],
+      'event_end' => ['weight' => 6],
+      'contact_name' => ['weight' => 7],
+      'contact_email' => ['weight' => 8],
+      'contact_phone' => ['weight' => 9],
+      'image' => ['weight' => 10],
+      'description_gl' => ['weight' => 11],
+      'description_da' => ['weight' => 12],
+    ],
+    'core.entity_form_display.kultur_event_submission.kultur_event_submission.default' => [
+      'title_da' => [
+        'type' => 'string_textfield',
+        'weight' => 1,
+        'region' => 'content',
+        'settings' => [
+          'size' => 60,
+          'placeholder' => '',
+        ],
+      ],
+      'event_categories' => [
+        'type' => 'options_buttons',
+        'weight' => 2,
+        'region' => 'content',
+        'settings' => [],
+      ],
+      'city' => ['weight' => 3],
+      'address' => ['weight' => 4],
+      'event_start' => ['weight' => 5],
+      'event_end' => ['weight' => 6],
+      'contact_name' => ['weight' => 7],
+      'contact_email' => ['weight' => 8],
+      'contact_phone' => ['weight' => 9],
+      'image' => ['weight' => 10],
+      'description_gl' => ['weight' => 11],
+      'description_da' => ['weight' => 12],
+      'status' => ['weight' => 13],
+      'eventseries' => ['weight' => 14],
+    ],
+  ];
+
+  foreach ($form_displays as $config_name => $changes) {
+    $config = \Drupal::configFactory()->getEditable($config_name);
+    if ($config->isNew()) {
+      continue;
+    }
+    $content = $config->get('content') ?? [];
+    foreach ($changes as $field_name => $field_config) {
+      if (isset($field_config['type'])) {
+        $content[$field_name] = $field_config + [
+          'third_party_settings' => [],
+        ];
+      }
+      elseif (isset($content[$field_name])) {
+        $content[$field_name]['weight'] = $field_config['weight'];
+      }
+    }
+    $config->set('content', $content)->save(TRUE);
+  }
+
+  $view_config = \Drupal::configFactory()->getEditable('core.entity_view_display.kultur_event_submission.kultur_event_submission.full');
+  if (!$view_config->isNew()) {
+    $content = $view_config->get('content') ?? [];
+    $content['title_da'] = [
+      'type' => 'string',
+      'label' => 'above',
+      'weight' => 1,
+      'region' => 'content',
+      'settings' => ['link_to_entity' => FALSE],
+      'third_party_settings' => [],
+    ];
+    $content['event_categories'] = [
+      'type' => 'entity_reference_label',
+      'label' => 'above',
+      'weight' => 2,
+      'region' => 'content',
+      'settings' => ['link' => FALSE],
+      'third_party_settings' => [],
+    ];
+    foreach ($content as $field_name => &$field_display) {
+      if (in_array($field_name, ['city', 'address', 'event_start', 'event_end', 'contact_name', 'contact_email', 'contact_phone', 'image', 'description_gl', 'description_da', 'status', 'eventseries', 'created'], TRUE)) {
+        $field_display['weight'] = ($field_display['weight'] ?? 0) + 2;
+      }
+    }
+    unset($field_display);
+    $view_config->set('content', $content)->save(TRUE);
+  }
+}
+
+/**
  * Adds Kulturnat submission admin forms to Honeypot unprotected list.
  */
 function _eonext_kultur_event_submissions_unprotect_admin_forms_from_honeypot(): void {

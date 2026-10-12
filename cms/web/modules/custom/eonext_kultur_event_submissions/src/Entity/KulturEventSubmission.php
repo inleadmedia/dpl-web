@@ -10,6 +10,7 @@ use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\eonext_kultur_event_submissions\KulturEventSubmissionInterface;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
@@ -66,7 +67,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
     $fields = parent::baseFieldDefinitions($entity_type);
 
     $fields['organisation_name'] = BaseFieldDefinition::create('string')
-      ->setLabel(new TranslatableMarkup('Event title', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setLabel(new TranslatableMarkup('Event title in Greenlandic', [], ['context' => 'eonext_kultur_event_submissions']))
       ->setRequired(TRUE)
       ->setSetting('max_length', 255)
       ->setDisplayConfigurable('form', TRUE)
@@ -79,6 +80,48 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
         'label' => 'above',
         'type' => 'string',
         'weight' => 0,
+      ]);
+
+    $fields['title_da'] = BaseFieldDefinition::create('string')
+      ->setLabel(new TranslatableMarkup('Event title in Danish', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setRequired(FALSE)
+      ->setSetting('max_length', 255)
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'string_textfield',
+        'weight' => 2,
+      ])
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'string',
+        'weight' => 1,
+      ]);
+
+    $fields['event_categories'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(new TranslatableMarkup('Categories', [], ['context' => 'eonext_kultur_event_submissions']))
+      ->setRequired(TRUE)
+      ->setSetting('target_type', 'taxonomy_term')
+      ->setSetting('handler', 'default:taxonomy_term')
+      ->setSetting('handler_settings', [
+        'target_bundles' => ['categories' => 'categories'],
+        'sort' => [
+          'field' => 'name',
+          'direction' => 'asc',
+        ],
+        'auto_create' => FALSE,
+      ])
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'options_buttons',
+        'weight' => 3,
+      ])
+      ->setDisplayOptions('view', [
+        'label' => 'above',
+        'type' => 'entity_reference_label',
+        'weight' => 2,
       ]);
 
     $fields['city'] = BaseFieldDefinition::create('list_string')
