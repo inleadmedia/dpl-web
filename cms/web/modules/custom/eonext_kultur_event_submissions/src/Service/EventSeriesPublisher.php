@@ -6,6 +6,7 @@ namespace Drupal\eonext_kultur_event_submissions\Service;
 
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
@@ -36,10 +37,14 @@ final class EventSeriesPublisher {
    *   When saving the event series fails.
    */
   public function publish(KulturEventSubmission $submission): EventSeries {
+    $this->ensureTextBodyParagraphAllowed();
+
     if (!$submission->get('eventseries')->isEmpty()) {
       $existing = $submission->get('eventseries')->entity;
       if ($existing instanceof EventSeries) {
-        return $this->syncFromSubmission($submission, $existing);
+        $series = $this->syncFromSubmission($submission, $existing);
+        $this->propagateSeriesLocationToInstances($series);
+        return $series;
       }
     }
 
@@ -81,6 +86,8 @@ final class EventSeriesPublisher {
       $this->deleteParagraphs($paragraph_ids);
       throw $exception;
     }
+
+    $this->propagateSeriesLocationToInstances($series);
 
     return $series;
   }
@@ -300,7 +307,7 @@ final class EventSeriesPublisher {
       return [];
     }
 
-    $paragraph = $this->createTextBodyParagraph($descriptionGl, SubmissionConstants::LANG_GREENLANDIC);
+    $paragraph = $this->createDescriptionParagraph($descriptionGl, SubmissionConstants::LANG_GREENLANDIC);
     if ($descriptionDa !== '' && $descriptionDa !== $descriptionGl) {
       $this->addTextBodyTranslation($paragraph, SubmissionConstants::LANG_DANISH, $descriptionDa);
     }
@@ -360,11 +367,62 @@ final class EventSeriesPublisher {
   }
 
   /**
-   * Creates a text_body paragraph for event descriptions.
+   * Ensures text_body paragraphs can be referenced on event paragraph fields.
+   *
+   * Matches eonext_kultur_events update 9010 when config sync is not imported.
    */
-  private function createTextBodyParagraph(string $body, string $langcode): Paragraph {
+  private function ensureTextBodyParagraphAllowed(): void {
+    foreach (['eventseries.default.field_event_paragraphs', 'eventinstance.default.field_event_paragraphs'] as $field_id) {
+      $field = FieldConfig::load($field_id);
+      if ($field === NULL) {
+        continue;
+      }
+
+      $settings = $field->getSettings();
+      $handler_settings = $settings['handler_settings'] ?? [];
+      $handler_settings['target_bundles']['text_body'] = 'text_body';
+      $drag_drop = $handler_settings['target_bundles_drag_drop'] ?? [];
+      if (isset($drag_drop['text_body'])) {
+        $drag_drop['text_body']['enabled'] = TRUE;
+      }
+      else {
+        $drag_drop['text_body'] = [
+          'weight' => 10,
+          'enabled' => TRUE,
+        ];
+      }
+      $handler_settings['target_bundles_drag_drop'] = $drag_drop;
+      $settings['handler_settings'] = $handler_settings;
+      $field->set('settings', $settings);
+      $field->save();
+    }
+  }
+
+  /**
+   * Copies series address onto instances (field inheritance only maps GSearch address).
+   */
+  private function propagateSeriesLocationToInstances(EventSeries $series): void {
+    if (!$series->hasField('field_event_address') || $series->get('field_event_address')->isEmpty()) {
+      return;
+    }
+
+    $address_values = $series->get('field_event_address')->getValue();
+    foreach ($series->get('event_instances')->referencedEntities() as $instance) {
+      if (!$instance->hasField('field_event_address')) {
+        continue;
+      }
+      $instance->set('field_event_address', $address_values);
+      $instance->save();
+    }
+  }
+
+  /**
+   * Creates a description paragraph using an bundle allowed on field_event_paragraphs.
+   */
+  private function createDescriptionParagraph(string $body, string $langcode): Paragraph {
+    $bundle = $this->resolveDescriptionParagraphBundle();
     $paragraph = Paragraph::create([
-      'type' => 'text_body',
+      'type' => $bundle,
       'langcode' => $langcode,
       'field_body' => [
         'value' => $body,
@@ -374,6 +432,37 @@ final class EventSeriesPublisher {
     $paragraph->save();
 
     return $paragraph;
+  }
+
+  /**
+   * Resolves text_body or go_text_body depending on field handler settings.
+   */
+  private function resolveDescriptionParagraphBundle(): string {
+    $field = FieldConfig::load('eventseries.default.field_event_paragraphs');
+    if ($field === NULL) {
+      return 'text_body';
+    }
+
+    $handler = \Drupal::service('plugin.manager.entity_reference_selection')
+      ->getSelectionHandler($field);
+
+    foreach (['text_body', 'go_text_body'] as $bundle) {
+      $probe = Paragraph::create([
+        'type' => $bundle,
+        'field_body' => [
+          'value' => 'probe',
+          'format' => 'basic',
+        ],
+      ]);
+      $probe->save();
+      $valid = array_map('intval', $handler->validateReferenceableEntities([(int) $probe->id()]));
+      $probe->delete();
+      if ($valid !== []) {
+        return $bundle;
+      }
+    }
+
+    return 'text_body';
   }
 
   /**

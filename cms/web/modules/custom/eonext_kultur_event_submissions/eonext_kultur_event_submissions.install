@@ -579,3 +579,25 @@ function eonext_kultur_event_submissions_update_9015(): string {
 
   return "Re-synced {$synced} event series from approved Kulturnat submissions.";
 }
+
+/**
+ * Copies series addresses to instances and allows text_body event paragraphs.
+ */
+function eonext_kultur_event_submissions_update_9016(): string {
+  /** @var \Drupal\eonext_kultur_event_submissions\Service\EventSeriesPublisher $publisher */
+  $publisher = \Drupal::service('eonext_kultur_event_submissions.event_series_publisher');
+  $storage = \Drupal::entityTypeManager()->getStorage('kultur_event_submission');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->exists('eventseries')
+    ->condition('status', SubmissionConstants::STATUS_APPROVED)
+    ->execute();
+
+  $repaired = 0;
+  foreach ($storage->loadMultiple($ids) as $submission) {
+    $publisher->publish($submission);
+    $repaired++;
+  }
+
+  return "Repaired {$repaired} published Kulturnat event(s): instance addresses and paragraph field settings.";
+}

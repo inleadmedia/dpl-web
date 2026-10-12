@@ -10,6 +10,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\TranslatableInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
@@ -62,7 +63,7 @@ final class HeroSlideBuilder {
       return $entity;
     }
 
-    $langcode = $this->languageManager->getCurrentLanguage()->getId();
+    $langcode = $this->languageManager->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
     if ($entity->hasTranslation($langcode)) {
       return $entity->getTranslation($langcode);
     }

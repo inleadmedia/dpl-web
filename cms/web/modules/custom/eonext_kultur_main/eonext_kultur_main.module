@@ -439,6 +439,10 @@ function _eonext_kultur_main_apply_hero_slide(array &$variables, EntityInterface
 
   $variables['hero_slide'] = $slide;
   $variables['#cache']['tags'] = array_merge($variables['#cache']['tags'] ?? [], $entity->getCacheTags());
+  $variables['#cache']['contexts'] = array_merge(
+    $variables['#cache']['contexts'] ?? [],
+    ['languages:language_content'],
+  );
 }
 
 /**
