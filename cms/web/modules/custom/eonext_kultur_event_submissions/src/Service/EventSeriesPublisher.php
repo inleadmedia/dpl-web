@@ -229,6 +229,8 @@ final class EventSeriesPublisher {
     $start = $submission->get('event_start')->value;
     $end = $submission->get('event_end')->value;
 
+    $placeLabel = $this->buildEventPlace($submission);
+
     $values = [
       'type' => 'default',
       'title' => $titleGl,
@@ -239,7 +241,8 @@ final class EventSeriesPublisher {
         'end_value' => $end,
       ],
       'field_event_address' => $submission->get('address')->getValue(),
-      'field_event_place' => $this->buildEventPlace($submission),
+      'field_event_place' => $placeLabel,
+      'field_event_location' => $placeLabel,
       'field_event_location_type' => 'physical',
       'field_event_state' => 'Active',
       'field_description' => $this->buildSubtitleText($submission, $descriptionGl),
@@ -392,9 +395,15 @@ final class EventSeriesPublisher {
   /**
    * Ensures text_body paragraphs can be referenced on event paragraph fields.
    *
-   * Matches eonext_kultur_events update 9010 when config sync is not imported.
+   * Paragraph fields use negate=1 ("exclude selected bundles"). Bundles listed in
+   * target_bundles must not include text_body, or submission bodies fail validation.
    */
   private function ensureTextBodyParagraphAllowed(): void {
+    if (function_exists('eonext_kultur_events_ensure_text_body_paragraph_reference_allowed')) {
+      eonext_kultur_events_ensure_text_body_paragraph_reference_allowed();
+      return;
+    }
+
     foreach (['eventseries.default.field_event_paragraphs', 'eventinstance.default.field_event_paragraphs'] as $field_id) {
       $field = FieldConfig::load($field_id);
       if ($field === NULL) {
@@ -403,17 +412,27 @@ final class EventSeriesPublisher {
 
       $settings = $field->getSettings();
       $handler_settings = $settings['handler_settings'] ?? [];
-      $handler_settings['target_bundles']['text_body'] = 'text_body';
+      $negate = !empty($handler_settings['negate']);
       $drag_drop = $handler_settings['target_bundles_drag_drop'] ?? [];
-      if (isset($drag_drop['text_body'])) {
-        $drag_drop['text_body']['enabled'] = TRUE;
+
+      foreach (['text_body', 'go_text_body'] as $bundle) {
+        if ($negate) {
+          unset($handler_settings['target_bundles'][$bundle]);
+        }
+        else {
+          $handler_settings['target_bundles'][$bundle] = $bundle;
+        }
+        if (!isset($drag_drop[$bundle])) {
+          $drag_drop[$bundle] = [
+            'weight' => 10,
+            'enabled' => TRUE,
+          ];
+        }
+        else {
+          $drag_drop[$bundle]['enabled'] = TRUE;
+        }
       }
-      else {
-        $drag_drop['text_body'] = [
-          'weight' => 10,
-          'enabled' => TRUE,
-        ];
-      }
+
       $handler_settings['target_bundles_drag_drop'] = $drag_drop;
       $settings['handler_settings'] = $handler_settings;
       $field->set('settings', $settings);

@@ -712,3 +712,12 @@ function eonext_kultur_events_configure_publication_date_form_display(): void {
   $config->setData($data);
   $config->save(TRUE);
 }
+
+/**
+ * Allows text_body on event paragraph fields (fixes "cannot be referenced" on save).
+ */
+function eonext_kultur_events_update_9012(): string {
+  eonext_kultur_events_ensure_text_body_paragraph_reference_allowed();
+
+  return 'text_body and go_text_body are no longer excluded from event paragraph references.';
+}

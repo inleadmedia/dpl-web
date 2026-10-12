@@ -40,8 +40,6 @@ settings:
       go_linkbox: go_linkbox
       go_material_slider_automatic: go_material_slider_automatic
       go_material_slider_manual: go_material_slider_manual
-      go_text_body: go_text_body
-      text_body: text_body
       go_video: go_video
       go_video_bundle_automatic: go_video_bundle_automatic
       go_video_bundle_manual: go_video_bundle_manual

@@ -12,6 +12,7 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\dpl_search\DplSearchSettings;
 use Drupal\eonext_kultur_events\EventsConstants;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
@@ -587,6 +588,80 @@ function eonext_kultur_events_attach_events_listing_settings(array &$element): v
     'showFilters' => (string) t('Show filters', [], $translation_options),
     'hideFilters' => (string) t('Hide filters', [], $translation_options),
   ];
+}
+
+/**
+ * Allows text_body paragraphs on event paragraph fields (see ParagraphSelection).
+ *
+ * With negate=1, bundles in target_bundles are excluded from reference.
+ */
+function eonext_kultur_events_ensure_text_body_paragraph_reference_allowed(): void {
+  foreach (['eventseries.default.field_event_paragraphs', 'eventinstance.default.field_event_paragraphs'] as $field_id) {
+    $field = FieldConfig::load($field_id);
+    if ($field === NULL) {
+      continue;
+    }
+
+    $settings = $field->getSettings();
+    $handler_settings = $settings['handler_settings'] ?? [];
+    $negate = !empty($handler_settings['negate']);
+    $drag_drop = $handler_settings['target_bundles_drag_drop'] ?? [];
+
+    foreach (['text_body', 'go_text_body'] as $bundle) {
+      if ($negate) {
+        unset($handler_settings['target_bundles'][$bundle]);
+      }
+      else {
+        $handler_settings['target_bundles'][$bundle] = $bundle;
+      }
+      if (!isset($drag_drop[$bundle])) {
+        $drag_drop[$bundle] = [
+          'weight' => 10,
+          'enabled' => TRUE,
+        ];
+      }
+      else {
+        $drag_drop[$bundle]['enabled'] = TRUE;
+      }
+    }
+
+    $handler_settings['target_bundles_drag_drop'] = $drag_drop;
+    $settings['handler_settings'] = $handler_settings;
+    $field->set('settings', $settings);
+    $field->save();
+  }
+}
+
+/**
+ * Copies series address field values onto all event instances.
+ */
+function eonext_kultur_events_propagate_series_address_to_instances(EventSeries $series): void {
+  if (!$series->hasField('field_event_address') || $series->get('field_event_address')->isEmpty()) {
+    return;
+  }
+
+  $address_values = $series->get('field_event_address')->getValue();
+  foreach ($series->get('event_instances')->referencedEntities() as $instance) {
+    if (!$instance->hasField('field_event_address')) {
+      continue;
+    }
+    $instance->set('field_event_address', $address_values);
+    $instance->save();
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for eventseries.
+ */
+function eonext_kultur_events_eventseries_insert(EventSeries $event_series): void {
+  eonext_kultur_events_propagate_series_address_to_instances($event_series);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for eventseries.
+ */
+function eonext_kultur_events_eventseries_update(EventSeries $event_series): void {
+  eonext_kultur_events_propagate_series_address_to_instances($event_series);
 }
 
 /**
