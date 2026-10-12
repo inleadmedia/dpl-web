@@ -25,6 +25,11 @@ final class EventSeriesPublisher {
    */
   private const TEASER_TEXT_MAX_LENGTH = 255;
 
+  /**
+   * Plain-text subtitle (field_description) copied from submission descriptions.
+   */
+  private const SUBTITLE_MAX_LENGTH = 250;
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly LoggerChannelInterface $logger,
@@ -172,7 +177,7 @@ final class EventSeriesPublisher {
     ];
 
     if ($series->hasField('field_description')) {
-      $values['field_description'] = $descriptionDa;
+      $values['field_description'] = $this->buildSubtitleText($submission, $descriptionDa);
     }
     if ($series->hasField('field_teaser_text')) {
       $values['field_teaser_text'] = $this->buildTeaserText($submission, $descriptionDa);
@@ -237,7 +242,7 @@ final class EventSeriesPublisher {
       'field_event_place' => $this->buildEventPlace($submission),
       'field_event_location_type' => 'physical',
       'field_event_state' => 'Active',
-      'field_description' => $descriptionGl,
+      'field_description' => $this->buildSubtitleText($submission, $descriptionGl),
       'field_teaser_text' => $this->buildTeaserText($submission, $descriptionGl),
     ];
 
@@ -319,31 +324,49 @@ final class EventSeriesPublisher {
   }
 
   /**
-   * Builds a short teaser shown in cards and the event hero.
+   * Builds plain subtitle (field_description) from rich submission description.
    */
-  private function buildTeaserText(KulturEventSubmission $submission, string $description): string {
-    $description = trim(strip_tags($description));
-    if ($description !== '') {
-      return $this->truncateTeaserText($description);
+  private function buildSubtitleText(KulturEventSubmission $submission, string $description): string {
+    $plain = trim(strip_tags($description));
+    if ($plain !== '') {
+      return $this->truncatePlainText($plain, self::SUBTITLE_MAX_LENGTH);
     }
 
-    return $this->truncateTeaserText((string) $submission->get('organisation_name')->value);
+    return $this->truncatePlainText(
+      (string) $submission->get('organisation_name')->value,
+      self::SUBTITLE_MAX_LENGTH,
+    );
   }
 
   /**
-   * Ensures teaser text fits the eventseries string field (255 chars).
+   * Builds a short teaser shown in cards and the event hero.
    */
-  private function truncateTeaserText(string $text): string {
+  private function buildTeaserText(KulturEventSubmission $submission, string $description): string {
+    $plain = trim(strip_tags($description));
+    if ($plain !== '') {
+      return $this->truncatePlainText($plain, self::TEASER_TEXT_MAX_LENGTH);
+    }
+
+    return $this->truncatePlainText(
+      (string) $submission->get('organisation_name')->value,
+      self::TEASER_TEXT_MAX_LENGTH,
+    );
+  }
+
+  /**
+   * Truncates plain text to a maximum length (word-safe when possible).
+   */
+  private function truncatePlainText(string $text, int $maxLength): string {
     $text = trim($text);
     if ($text === '') {
       return '';
     }
 
-    if (mb_strlen($text) <= self::TEASER_TEXT_MAX_LENGTH) {
+    if (mb_strlen($text) <= $maxLength) {
       return $text;
     }
 
-    return Unicode::truncate($text, self::TEASER_TEXT_MAX_LENGTH, TRUE, TRUE);
+    return Unicode::truncate($text, $maxLength, TRUE, TRUE);
   }
 
   /**
