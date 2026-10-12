@@ -161,6 +161,13 @@ function eonext_kultur_events_ensure_city_processor(): void {
 
   \Drupal::service('plugin.manager.search_api.processor')->clearCachedDefinitions();
 
+  $plugin_manager = \Drupal::service('plugin.manager.search_api.processor');
+  if (!$plugin_manager->hasDefinition('event_city')) {
+    throw new \Drupal\Core\Utility\UpdateException(
+      'Search API processor "event_city" is missing. Deploy EventCityProcessor.php (eonext_kultur_events) before running database updates.',
+    );
+  }
+
   $processor = \Drupal::getContainer()
     ->get('search_api.plugin_helper')
     ->createProcessorPlugin($index, 'event_city');
@@ -352,15 +359,27 @@ function eonext_kultur_events_disable_active_facet_reorder(): void {
 }
 
 /**
- * Reindexes the events Search API index.
+ * Marks all items in the events index for reindexing (does not index synchronously).
  */
-function eonext_kultur_events_reindex(): void {
+function eonext_kultur_events_reset_events_index(): void {
   $index = Index::load(EventsConstants::INDEX_ID);
   if (!$index instanceof IndexInterface) {
     return;
   }
 
   $index->reindex();
+}
+
+/**
+ * Reindexes the events Search API index (full synchronous index; avoid in updates).
+ */
+function eonext_kultur_events_reindex(): void {
+  eonext_kultur_events_reset_events_index();
+  $index = Index::load(EventsConstants::INDEX_ID);
+  if (!$index instanceof IndexInterface) {
+    return;
+  }
+
   $index->indexItems();
 }
 
@@ -480,9 +499,9 @@ function eonext_kultur_events_update_9011(): string {
   eonext_kultur_events_configure_events_view();
   eonext_kultur_events_configure_facet_weights();
   eonext_kultur_events_disable_active_facet_reorder();
-  eonext_kultur_events_reindex();
+  eonext_kultur_events_reset_events_index();
 
-  return 'Event city search field, processor, and facet enabled; events index rebuilt.';
+  return 'Event city search field, processor, and facet enabled. Run "drush search-api:index events" to rebuild the index.';
 }
 
 /**

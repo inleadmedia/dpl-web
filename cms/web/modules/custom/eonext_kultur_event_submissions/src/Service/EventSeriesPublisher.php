@@ -39,17 +39,11 @@ final class EventSeriesPublisher {
     if (!$submission->get('eventseries')->isEmpty()) {
       $existing = $submission->get('eventseries')->entity;
       if ($existing instanceof EventSeries) {
-        return $existing;
+        return $this->syncFromSubmission($submission, $existing);
       }
     }
 
-    $descriptionGl = trim((string) $submission->get('description_gl')->value);
-    $descriptionDa = trim((string) $submission->get('description_da')->value);
-    [$titleGl, $titleDa] = $this->resolveSubmissionTitles($submission);
-
-    if ($descriptionDa === '') {
-      $descriptionDa = $descriptionGl;
-    }
+    [$descriptionGl, $descriptionDa, $titleGl, $titleDa] = $this->resolveSubmissionTexts($submission);
 
     $greenlandicLangcode = SubmissionConstants::LANG_GREENLANDIC;
     $danishLangcode = SubmissionConstants::LANG_DANISH;
@@ -69,18 +63,8 @@ final class EventSeriesPublisher {
       $series->save();
 
       if ($series->isTranslatable() && $this->languageExists($danishLangcode)) {
-        $translationValues = [
-          'title' => $titleDa,
-        ];
-        if ($series->hasField('field_description') && $descriptionDa !== $descriptionGl) {
-          $translationValues['field_description'] = $descriptionDa;
-        }
-        if ($series->hasField('field_teaser_text')) {
-          $translationValues['field_teaser_text'] = $this->buildTeaserText($submission, $descriptionDa);
-        }
-
-        $translation = $series->addTranslation($danishLangcode, $translationValues);
-        $translation->save();
+        $translationValues = $this->buildDanishTranslationValues($submission, $series, $titleDa, $descriptionDa);
+        $series->addTranslation($danishLangcode, $translationValues)->save();
       }
     }
     catch (\Exception $exception) {
@@ -99,6 +83,124 @@ final class EventSeriesPublisher {
     }
 
     return $series;
+  }
+
+  /**
+   * Updates an existing event series from the linked submission.
+   */
+  private function syncFromSubmission(KulturEventSubmission $submission, EventSeries $series): EventSeries {
+    [$descriptionGl, $descriptionDa, $titleGl, $titleDa] = $this->resolveSubmissionTexts($submission);
+    $greenlandicLangcode = SubmissionConstants::LANG_GREENLANDIC;
+    $danishLangcode = SubmissionConstants::LANG_DANISH;
+
+    $shared = $this->buildSharedSeriesValues($submission, $descriptionGl, $titleGl);
+    $kl = $series->hasTranslation($greenlandicLangcode)
+      ? $series->getTranslation($greenlandicLangcode)
+      : $series;
+    $this->applySharedSeriesValues($kl, $shared);
+    $this->syncDescriptionParagraphs($kl, $descriptionGl, $descriptionDa);
+    $kl->save();
+
+    if ($series->isTranslatable() && $this->languageExists($danishLangcode)) {
+      $daValues = $this->buildDanishTranslationValues($submission, $series, $titleDa, $descriptionDa);
+      if ($series->hasTranslation($danishLangcode)) {
+        $da = $series->getTranslation($danishLangcode);
+        foreach ($daValues as $field => $value) {
+          if ($da->hasField($field)) {
+            $da->set($field, $value);
+          }
+        }
+        $da->save();
+      }
+      else {
+        $series->addTranslation($danishLangcode, $daValues)->save();
+      }
+    }
+
+    return $series;
+  }
+
+  /**
+   * @return array{0: string, 1: string, 2: string, 3: string}
+   *   Greenlandic description, Danish description, GL title, DA title.
+   */
+  private function resolveSubmissionTexts(KulturEventSubmission $submission): array {
+    $descriptionGl = trim((string) $submission->get('description_gl')->value);
+    $descriptionDa = trim((string) $submission->get('description_da')->value);
+    [$titleGl, $titleDa] = $this->resolveSubmissionTitles($submission);
+
+    if ($descriptionDa === '') {
+      $descriptionDa = $descriptionGl;
+    }
+
+    return [$descriptionGl, $descriptionDa, $titleGl, $titleDa];
+  }
+
+  /**
+   * @param array<string, mixed> $values
+   *   Values from buildSharedSeriesValues().
+   */
+  private function applySharedSeriesValues(EventSeries $series, array $values): void {
+    unset($values['type']);
+    foreach ($values as $field => $value) {
+      if ($field === 'field_event_paragraphs' || !$series->hasField($field)) {
+        continue;
+      }
+      $series->set($field, $value);
+    }
+  }
+
+  /**
+   * @return array<string, mixed>
+   *   Field values for the Danish event series translation.
+   */
+  private function buildDanishTranslationValues(
+    KulturEventSubmission $submission,
+    EventSeries $series,
+    string $titleDa,
+    string $descriptionDa,
+  ): array {
+    $values = [
+      'title' => $titleDa,
+    ];
+
+    if ($series->hasField('field_description')) {
+      $values['field_description'] = $descriptionDa;
+    }
+    if ($series->hasField('field_teaser_text')) {
+      $values['field_teaser_text'] = $this->buildTeaserText($submission, $descriptionDa);
+    }
+
+    return $values;
+  }
+
+  /**
+   * Updates or creates description paragraphs on an event series.
+   */
+  private function syncDescriptionParagraphs(EventSeries $series, string $descriptionGl, string $descriptionDa): void {
+    if ($descriptionGl === '' || !$series->hasField('field_event_paragraphs')) {
+      return;
+    }
+
+    $paragraph = $series->get('field_event_paragraphs')->entity;
+    if (!$paragraph instanceof Paragraph) {
+      $series->set('field_event_paragraphs', $this->createDescriptionParagraphs($descriptionGl, $descriptionDa));
+      return;
+    }
+
+    $langcode = SubmissionConstants::LANG_GREENLANDIC;
+    $body = $paragraph->hasTranslation($langcode)
+      ? $paragraph->getTranslation($langcode)
+      : $paragraph;
+    $body->set('field_body', [
+      'value' => $descriptionGl,
+      'format' => 'basic',
+    ]);
+    $body->save();
+
+    if ($descriptionDa !== '' && $descriptionDa !== $descriptionGl) {
+      $this->addTextBodyTranslation($paragraph, SubmissionConstants::LANG_DANISH, $descriptionDa);
+    }
   }
 
   /**

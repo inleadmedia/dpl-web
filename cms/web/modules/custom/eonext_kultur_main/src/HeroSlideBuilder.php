@@ -9,6 +9,8 @@ use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Entity\TranslatableInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\Core\Url;
@@ -30,6 +32,7 @@ final class HeroSlideBuilder {
     private readonly EntityTypeManagerInterface $entityTypeManager,
     TranslationInterface $translation,
     private readonly ReoccurringDateFormatter $recurringDateFormatter,
+    private readonly LanguageManagerInterface $languageManager,
   ) {
     $this->stringTranslation = $translation;
   }
@@ -41,12 +44,30 @@ final class HeroSlideBuilder {
    *   Slide variables or NULL when the entity cannot be rendered.
    */
   public function build(EntityInterface $entity): ?array {
+    $entity = $this->getTranslatedEntity($entity);
+
     return match ($entity->getEntityTypeId()) {
       'eventseries' => $entity instanceof EventSeries ? $this->fromEventSeries($entity) : NULL,
       'eventinstance' => $entity instanceof EventInstance ? $this->fromEventInstance($entity) : NULL,
       'node' => $entity instanceof NodeInterface ? $this->fromNode($entity) : NULL,
       default => NULL,
     };
+  }
+
+  /**
+   * Uses the current content language when a translation exists.
+   */
+  private function getTranslatedEntity(EntityInterface $entity): EntityInterface {
+    if (!$entity instanceof TranslatableInterface || !$entity->isTranslatable()) {
+      return $entity;
+    }
+
+    $langcode = $this->languageManager->getCurrentLanguage()->getId();
+    if ($entity->hasTranslation($langcode)) {
+      return $entity->getTranslation($langcode);
+    }
+
+    return $entity;
   }
 
   /**

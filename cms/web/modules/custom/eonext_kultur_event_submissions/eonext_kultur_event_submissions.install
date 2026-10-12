@@ -6,6 +6,7 @@
  */
 
 use Drupal\eonext_kultur_event_submissions\Plugin\LanguageNegotiation\LanguageNegotiationPublicForm;
+use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\user\Entity\Role;
 
@@ -552,4 +553,29 @@ function _eonext_kultur_event_submissions_repair_eventseries_field_langcodes(): 
   }
 
   return $updated;
+}
+
+/**
+ * Re-syncs published event series text from linked submissions (da teasers, etc.).
+ */
+function eonext_kultur_event_submissions_update_9015(): string {
+  /** @var \Drupal\eonext_kultur_event_submissions\Service\EventSeriesPublisher $publisher */
+  $publisher = \Drupal::service('eonext_kultur_event_submissions.event_series_publisher');
+  $storage = \Drupal::entityTypeManager()->getStorage('kultur_event_submission');
+  $ids = $storage->getQuery()
+    ->accessCheck(FALSE)
+    ->exists('eventseries')
+    ->condition('status', SubmissionConstants::STATUS_APPROVED)
+    ->execute();
+
+  $synced = 0;
+  foreach ($storage->loadMultiple($ids) as $submission) {
+    if ($submission->get('eventseries')->isEmpty()) {
+      continue;
+    }
+    $publisher->publish($submission);
+    $synced++;
+  }
+
+  return "Re-synced {$synced} event series from approved Kulturnat submissions.";
 }
