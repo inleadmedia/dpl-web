@@ -1,3 +1,10 @@
+{% set list_description = '' %}
+{% if eventinstance.event_teaser_text.value is not empty %}
+  {% set list_description = eventinstance.event_teaser_text.value %}
+{% elseif eventinstance.event_description.value is not empty %}
+  {% set list_description = eventinstance.event_description.value|striptags|trim %}
+{% endif %}
+
 {{ include('@novel/components/list-item.html.twig'
   , {
   attributes: attributes,
@@ -7,7 +14,7 @@
   categories: content.event_categories,
   date: formatted_list_date|default(content.date),
   title: content.title,
-  description: content.event_description,
+  description: list_description,
   location: content.event_location,
   start_date: start_time,
   end_date: end_time,

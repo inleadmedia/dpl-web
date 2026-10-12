@@ -551,10 +551,17 @@ function eonext_kultur_events_views_query_alter(ViewExecutable $view, $query): v
     return;
   }
 
-  // Each event instance translation is indexed separately; without this filter
-  // /da/arrangementer lists both da and en (etc.) as duplicate cards.
+  // Limit to Kulturnat public languages. Instances are usually indexed once as
+  // kl or da (series default / admin UI language). Matching both avoids an
+  // empty /kl/arrangementer when content is da-only, while still excluding en.
   $langcode = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
-  $search_api_query->addCondition('search_api_language', $langcode);
+  $calendar_languages = EventsConstants::CALENDAR_SEARCH_LANGUAGES;
+  if (in_array($langcode, $calendar_languages, TRUE)) {
+    $search_api_query->addCondition('search_api_language', $calendar_languages, 'IN');
+  }
+  else {
+    $search_api_query->addCondition('search_api_language', $langcode);
+  }
 }
 
 /**
