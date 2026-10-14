@@ -156,15 +156,6 @@ export const constructDK5SearchUrl = (searchUrl: URL, dk5: string) =>
     facets: [{ facetName: "dk5", selectedValues: [dk5.toLowerCase()] }]
   });
 
-<<<<<<< HEAD
-export const constructAdvancedSearchUrl = (advancedSearchUrl: URL, q: string, branchId?: string) =>
-  appendQueryParametersToUrl(advancedSearchUrl, {
-    advancedSearchCql: q,
-    branchId
-  });
-
-=======
->>>>>>> 2026.42.0
 // Type for facet state in URL (matches search-result-v2 format)
 type FacetUrlState = {
   facetName: string;

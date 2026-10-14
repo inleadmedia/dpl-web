@@ -4,19 +4,8 @@ import Receipt from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/
 import VariousIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/Various.svg";
 import React, { useEffect, useState, useMemo } from "react";
 import { useDeepCompareEffect, useUpdateEffect } from "react-use";
-<<<<<<< HEAD
-import DisclosureControllable from "../../components/Disclosures/DisclosureControllable";
-import DisclosureSummary from "../../components/Disclosures/DisclosureSummary";
-import DigitalModal from "../../components/material/digital-modal/DigitalModal";
-import InfomediaModal from "../../components/material/infomedia/InfomediaModal";
-import {
-  hasCorrectAccess,
-  hasCorrectAccessType
-} from "../../components/material/material-buttons/helper";
-import MaterialAdditionalDescription from "../../components/material/MaterialAdditionalDescription";
-=======
 import { hasCorrectAccessType } from "../../components/material/material-buttons/helper";
->>>>>>> 2026.42.0
+import MaterialAdditionalDescription from "../../components/material/MaterialAdditionalDescription";
 import MaterialDescription from "../../components/material/MaterialDescription";
 import MaterialDetailsList from "../../components/material/MaterialDetailsList";
 import MaterialHeader from "../../components/material/MaterialHeader";
@@ -542,7 +531,6 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     work,
     t
   });
-<<<<<<< HEAD
 
   Object.values(customFields?.detail || {}).forEach((customField: any) => {
     let originalListElementLabels = detailsListData.map((originalListElement: any) => originalListElement?.label);
@@ -577,10 +565,6 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     if (detailsListData[dataIndex].value.length === 0 || customField.hidden === true)
       detailsListData.splice(dataIndex, 1);
   });
-
-  const infomediaIds = getInfomediaIds(selectedManifestations);
-=======
->>>>>>> 2026.42.0
 
   return (
     <>

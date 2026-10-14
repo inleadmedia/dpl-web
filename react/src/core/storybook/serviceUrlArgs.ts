@@ -22,12 +22,11 @@ export const argTypes = {
       }
     }
   },
-<<<<<<< HEAD
   [serviceUrlKeys.wayfinder]: {
     name: "Base url for the Wayfinder API (global inventory)",
     defaultValue: process.env.WAYFINDER_BASEURL,
     control: { type: "text" }
-=======
+  },
   [serviceUrlKeys.biblio]: {
     description: "Base url for the Biblio adapter API",
     control: { type: "text" },
@@ -37,7 +36,6 @@ export const argTypes = {
         summary: "https://biblio-adapter.dbc.dk"
       }
     }
->>>>>>> 2026.42.0
   },
   [serviceUrlKeys.dplCms]: {
     description: "Base url for the DPL CMS API",
@@ -76,13 +74,9 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-<<<<<<< HEAD
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next-present/graphql"
-=======
-        summary: "https://fbi-api.dbc.dk/next-present/graphql"
->>>>>>> 2026.42.0
+          "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -93,13 +87,9 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-<<<<<<< HEAD
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next/graphql"
-=======
-        summary: "https://fbi-api.dbc.dk/next/graphql"
->>>>>>> 2026.42.0
+          "https://fbi-api.dbc.dk/next/graphql"
       }
     }
   },
@@ -109,13 +99,9 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-<<<<<<< HEAD
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next-present/graphql"
-=======
-        summary: "https://fbi-api.dbc.dk/next-present/graphql"
->>>>>>> 2026.42.0
+          "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -136,26 +122,17 @@ const envOptions = {
     readEnv("FBS_BASEURL") ?? "https://fbs-openplatform.dbc.dk",
   [serviceUrlKeys.publizon]:
     readEnv("PUBLIZON_BASEURL") ?? "https://pubhub-openplatform.dbc.dk",
-<<<<<<< HEAD
-  [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.docker",
-  [serviceUrlKeys.cover]:
-    readEnv("COVERS_BASEURL") ?? "https://cover.dandigbib.org",
-  [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
-  [serviceUrlKeys.fbi]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.fbiLocal]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next/graphql",
-  [serviceUrlKeys.fbiGlobal]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.wayfinder]: process.env.WAYFINDER_BASEURL,
-  developmentOptions: process.env.USE_DEVELOPMENT_OPTIONS,
-=======
   [serviceUrlKeys.biblio]:
     readEnv("BIBLIO_BASEURL") ?? "https://biblio-adapter.dbc.dk",
   [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.local",
-  [serviceUrlKeys.cover]: "https://cover.dandigbib.org",
+  [serviceUrlKeys.cover]:
+    readEnv("COVERS_BASEURL") ?? "https://cover.dandigbib.org",
   [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
-  [serviceUrlKeys.fbi]: "https://fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.fbiLocal]: "https://fbi-api.dbc.dk/next/graphql",
-  [serviceUrlKeys.fbiGlobal]: "https://fbi-api.dbc.dk/next-present/graphql",
->>>>>>> 2026.42.0
+  [serviceUrlKeys.fbi]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbiLocal]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next/graphql",
+  [serviceUrlKeys.fbiGlobal]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.wayfinder]: process.env.WAYFINDER_BASEURL,
+  developmentOptions: process.env.USE_DEVELOPMENT_OPTIONS,
   userinfoUrl: "https://login.bib.dk/userinfo"
 };
 

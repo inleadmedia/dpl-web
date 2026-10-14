@@ -22,6 +22,8 @@ export const constructAdvancedSearchUrl = ({
   onlyExtraTitles?: boolean;
   sort?: SortOption;
   view?: FormView;
+  advancedSearchCql?: string;
+  branchId?: string;
 }) => {
   const serializableParameters = Object.entries(parameters).filter(
     ([, value]) => shouldBeSerialized(value)

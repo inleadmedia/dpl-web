@@ -1304,14 +1304,6 @@ export const ContentsRaw: Story = {
   }
 };
 
-<<<<<<< HEAD
-export const KviklanAvailability: Story = {
-  name: "Kviklan availability Inlead injection",
-  args: {
-    ...Default.args,
-    wid: "work-of:870970-basis:140058203",
-    isInjectionExample: true
-=======
 // The Biblio adapter feature flag turned on. Digital materials are then
 // served by Biblio rather than Publizon.
 export const MaterialWithBiblioAdapter: Story = {
@@ -1340,6 +1332,14 @@ export const MaterialWithTolerantBiblioAdapter: Story = {
     ...Default.args,
     useBiblioAdapterConfig: "1",
     biblioTolerateUnknownMaterialsConfig: "1"
->>>>>>> 2026.42.0
+  }
+};
+
+export const KviklanAvailability: Story = {
+  name: "Kviklan availability Inlead injection",
+  args: {
+    ...Default.args,
+    wid: "work-of:870970-basis:140058203",
+    isInjectionExample: true
   }
 };

@@ -50,9 +50,8 @@ const config = {
     autodocs: "tag"
   },
 
-<<<<<<< HEAD
-  staticDirs: [{ from: "../public", to: "/modules/custom/eonext_translation/assets" }]
-=======
+  staticDirs: [{ from: "../public", to: "/modules/custom/eonext_translation/assets" }],
+  
   webpackFinal: async (config) => {
     config.resolve = config.resolve ?? {};
     config.resolve.alias = {
@@ -61,7 +60,6 @@ const config = {
     };
     return config;
   }
->>>>>>> 2026.42.0
 };
 
 export default config;

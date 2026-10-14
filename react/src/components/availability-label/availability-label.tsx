@@ -43,7 +43,6 @@ export const AvailabilityLabel: React.FC<AvailabilityLabelProps> = ({
   const { collectPageStatistics } = useCollectPageStatistics();
   const t = useText();
 
-<<<<<<< HEAD
   let isLoading;
   let isAvailable;
   try {
@@ -51,7 +50,7 @@ export const AvailabilityLabel: React.FC<AvailabilityLabelProps> = ({
       accessTypes,
       access,
       faustIds,
-      isbn: first(isbns) || null,
+      isbn: identifier,
       manifestText
     });
 
@@ -64,15 +63,6 @@ export const AvailabilityLabel: React.FC<AvailabilityLabelProps> = ({
     isLoading = false;
     isAvailable = false;
   }
-=======
-  const { isLoading, isAvailable } = useAvailabilityData({
-    accessTypes,
-    access,
-    faustIds,
-    isbn: identifier,
-    manifestText
-  });
->>>>>>> 2026.42.0
 
   const availabilityText = isAvailable
     ? t("availabilityAvailableText")

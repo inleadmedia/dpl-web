@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import React, { useId, useMemo } from "react";
-import { useDispatch } from "react-redux";
-=======
 import React, { useId } from "react";
->>>>>>> 2026.42.0
 import { useDeepCompareEffect } from "react-use";
 import {
   convertPostIdToFaustId,

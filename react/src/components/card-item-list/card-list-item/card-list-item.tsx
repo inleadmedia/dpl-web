@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import React, { useCallback, useId, useMemo } from "react";
-import { useDispatch } from "react-redux";
-=======
 import React, { useCallback, useId } from "react";
->>>>>>> 2026.42.0
 import { useText } from "../../../core/utils/text";
 import { WorkId } from "../../../core/utils/types/ids";
 import Arrow from "../../atoms/icons/arrow/arrow";

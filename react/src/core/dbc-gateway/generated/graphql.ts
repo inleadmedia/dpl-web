@@ -10852,11 +10852,10 @@ export const WorkSmallFragmentDoc = new TypedDocumentString(
     ...ManifestationsSimple
   }
 }
-<<<<<<< HEAD
     ${SeriesSimpleFragmentDoc}
-${ManifestationsSimpleFragmentDoc}`;
+${ManifestationsSimpleFragmentDoc}`);
 
-export const WorkSmallSearchFragmentDoc = `
+export const WorkSmallSearchFragmentDoc = new TypedDocumentString(`
     fragment WorkSmall on Work {
   workId
   titles {
@@ -10870,7 +10869,6 @@ export const WorkSmallSearchFragmentDoc = `
     }
   }
   abstract
-=======
     fragment ManifestationsSimple on Manifestations {
   all {
     ...ManifestationsSimpleFields
@@ -10905,172 +10903,19 @@ fragment ManifestationsSimpleFields on Manifestation {
       display
     }
   }
->>>>>>> 2026.42.0
   creators {
     display
     __typename
   }
-<<<<<<< HEAD
   workYear {
     year
   }
   genreAndForm
 }
-`;
+`);
 
-export const WorkMediumFragmentDoc = `
-=======
-  publisher
-  identifiers {
-    type
-    value
-  }
-  contributors {
-    display
-    roles {
-      function {
-        singular
-      }
-    }
-  }
-  contents {
-    heading
-    type
-    raw
-    entries {
-      title {
-        display
-      }
-      creators {
-        persons {
-          display
-          firstName
-          lastName
-          attributeToName
-        }
-        corporations {
-          display
-          main
-        }
-      }
-      contributors
-      playingTime
-      sublevel {
-        title {
-          display
-        }
-        contributors
-        playingTime
-        sublevel {
-          title {
-            display
-          }
-          contributors
-          playingTime
-        }
-      }
-    }
-  }
-  edition {
-    summary
-    publicationYear {
-      display
-    }
-  }
-  dateFirstEdition {
-    display
-    year
-  }
-  audience {
-    generalAudience
-    ages {
-      display
-    }
-    childrenOrAdults {
-      display
-      code
-    }
-  }
-  notes {
-    display
-  }
-  languages {
-    notes
-  }
-  physicalDescription {
-    summaryFull
-    numberOfPages
-  }
-  hostPublication {
-    summary
-  }
-  accessTypes {
-    code
-  }
-  access {
-    __typename
-    ... on AccessUrl {
-      origin
-      url
-      loginRequired
-      status
-    }
-    ... on RetrieverService {
-      id
-    }
-    ... on InterLibraryLoan {
-      loanIsPossible
-    }
-    ... on Ereol {
-      origin
-      url
-      canAlwaysBeLoaned
-    }
-    ... on DigitalArticleService {
-      issn
-    }
-  }
-  shelfmark {
-    postfix
-    shelfmark
-  }
-  workYear {
-    year
-  }
-  catalogueCodes {
-    nationalBibliography
-    otherCatalogues
-  }
-}
-fragment SeriesSimple on Series {
-  title
-  seriesId
-  isPopular
-  members {
-    numberInSeries
-    work {
-      workId
-      titles {
-        main
-      }
-    }
-  }
-  readThisFirst
-  readThisWhenever
-}
-fragment WithLanguages on Manifestation {
-  languages {
-    main {
-      display
-      iso639Set1
-    }
-  }
-}`,
-  { fragmentName: "WorkSmall" }
-);
 export const WorkMediumFragmentDoc = new TypedDocumentString(
   `
->>>>>>> 2026.42.0
     fragment WorkMedium on Work {
   ...WorkSmall
   materialTypes {

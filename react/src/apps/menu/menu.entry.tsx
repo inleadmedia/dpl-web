@@ -51,16 +51,13 @@ export interface MenuProps {
   materialAndAuthorText: string;
   materialByAuthorText: string;
   statusBadgeWarningText: string;
-<<<<<<< HEAD
   isInjectionExample?: boolean;
-=======
   uniloginUserIdConfig: string;
   uniloginPatronLoginHeadingText: string;
   uniloginPatronLoginDescriptionText: string;
   uniloginPatronLoginLogoutText: string;
   uniloginPatronLoginConfirmText: string;
   uniloginPatronLoginCancelText: string;
->>>>>>> 2026.42.0
 }
 
 export interface MenuEntryProps

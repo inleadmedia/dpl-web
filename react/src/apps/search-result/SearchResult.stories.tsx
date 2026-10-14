@@ -132,13 +132,6 @@ export const Default: Story = {
   }
 };
 
-<<<<<<< HEAD
-export const InleadInjection: Story = {
-  ...Default,
-  args: {
-    ...Default.args,
-    isInjectionExample: true
-=======
 // The teaser links a material search over to the editorial content search
 // (the /search/web View) for the same phrase. The CMS builds this config
 // from the phrase and the number of matching editorial results, and only
@@ -158,6 +151,13 @@ export const OnZeroHitsPage: Story = {
   args: {
     ...Default.args,
     zeroHitsSearchUrl: "/iframe.html"
->>>>>>> 2026.42.0
+  }
+};
+
+export const InleadInjection: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    isInjectionExample: true
   }
 };

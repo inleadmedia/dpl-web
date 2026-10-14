@@ -86,12 +86,8 @@ const Menu: FC<MenuProps> = ({ pageSize }) => {
       <MenuLoggedIn pageSize={pageSize} />
       <MenuUserUnregistered />
       <MenuNotLoggedInContent />
-<<<<<<< HEAD
-    </div>
-=======
       <MenuUniloginPatronLogin />
-    </>
->>>>>>> 2026.42.0
+    </div>
   );
 };
 

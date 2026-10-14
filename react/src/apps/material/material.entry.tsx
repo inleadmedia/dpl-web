@@ -178,13 +178,10 @@ interface MaterialEntryTextProps {
   reserveBookText: string;
   reserveText: string;
   reserveWithMaterialTypeText: string;
-<<<<<<< HEAD
   relatedContentText: string;
-=======
   retrieverCopyrightText: string;
   retrieverModalCloseModalAriaLabelText: string;
   retrieverModalScreenReaderModalDescriptionText: string;
->>>>>>> 2026.42.0
   reviewsText: string;
   saveButtonText: string;
   seeOnlineText: string;
