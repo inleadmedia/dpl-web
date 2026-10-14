@@ -16,6 +16,7 @@ import ReservationModal from "@/components/shared/reservationModal/ReservationMo
 import { Toaster } from "@/components/shared/toaster/Toaster"
 import { branchTitleQueryKey } from "@/hooks/useBranchTitle.keys"
 import { useGetMaterialQuery } from "@/lib/graphql/generated/fbi/graphql"
+import { getFaustIdsFromManifestations } from "@/lib/helpers/ids"
 import manifestationMock from "@/lib/mocks/manifestation/infoBox.mock"
 import workMock from "@/lib/mocks/work/infoBox.mock"
 
@@ -48,11 +49,21 @@ const fixturePatron: Patron = {
   pickupBranchId: "DK-761500",
   emailAddress: "test@example.com",
   phoneNumber: "+4512345678",
+  receiveSms: true,
 }
 
 const fixtureAvailability: MaterialAvailability = {
   totalCopies: 14,
   reservationCount: 3,
+  records: {
+    "12345678": {
+      recordId: "12345678",
+      totalCopies: 14,
+      availableCopies: 11,
+      reservationCount: 3,
+      reservable: true,
+    },
+  },
 }
 
 const wid = physicalWork.workId
@@ -74,7 +85,13 @@ const seedClient = ({
   })
   client.setQueryData(useGetMaterialQuery.getKey({ wid }), { work: physicalWork })
   if (patron) client.setQueryData(patronQueryKey(), patron)
-  if (availability) client.setQueryData(materialAvailabilityQueryKey(wid), availability)
+  // Must mirror the modal's own key: the work's physical record ids and the
+  // (empty, unconfigured) branch blacklist.
+  if (availability)
+    client.setQueryData(
+      materialAvailabilityQueryKey(wid, getFaustIdsFromManifestations([physicalManifestation])),
+      availability
+    )
   if (reservations) client.setQueryData(reservationsQueryKey(), reservations)
   // Seed the CMS branch lookup so both the form (patron's pickup branch) and
   // the receipt ("Bogen skal hentes på") render with a friendly name.

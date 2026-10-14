@@ -4,6 +4,7 @@ import Receipt from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/
 import VariousIcon from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/Various.svg";
 import React, { useEffect, useState, useMemo } from "react";
 import { useDeepCompareEffect, useUpdateEffect } from "react-use";
+<<<<<<< HEAD
 import DisclosureControllable from "../../components/Disclosures/DisclosureControllable";
 import DisclosureSummary from "../../components/Disclosures/DisclosureSummary";
 import DigitalModal from "../../components/material/digital-modal/DigitalModal";
@@ -13,6 +14,9 @@ import {
   hasCorrectAccessType
 } from "../../components/material/material-buttons/helper";
 import MaterialAdditionalDescription from "../../components/material/MaterialAdditionalDescription";
+=======
+import { hasCorrectAccessType } from "../../components/material/material-buttons/helper";
+>>>>>>> 2026.42.0
 import MaterialDescription from "../../components/material/MaterialDescription";
 import MaterialDetailsList from "../../components/material/MaterialDetailsList";
 import MaterialHeader from "../../components/material/MaterialHeader";
@@ -31,7 +35,6 @@ import {
   setQueryParametersInUrl
 } from "../../core/utils/helpers/url";
 import { usePatronData } from "../../core/utils/helpers/usePatronData";
-import { isAnonymous, isBlocked } from "../../core/utils/helpers/user";
 import { useText } from "../../core/utils/text";
 import { Manifestation, Work } from "../../core/utils/types/entities";
 import { WorkId } from "../../core/utils/types/ids";
@@ -41,7 +44,6 @@ import {
   divideManifestationsByMaterialType,
   getBestMaterialTypeForWork,
   getDetailsListData,
-  getInfomediaIds,
   getManifestationChildrenOrAdults,
   getManifestationsOrderByTypeAndYear,
   isParallelReservation,
@@ -52,6 +54,7 @@ import {
   ListData
 } from "../../components/material/MaterialDetailsList";
 import MaterialDisclosure from "./MaterialDisclosure";
+import ArticleModals from "./ArticleModals";
 import ReservationFindOnShelfModals from "./ReservationFindOnShelfModals";
 import OnlineInternalModal from "../../components/reservation/OnlineInternalModal";
 import MaterialGridRelated from "../../components/material-grid-related/MaterialGridRelated";
@@ -320,7 +323,6 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
   const [selectedPeriodical, setSelectedPeriodical] =
     useState<PeriodicalEdition | null>(null);
   const { data: userData } = usePatronData();
-  const [isUserBlocked, setIsUserBlocked] = useState<boolean | null>(null);
   const { updatePageStatistics } = usePageStatistics();
   const { collectPageStatistics } = useCollectPageStatistics();
   const disclosureOpenStates = getDisclosureOpenStatesFromUrl();
@@ -431,10 +433,6 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     updatePageStatistics({ waitTime: 2500 });
   }, [selectedManifestations, selectedPeriodical]);
 
-  useEffect(() => {
-    setIsUserBlocked(!!(userData?.patron && isBlocked(userData.patron)));
-  }, [userData]);
-
   useDeepCompareEffect(() => {
     if (data?.work?.genreAndForm) {
       collectPageStatistics({
@@ -544,6 +542,7 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
     work,
     t
   });
+<<<<<<< HEAD
 
   Object.values(customFields?.detail || {}).forEach((customField: any) => {
     let originalListElementLabels = detailsListData.map((originalListElement: any) => originalListElement?.label);
@@ -580,6 +579,8 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
   });
 
   const infomediaIds = getInfomediaIds(selectedManifestations);
+=======
+>>>>>>> 2026.42.0
 
   return (
     <>
@@ -594,35 +595,31 @@ const Material: React.FC<MaterialProps> = ({ wid }) => {
           isGlobalMaterial={workType === "global"}
           isAvailable={isAvailable}
         >
-          {manifestations.map((manifestation) =>
-            hasCorrectAccessType(AccessTypeCodeEnum.Online, [manifestation]) ? (
-              <OnlineInternalModal
-                key={manifestation.pid}
-                workId={wid}
-                selectedManifestations={[manifestation]}
-              />
-            ) : (
-              <ReservationFindOnShelfModals
-                key={manifestation.pid}
+          {manifestations.map((manifestation) => (
+            <React.Fragment key={manifestation.pid}>
+              {hasCorrectAccessType(AccessTypeCodeEnum.Online, [
+                manifestation
+              ]) ? (
+                <OnlineInternalModal
+                  workId={wid}
+                  selectedManifestations={[manifestation]}
+                />
+              ) : (
+                <ReservationFindOnShelfModals
+                  patron={userData?.patron}
+                  manifestations={[manifestation]}
+                  selectedPeriodical={selectedPeriodical}
+                  work={work}
+                  setSelectedPeriodical={setSelectedPeriodical}
+                />
+              )}
+              <ArticleModals
                 patron={userData?.patron}
-                manifestations={[manifestation]}
-                selectedPeriodical={selectedPeriodical}
-                work={work}
-                setSelectedPeriodical={setSelectedPeriodical}
+                manifestation={manifestation}
+                workId={wid}
               />
-            )
-          )}
-          {infomediaIds.length > 0 && !isAnonymous() && !isUserBlocked && (
-            <InfomediaModal
-              selectedManifestations={selectedManifestations}
-              infoMediaId={infomediaIds[0]}
-            />
-          )}
-          {hasCorrectAccess("DigitalArticleService", selectedManifestations) &&
-            !isAnonymous() &&
-            !isUserBlocked && (
-              <DigitalModal pid={selectedManifestations[0].pid} workId={wid} />
-            )}
+            </React.Fragment>
+          ))}
           {/* Only create a main version of "reservation" & "find on shelf" modal for physical materials with multiple editions.
         Online materials lead to external links, or to same modals as are created for singular editions. */}
           {isParallelReservation(selectedManifestations) && (

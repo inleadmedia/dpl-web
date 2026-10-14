@@ -14,6 +14,7 @@ import { MappArgs } from "../../core/storybook/mappArgs";
 import { EditionSwitchModalArgs } from "../../core/storybook/editionSwitchModalArgs";
 import { PlayerModalProps } from "../../core/storybook/playerModalArgs";
 import { OpenOrderProps } from "../../core/storybook/openOrderArgs";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import withPageStatistics from "../../core/statistics/withPageStatistics";
 import useSetSmoothScroll from "../../core/utils/useSetSmoothScroll";
 import { MaterialUnavailableNoticeArgs } from "../../components/material/MaterialUnavailableNotice/MaterialUnavailableNoticeArgs";
@@ -75,9 +76,6 @@ interface MaterialEntryTextProps {
   goToText: string;
   reservationDetailsNoInterestAfterTitleText: string;
   identifierText: string;
-  infomediaCopyrightText: string;
-  infomediaModalCloseModalAriaLabelText: string;
-  infomediaModalScreenReaderModalDescriptionText: string;
   inSameSeriesText: string;
   inSeriesText: string;
   instantLoanSubTitleText: string;
@@ -174,13 +172,19 @@ interface MaterialEntryTextProps {
   reservationErrorsTitleText: string;
   reservationModalCloseModalAriaLabelText: string;
   reservationModalScreenReaderModalDescriptionText: string;
+  reservationRecommendationsTitleText: string;
   reservationSuccesIsReservedForYouText: string;
   reservationSuccessPreferredPickupBranchText: string;
-  reservationSuccesTitleText: string;
   reserveBookText: string;
   reserveText: string;
   reserveWithMaterialTypeText: string;
+<<<<<<< HEAD
   relatedContentText: string;
+=======
+  retrieverCopyrightText: string;
+  retrieverModalCloseModalAriaLabelText: string;
+  retrieverModalScreenReaderModalDescriptionText: string;
+>>>>>>> 2026.42.0
   reviewsText: string;
   saveButtonText: string;
   seeOnlineText: string;
@@ -220,6 +224,7 @@ export interface MaterialEntryProps
     MappArgs,
     EditionSwitchModalArgs,
     PlayerModalProps,
+    BiblioAdapterArgs,
     OpenOrderProps,
     MaterialUnavailableNoticeArgs {
   wid: WorkId;

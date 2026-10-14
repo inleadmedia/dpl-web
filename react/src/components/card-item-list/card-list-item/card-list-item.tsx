@@ -1,12 +1,14 @@
+<<<<<<< HEAD
 import React, { useCallback, useId, useMemo } from "react";
 import { useDispatch } from "react-redux";
+=======
+import React, { useCallback, useId } from "react";
+>>>>>>> 2026.42.0
 import { useText } from "../../../core/utils/text";
 import { WorkId } from "../../../core/utils/types/ids";
 import Arrow from "../../atoms/icons/arrow/arrow";
 import { AvailabilityLabels } from "../../availability-label/availability-labels";
-import ButtonFavourite, {
-  ButtonFavouriteId
-} from "../../button-favourite/button-favourite";
+import ButtonFavourite from "../../button-favourite/button-favourite";
 import { CoverProps } from "../../cover/cover";
 import Link from "../../atoms/links/Link";
 import {
@@ -22,8 +24,6 @@ import {
   constructMaterialUrl,
   redirectTo
 } from "../../../core/utils/helpers/url";
-import { TypedDispatch } from "../../../core/store";
-import { guardedRequest } from "../../../core/guardedRequests.slice";
 import { Work } from "../../../core/utils/types/entities";
 import { useEventStatistics } from "../../../core/statistics/useStatistics";
 import { statistics } from "../../../core/statistics/statistics";
@@ -36,6 +36,7 @@ import useFilterHandler from "../../../apps/search-result/useFilterHandler";
 import { getFirstMaterialTypeFromFilters } from "../../../apps/search-result/helper";
 import SubjectNumber from "../../subject-number/SubjectNumber";
 import SeriesList from "./series-list";
+import { useAddFavorite } from "../../button-favourite/useAddFavorite";
 
 export interface CardListItemProps {
   item: Work;
@@ -74,7 +75,6 @@ const CardListItem: React.FC<CardListItemProps> = ({
   );
   const bookManifestation = getFirstBookManifestation(manifestations);
 
-  const dispatch = useDispatch<TypedDispatch>();
   const author = creatorsToString(flattenCreators(creators), t);
   const manifestationPids = getManifestationsPids(manifestations);
   const materialFullUrl = constructMaterialUrl(
@@ -101,15 +101,7 @@ const CardListItem: React.FC<CardListItemProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materialFullUrl]);
 
-  const addToListRequest = (id: ButtonFavouriteId) => {
-    dispatch(
-      guardedRequest({
-        type: "addFavorite",
-        args: { id },
-        app: "search-result"
-      })
-    );
-  };
+  const addToListRequest = useAddFavorite({ app: "search-result" });
 
   return (
     // We know that is not following a11y recommendations to have an onclick
