@@ -197,14 +197,28 @@ tasks:
   go:deploy:build:
     desc: pnpm install and pnpm build
     dir: "{{.GO_DIR}}"
+    # WeDoBooks token — same as root Taskfile.yml init:pnpm and go/lagoon/stage1.dockerfile.
+    dotenv:
+      - ../.env
     cmds:
       - |
-        if command -v corepack >/dev/null 2>&1; then
-          corepack enable
-          corepack prepare pnpm@10.34.4 --activate
+        # Non-interactive install: go/lagoon/stage1.dockerfile (ENV CI=true) and
+        # cms drupal:build-react (CI=true task dev:react:setup).
+        export CI=true
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          export "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}"
+        elif ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "${HOME}/.npmrc" 2>/dev/null; then
+          echo "warning: no WeDoBooks npm credential — WEDOBOOKS_NPM_TOKEN missing from ../.env and none in ~/.npmrc. See packages/wedobooks/README.md." >&2
         fi
-        pnpm install --frozen-lockfile
-        pnpm run build
+        # go/Taskfile.yml dev:nvm:use + corepack pnpm (root Taskfile.yml init:pnpm).
+        bash -lc '
+          source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+          nvm install
+          nvm use
+          corepack enable
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm run build
+        '
 
   go:deploy:pm2-restart:
     desc: Restart PM2 app (start if missing)
