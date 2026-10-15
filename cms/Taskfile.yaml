@@ -11,6 +11,7 @@ vars:
 env:
   SKIP_LANGUAGE_IMPORT: false
   SKIP_GO_DEPLOY: false
+  SKIP_REACT_BUILD: false
   DRUSH_EXEC: "./vendor/bin/drush"
 
 tasks:
@@ -43,8 +44,19 @@ tasks:
 
   drupal:update:
     desc: Install/update composer dependencies and build/restart Go when ../go is present
-    deps:
-      - drupal:build-react
+    preconditions:
+      - sh: |
+          if [ "${SKIP_REACT_BUILD}" = true ]; then
+            exit 0
+          fi
+          test -d ../react/dist && test -d ../design-system/build \
+            && test -n "$(ls -A ../react/dist 2>/dev/null)" \
+            && test -n "$(ls -A ../design-system/build 2>/dev/null)"
+        msg: |
+          Composer path repos need built ../react/dist and ../design-system/build.
+          On the host (with WeDoBooks npm access): task dev:react:setup
+          Or: task -t cms/Taskfile.yaml drupal:build-react --force
+          To skip this check: SKIP_REACT_BUILD=true
     cmds:
       - cp -n .env.example .env || true
       - rm -rf web/libraries/dpl-react web/themes/custom/novel/assets/dpl-design-system
@@ -64,28 +76,33 @@ tasks:
         fi
 
   drupal:build-react:
-    desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild)
+    desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild). Prefer on the host; needs WEDOBOOKS_NPM_TOKEN in ../.env inside DDEV.
+    dir: ..
+    dotenv:
+      - .env
+      - ../.env
     preconditions:
-      - sh: test -f ../react/bundle.sh && test -f ../design-system/bundle.sh
+      - sh: test -f react/package.json && test -f design-system/package.json
         msg: Run from cms/ in the dpl-web monorepo (../react and ../design-system required).
     sources:
-      - ../react/src/**/*
-      - ../react/package.json
-      - ../react/yarn.lock
-      - ../react/bundle.sh
-      - ../react/composer.json
-      - ../react/webpack*.js
-      - ../react/tsconfig.json
-      - ../design-system/src/**/*
-      - ../design-system/public/**/*
-      - ../design-system/package.json
-      - ../design-system/yarn.lock
-      - ../design-system/bundle.sh
-      - ../design-system/composer.json
+      - react/src/**/*
+      - react/package.json
+      - react/pnpm-lock.yaml
+      - react/composer.json
+      - react/webpack*.js
+      - react/tsconfig.json
+      - design-system/src/**/*
+      - design-system/public/**/*
+      - design-system/package.json
+      - design-system/pnpm-lock.yaml
+      - design-system/composer.json
+      - packages/wedobooks/**/*
+      - pnpm-lock.yaml
     generates:
-      - ../react/dist/.bundle-stamp
+      - react/dist/.bundle-stamp
     cmds:
-      - (cd ../react && ./bundle.sh)
+      - CI=true task dev:react:setup
+      - touch react/dist/.bundle-stamp
 
   drupal:assets:status:
     desc: Report whether a react/design-system bundle build is needed (does not build)
@@ -180,14 +197,28 @@ tasks:
   go:deploy:build:
     desc: pnpm install and pnpm build
     dir: "{{.GO_DIR}}"
+    # WeDoBooks token — same as root Taskfile.yml init:pnpm and go/lagoon/stage1.dockerfile.
+    dotenv:
+      - ../.env
     cmds:
       - |
-        if command -v corepack >/dev/null 2>&1; then
-          corepack enable
-          corepack prepare pnpm@10.34.4 --activate
+        # Non-interactive install: go/lagoon/stage1.dockerfile (ENV CI=true) and
+        # cms drupal:build-react (CI=true task dev:react:setup).
+        export CI=true
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          export "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}"
+        elif ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "${HOME}/.npmrc" 2>/dev/null; then
+          echo "warning: no WeDoBooks npm credential — WEDOBOOKS_NPM_TOKEN missing from ../.env and none in ~/.npmrc. See packages/wedobooks/README.md." >&2
         fi
-        pnpm install --frozen-lockfile
-        pnpm run build
+        # go/Taskfile.yml dev:nvm:use + corepack pnpm (root Taskfile.yml init:pnpm).
+        bash -lc '
+          source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+          nvm install
+          nvm use
+          corepack enable
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm run build
+        '
 
   go:deploy:pm2-restart:
     desc: Restart PM2 app (start if missing)

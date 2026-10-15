@@ -23,6 +23,7 @@ const fixturePatron: Patron = {
   pickupBranchId: fixtureBranch.isilId,
   emailAddress: "test@example.com",
   phoneNumber: "+4512345678",
+  receiveSms: true,
 }
 
 // Branch titles and patron data come from server actions the Storybook
@@ -113,9 +114,7 @@ export const ReservationDetails: Story = {
   args: baseArgs,
   play: async () => {
     const { screen, userEvent } = await import("@storybook/test")
-    const [firstRow] = await screen.findAllByRole("button", {
-      name: /se detaljer om din reservering/i,
-    })
+    const [firstRow] = await screen.findAllByRole("button", { name: /vis detaljer/i })
     await userEvent.click(firstRow)
     await screen.findByRole("heading", { name: "Din reservering" })
   },
