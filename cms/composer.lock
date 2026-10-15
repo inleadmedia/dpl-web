@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ebbf0419a4ba2755387f01a47bf53b21",
+    "content-hash": "499f7e3d0051bcdd077e39d0e437cc0d",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -8891,55 +8891,6 @@
             }
         },
         {
-            "name": "drupal/telephone",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://git.drupalcode.org/project/telephone.git",
-                "reference": "1.0.1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/telephone-1.0.1.zip",
-                "reference": "1.0.1",
-                "shasum": "53a17f5a0b30daec9c97f52618358c0bc7768adc"
-            },
-            "require": {
-                "drupal/core": "^11.3 || ^12"
-            },
-            "type": "drupal-module",
-            "extra": {
-                "drupal": {
-                    "version": "1.0.1",
-                    "datestamp": "1786639598",
-                    "security-coverage": {
-                        "status": "covered",
-                        "message": "Covered by Drupal's security advisory policy"
-                    }
-                }
-            },
-            "notification-url": "https://packages.drupal.org/8/downloads",
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "dave reid",
-                    "homepage": "https://www.drupal.org/user/53892"
-                },
-                {
-                    "name": "smustgrave",
-                    "homepage": "https://www.drupal.org/user/3252890"
-                }
-            ],
-            "description": "Defines a field type for telephone numbers.",
-            "homepage": "https://drupal.org/project/telephone",
-            "support": {
-                "source": "https://git.drupalcode.org/project/telephone",
-                "issues": "https://drupal.org/project/issues/telephone"
-            }
-        },
-        {
             "name": "drupal/telephone_formatter",
             "version": "1.3.0",
             "source": {
@@ -10744,6 +10695,115 @@
                 "symlink": true,
                 "relative": true
             }
+        },
+        {
+            "name": "inleadmedia/easyemail",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/inleadmedia/easyemail",
+                "reference": "0d04c7d42d0cca8844b4211c43446db5e740d4e7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/0d04c7d42d0cca8844b4211c43446db5e740d4e7",
+                "reference": "0d04c7d42d0cca8844b4211c43446db5e740d4e7",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11",
+                "drupal/entity_reference_revisions": "^1.10",
+                "drupal/paragraphs": "^1.12"
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Newsletter management system with Peytz Mailer integration.",
+            "homepage": "https://github.com/inleadmedia/easyemail",
+            "support": {
+                "source": "https://github.com/inleadmedia/easyemail"
+            },
+            "time": "2026-10-15T08:29:35+00:00"
+        },
+        {
+            "name": "inleadmedia/eonext_editorial_search",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/inleadmedia/eonext_editorial_search",
+                "reference": "56407114542b67356f0b61c00f5fd437bfd52cb2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/56407114542b67356f0b61c00f5fd437bfd52cb2",
+                "reference": "56407114542b67356f0b61c00f5fd437bfd52cb2",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11",
+                "drupal/facets": "^3.0",
+                "drupal/paragraphs": "^1.16",
+                "drupal/search_api": "^1.31"
+            },
+            "suggest": {
+                "dpl_event": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_fbi": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_library_agency": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_library_token": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_search": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml)."
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Editorial (web) search for DPL CMS webmaster libraries.",
+            "homepage": "https://github.com/inleadmedia/eonext_editorial_search",
+            "support": {
+                "source": "https://github.com/inleadmedia/eonext_editorial_search"
+            },
+            "time": "2026-10-15T08:02:51+00:00"
+        },
+        {
+            "name": "inleadmedia/eonext_servicebanner",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/inleadmedia/eonext_servicebanner",
+                "reference": "a53b847c1c9069622be006633eab52c1237bf91a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_servicebanner/zipball/a53b847c1c9069622be006633eab52c1237bf91a",
+                "reference": "a53b847c1c9069622be006633eab52c1237bf91a",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10.3 || ^11",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "drupal/core-dev": "^10.3 || ^11"
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Inlead ApS",
+                    "homepage": "https://inlead.dk"
+                }
+            ],
+            "description": "Configurable service banner for library websites (admin UI, REST API, HTML data attributes).",
+            "support": {
+                "issues": "https://github.com/inleadmedia/eonext_servicebanner/issues",
+                "source": "https://github.com/inleadmedia/eonext_servicebanner"
+            },
+            "time": "2026-10-15T09:06:17+00:00"
         },
         {
             "name": "jms/metadata",
@@ -24550,7 +24610,10 @@
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
         "inleadmedia/dpl-design-system": 20,
-        "inleadmedia/dpl-react": 20
+        "inleadmedia/dpl-react": 20,
+        "inleadmedia/easyemail": 20,
+        "inleadmedia/eonext_editorial_search": 20,
+        "inleadmedia/eonext_servicebanner": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -24558,6 +24621,6 @@
         "php": "8.4.*",
         "ext-dom": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
