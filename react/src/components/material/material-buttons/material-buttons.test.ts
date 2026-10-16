@@ -105,7 +105,7 @@ describe("Material buttons", () => {
     });
 
     cy.visit(
-      "/iframe.html?id=apps-material--infomedia&viewMode=story&type=artikel+%28online%29"
+      "/iframe.html?id=apps-material--retriever&viewMode=story&type=artikel+%28online%29"
     )
       .getBySel("material-description")
       .scrollIntoView({ duration: 300 });
@@ -213,11 +213,11 @@ describe("Material buttons", () => {
     cy.getBySel("material-header-buttons-physical").should("not.exist");
   });
 
-  it("Renders the correct action button for infomedia articles", () => {
+  it("Renders the correct action button for Retriever articles", () => {
     cy.interceptGraphql({
       operationName: "getMaterial",
       fixtureFilePath:
-        "material-buttons/material-buttons-infomedia-fbi-api.json"
+        "material-buttons/material-buttons-retriever-fbi-api.json"
     });
     cy.interceptRest({
       aliasName: "UserInfo",
@@ -225,11 +225,11 @@ describe("Material buttons", () => {
       fixtureFilePath: "material/userinfo.json"
     });
     cy.createFakeAuthenticatedSession();
-    cy.visit("/iframe.html?id=apps-material--infomedia&viewMode=story")
+    cy.visit("/iframe.html?id=apps-material--retriever&viewMode=story")
       .getBySel("material-description")
       .scrollIntoView({ duration: 300 });
 
-    cy.getBySel("material-header-buttons-online-infomedia-article")
+    cy.getBySel("material-header-buttons-online-retriever-article")
       .should("exist")
       .and("contain", "Read article");
   });
@@ -283,14 +283,37 @@ describe("Material buttons", () => {
       fixtureFilePath: "material/availability.json"
     });
 
+    // Use middleware:true so these handlers run before any accumulated regular
+    // handlers from previous specs, regardless of LIFO ordering.
+    cy.interceptGraphql({
+      operationName: "getReviewManifestations",
+      fixtureFilePath: "material/reviews.json",
+      middleware: true
+    });
+
+    cy.interceptGraphql({
+      operationName: "getMaterialGlobally",
+      fixtureFilePath: "material-buttons/material-buttons-fbi-api.json",
+      middleware: true
+    });
+
     cy.interceptGraphql({
       operationName: "WorkRecommendations",
-      fixtureFilePath: "material/material-grid-related-recommendations.json"
+      fixtureFilePath: "material/material-grid-related-recommendations.json",
+      middleware: true
+    });
+
+    cy.interceptGraphql({
+      operationName: "complexSearchWithPagination",
+      fixtureFilePath:
+        "material/material-grid-related-author-recommendations.json",
+      middleware: true
     });
 
     cy.interceptGraphql({
       operationName: "GetCoversByPids",
-      fixtureFilePath: "cover/cover.json"
+      fixtureFilePath: "cover/cover.json",
+      middleware: true
     });
 
     // Intercept like button
@@ -298,11 +321,28 @@ describe("Material buttons", () => {
       statusCode: 404
     }).as("Favorite list service");
 
-    // Intercept url "translation".
-    cy.interceptRest({
-      aliasName: "UrlProxy",
-      url: "**/dpl-url-proxy?url=**",
-      fixtureFilePath: "material/dpl-url-proxy.json"
+    // Intercept url "translation". The dpl-cms.local host resolves to a
+    // private IP via /etc/hosts which Chrome bypasses the Cypress proxy for,
+    // so cy.intercept cannot catch it. Instead stub fetch directly at the
+    // browser level before the page loads.
+    cy.on("window:before:load", (win) => {
+      const originalFetch = win.fetch.bind(win);
+      // eslint-disable-next-line no-param-reassign
+      win.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input.toString();
+        if (url.includes("/dpl-url-proxy")) {
+          return Promise.resolve(
+            new win.Response(
+              JSON.stringify({ data: { url: "http://www.example.com" } }),
+              {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+              }
+            )
+          );
+        }
+        return originalFetch(input, init);
+      };
     });
 
     cy.interceptGraphql({

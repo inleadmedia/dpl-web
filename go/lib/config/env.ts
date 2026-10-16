@@ -13,31 +13,28 @@ function getEnvs() {
     // Public environment variables.
     DPL_GO_BASE_URL: process.env.DPL_GO_BASE_URL,
     DPL_CMS_BASE_URL: process.env.DPL_CMS_BASE_URL,
+    FBS_BASE_URL: process.env.FBS_BASE_URL,
     GO_GRAPHQL_CONSUMER_USER_NAME: process.env.NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_NAME,
     GO_GRAPHQL_CONSUMER_USER_PASSWORD: process.env.NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD,
     NODE_ENV: process.env.NODE_ENV,
     TEST_MODE: process.env.TEST_MODE,
 
     // Server-only environment variables.
+    ADGANGSPLATFORMEN_USERINFO_URL: process.env.ADGANGSPLATFORMEN_USERINFO_URL,
     DRUPAL_REVALIDATE_SECRET: process.env.DRUPAL_REVALIDATE_SECRET,
     GO_SESSION_SECRET: process.env.GO_SESSION_SECRET,
     NEXT_PHASE: process.env.NEXT_PHASE,
-    UNILOGIN_CLIENT_ID: process.env.UNILOGIN_CLIENT_ID,
-    UNILOGIN_CLIENT_SECRET: process.env.UNILOGIN_CLIENT_SECRET,
-    UNILOGIN_MUNICIPALITY_ID: process.env.UNILOGIN_MUNICIPALITY_ID,
-    UNILOGIN_WELLKNOWN_URL: process.env.UNILOGIN_WELLKNOWN_URL,
+    PUBHUB_BASE_URL: process.env.PUBHUB_BASE_URL,
     UNLILOGIN_PUBHUB_CLIENT_ID: process.env.UNLILOGIN_PUBHUB_CLIENT_ID,
     UNLILOGIN_PUBHUB_RETAILER_ID: process.env.UNLILOGIN_PUBHUB_RETAILER_ID,
     UNLILOGIN_PUBHUB_RETAILER_KEY_CODE: process.env.UNLILOGIN_PUBHUB_RETAILER_KEY_CODE,
-    UNILOGIN_WS_PRIVATE_KEY: process.env.UNILOGIN_WS_PRIVATE_KEY,
-    UNILOGIN_WS_PUBLIC_CERT: process.env.UNILOGIN_WS_PUBLIC_CERT,
-    UNILOGIN_WS_UDBYDERSYSTEM_ID: process.env.UNILOGIN_WS_UDBYDERSYSTEM_ID,
   }
 }
 
 const EnvPublicSchema = z.object({
   DPL_GO_BASE_URL: z.url(),
   DPL_CMS_BASE_URL: z.url(),
+  FBS_BASE_URL: z.url().optional(),
   GO_GRAPHQL_CONSUMER_USER_NAME: z.string(),
   GO_GRAPHQL_CONSUMER_USER_PASSWORD: z.string(),
   NODE_ENV: z.union([z.literal("development"), z.literal("production"), z.literal("test")]),
@@ -47,6 +44,9 @@ const EnvPublicSchema = z.object({
 // Environment variables only available in Node.js.
 // Should only be fetched with getServerEnv().
 const EnvServerSchema = z.object({
+  // Overrides goConfig("auth.adgangsplatformen-userinfo-url"), so tests can
+  // point it at mockttp.
+  ADGANGSPLATFORMEN_USERINFO_URL: z.url().optional(),
   DRUPAL_REVALIDATE_SECRET: z.string(),
   GO_SESSION_SECRET: z.string().min(32),
   NEXT_PHASE: z
@@ -58,17 +58,11 @@ const EnvServerSchema = z.object({
       z.literal(PHASE_TEST),
     ])
     .optional(),
-  UNILOGIN_MUNICIPALITY_ID: z.string().optional(),
+  // Lets tests point the Pubhub SOAP client at mockttp.
+  PUBHUB_BASE_URL: z.url().optional(),
   UNLILOGIN_PUBHUB_CLIENT_ID: z.string(),
   UNLILOGIN_PUBHUB_RETAILER_ID: z.string(),
   UNLILOGIN_PUBHUB_RETAILER_KEY_CODE: z.string().optional(),
-  UNILOGIN_WS_PRIVATE_KEY: z.string().optional(),
-  UNILOGIN_WS_PUBLIC_CERT: z.string().optional(),
-  UNILOGIN_WS_UDBYDERSYSTEM_ID: z.string().optional(),
-  // Is fetched from dpl-cms, but can be overridden by env vars
-  UNILOGIN_CLIENT_ID: z.string().optional(),
-  UNILOGIN_CLIENT_SECRET: z.string().optional(),
-  UNILOGIN_WELLKNOWN_URL: z.url().optional(),
 })
 
 type EnvPublicSchemaResult = z.infer<typeof EnvPublicSchema>

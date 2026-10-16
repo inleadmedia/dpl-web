@@ -6,7 +6,9 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\dpl_fbi\Fbi;
 use Drupal\dpl_react_apps\Services\BranchService;
+use Drupal\dpl_react_apps\SharedTranslations\DigitalSessionTexts;
 use Drupal\dpl_react_apps\SharedTranslations\OnlineMaterialTexts;
+use Drupal\dpl_react_apps\SharedTranslations\OpenOrderTexts;
 use Drupal\dpl_react_apps\SharedTranslations\PlayerModalTexts;
 use Drupal\dpl_fbi\FirstAccessionDateOperator;
 use Drupal\dpl_fbs\Form\FbsSettingsForm;
@@ -18,6 +20,7 @@ use Drupal\dpl_library_agency\ReservationSettings;
 use Drupal\dpl_login\Adgangsplatformen\Config;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use function Safe\json_encode;
 
 /**
@@ -78,12 +81,16 @@ class DplReactAppsController extends ControllerBase {
         $location = $branch->getAddressData();
 
         if (!empty($location)) {
+          $lat = $location->getLatitude();
+          $lng = $location->getLongitude();
+
           $branch_output['location'] = [
             'city' => $location->getPostalName(),
             'value' => $location->getString(),
             'address' => $location->getString(),
-            'lat' => $location->getLatitude(),
-            'lng' => $location->getLongitude(),
+            // The React apps expect coordinates as strings.
+            'lat' => $lat !== NULL ? (string) $lat : NULL,
+            'lng' => $lng !== NULL ? (string) $lng : NULL,
           ];
         }
       }
@@ -547,9 +554,6 @@ class DplReactAppsController extends ControllerBase {
       'hearts-icon-text' => $this->t('hearts', [], ['context' => 'Work Page']),
       'identifier-text' => $this->t('Identifiers', [], ['context' => 'Work Page']),
       'in-same-series-text' => $this->t('In the same series', [], ['context' => 'Work Page']),
-      'infomedia-copyright-text' => $this->t('All material in Infomedia is covered by copyright law and may not be copied without special permission.', [], ['context' => 'Work Page']),
-      'infomedia-modal-close-modal-aria-label-text' => $this->t('Close infomedia modal', [], ['context' => 'Work Page']),
-      'infomedia-modal-screen-reader-modal-description-text' => $this->t('Infomedia modal screen reader description', [], ['context' => 'Work Page']),
       'instant-loan-sub-title-text' => $this->t('Avoid the queue and pick up the material now', [], ['context' => 'Work Page']),
       'instant-loan-title-text' => $this->t('Instant loan', [], ['context' => 'Work Page']),
       'instant-loan-underline-description-text' => $this->t('The material is available at these nearby libraries', [], ['context' => 'Work Page']),
@@ -570,6 +574,13 @@ class DplReactAppsController extends ControllerBase {
       'material-is-available-in-another-edition-text' => $this->t('Skip the queue - The material is available in another edition - @title @authorAndYear - reservations: @reservations', [], ['context' => 'Work Page']),
       'material-is-included-text' => $this->t('Material is included', [], ['context' => 'Work Page']),
       'material-is-loaned-out-text' => $this->t('Material is loaned out', [], ['context' => 'Work Page']),
+      // Shown instead of the action buttons when a material cannot be borrowed,
+      // reserved or opened through the website.
+      'material-unavailable-title-text' => $this->t('The material is not available through the website', [], ['context' => 'Work Page']),
+      'material-unavailable-description-text' => $this->t('Visit the library and get help from a librarian or check whether the material is available at', [], ['context' => 'Work Page']),
+      'material-unavailable-compact-description-text' => $this->t('Contact the library for access', [], ['context' => 'Work Page']),
+      'material-unavailable-link-text' => $this->t('Bibliotek.dk', [], ['context' => 'Work Page']),
+      'material-unavailable-url' => 'https://bibliotek.dk',
       'material-reservation-info-text' => [
         'type' => 'plural',
         'text' => [
@@ -619,15 +630,6 @@ class DplReactAppsController extends ControllerBase {
       'online-limit-month-ebook-info-text' => $this->t('You have borrowed @count out of @limit possible e-books this month', [], ['context' => 'Work Page']),
       'online-limit-month-info-text' => $this->t('You have borrowed @count out of @limit possible e-books this month', [], ['context' => 'Work Page']),
       'online-material-teaser-text' => $this->t('Try @materialType', [], ['context' => 'Work Page']),
-      'open-order-not-owned-ill-loc-text' => $this->t('Your material has been ordered from another library', [], ['context' => 'Work Page']),
-      'open-order-owned-own-catalogue-text' => $this->t('Item available, order through the librarys catalogue', [], ['context' => 'Work Page']),
-      'open-order-owned-wrong-mediumtype-text' => $this->t('Item available but medium type not accepted', [], ['context' => 'Work Page']),
-      'open-order-response-title-text' => $this->t('Order from another library:', [], ['context' => 'Work Page']),
-      'open-order-service-unavailable-text' => $this->t('Service is currently unavailable', [], ['context' => 'Work Page']),
-      'open-order-status-owned-accepted-text' => $this->t('Your order is accepted', [], ['context' => 'Work Page']),
-      'open-order-unknown-error-text' => $this->t('An unknown error occurred', [], ['context' => 'Work Page']),
-      'open-order-unknown-pickupagency-text' => $this->t('Specified pickup agency not found', [], ['context' => 'Work Page']),
-      'open-order-unknown-user-text' => $this->t('User not found', [], ['context' => 'Work Page']),
       'order-digital-copy-button-loading-text' => $this->t('Order digital copy button loading text', [], ['context' => 'Work Page']),
       'order-digital-copy-button-text' => $this->t('Order digital copy', [], ['context' => 'Work Page']),
       'order-digital-copy-description-text' => $this->t('Order digital copy description text', [], ['context' => 'Work Page']),
@@ -683,13 +685,16 @@ class DplReactAppsController extends ControllerBase {
       'reservation-errors-title-text' => $this->t('Reservation error', [], ['context' => 'Work Page']),
       'reservation-modal-close-modal-aria-label-text' => $this->t('Close reservation modal', [], ['context' => 'Work Page']),
       'reservation-modal-screen-reader-modal-description-text' => $this->t('modal for reservation', [], ['context' => 'Work Page']),
+      'reservation-recommendations-title-text' => $this->t('You might also be interested in...', [], ['context' => 'Work Page']),
       'reservation-succes-is-reserved-for-you-text' => $this->t('is reserved for you', [], ['context' => 'Work Page']),
-      'reservation-succes-title-text' => $this->t('The material is available and is now reserved for you!', [], ['context' => 'Work Page']),
       'reservation-success-preferred-pickup-branch-text' => $this->t('Material is available and you will get a message when it is ready for pickup - pickup at @branch', [], ['context' => 'Work Page']),
       'reservations-for-this-material-text' => $this->t('reservations for this material', [], ['context' => 'Work Page']),
       'reserve-book-text' => $this->t('Reserve book', [], ['context' => 'Work Page']),
       'reserve-text' => $this->t('Reserve', [], ['context' => 'Work Page']),
       'reserve-with-material-type-text' => $this->t('Reserve @materialType', [], ['context' => 'Work Page']),
+      'retriever-copyright-text' => $this->t('All material in Retriever is covered by copyright law and may not be copied without special permission.', [], ['context' => 'Work Page']),
+      'retriever-modal-close-modal-aria-label-text' => $this->t('Close Retriever modal', [], ['context' => 'Work Page']),
+      'retriever-modal-screen-reader-modal-description-text' => $this->t('Retriever modal screen reader description', [], ['context' => 'Work Page']),
       'reviews-text' => $this->t('Reviews', [], ['context' => 'Work Page']),
       'scope-text' => $this->t('Scope', [], ['context' => 'Work Page']),
       'see-online-text' => $this->t('See online', [], ['context' => 'Work Page']),
@@ -718,7 +723,8 @@ class DplReactAppsController extends ControllerBase {
       // Add external API base urls.
     ] + self::externalApiBaseUrls()
       + PlayerModalTexts::texts()
-      + OnlineMaterialTexts::texts();
+      + OnlineMaterialTexts::texts()
+      + OpenOrderTexts::texts();
 
     $app = [
       '#theme' => 'dpl_react_app',
@@ -746,7 +752,7 @@ class DplReactAppsController extends ControllerBase {
     $data = [
       'branches-config' => json_encode($this->branchService->getBranchListData()),
       'branch-address-search-enabled-config' => (int) $this->config('dpl_library_agency.general_settings')->get('enable_address_search_branch'),
-      'dataforsyningen-token-config' => $this->config('gsearch.settings')->get('token') ?: '',
+      'dataforsyningen-token-config' => getenv('DATAFORSYNINGEN_TOKEN') ?: '',
       'branch-list-title-text' => $this->t('Branches', [], ['context' => 'Branch List']),
       'address-search-label-text' => $this->t('See libraries near an address', [], ['context' => 'Branch List']),
       'address-search-placeholder-text' => $this->t('Enter an address e.g. Torvegade 1, 1401 København K', [], ['context' => 'Branch List']),
@@ -764,6 +770,87 @@ class DplReactAppsController extends ControllerBase {
       '#name' => 'branch-list',
       '#data' => $data,
     ];
+  }
+
+  /**
+   * Page title callback for the series landing page.
+   *
+   * @param string $series_id
+   *   The id of the series to display.
+   */
+  public function seriesTitle(string $series_id): string {
+    try {
+      return $this->fbi->getSeriesTitle($series_id) ?? '';
+    }
+    catch (\Throwable $e) {
+      $this->getLogger('dpl_react_apps')->error(
+        'Could not fetch series title from FBI: @message', [
+          '@message' => $e->getMessage(),
+        ]);
+      // Fall back to empty string.
+      return '';
+    }
+  }
+
+  /**
+   * Render the series landing page app.
+   *
+   * @param string $series_id
+   *   The id of the series to display.
+   *
+   * @return mixed[]
+   *   Render array.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+   *   If FBI knows no series with the given id.
+   */
+  public function series(string $series_id): array {
+    try {
+      $series_exists = $this->fbi->getSeriesTitle($series_id) !== NULL;
+    }
+    catch (\Throwable $e) {
+      $this->getLogger('dpl_react_apps')->error(
+        'Could not look up series @id in FBI: @message', [
+          '@id' => $series_id,
+          '@message' => $e->getMessage(),
+        ]);
+      // Assume the series exists. An unreachable FBI is transient, and the 404
+      // would be cached and served to everyone for as long as it lived.
+      $series_exists = TRUE;
+    }
+
+    if (!$series_exists) {
+      throw new NotFoundHttpException();
+    }
+
+    $data = [
+      'series-id' => $series_id,
+
+      // Config.
+      // The availability labels on each card exclude blacklisted branches from
+      // the FBS lookup, and the statistics hook behind them reads the Mapp
+      // settings. Both are declared per page rather than globally.
+      'blacklisted-availability-branches-config' => $this->buildBranchesListProp($this->branchSettings->getExcludedAvailabilityBranches()),
+      'mapp-domain-config' => $this->config('dpl_mapp.settings')->get('domain'),
+      'mapp-id-config' => $this->config('dpl_mapp.settings')->get('id'),
+
+      // Texts.
+      'series-read-this-first-text' => $this->t('Start with this one', [], ['context' => 'Series Page']),
+      'series-by-author-text' => $this->t('Series by', [], ['context' => 'Series Page']),
+      'series-related-works-heading-text' => $this->t('More by @author', [], ['context' => 'Series Page']),
+
+      // Add external API base urls.
+    ] + self::externalApiBaseUrls();
+
+    $app = [
+      '#theme' => 'dpl_react_app',
+      '#name' => 'series',
+      '#data' => $data,
+    ];
+
+    $this->renderer->addCacheableDependency($app, $this->branchSettings);
+
+    return $app;
   }
 
   /**
@@ -812,15 +899,23 @@ class DplReactAppsController extends ControllerBase {
   public function reader(Request $request): array {
     $identifier = $request->query->get('identifier');
     $orderid = $request->query->get('orderid');
+    // A loan made through the Biblio adapter opens in the WeDoBooks reader
+    // instead, which knows the loan by its own id. Publizon's reader does not
+    // recognise it and vice versa, so they cannot share a parameter.
+    $loanid = $request->query->get('loanid');
 
-    if (!$identifier && !$orderid) {
-      throw new BadRequestHttpException('Either identifier or orderid must be provided.');
+    if (!$identifier && !$orderid && !$loanid) {
+      throw new BadRequestHttpException('Either identifier, orderid or loanid must be provided.');
     }
 
     $data = [
-      'identifier' => $identifier ?? NULL,
-      'orderid' => $orderid ?? NULL,
-    ];
+      'identifier' => $identifier,
+      'orderid' => $orderid,
+      'loanid' => $loanid,
+      // Publizon's reader talks to no API of ours; the WeDoBooks one needs the
+      // adapter to vouch for the patron before it can open anything.
+    ] + self::externalApiBaseUrls()
+      + DigitalSessionTexts::texts();
 
     $app = [
       '#theme' => 'dpl_react_app',
@@ -830,6 +925,47 @@ class DplReactAppsController extends ControllerBase {
 
     return $app;
 
+  }
+
+  /**
+   * Render the Player React app.
+   *
+   * Audiobooks get their own page: the SDK's player bar pins itself to the
+   * bottom of the viewport and leaves the rest of the page free, unlike the
+   * reader, which owns the whole screen. Only WeDoBooks plays here - Publizon
+   * audiobooks play in a modal on the page the patron came from.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The HTTP request containing query parameters.
+   *
+   * @return mixed[]
+   *   Render array with the Player app block.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   */
+  public function player(Request $request): array {
+    // The WeDoBooks player knows a loan by the loan's own id. An identifier
+    // with no loan behind it is a sample.
+    $loanid = $request->query->get('loanid');
+    $identifier = $request->query->get('identifier');
+
+    if (!$identifier && !$loanid) {
+      throw new BadRequestHttpException('Either identifier or loanid must be provided.');
+    }
+
+    $data = [
+      'identifier' => $identifier,
+      'loanid' => $loanid,
+      // The WeDoBooks player needs the adapter to vouch for the patron
+      // before it can play anything.
+    ] + self::externalApiBaseUrls()
+      + DigitalSessionTexts::texts();
+
+    return [
+      '#theme' => 'dpl_react_app',
+      '#name' => 'player',
+      '#data' => $data,
+    ];
   }
 
 }

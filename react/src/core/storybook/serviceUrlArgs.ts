@@ -1,4 +1,5 @@
 import { serviceUrlKeys } from "../utils/reduxMiddleware/extractServiceBaseUrls";
+import { readEnv } from "../utils/helpers/env";
 
 export const argTypes = {
   [serviceUrlKeys.fbs]: {
@@ -21,13 +22,23 @@ export const argTypes = {
       }
     }
   },
+  [serviceUrlKeys.biblio]: {
+    description: "Base url for the Biblio adapter API",
+    control: { type: "text" },
+    table: {
+      type: { summary: "text" },
+      defaultValue: {
+        summary: "https://biblio-adapter.dbc.dk"
+      }
+    }
+  },
   [serviceUrlKeys.dplCms]: {
     description: "Base url for the DPL CMS API",
     control: { type: "text" },
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://dpl-cms.docker"
+        summary: "https://dpl-cms.local"
       }
     }
   },
@@ -57,7 +68,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next-present/graphql"
+        summary: "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -67,7 +78,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next/graphql"
+        summary: "https://fbi-api.dbc.dk/next/graphql"
       }
     }
   },
@@ -77,7 +88,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next-present/graphql"
+        summary: "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -95,15 +106,16 @@ export const argTypes = {
 
 export default {
   [serviceUrlKeys.fbs]:
-    process.env.FBS_BASEURL ?? "https://fbs-openplatform.dbc.dk",
+    readEnv("FBS_BASEURL") ?? "https://fbs-openplatform.dbc.dk",
   [serviceUrlKeys.publizon]:
-    process.env.PUBLIZON_BASEURL ?? "https://pubhub-openplatform.dbc.dk",
-  [serviceUrlKeys.dplCms]: process.env.CMS_BASEURL ?? "https://dpl-cms.docker",
+    readEnv("PUBLIZON_BASEURL") ?? "https://pubhub-openplatform.dbc.dk",
+  [serviceUrlKeys.biblio]:
+    readEnv("BIBLIO_BASEURL") ?? "https://biblio-adapter.dbc.dk",
+  [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.local",
   [serviceUrlKeys.cover]: "https://cover.dandigbib.org",
   [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
-  [serviceUrlKeys.fbi]: "https://temp.fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.fbiLocal]: "https://temp.fbi-api.dbc.dk/next/graphql",
-  [serviceUrlKeys.fbiGlobal]:
-    "https://temp.fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbi]: "https://fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbiLocal]: "https://fbi-api.dbc.dk/next/graphql",
+  [serviceUrlKeys.fbiGlobal]: "https://fbi-api.dbc.dk/next-present/graphql",
   userinfoUrl: "https://login.bib.dk/userinfo"
 };

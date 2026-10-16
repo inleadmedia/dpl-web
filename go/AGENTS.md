@@ -41,8 +41,9 @@ reflex. The intended shape:
   reads `process.env`.
 - **App configuration** (routes, search defaults, service URLs, …) goes
   through the **resolver system** under `lib/config/resolvers/`, accessed as
-  `goConfig("routes.user-profile")` server-side or `useGoConfig([...])`
-  client-side. See ADR-001. Async resolvers must expose an env-var override.
+  `goConfig("routes.user-profile")` — synchronous, from both server and
+  client code (all resolvers are flat values today). See ADR-001. Async
+  resolvers must expose an env-var override.
 
 Lagoon derives the `NEXT_PUBLIC_*` env vars at *container start*, not build
 time (see `lagoon/start.sh`). Build artifacts are environment-independent —
@@ -57,14 +58,16 @@ If you are working with caching, make sure to see ADR-008 and ADR-009.
 Two identity providers, both sharing a single `go-session` cookie. A user
 is either one or the other at a time, never both.
 
-- **Adgangsplatformen** — library patrons. Drupal `SSESS*` cookie ties the
-  Go session to the CMS session; middleware destroys the Go session if the
-  CMS cookie disappears.
-- **Unilogin** — students. OpenID Connect + PKCE via `openid-client`. The
-  user's first institution's `kommunenr` must match
-  `UNILOGIN_MUNICIPALITY_ID`.
+- **Adgangsplatformen** — library patrons.
+- **Unilogin** — students. An Adgangsplatformen login with Unilogin forced;
+  the CMS checks license and municipality.
 
-If you are doing anything with authentication, make sure to see ADR-005 and [`../docs/go/authentication.md`](../docs/go/authentication.md)
+Both log in through the CMS. The type of the user token the CMS hands out
+decides the session type. The Drupal `SSESS*` cookie ties the Go session to
+the CMS session; middleware destroys the Go session if the CMS cookie
+disappears, the token expires, or the CMS hands out a token of another type.
+
+If you are doing anything with authentication, make sure to see ADR-005, ADR-012, ADR-013 and [`../docs/go/authentication.md`](../docs/go/authentication.md)
 
 ## Where to learn more
 
@@ -90,3 +93,13 @@ If you are doing anything with authentication, make sure to see ADR-005 and [`..
 - **XState is scoped to the search feature only** (ADR-002). For
   lightweight global UI state, use the `@xstate/store` stores under
   `store/`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -7,8 +7,8 @@ import type { CodegenConfig } from "@graphql-codegen/cli"
 // Refresh with `task dev:codegen:bnf-graphql` in cms/.
 const DPL_CMS_SCHEMA_PATH = "../cms/dpl-cms.bnf.graphql"
 
-// Refresh with `task schemas:refresh:dbc-fbi:fbcms-go`.
-const FBI_SCHEMA_PATH = "../schemas/graphql/dbc-fbi.fbcms-go.graphql"
+// Refresh with `task refresh:dbc-fbi`, run from schemas/.
+const FBI_SCHEMA_PATH = "../schemas/graphql/dbc-fbi.graphql"
 
 const config: CodegenConfig = {
   overwrite: true,
@@ -41,7 +41,7 @@ const config: CodegenConfig = {
       hooks: {
         // Correcting the codegen output.
         // First off, we correct the type of the options for the fetcher.
-        afterOneFileWrite: ["yarn post-process-dpl-cms-graphql", "yarn eslint --fix"],
+        afterOneFileWrite: ["pnpm run post-process-dpl-cms-graphql", "pnpm run lint --fix"],
       },
     },
     "lib/graphql/generated/fbi/graphql.ts": {
@@ -70,7 +70,7 @@ const config: CodegenConfig = {
         useConsts: true,
       },
       hooks: {
-        afterOneFileWrite: ["yarn eslint --fix"],
+        afterOneFileWrite: ["pnpm run lint --fix"],
       },
     },
   },

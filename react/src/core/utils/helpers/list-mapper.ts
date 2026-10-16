@@ -1,4 +1,11 @@
 import { head, keys, values } from "lodash";
+import {
+  DigitalLoan,
+  DigitalMaterial,
+  MaterialType,
+  DigitalReservation,
+  opensIn
+} from "@danskernesdigitalebibliotek/dpl-service-layer";
 import { LoanV2, ReservationDetailsV2 } from "../../fbs/model";
 import { FaustId } from "../types/ids";
 import { ManifestationBasicDetailsFragment } from "../../dbc-gateway/generated/graphql";
@@ -6,13 +13,17 @@ import { BasicDetailsType } from "../types/basic-details-type";
 import { Product, Loan, Reservation } from "../../publizon/model";
 import {
   PUBLIZON_PRODUCT_TYPE,
-  isPublizonProductType
+  publizonOpensIn
 } from "../../publizon/productType";
 import { LoanType } from "../types/loan-type";
 import { store } from "../../store";
 import { ReservationType } from "../types/reservation-type";
 import { getContributors } from "./general";
 import { ReservationGroupDetails } from "../useGetReservationGroups";
+import {
+  dashboardReadyForPickupApiValueText,
+  dashboardReservedApiValueText
+} from "../../configuration/api-strings";
 
 function getYearFromDataString(date: string) {
   return new Date(date).getFullYear();
@@ -52,10 +63,71 @@ export const mapPublizonLoanToLoanType = (list: Loan[]): LoanType[] => {
         identifier: libraryBook?.identifier || null,
         faust: null,
         loanId: null,
-        orderId
+        orderId,
+        digitalProvider: "publizon" as const
       };
     }
   );
+};
+
+// The label a digital material is listed under; empty for a type nothing can
+// open. The text keys are Publizon's by name only - they predate Biblio.
+const digitalMaterialLabel = (materialType: MaterialType) => {
+  const {
+    text: { data: texts }
+  } = store.getState();
+
+  const labels = {
+    ebook: texts.publizonEbookText,
+    audiobook: texts.publizonAudioBookText,
+    podcast: texts.publizonPodcastText
+  };
+  return Object.hasOwn(labels, materialType)
+    ? labels[materialType as keyof typeof labels]
+    : "";
+};
+
+const mapDigitalLoanToBasicDetailsType = (loan: DigitalLoan) => {
+  return {
+    title: loan.title,
+    periodical: null,
+    year: loan.publishDate ? getYearFromDataString(loan.publishDate) : "",
+    materialType: digitalMaterialLabel(loan.materialType),
+    // Each provider answers where its loan opens from the field its own API
+    // carries: a Biblio loan has the adapter's material type, a Publizon
+    // product has its numeric product type - see mapProductToBasicDetailsType.
+    opensIn: opensIn(loan.materialType),
+    externalProductId: loan.materialId,
+    authors: getContributors(false, loan.authors),
+    authorsShort: getContributors(true, loan.authors)
+  } as BasicDetailsType;
+};
+
+// The service layer hands back a DigitalLoan whichever service lent the
+// material; Publizon still answers with its own Loan. Both are mapped to
+// LoanType so components can treat loans from all providers alike.
+export const mapDigitalLoanToLoanType = (list: DigitalLoan[]): LoanType[] => {
+  return list.map((loan) => {
+    const { loanId, materialId, startDate, endDate } = loan;
+    return {
+      dueDate: endDate,
+      loanDate: startDate,
+      isRenewable: false,
+      materialItemNumber: materialId,
+      renewalStatusList: [],
+      loanType: null,
+      identifier: materialId,
+      faust: null,
+      loanId: null,
+      // The service layer's loan id plays the same role as Publizon's order
+      // id: the key used to open the loan in the reader/player.
+      orderId: loanId,
+      digitalProvider: "serviceLayer" as const,
+      // A digital loan carries its own catalogue fields, so the list can
+      // render it without a separate metadata lookup.
+      details: mapDigitalLoanToBasicDetailsType(loan)
+    };
+  });
 };
 
 // LoanV2 is a loan from FBS, and is the equivalent
@@ -109,7 +181,7 @@ export const mapProductToBasicDetailsType = (material: Product) => {
     text: { data: texts }
   } = store.getState();
 
-  const digitalProductType: { [key: number]: string } = {
+  const publizonProductTypeTexts: { [key: number]: string } = {
     [PUBLIZON_PRODUCT_TYPE.EBOOK]: texts.publizonEbookText,
     [PUBLIZON_PRODUCT_TYPE.AUDIOBOOK]: texts.publizonAudioBookText,
     [PUBLIZON_PRODUCT_TYPE.PODCAST]: texts.publizonPodcastText
@@ -126,11 +198,30 @@ export const mapProductToBasicDetailsType = (material: Product) => {
     periodical: null,
     year: publicationDate ? getYearFromDataString(publicationDate) : "",
     description,
-    materialType: productType ? digitalProductType[productType] : "",
-    digitalProductType: isPublizonProductType(productType) ? productType : null,
+    materialType: productType ? publizonProductTypeTexts[productType] : "",
+    // Publizon's counterpart to opensIn in mapDigitalLoanToBasicDetailsType.
+    opensIn: publizonOpensIn(productType),
     externalProductId: externalProductId?.id,
     authors: contributors ? getContributors(false, authors) : "",
     authorsShort: contributors ? getContributors(true, authors) : ""
+  } as BasicDetailsType;
+};
+
+export const mapDigitalMaterialToBasicDetailsType = (
+  material: DigitalMaterial
+) => {
+  return {
+    title: material.title,
+    lang: head(material.languages),
+    periodical: null,
+    year: material.publishDate
+      ? getYearFromDataString(material.publishDate)
+      : "",
+    description: material.description,
+    materialType: digitalMaterialLabel(material.materialType),
+    externalProductId: material.isbn,
+    authors: getContributors(false, material.authors),
+    authorsShort: getContributors(true, material.authors)
   } as BasicDetailsType;
 };
 
@@ -219,6 +310,40 @@ export const mapPublizonReservationToReservationType = (
         state,
         title: productTitle,
         pickupDeadline: expectedRedeemDateUtc
+      };
+    }
+  );
+};
+
+export const mapDigitalReservationToReservationType = (
+  list: DigitalReservation[]
+): ReservationType[] => {
+  return list.map(
+    ({
+      reservationId,
+      materialId,
+      createdDate,
+      expectedLoanDate,
+      offerId,
+      offerExpiresAt
+    }) => {
+      return {
+        identifier: materialId,
+        faust: null,
+        dateOfReservation: createdDate,
+        // An offered reservation is waiting to be accepted as a loan, which
+        // is what "ready for pickup" means for a digital material. Without an
+        // offer the user is still queued.
+        state: offerId
+          ? dashboardReadyForPickupApiValueText
+          : dashboardReservedApiValueText,
+        // The offer is what expires - the reservation itself has no end date.
+        expiryDate: offerExpiresAt ?? null,
+        pickupDeadline: expectedLoanDate,
+        // Service layer reservations carry no title. It is resolved from the
+        // material metadata by the same HOC that describes digital loans.
+        title: null,
+        digitalReservationId: reservationId
       };
     }
   );

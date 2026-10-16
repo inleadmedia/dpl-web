@@ -13,8 +13,11 @@ import { CopyLinkArgs } from "../../core/storybook/copyLinkArgs";
 import { MappArgs } from "../../core/storybook/mappArgs";
 import { EditionSwitchModalArgs } from "../../core/storybook/editionSwitchModalArgs";
 import { PlayerModalProps } from "../../core/storybook/playerModalArgs";
+import { OpenOrderProps } from "../../core/storybook/openOrderArgs";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import withPageStatistics from "../../core/statistics/withPageStatistics";
 import useSetSmoothScroll from "../../core/utils/useSetSmoothScroll";
+import { MaterialUnavailableNoticeArgs } from "../../components/material/MaterialUnavailableNotice/MaterialUnavailableNoticeArgs";
 
 interface MaterialEntryTextProps {
   alreadyReservedText: string;
@@ -73,9 +76,6 @@ interface MaterialEntryTextProps {
   goToText: string;
   reservationDetailsNoInterestAfterTitleText: string;
   identifierText: string;
-  infomediaCopyrightText: string;
-  infomediaModalCloseModalAriaLabelText: string;
-  infomediaModalScreenReaderModalDescriptionText: string;
   inSameSeriesText: string;
   inSeriesText: string;
   instantLoanSubTitleText: string;
@@ -134,25 +134,6 @@ interface MaterialEntryTextProps {
   onlineMaterialPlayerText: string;
   onlineMaterialReaderText: string;
   onlineMaterialTeaserText: string;
-  openOrderAuthenticationErrorText: string;
-  openOrderErrorMissingPincodeText: string;
-  openOrderInvalidOrderText: string;
-  openOrderNoServicerequesterText: string;
-  openOrderNotOwnedIllLocText: string;
-  openOrderNotOwnedNoIllLocText: string;
-  openOrderNotOwnedWrongIllMediumtypeText: string;
-  openOrderOrsErrorText: string;
-  openOrderOwnedOwnCatalogueText: string;
-  openOrderOwnedWrongMediumtypeText: string;
-  openOrderResponseTitleText: string;
-  openOrderServiceUnavailableText: string;
-  openOrderStatusOwnedAcceptedText: string;
-  openOrderUnknownErrorText: string;
-  openOrderUnknownPickupagencyText: string;
-  openOrderUnknownUserText: string;
-  openOrderUserBlockedByAgencyText: string;
-  openOrderUserNoLongerExistOnAgencyText: string;
-  openOrderUserNotVerifiedText: string;
   orderDigitalCopyButtonLoadingText: string;
   orderDigitalCopyButtonText: string;
   orderDigitalCopyDescriptionText: string;
@@ -191,12 +172,15 @@ interface MaterialEntryTextProps {
   reservationErrorsTitleText: string;
   reservationModalCloseModalAriaLabelText: string;
   reservationModalScreenReaderModalDescriptionText: string;
+  reservationRecommendationsTitleText: string;
   reservationSuccesIsReservedForYouText: string;
   reservationSuccessPreferredPickupBranchText: string;
-  reservationSuccesTitleText: string;
   reserveBookText: string;
   reserveText: string;
   reserveWithMaterialTypeText: string;
+  retrieverCopyrightText: string;
+  retrieverModalCloseModalAriaLabelText: string;
+  retrieverModalScreenReaderModalDescriptionText: string;
   reviewsText: string;
   saveButtonText: string;
   seeOnlineText: string;
@@ -235,7 +219,10 @@ export interface MaterialEntryProps
     CopyLinkArgs,
     MappArgs,
     EditionSwitchModalArgs,
-    PlayerModalProps {
+    PlayerModalProps,
+    BiblioAdapterArgs,
+    OpenOrderProps,
+    MaterialUnavailableNoticeArgs {
   wid: WorkId;
 }
 

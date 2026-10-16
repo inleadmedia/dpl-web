@@ -50,6 +50,12 @@ describe("Material", () => {
   });
 
   it("Renders only first 3 horizontal lines items", () => {
+    cy.interceptGraphql({
+      operationName: "getMaterial",
+      fixtureFilePath: "material/fbi-api.json"
+    });
+    cy.visit("/iframe.html?id=apps-material--default&viewMode=story&type=bog");
+    cy.getBySel("material-header-content").scrollIntoView({ duration: 100 });
     cy.getBySel("material-description-series-members")
       .should("be.visible")
       .find("span")
@@ -57,6 +63,12 @@ describe("Material", () => {
   });
 
   it("Renders additional horizontal lines items after button click", () => {
+    cy.interceptGraphql({
+      operationName: "getMaterial",
+      fixtureFilePath: "material/fbi-api.json"
+    });
+    cy.visit("/iframe.html?id=apps-material--default&viewMode=story&type=bog");
+    cy.getBySel("material-header-content").scrollIntoView({ duration: 100 });
     cy.getBySel("material-description-series-members").find("button").click();
 
     cy.getBySel("material-description-series-members")
@@ -272,10 +284,10 @@ describe("Material", () => {
       });
   });
 
-  it("Renders the correct details for infomedia", () => {
+  it("Renders the correct details for Retriever", () => {
     cy.interceptGraphql({
       operationName: "getMaterial",
-      fixtureFilePath: "material/infomedia-fbi-api.json"
+      fixtureFilePath: "material/retriever-fbi-api.json"
     });
 
     cy.interceptRest({
@@ -287,7 +299,7 @@ describe("Material", () => {
     cy.createFakeAuthenticatedSession();
 
     cy.visit(
-      "/iframe.html?args=&id=apps-material--infomedia&viewMode=story&type=artikel"
+      "/iframe.html?args=&id=apps-material--retriever&viewMode=story&type=artikel"
     );
     cy.wait("@getMaterial GraphQL operation");
 
@@ -433,6 +445,10 @@ describe("Material", () => {
       operationName: "getMaterial",
       fixtureFilePath: "material/fbi-api.json"
     });
+    cy.interceptGraphql({
+      operationName: "WorkRecommendations",
+      fixtureFilePath: "material/material-grid-related-recommendations.json"
+    });
     cy.createFakeAuthenticatedSession();
     cy.visit("/iframe.html?id=apps-material--default&viewMode=story&type=bog");
 
@@ -455,7 +471,7 @@ describe("Material", () => {
 
     cy.getBySel("reservation-success-title-text")
       .should("be.visible")
-      .and("contain", "Material is available and reserved for you!");
+      .and("contain", '"De syv søstre" is reserved for you');
 
     cy.getBySel("number-in-queue-text")
       .should("be.visible")

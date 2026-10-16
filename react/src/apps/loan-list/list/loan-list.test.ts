@@ -1,5 +1,5 @@
 import { FbiCoverUrlPattern } from "../../../../cypress/fixtures/fixture.types";
-import { TOKEN_LIBRARY_KEY } from "../../../core/token";
+import { TOKEN_LIBRARY_KEY, TOKEN_USER_KEY } from "../../../core/token";
 
 describe("Loan list", () => {
   beforeEach(() => {
@@ -8,8 +8,12 @@ describe("Loan list", () => {
 
       // Sets time to a specific date. cy.clock() applies to the application
       // under test automatically when called before cy.visit().
-      cy.clock(wednesday20220603);
+      // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+      // notify scheduler, leaving every component stuck in its loading state.
+      cy.clock(wednesday20220603, ["Date"]);
       win.sessionStorage.setItem(TOKEN_LIBRARY_KEY, "random-token");
+      // Loans, reservations and fees are only fetched for a patron.
+      win.sessionStorage.setItem(TOKEN_USER_KEY, "random-token");
     });
 
     cy.intercept("GET", "**/external/agencyid/patrons/patronid/v4**", {

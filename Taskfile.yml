@@ -2,12 +2,83 @@ version: '3'
 
 output: prefixed
 
+includes:
+  branch-tag-cleanup: ./taskfiles/Taskfile.branch-tag-cleanup.yml
+
 vars:
   CMS_DESIGN_SYSTEM_ASSETS: ./cms/web/themes/custom/novel/assets/dpl-design-system
   CMS_REACT_LIBRARY: ./cms/web/libraries/dpl-react
   DESIGN_SYSTEM_BUILD: ./design-system/build
+  # We're using the -alpine variant as the regular version does not
+  # forward the spunky named npm_config variable, which we need in
+  # order to fetch the Biblio SDK.
+  CLI_PREFIX:
+    sh: if [[ -f .run-in-docker ]]; then echo "docker run --user $(id -u):$(id -g) -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack -e PNPM_HOME=/tmp/pnpm -e CI -e 'npm_config_//npm.pkg.wedobooks.io/:_authToken' --rm -v \"{{.TASKFILE_DIR}}:/app\" -w /app node:24.21-alpine"; fi
 
 tasks:
+  init:
+    desc: "Initialize project, creating .env symlinks and installing dependencies."
+    deps:
+      - dev:dotenv:link
+      - init:pnpm
+
+  dockerinit:
+    summary: Initialize project, using docker
+    cmds:
+      - touch .run-in-docker
+      - task init
+
+  dev:dotenv:generate:
+    desc: "Generate/replace the central .env from 1Password (.env.1pass) and symlink it."
+    sources:
+      - '.env.1pass'
+    generates:
+      - '.env'
+    cmds:
+      - op inject --account reloadas.1password.com --force --in-file .env.1pass --out-file .env
+      - |
+        if [ "$(basename "$PWD")" != "dpl-web" ]; then
+          PROJECT_NAME=$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9_-]//g')
+          sed "s/^COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=${PROJECT_NAME}/" .env > .env.tmp && mv .env.tmp .env
+        fi
+    preconditions:
+      - sh: which op
+        msg: '1Password CLI command required'
+
+  dev:dotenv:template:
+    desc: "Create the central .env from .env.1pass without 1Password, leaving secret values empty."
+    summary: |
+      For environments that cannot reach 1Password — CI, or a developer without
+      access to our vault. Copies .env.1pass and blanks every `op://` reference,
+      so the resulting .env carries the local development defaults and leaves the
+      real secrets empty. Anything needing a real credential must be filled in by
+      hand afterwards.
+
+      Does nothing if a .env already exists, so it never overwrites a .env
+      generated from 1Password by dev:dotenv:generate.
+    status:
+      # Never clobber an existing .env — notably one holding real secrets.
+      - test -e .env
+    cmds:
+      # Values are quoted in .env.1pass ("op://..."), so match op:// anywhere
+      # after the '=' rather than immediately following it.
+      - sed -E 's|^([A-Za-z_][A-Za-z0-9_]*)=.*op://.*|\1=|' .env.1pass > .env
+
+  dev:dotenv:link:
+    desc: "Create symlinks in each project to the main .env file."
+    cmds:
+      - ln -sf ../.env cms/.env
+      - ln -sf ../.env go/.env
+      - ln -sf ../.env react/.env
+
+  dev:cli:
+    summary: Performs command inside a container. Expects parameter(s).
+    # User id and group corresponds to the node user in the container.
+    # This is a stopgap measure until someone has time for
+    # https://reload.atlassian.net/browse/DDF-220
+    cmds:
+      - "{{ .CLI_PREFIX }} {{ .CLI_ARGS }}"
+
   # ---------------------------------------------------------------------------
   # CI
   # ---------------------------------------------------------------------------
@@ -22,7 +93,7 @@ tasks:
   # ---------------------------------------------------------------------------
 
   token:generate:
-    desc: "Generate a new library token from Adgangsplatformen and write it to every *LIBRARY_TOKEN entry in first-level .env files"
+    desc: "Generate a new library token from Adgangsplatformen and write it to every *LIBRARY_TOKEN entry in the central root .env"
     dotenv: ['.env']
     silent: true
     cmds:
@@ -53,25 +124,60 @@ tasks:
           echo "Paste the token below into the *LIBRARY_TOKEN entries of your .env files manually."
         else
           updated=0
-          for envfile in */.env; do
+          for envfile in .env; do
             [ -f "$envfile" ] || continue
-            if grep -qE '^[A-Za-z_][A-Za-z0-9_]*LIBRARY_TOKEN=' "$envfile"; then
-              TOKEN="$token" perl -i -pe 's/^([A-Za-z_][A-Za-z0-9_]*LIBRARY_TOKEN)=.*$/$1=$ENV{TOKEN}/' "$envfile"
+            if grep -qE '^[A-Za-z0-9_]*LIBRARY_TOKEN=' "$envfile"; then
+              TOKEN="$token" perl -i -pe 's/^([A-Za-z0-9_]*LIBRARY_TOKEN)=.*$/$1=$ENV{TOKEN}/' "$envfile"
               echo "  updated $envfile"
               updated=$((updated + 1))
             fi
           done
 
           if [ "$updated" -eq 0 ]; then
-            echo "No *LIBRARY_TOKEN entries found in first-level .env files." >&2
+            echo "No *LIBRARY_TOKEN entries found in the root .env." >&2
           else
             echo "Done. Updated $updated file(s)."
           fi
+
+          # Report only what actually happened. A substitution that matches no
+          # line still leaves the loop above reporting success, and a
+          # LIBRARY_TOKEN that is empty afterwards is exactly what makes
+          # schemas/ introspect anonymously and vendor a reduced schema.
+          for envfile in .env; do
+            [ -f "$envfile" ] || continue
+            if ! grep -qE '^[A-Za-z0-9_]*LIBRARY_TOKEN=.+' "$envfile"; then
+              echo "Every *LIBRARY_TOKEN entry in $envfile is still empty." >&2
+              echo "The token was obtained but not written to the file." >&2
+              exit 1
+            fi
+          done
         fi
 
         echo
         echo "Token:"
         echo "$token"
+
+  token:check:
+    desc: "Verify that LIBRARY_TOKEN in the central root .env is accepted by Adgangsplatformen"
+    dotenv: ['.env']
+    silent: true
+    cmds:
+      - |
+        set -eu
+        if [ -z "${LIBRARY_TOKEN:-}" ]; then
+          echo "LIBRARY_TOKEN is empty or unset in the root .env." >&2
+          echo "Run 'task token:generate' from the repo root." >&2
+          exit 1
+        fi
+
+        status=$(curl -sS -o /dev/null -w '%{http_code}' \
+          -H "Authorization: Bearer $LIBRARY_TOKEN" \
+          "https://login.bib.dk/userinfo")
+        if [ "$status" != "200" ]; then
+          echo "LIBRARY_TOKEN was rejected by login.bib.dk (HTTP $status)." >&2
+          echo "It has likely expired. Run 'task token:generate' from the repo root." >&2
+          exit 1
+        fi
 
   # ---------------------------------------------------------------------------
   # Sub-project starters (delegates to each project's own Taskfile)
@@ -93,6 +199,12 @@ tasks:
     cmds:
       - task -d cms dev:watch
 
+  cms:cli:
+    summary: "Run command in CMS container."
+    interactive: true
+    cmds:
+      - task -d cms dev:cli -- {{.CLI_ARGS}}
+
   react:start:
     desc: "Start React dev environment (runs react/Taskfile.yml dev:start)"
     cmds:
@@ -109,48 +221,50 @@ tasks:
       - task -d go dev:reset
 
   # ---------------------------------------------------------------------------
-  # Init (yarn install for all JS projects)
+  # Init (pnpm install for all JS projects)
   # ---------------------------------------------------------------------------
 
-  init:
-    desc: "Install dependencies for design-system, react, and go"
-    deps:
-      - init:design-system
-      - init:react
-      - init:go
-
-  init:design-system:
-    desc: "yarn install in design-system/"
-    dir: ./design-system
+  init:pnpm:
+    desc: "Install dependencies with pnpm"
+    # Sources are listed explicitly per workspace package, down to each package
+    # under packages/ - any glob here, "packages/*" included, walks the whole
+    # tree below it and so every node_modules in it, which makes the
+    # up-to-date check take half a minute with no output at all. A new
+    # workspace package has to be added by hand.
     sources:
       - package.json
-      - yarn.lock
-    generates:
-      - node_modules/.yarn-integrity
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - cms/package.json
+      - cms/pnpm-lock.yaml
+      - design-system/package.json
+      - design-system/pnpm-lock.yaml
+      - go/package.json
+      - go/pnpm-lock.yaml
+      - react/package.json
+      - react/pnpm-lock.yaml
+      - packages/service-layer/package.json
+      - packages/service-layer/pnpm-lock.yaml
+      - packages/wedobooks/package.json
+      - packages/wedobooks/pnpm-lock.yaml
+    dotenv: ['.env']
     cmds:
-      - yarn install
-
-  init:react:
-    desc: "yarn install in react/"
-    dir: ./react
-    sources:
-      - package.json
-      - yarn.lock
-    generates:
-      - node_modules/.yarn-integrity
-    cmds:
-      - yarn install
-
-  init:go:
-    desc: "yarn install in go/"
-    dir: ./go
-    sources:
-      - package.json
-      - yarn.lock
-    generates:
-      - node_modules/.yarn-integrity
-    cmds:
-      - yarn install
+      # packages/wedobooks needs a credential for WeDoBooks' registry, which
+      # .npmrc deliberately does not carry. pnpm takes any config key from the
+      # environment as npm_config_<key>, so the token in .env reaches it that
+      # way - and only when set, leaving a user-level `pnpm config set` (the
+      # route for a bare pnpm install, see packages/wedobooks/README.md) as the
+      # working alternative rather than overriding it with an empty value.
+      - |
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          set -- "npm_config_//npm.pkg.wedobooks.io/:_authToken=$WEDOBOOKS_NPM_TOKEN"
+        else
+          set --
+          if ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "$HOME/.npmrc" 2>/dev/null; then
+            echo "warning: no credential for WeDoBooks' npm registry - WEDOBOOKS_NPM_TOKEN is missing from .env (run 'task dev:dotenv:generate') and the user-level npm config has none either. See packages/wedobooks/README.md." >&2
+          fi
+        fi
+        env "$@" task dev:cli -- corepack pnpm install
 
   # ---------------------------------------------------------------------------
   # Main orchestration
@@ -171,7 +285,7 @@ tasks:
   dev:design-system:build:
     desc: "Build design-system (sass + bundle into build/)"
     deps:
-      - init:design-system
+      - init:pnpm
     dir: ./design-system
     sources:
       - 'src/**/*.scss'
@@ -180,12 +294,15 @@ tasks:
       - 'base.scss'
       - 'wysiwyg.scss'
       - 'admin-base.scss'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
     generates:
       - 'build/**/*.*'
     cmds:
-      # yarn build compiles SCSS into src/styles/css/.
+      # pnpm run build compiles SCSS into src/styles/css/.
       # We then assemble a clean build/ directory with the assets CMS needs.
-      - yarn build
+      - cd .. && task dev:cli -- sh -c "cd design-system && corepack pnpm run build"
       - rm -rf ./build
       - mkdir -p ./build/js
       - cp -r ./public/icons ./build/icons
@@ -193,40 +310,42 @@ tasks:
       - cp -r ./src/styles/fonts ./build/fonts
       - find ./src -name "*.js" | while read -r f; do cp "$f" ./build/js/"$(basename "$f")"; done
 
-  dev:design-system:link:
-    desc: "Register design-system as a yarn link source"
-    dir: ./design-system
-    cmds:
-      - yarn link
-
   # ---------------------------------------------------------------------------
   # React
   # ---------------------------------------------------------------------------
 
-  dev:react:link:
-    desc: "Link the local design-system package into React via yarn link"
-    dir: ./react
-    cmds:
-      - yarn link @danskernesdigitalebibliotek/dpl-design-system
-
-  dev:react:install:
-    desc: "Install React dependencies"
-    deps:
-      - init:react
-
   dev:react:setup:
-    desc: "Build design-system, yarn-link it, and install React deps"
+    desc: "Build design-system and React"
     cmds:
       - task: dev:design-system:build
-      - task: dev:design-system:link
-      - task: dev:react:install
-      - task: dev:react:link
+      - task: dev:wedobooks:build
       - task: dev:react:build
 
-  dev:react:build:
-    desc: "Build React (yarn build → dist/)"
+  dev:wedobooks:build:
+    desc: "Build the WeDoBooks SDK wrapper (reader + player) into dist/"
     deps:
-      - init:react
+      - init:pnpm
+    dir: ./packages/wedobooks
+    # The only workspace package that ships a build rather than sources: the
+    # SDK has to be pre-bundled before webpack will accept it. Requires access
+    # to WeDoBooks' private registry - see packages/wedobooks/README.md.
+    sources:
+      - 'src/**/*.ts'
+      - 'src/**/*.tsx'
+      - 'build.mjs'
+      - 'package.json'
+    generates:
+      - 'dist/**/*.*'
+    cmds:
+      - cd ../.. && task dev:cli -- sh -c "cd packages/wedobooks && corepack pnpm build"
+
+  dev:react:build:
+    desc: "Build React (pnpm build → dist/)"
+    deps:
+      - init:pnpm
+      # The React bundle inlines the wrapper's dist, so building React against
+      # a stale wrapper quietly ships yesterday's SDK integration.
+      - dev:wedobooks:build
     dir: ./react
     sources:
       - 'src/**/*.ts'
@@ -236,10 +355,19 @@ tasks:
       - 'src/**/*.scss'
       - 'webpack.config.js'
       - 'webpack.helpers.js'
+      - 'postcss.config.js'
+      - 'tsconfig.json'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      # React imports from @danskernesdigitalebibliotek/dpl-design-system/build/*.
+      - '../design-system/build/**/*.*'
+      # Inlined into the bundle - a fresh wrapper build must invalidate the
+      # React build's checksum, or the copy step ships the old bundle.
+      - '../packages/wedobooks/dist/**/*.*'
     generates:
       - 'dist/**/*.*'
     cmds:
-      - yarn build
+      - cd .. && task dev:cli -- sh -c "cd react && corepack pnpm build"
 
   # ---------------------------------------------------------------------------
   # Copy assets into CMS
@@ -257,6 +385,10 @@ tasks:
     desc: "Copy design-system build into CMS theme assets"
     deps:
       - dev:design-system:build
+    sources:
+      - '{{ .DESIGN_SYSTEM_BUILD }}/**/*.*'
+    generates:
+      - '{{ .CMS_DESIGN_SYSTEM_ASSETS }}/**/*.*'
     cmds:
       - rm -rf {{ .CMS_DESIGN_SYSTEM_ASSETS }}
       - mkdir -p {{ .CMS_DESIGN_SYSTEM_ASSETS }}
@@ -269,10 +401,20 @@ tasks:
     desc: "Copy React dist into CMS libraries"
     deps:
       - dev:react:build
+    sources:
+      - './react/dist/**/*.*'
+    generates:
+      - '{{ .CMS_REACT_LIBRARY }}/**/*.*'
     cmds:
       - rm -rf {{ .CMS_REACT_LIBRARY }}
       - mkdir -p {{ .CMS_REACT_LIBRARY }}
       - cp -r ./react/dist/* {{ .CMS_REACT_LIBRARY }}/
+
+  dev:reset:node_modules:
+    desc: "Remove node_modules from all projects and reinstall with pnpm."
+    cmds:
+      - "rm -rf node_modules **/node_modules"
+      - task: init:pnpm
 
   lagoon:run-on-projects:
     desc: Show how to run shell commands across many Lagoon projects in parallel

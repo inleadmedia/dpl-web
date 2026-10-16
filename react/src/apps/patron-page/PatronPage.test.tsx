@@ -1,4 +1,4 @@
-describe("Patron page", () => {
+describe("Patron page", { testIsolation: false }, () => {
   before(() => {
     cy.createFakeAuthenticatedSession();
     cy.createFakeLibrarySession();
@@ -101,6 +101,13 @@ describe("Patron page", () => {
     }).as("User");
     cy.visit("/iframe.html?path=/story/apps-patron-page--patron-page-entry");
     cy.wait(["@LibraryProfile", "@Loans", "@User"]);
+  });
+
+  it("links to the dashboard below the header", () => {
+    cy.getBySel("patron-page-dashboard-link")
+      .should("have.text", "Dashboard")
+      .should("have.attr", "href")
+      .and("match", /\/user\/me\/dashboard$/);
   });
 
   // TODO: Add fixture to make the test pass. Since ErrorBoundary handling was added,

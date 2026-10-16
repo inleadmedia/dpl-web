@@ -1,16 +1,20 @@
-import { TOKEN_LIBRARY_KEY } from "../../../../core/token";
+import { TOKEN_LIBRARY_KEY, TOKEN_USER_KEY } from "../../../../core/token";
 
 describe("Delete reservation modal", () => {
   beforeEach(() => {
     cy.window().then((win) => {
       win.sessionStorage.setItem(TOKEN_LIBRARY_KEY, "random-token");
+      // Loans, reservations and fees are only fetched for a patron.
+      win.sessionStorage.setItem(TOKEN_USER_KEY, "random-token");
     });
     const clockDate = new Date(
       "Sat Oct 08 2022 20:10:25 GMT+0200 (Central European Summer Time)"
     );
 
     // Sets time to a specific date
-    cy.clock(clockDate);
+    // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+    // notify scheduler, leaving every component stuck in its loading state.
+    cy.clock(clockDate, ["Date"]);
 
     cy.intercept("GET", "**/external/agencyid/patrons/patronid/v4**", {
       patron: {

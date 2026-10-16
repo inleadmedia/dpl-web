@@ -34,18 +34,30 @@ jobs:
           # We have branch protection on. To get around it, we use a PAT,
           # supplied by the DPL Platform Bot.
           token: ${{ secrets.AUTOCOMMIT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+      - uses: ./.github/actions/common-setup-js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          wedobooks-token: ${{ secrets.WEDOBOOKS_NPM_TOKEN }}
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
         run: task ci:reset
+        # The images build the JS assets during `docker compose build`, and
+        # compose reads the token from the host environment as a build
+        # argument - the runner-level npm config does not reach the container.
+        env:
+          WEDOBOOKS_NPM_TOKEN: ${{ secrets.WEDOBOOKS_NPM_TOKEN }}
       - name: Scan user interface translations
         run: task translations:scan
       - name: Export translatable configuration strings
         run: task translations:conf:export
       - name: Combine danish po files
         run: task translations:conf:merge
+        # Neither input file is committed. They are produced by the two steps
+        # above and only exist in the workspace, so this step must stay after
+        # both of them.
         env:
           FILE_A: web/profiles/dpl_cms/translations/da.po
           FILE_B: web/profiles/dpl_cms/translations/da.config.po
@@ -54,6 +66,10 @@ jobs:
         with:
           file_pattern: "./cms/web/profiles/dpl_cms/translations/*.combined.po"
           commit_message: New translations were found
+          # Pulls in any changes that's landed on develop while we were
+          # running.
+          before_push_hook: |
+            git pull --rebase
       - name: Make Poeditor look for changes in translation strings
         uses: distributhor/workflow-webhook@v3
         with:
@@ -80,12 +96,21 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - uses: ./.github/actions/common-setup-js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          wedobooks-token: ${{ secrets.WEDOBOOKS_NPM_TOKEN }}
       - name: Install go-task
-        uses: arduino/setup-task@v2
+        uses: arduino/setup-task@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup site
         run: task ci:reset
+        # The images build the JS assets during `docker compose build`, and
+        # compose reads the token from the host environment as a build
+        # argument - the runner-level npm config does not reach the container.
+        env:
+          WEDOBOOKS_NPM_TOKEN: ${{ secrets.WEDOBOOKS_NPM_TOKEN }}
       - name: Separate danish translations into po file
         run: task translations:separate
       - name: Separate danish configuration translations into po file

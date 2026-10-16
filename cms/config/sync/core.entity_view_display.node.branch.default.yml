@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - field.field.node.branch.field_address
-    - field.field.node.branch.field_address_dawa
     - field.field.node.branch.field_address_gsearch
     - field.field.node.branch.field_agency_branch_id
     - field.field.node.branch.field_email
@@ -14,8 +13,8 @@ dependencies:
     - field.field.node.branch.field_promoted_on_lists
     - node.type.branch
   module:
+    - dk_address
     - entity_reference_revisions
-    - gsearch
     - telephone_formatter
     - user
 id: node.branch.default
@@ -24,7 +23,7 @@ bundle: branch
 mode: default
 content:
   field_address_gsearch:
-    type: address_gsearch
+    type: dk_address
     label: above
     settings: {  }
     third_party_settings: {  }
@@ -72,7 +71,6 @@ content:
     region: content
 hidden:
   field_address: true
-  field_address_dawa: true
   field_agency_branch_id: true
   field_promoted_on_lists: true
   langcode: true

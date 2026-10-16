@@ -1,19 +1,40 @@
 # Unified Dependabot configuration for DPL Web monorepo
-# This configuration manages dependency updates for all four projects:
-# - cms (Drupal CMS with Composer and npm)
-# - design-system (React/Storybook with npm)
-# - go (Next.js with npm)
-# - react (React components with npm)
+# This configuration manages dependency updates for every package in the
+# repository:
+# - cms (Drupal CMS with Composer and pnpm)
+# - design-system (React/Storybook with pnpm)
+# - go (Next.js with pnpm)
+# - react (React components with pnpm)
+# - packages/* (shared TypeScript packages with pnpm)
 version: 2
+registries:
+  # WeDoBooks' own npm registry, which serves the SDK behind the reader and
+  # the player, and their mirror of Colibrio underneath it. The token is a
+  # Dependabot secret rather than an Actions secret - Dependabot cannot read
+  # the latter, which is also why workflow runs on its pull requests need the
+  # same secret registered separately.
+  #
+  # Every npm entry needs it, even though only packages/wedobooks' lockfile
+  # contains the SDK. Dependabot runs `pnpm update <dep> -r` across the whole
+  # workspace, so bumping a dependency packages/wedobooks also declares (e.g.
+  # @types/react, typescript) makes pnpm fetch the SDK's metadata from any
+  # entry. This only lets Dependabot reach the registry; it changes nothing in
+  # the other packages' dependencies or lockfiles.
+  wedobooks:
+    type: npm-registry
+    url: https://npm.pkg.wedobooks.io
+    token: ${{secrets.WEDOBOOKS_NPM_TOKEN}}
 updates:
   # GitHub Actions - applies to all workflows in .github/workflows
   - package-ecosystem: github-actions
     directory: "/"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -22,6 +43,8 @@ updates:
   # CMS - Composer dependencies
   - package-ecosystem: composer
     directory: "/cms"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     groups:
       drupal-core-minor-releases:
@@ -40,7 +63,6 @@ updates:
       # Never attempt automated updates to major Drupal releases.
       - dependency-name: "drupal/core*"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "drupal/potion"
       - dependency-name: "spawnia/sailor"
         versions: [">1.1.0"]
       # drupal/next 2.1.0 adds draft_enabled to exported Next entity config.
@@ -56,44 +78,26 @@ updates:
       # entity_reference_revisions.
       - dependency-name: "drupal/paragraphs"
         versions: [">1.19.0"]
-      # Drupal 10.6.x breaks the CMS opening-hours Cypress flow.
-      - dependency-name: "drupal/core*"
-        versions: [">=10.6.0"]
-      # `potion` isn't compatible with newer versions of `annotations`.
-      - dependency-name: "doctrine/annotations"
-        versions: [">=2.0.0"]
+      # Our patch is not compatible with the latest version.
+      - dependency-name: "drupal/facets"
+        versions: [">3.0.3"]
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
       - "cms"
       - "drupal"
 
-  # CMS dev-scripts - Composer dependencies
-  - package-ecosystem: composer
-    directory: "/cms/dev-scripts/dpl-react"
-    open-pull-requests-limit: 20
-    ignore:
-      # symfony/console 7.x requires PHP >=8.4.1, but the platform still runs
-      # PHP 8.3. Unblock once the PHP 8.3 => 8.4 upgrade lands. See DDFNEXT-1523.
-      - dependency-name: "symfony/console"
-        versions: [">=7.0.0"]
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Europe/Copenhagen
-    labels:
-      - "dependencies"
-      - "cms"
-      - "dev-scripts"
-
   # CMS - npm dependencies
   - package-ecosystem: npm
     directory: "/cms"
+    registries:
+      - wedobooks
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     groups:
       typescript-eslint:
@@ -108,8 +112,8 @@ updates:
         update-types: ["version-update:semver-major"]
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -119,12 +123,16 @@ updates:
   # Design System - npm dependencies
   - package-ecosystem: npm
     directory: "/design-system"
+    registries:
+      - wedobooks
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -163,12 +171,16 @@ updates:
   # Go (Next.js) - npm dependencies
   - package-ecosystem: npm
     directory: "/go"
+    registries:
+      - wedobooks
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -241,31 +253,34 @@ updates:
         versions: [">=10.0.0"]
       - dependency-name: "cypress"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/typescript-react-query"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/cli"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/client-preset"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/introspection"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/schema-ast"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       # orval v8 requires breaking config/fetcher changes — upgrade tracked separately.
       - dependency-name: "orval"
         update-types: ["version-update:semver-major"]
+      # DDFNEXT-1609
+      - dependency-name: "jsdom"
+        versions: [">=30.1.0"]
+      # DDFNEXT-1616
+      - dependency-name: "@graphql-codegen/typescript"
+        versions: [">=6.0.0"]
+      # DDFNEXT-1616
+      - dependency-name: "@graphql-codegen/typescript-operations"
+        versions: [">=6.0.0"]
 
   # React - npm dependencies
   - package-ecosystem: npm
     directory: "/react"
+    registries:
+      - wedobooks
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 20
     versioning-strategy: increase
     schedule:
       interval: weekly
-      day: monday
-      time: "04:00"
+      day: sunday
+      time: "20:00"
       timezone: Europe/Copenhagen
     labels:
       - "dependencies"
@@ -289,6 +304,9 @@ updates:
           - "@types/react"
           - "react-dom"
           - "@types/react-dom"
+      react-query:
+        patterns:
+          - "@tanstack/react-query"
       redux:
         patterns:
           - "@reduxjs/toolkit"
@@ -327,9 +345,6 @@ updates:
         versions: [">=4.0.0"]
       - dependency-name: "dotenv"
         update-types: ["version-update:semver-major"]
-      # Vitest 3 changes unit-test asset rendering and timer behavior in the React snapshot suite.
-      - dependency-name: "vitest"
-        versions: [">=3.0.0"]
       # The current React lint stack still depends on plugins that are not ESLint 10 compatible.
       - dependency-name: "eslint"
         versions: [">=10.0.0"]
@@ -341,8 +356,6 @@ updates:
         versions: [">=9.0.9"]
       - dependency-name: "eslint-plugin-react-hooks"
         update-types: ["version-update:semver-major"]
-      - dependency-name: "@graphql-codegen/typescript-react-query"
-        update-types: ["version-update:semver-major"]
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       # orval v8 requires breaking config/fetcher changes — upgrade tracked separately.
@@ -351,19 +364,67 @@ updates:
       - dependency-name: "stylelint-config-recommended-scss"
         update-types: ["version-update:semver-major"]
       # codegen breaks with these versions. DDFNEXT-1455
-      # typescript / typescript-operations v6 emit a second set of input/enum
-      # types that collide with typescript-react-query@6 legacyMode output.
+      # typescript-operations v6 emits the enums and inputs it uses itself and
+      # collides with the typescript plugin in the same file, so the output has
+      # to be split in two files. It also makes nullable fields required
+      # (`field: T | null`), which a handful of Cypress factories must follow.
       # graphql 17 is also unsupported by the pinned codegen toolchain (all
       # plugins peer-require graphql ^16), so codegen crashes on it.
       - dependency-name: "graphql"
         versions: [">=17.0.0"]
-      - dependency-name: "@graphql-codegen/add"
-        versions: [">=7.0.0"]
-      - dependency-name: "@graphql-codegen/cli"
-        versions: [">=7.0.0"]
-      - dependency-name: "@graphql-codegen/introspection"
-        versions: [">=6.0.0"]
       - dependency-name: "@graphql-codegen/typescript"
         versions: [">=6.0.0"]
       - dependency-name: "@graphql-codegen/typescript-operations"
         versions: [">=6.0.0"]
+      # DDFNEXT-1615
+      - dependency-name: "@testing-library/dom"
+        versions: [">=10.4.2"]
+
+  # Shared workspace packages - npm dependencies.
+  # `directories` (plural) is the only form that supports globbing, so this
+  # one entry covers every current and future package under packages/ without
+  # needing a new entry per package. Directories without a manifest are
+  # skipped.
+  - package-ecosystem: npm
+    directories:
+      - "/packages/*"
+    registries:
+      - wedobooks
+    cooldown:
+      default-days: 3
+    open-pull-requests-limit: 20
+    versioning-strategy: increase
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "20:00"
+      timezone: Europe/Copenhagen
+    labels:
+      - "dependencies"
+      - "packages"
+    groups:
+      typescript-eslint:
+        patterns:
+          - "typescript-eslint"
+          - "@typescript-eslint/*"
+          - "@eslint/js"
+          - "eslint"
+      prettier:
+        patterns:
+          - "prettier"
+          - "@trivago/prettier-plugin-sort-imports"
+    ignore:
+      # @types/node are linked to the Node version used within the project.
+      # Bump the package manually when upgrading to a new Node version.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # The consuming projects' lint stacks are not ESLint 10 compatible yet,
+      # so keep this package on the same major as react/ and go/.
+      - dependency-name: "eslint"
+        versions: [">=10.0.0"]
+      # orval v8 requires breaking config/fetcher changes — upgrade tracked
+      # separately, and must happen in step with react/ and go/.
+      - dependency-name: "orval"
+        update-types: ["version-update:semver-major"]

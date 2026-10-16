@@ -1,0 +1,60 @@
+packages:
+  - cms
+  - design-system
+  - go
+  - packages/*
+  - react
+
+# Give each workspace package its own pnpm-lock.yaml instead of a single shared
+# lockfile at the repo root. This keeps the lockfiles in a single-document format
+# that Dependabot can parse, and lets its per-directory update entries find and
+# update the lockfile next to each package.json.
+sharedWorkspaceLockfile: false
+
+# Whitelist of packages that are allowed to run build scripts. Anything not
+# listed here is "unreviewed": with strictDepBuilds (pnpm 11 default) its build
+# scripts are skipped and the install fails, so new native dependencies must be
+# reviewed and added deliberately. pnpm appends unreviewed packages here with a
+# placeholder value during install — replace it with true or false.
+allowBuilds:
+  '@parcel/watcher': true
+  '@playwright/browser-chromium': true
+  '@swc/core': true
+  core-js: true
+  core-js-pure: true
+  cypress: true
+  esbuild: true
+  puppeteer: true
+  sharp: true
+  # Optional native dep of mockttp (dev-only HTTP mocking in go). It ships
+  # prebuilds for every platform we target and node-gyp-build resolves them
+  # when the module is required, so the install script would only invoke
+  # node-gyp for nothing.
+  tls-impersonate: false
+  unrs-resolver: true
+
+# Supply chain risk mitigation: wait two days before accepting a new version of a
+# package.
+# NOTE: pnpm silently ignores minimumReleaseAge when sharedWorkspaceLockfile is
+# false (pnpm/pnpm#10008, still open as of pnpm 11.26), so this is currently NOT
+# enforced. It is kept here so the protection returns once that bug is fixed or
+# we move off split lockfiles.
+minimumReleaseAge: 2880
+# TEMPORARY: @wedobooks/sdk 0.7.0 was published on 2026-10-06 and is wanted
+# before the two days are up. Remove once it is older than that.
+minimumReleaseAgeExclude:
+  - "@wedobooks/sdk"
+
+# Another supply chain risk mitigation: https://pnpm.io/settings#blockexoticsubdeps
+blockExoticSubdeps: true
+
+# Security floors for transitive dependencies. With sharedWorkspaceLockfile:
+# false, `pnpm update <name>` only matches a project's direct dependencies and
+# silently skips transitive ones, so Dependabot security updates for these fail
+# with security_update_not_possible. Drop an entry once nothing resolves below
+# its floor without it.
+overrides:
+  # ReDoS advisories, fixed in 1.1.21 / 2.1.7 / 5.0.12.
+  brace-expansion@1: ^1.1.21
+  brace-expansion@2: ^2.1.7
+  brace-expansion@5: ^5.0.12

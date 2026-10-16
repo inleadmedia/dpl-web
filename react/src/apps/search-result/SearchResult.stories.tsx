@@ -27,6 +27,10 @@ const meta: Meta<typeof SearchResultEntry> = {
     ...globalConfigArgTypes,
     ...mappArgTypes,
     ...zeroHitsSearchUrlArgTypes,
+    seriesUrl: {
+      description: "Path to the series landing page",
+      control: { type: "text" }
+    },
     q: {
       description: "Search query",
       control: { type: "text" }
@@ -67,6 +71,7 @@ export const Default: Story = {
     etAlText: "et al.",
     materialUrl: "/work/:workid",
     searchUrl: "/search",
+    seriesUrl: "/serie/:seriesid",
     byAuthorText: "By",
     inSeriesText: "in series",
     showMoreText: "show more",
@@ -124,5 +129,27 @@ export const Default: Story = {
     webSearchConfig:
       '{\n  "webSearchUrl": "https://www.google.com",\n  "webSearchText": "Google",\n  "webSearchTotal": "1000"\n}',
     searchDialogFilterMaterialsText: "Filter materials (97)"
+  }
+};
+
+// The teaser links a material search over to the editorial content search
+// (the /search/web View) for the same phrase. The CMS builds this config
+// from the phrase and the number of matching editorial results, and only
+// ships hasWebSearchResults when there are any. The default story mirrors a
+// config without it.
+export const WithWebSearchTeaser: Story = {
+  args: {
+    ...Default.args,
+    webSearchConfig:
+      '{\n  "webSearchUrl": "/search/web?search=skovbadning",\n  "webSearchText": "skovbadning",\n  "webSearchTotal": "12",\n  "hasWebSearchResults": true\n}'
+  }
+};
+
+// A zero hits URL pointing at the page hosting the app itself, to exercise
+// the guard against redirecting in a loop.
+export const OnZeroHitsPage: Story = {
+  args: {
+    ...Default.args,
+    zeroHitsSearchUrl: "/iframe.html"
   }
 };

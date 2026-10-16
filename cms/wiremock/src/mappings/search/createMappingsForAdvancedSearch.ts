@@ -1,13 +1,16 @@
 import { Options } from "wiremock-rest-client/dist/model/options.model";
 import wiremock, { matchGraphqlQuery } from "../../lib/general";
 
-export default (baseUri?: string, options?: Options) => {
+export default async (baseUri?: string, options?: Options) => {
   // Search for "Harry Potter".
-  import("./data/fbi/advancedSearchWithPagination.json").then((json) => {
+  await import("./data/fbi/advancedSearchWithPagination.json").then((json) =>
     wiremock(baseUri, options).mappings.createMapping({
+      // Persistent so it survives cy.resetMappings() (the login/session flow
+      // resets mappings mid-suite; without this the FBI mocks vanish -> 404).
+      persistent: true,
       request: {
         method: "POST",
-        urlPattern: "/next.*/graphql",
+        urlPathPattern: "/next.*/graphql",
         bodyPatterns: [
           {
             matchesJsonPath: matchGraphqlQuery("complexSearchWithPagination"),
@@ -17,6 +20,6 @@ export default (baseUri?: string, options?: Options) => {
       response: {
         jsonBody: json,
       },
-    });
-  });
+    })
+  );
 };

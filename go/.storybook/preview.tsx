@@ -1,24 +1,22 @@
 import type { Preview } from "@storybook/nextjs"
-import localFont from "next/font/local"
-import React from "react"
+import MockDate from "mockdate"
+import { DM_Sans } from "next/font/google"
+import { useEffect } from "react"
 
 import "@/styles/globals.css"
 
 import { useDarkMode, useLightMode } from "../lib/helpers/helper.theme"
 
+// Freeze "now" so date-derived UI (due dates, countdowns, pickup deadlines)
+// renders identically on every Chromatic build instead of drifting day by
+// day. Story fixtures compute dates relative to this frozen date.
+MockDate.set("2026-06-15T12:00:00")
+
 // When adding or changing fonts, remember to update the imports in the Layout file
-const GTFlexa = localFont({
-  src: [
-    {
-      path: "../fonts/GT-Flexa-Expanded-Regular.woff2",
-      weight: "400",
-    },
-    {
-      path: "../fonts/GT-Flexa-Expanded-Medium.woff2",
-      weight: "500",
-    },
-  ],
-  variable: "--font-headline",
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 })
 
@@ -84,8 +82,18 @@ const preview: Preview = {
       // Add dark mode to the context of the story. This can be called later in the story decorator.
       const params = { useDarkMode, ...parameters }
 
+      // Apply the font variable to <html> so portalled content (modals, drawers,
+      // sheets) renders with the correct font.
+      useEffect(() => {
+        const root = document.documentElement
+        root.classList.add(dmSans.variable, "antialiased")
+        return () => {
+          root.classList.remove(dmSans.variable, "antialiased")
+        }
+      }, [])
+
       return (
-        <div className={`${GTFlexa.variable} antialiased`}>
+        <div className={`${dmSans.variable} antialiased`}>
           <Story {...params} />
         </div>
       )

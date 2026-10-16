@@ -31,6 +31,10 @@ if [[ -z "$POST_INSTALL_ONLY" ]]; then
     echo "Drupal site already installed, skipping drush site-install"
   else
     drush site-install --existing-config --account-mail="dev@inleadmedia.dk" --site-mail="dev@inleadmedia.dk" -y
+    # Site-install bypasses the Redis cache backend, so to avoid stale cache
+    # entries from the Drush bootstrap, flush Redis directly before cache:rebuild.
+    php dev-scripts/flush-redis-cache.php
+    drush cache:rebuild
   fi
 fi
 
@@ -42,6 +46,13 @@ if ! site_is_installed; then
   echo "Drupal site is not installed. Run with --install-only first or import a snapshot."
   exit 1
 fi
+
+# Bring the database in sync with the codebase, import configuration and run
+# deploy hooks. A snapshot-restored database is at the schema of the site the
+# snapshot was taken from, so this has to run before anything else touches the
+# site. This mirrors .lagoon.yml, which also deploys before importing
+# translations.
+drush deploy -y
 
 # Ensure translation path is available.
 # This is prepared in locale_install() so rerun it.
@@ -55,9 +66,6 @@ else
   drush locale-update
   drush dpl_po:import-remote-config-po da https://danskernesdigitalebibliotek.github.io/dpl-web/cms/translations/da.config.po
 fi
-
-# Run deploy hooks.
-drush deploy -y
 
 # Clear external caches to ensure we have a pristine setup.
 drush cache:rebuild-external -y

@@ -1,12 +1,18 @@
 <?php
 
+use Drupal\bnf_client\SubscriptionHelper;
 use Drupal\collation_fixer\CollationFixer;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Extension\ModuleInstallerInterface;
+use Drupal\Core\Url;
+use Drupal\dpl_library_agency\GeneralSettings;
 use Drupal\dpl_update\Services\ConfigIgnore;
 use Drupal\drupal_typed\DrupalTyped;
+use Drupal\file\Entity\File;
+use Drupal\file\FileInterface;
 use Drupal\node\NodeInterface;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
@@ -16,6 +22,8 @@ use Drupal\node\Entity\Node;
 use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
+use Safe\Exceptions\UrlException;
+use function Safe\parse_url;
 
 /**
  * Update the permissions for a supplied list of roles.
@@ -134,7 +142,7 @@ function _dpl_update_set_value(string $field_name, mixed $value, string $entity_
       ->accessCheck(FALSE)
       ->execute();
 
-  if (!is_array($ids) || empty($ids)) {
+  if (empty($ids)) {
     return "No $entity_type entities to update.";
   }
 
@@ -178,7 +186,7 @@ function _dpl_update_generate_url_aliases(string $entity_type): string {
       ->accessCheck(FALSE)
       ->execute();
 
-  if (!is_array($ids) || empty($ids)) {
+  if (empty($ids)) {
     return "No $entity_type entities to update.";
   }
 
@@ -592,4 +600,290 @@ function dpl_update_deploy_remove_unilogin_permissions(): string {
   );
 
   return 'Remove unilogin permission';
+}
+
+/**
+ * Link new field inheritances on eventinstances.
+ */
+function dpl_update_deploy_event_audiences_field_inheritance(): string {
+  return _dpl_update_field_inheritance('event_audiences');
+}
+
+/**
+ * Remove invalid field_inheritance permission, after patch removal.
+ */
+function dpl_update_deploy_remove_field_inheritance_permissions(): string {
+  _dpl_update_alter_permissions(
+    ['administrator', 'local_administrator', 'editor', 'mediator'],
+    ['administer entity field inheritance'],
+    FALSE,
+  );
+
+  return 'Removed outdated field_inheritance permission.';
+}
+
+/**
+ * Mark permanent files without any recorded usage as temporary.
+ *
+ * Core only marks a file as temporary at the moment its last usage is
+ * removed, so files that already had no usage when
+ * make_unused_managed_files_temporary was enabled stay permanent and are
+ * never deleted. Marking them temporary hands them over to the regular
+ * cron cleanup, matching what happens to files orphaned today.
+ *
+ * @param array<mixed> $sandbox
+ *   The sandbox, used for batch processing.
+ */
+function dpl_update_deploy_mark_orphaned_files_temporary(array &$sandbox): string {
+  $batch_size = 100;
+
+  if (!isset($sandbox['ids'])) {
+    $query = \Drupal::database()->select('file_managed', 'fm')
+      ->fields('fm', ['fid'])
+      ->condition('fm.status', FileInterface::STATUS_PERMANENT)
+      // Leave recently changed files alone. A fresh upload can briefly be
+      // permanent without recorded usage while it is being attached to
+      // content, and anything orphaned from now on is handled by
+      // make_unused_managed_files_temporary.
+      ->condition('fm.changed', \Drupal::time()->getRequestTime() - 3600, '<');
+    $query->leftJoin('file_usage', 'fu', 'fm.fid = fu.fid');
+    $query->isNull('fu.fid');
+    $result = $query->execute();
+
+    if (!$result) {
+      throw new \RuntimeException('Could not query file_managed for unused files.');
+    }
+
+    $sandbox['ids'] = $result->fetchCol();
+    $sandbox['total'] = count($sandbox['ids']);
+    $sandbox['current'] = 0;
+  }
+
+  if (empty($sandbox['total'])) {
+    $sandbox['#finished'] = 1;
+    return 'No unused permanent files found.';
+  }
+
+  $batch_ids = array_slice($sandbox['ids'], $sandbox['current'], $batch_size);
+
+  foreach (File::loadMultiple($batch_ids) as $file) {
+    $file->setTemporary();
+    $file->save();
+  }
+
+  $sandbox['current'] += count($batch_ids);
+
+  $sandbox['#finished'] = $sandbox['current'] >= $sandbox['total']
+    ? 1 : ($sandbox['current'] / $sandbox['total']);
+
+  if ($sandbox['#finished'] === 1) {
+    return "Marked {$sandbox['total']} unused permanent files as temporary.";
+  }
+
+  return "Marked {$sandbox['current']}/{$sandbox['total']} unused permanent files as temporary.";
+}
+
+/**
+ * Remove maintenance permission, defunct after Drupal 11.
+ */
+function dpl_update_deploy_remove_maintenance_permissions(): string {
+  _dpl_update_alter_permissions(
+    ['administrator'],
+    ['Administer maintenance mode'],
+    FALSE,
+  );
+
+  return 'Remove unused maintenance mode permission';
+}
+
+/**
+ * Allow anonymous and authenticated users to access the events endpoint.
+ *
+ * The permission is named after the REST resource, which has since been
+ * renamed from current_events to happening_events. This hook has already run
+ * on every existing site - dpl_update_update_10081() moves the permission
+ * there - so the only sites left for it to run on are fresh installs, where
+ * the new name is the right one to grant.
+ */
+function dpl_update_deploy_add_current_events_endpoint_permissions(): string {
+  _dpl_update_alter_permissions(
+    ['anonymous', 'authenticated'],
+    ['restful get happening_events'],
+    TRUE,
+  );
+
+  return 'Make sure that the events endpoint is accessible';
+}
+
+/**
+ * Add service message permissions.
+ */
+function dpl_update_deploy_service_message_permissions(): string {
+  _dpl_update_alter_permissions(
+    ['local_administrator', 'editor', 'mediator'],
+    [
+      'create service_message content',
+      'delete any service_message content',
+      'delete own service_message content',
+      'edit any service_message content',
+      'edit own service_message content',
+      'view any unpublished service_message content',
+    ],
+    TRUE);
+
+  // The global bar is red, says "alert" and shows on every page, so it sits
+  // behind its own permission - and revisions follow the roles that have them
+  // for the other content types.
+  _dpl_update_alter_permissions(
+    ['local_administrator', 'editor'],
+    [
+      'administer global service messages',
+      'delete service_message revisions',
+      'revert service_message revisions',
+      'view service_message revisions',
+    ],
+    TRUE);
+
+  return 'Allow editors to write service messages';
+}
+
+/**
+ * Migrate the zero hits search page from a stored URL to a node reference.
+ *
+ * The page used to be stored as a URL string in
+ * dpl_library_agency.general_settings:zero_hits_search_url. It is now stored
+ * as a node ID in zero_hits_search_node_id, so the redirect URL is derived
+ * from the node and the two can never drift apart. Resolve the existing URL
+ * to its node once and drop the old key.
+ *
+ * Sites that never saved the general settings form have no URL stored and
+ * relied on the fallback path instead, so that path is resolved for them.
+ * Without a node reference the teaser would silently stop rendering on
+ * their zero hits page, even though the redirect to it still works.
+ */
+function dpl_update_deploy_zero_hits_search_node_reference(): string {
+  $config = \Drupal::configFactory()
+    ->getEditable('dpl_library_agency.general_settings');
+
+  // A previous run already migrated it. Don't resolve again - the reference
+  // may since have been changed by an editor.
+  if ($config->get('zero_hits_search_node_id') !== NULL) {
+    $config->clear('zero_hits_search_url')->save();
+    return 'Zero hits search page is already stored as a node reference.';
+  }
+
+  $stored_url = $config->get('zero_hits_search_url');
+
+  $url = (is_string($stored_url) && $stored_url !== '')
+    ? $stored_url
+    : GeneralSettings::ZERO_HITS_SEARCH_URL;
+
+  $node_id = _dpl_update_zero_hits_node_id_from_url($url);
+
+  $config->clear('zero_hits_search_url');
+
+  if ($node_id === NULL) {
+    $config->save();
+    return "Zero hits search URL '{$url}' does not resolve to a local node - left unset.";
+  }
+
+  $config->set('zero_hits_search_node_id', $node_id)->save();
+
+  return "Migrated zero hits search URL '{$url}' to node ID {$node_id}.";
+}
+
+/**
+ * Resolve a stored zero hits URL to a local node ID.
+ *
+ * Only relative paths and aliases can point at a node on this site, so URLs
+ * carrying a host are treated as external and skipped. The path is resolved
+ * through routing, so it matches whether it is stored as an alias or a
+ * /node/{id} path, with or without a trailing slash.
+ *
+ * @param string $url
+ *   The configured zero hits search URL.
+ *
+ * @return string|null
+ *   The node ID, or NULL if the URL does not point to a node on this site.
+ */
+function _dpl_update_zero_hits_node_id_from_url(string $url): ?string {
+  try {
+    $parts = parse_url($url);
+  }
+  catch (UrlException) {
+    return NULL;
+  }
+
+  if (!is_array($parts) || isset($parts['host'])) {
+    return NULL;
+  }
+
+  $path = $parts['path'] ?? NULL;
+
+  if (!is_string($path) || $path === '' || $path === '/') {
+    return NULL;
+  }
+
+  $resolved = \Drupal::service('path.validator')
+    ->getUrlIfValidWithoutAccessCheck(rtrim($path, '/'));
+
+  if (!$resolved instanceof Url || !$resolved->isRouted() || $resolved->getRouteName() !== 'entity.node.canonical') {
+    return NULL;
+  }
+
+  $node_id = $resolved->getRouteParameters()['node'] ?? NULL;
+
+  return is_scalar($node_id) ? (string) $node_id : NULL;
+}
+
+/**
+ * Uninstall gsearch and the one-shot migration module that replaced it.
+ *
+ * This is a deploy hook on purpose: dpl_update_update_10082() converts the
+ * address fields to dk_address, config import then brings the rest of the
+ * configuration in line, and only after that are the old modules removed.
+ */
+function dpl_update_deploy_uninstall_gsearch(): string {
+  DrupalTyped::service(ModuleInstallerInterface::class, 'module_installer')
+    ->uninstall(['gsearch', 'dk_address_gsearch_migrate']);
+
+  return 'Uninstalled modules: gsearch, dk_address_gsearch_migrate.';
+}
+
+/**
+ * Let Unilogin users fetch their token over GraphQL.
+ *
+ * Config import creates the unilogin_patron role with this permission. GO
+ * needs it to read the student's token from the CMS, so make sure it is
+ * granted on sites that manage their own permissions too.
+ */
+function dpl_update_deploy_unilogin_patron_permissions(): string {
+  _dpl_update_alter_permissions(
+    ['unilogin_patron'],
+    ['execute graphql_compose_server arbitrary graphql requests'],
+    TRUE,
+  );
+
+  return 'Allow Unilogin users to fetch their token over GraphQL';
+}
+
+/**
+ * Ensure Biblo subscription exists.
+ *
+ * Was previously done in dpl_update_update_10080, but as the
+ * SubscriptionHelper service was introduced in the same deployment, it didn't
+ * exist when the update hook was run.
+ */
+function dpl_update_deploy_ensure_biblo_subscription(): string {
+  if (\Drupal::getContainer()->has(SubscriptionHelper::class)) {
+    DrupalTyped::service(SubscriptionHelper::class)->ensureWithTag(
+      'e22cc1dc-9c92-418e-bb77-df78f6eb620b',
+      'Biblo',
+      'Biblo',
+    );
+
+    return 'Added the Biblo subscription';
+  }
+
+  return 'Biblo subscription already exists';
 }

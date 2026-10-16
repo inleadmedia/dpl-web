@@ -43,11 +43,14 @@
  */
 #}
 
-{# Overflow hidden is necessary, to avoid the header breaking out on mobile. #}
-<div class="overflow-hidden">
+{# Clips the header's absolutely positioned desktop nav, which would otherwise
+   make the page scroll horizontally on mobile. Keep `.overflow-x-clip`:
+   `.overflow-hidden` here silently stops the header from sticking. #}
+<div class="overflow-x-clip">
   {{ include('@novel/layout/header.html.twig'
     , {
     header: page.header,
+    service_message_global: service_message_global,
     search_header: search.header,
     patron_menu: patron.menu,
     logo: logo,
@@ -55,6 +58,8 @@
     opening_hours_sidebar_large: opening_hours_sidebar_large,
     opening_hours_sidebar_small: opening_hours_sidebar_small,
   }, false) }}
+
+  {{ service_messages }}
 
   {{ drupal_block('system_messages_block') }}
 

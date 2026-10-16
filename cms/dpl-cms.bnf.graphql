@@ -32,6 +32,125 @@ type AdgangsplatformenTokens {
 type AdgangsplatformenUserToken {
   expire: DateTime
   token: String
+  type: String
+}
+
+type AppCategory {
+  elements: [AppContentElement!]!
+  icon: String!
+  id: String!
+  title: String!
+}
+
+interface AppContentElement {
+  id: String!
+}
+
+type AppContentElementGoLinkbox implements AppContentElement {
+  color: String
+  contentId: String!
+  description: String!
+  id: String!
+  image: String
+  title: String!
+}
+
+type AppContentElementGoMaterialSliderAutomatic implements AppContentElement {
+  cql: String!
+  id: String!
+  limit: Int!
+  title: String!
+}
+
+type AppContentElementGoMaterialSliderManual implements AppContentElement {
+  id: String!
+  title: String!
+  workIds: [String!]!
+}
+
+type AppContentElementMaterialGridAutomatic implements AppContentElement {
+  cql: String!
+  description: String
+  id: String!
+  limit: Int!
+  priorityMaterialType: String
+  title: String
+}
+
+type AppContentElementMaterialGridManual implements AppContentElement {
+  description: String
+  id: String!
+  title: String
+  workIds: [String!]!
+}
+
+type AppContentElementNavSpotsManual implements AppContentElement {
+  id: String!
+  linkedPages: [String!]!
+}
+
+type AppContentElementRecommendation implements AppContentElement {
+  description: String
+  id: String!
+  imagePositionRight: Boolean!
+  title: String
+  workId: String!
+}
+
+type AppContentElementText implements AppContentElement {
+  body: String!
+  id: String!
+}
+
+type AppContentElementVideo implements AppContentElement {
+  id: String!
+  title: String
+  video: AppVideo!
+}
+
+type AppContentElementVideoBundleAutomatic implements AppContentElement {
+  cql: String!
+  id: String!
+  limit: Int!
+  title: String!
+  video: AppVideo!
+}
+
+type AppContentElementVideoBundleManual implements AppContentElement {
+  id: String!
+  title: String!
+  video: AppVideo!
+  workIds: [String!]!
+}
+
+type AppFeesAndPaymentInfo {
+  feesAndReplacementCostsUrl: String
+  paymentSiteButtonLabel: String
+  paymentSiteUrl: String
+}
+
+type AppPage {
+  elements: [AppContentElement!]!
+  image: String
+  subtitle: String
+  title: String!
+}
+
+enum AppType {
+  BIBLO
+  BIBLOGO
+  MYBIBLO
+}
+
+type AppVideo {
+  orientation: AppVideoOrientation!
+  thumbnail: String!
+  url: String!
+}
+
+enum AppVideoOrientation {
+  HORIZONTAL
+  VERTICAL
 }
 
 input BetweenFloatInput {
@@ -66,7 +185,19 @@ type BranchAvailabilityContext {
   search: Boolean!
 }
 
+type BrandSettings {
+  logoUrl: String
+}
+
 type CQLSearch {
+  branch: String
+  department: String
+  firstAccessionDateOperator: String
+  firstAccessionDateValue: String
+  location: String
+  onshelf: String
+  sort: String
+  sublocation: String
   value: String
 }
 
@@ -105,6 +236,20 @@ type File {
   url: String!
 }
 
+type GoBiblioConfiguration {
+  baseUrl: String
+  enabled: Boolean!
+  sdk: GoBiblioSdkConfiguration
+}
+
+type GoBiblioSdkConfiguration {
+  applicationId: String!
+  firebaseApiKey: String!
+  firebaseAppId: String!
+  firebaseProjectId: String!
+  readerApiKey: String!
+}
+
 type GoCategoriesResult implements View {
   description: String
   display: String!
@@ -126,12 +271,14 @@ type GoConfigurationPrivate {
 }
 
 type GoConfigurationPublic {
+  biblio: GoBiblioConfiguration
+  blacklistedAvailabilityBranches: [String!]
   libraryInfo: GoLibraryInfo
   loginUrls: GoLoginUrls
   logoutUrls: GoLogoutUrls
   mapp: MappTracking
   searchProfiles: SearchProfiles
-  unilogin: UniloginConfigurationPublic
+  smsNotificationsEnabled: Boolean
 }
 
 type GoLibraryInfo {
@@ -141,6 +288,7 @@ type GoLibraryInfo {
 
 type GoLoginUrls {
   adgangsplatformen: String
+  unilogin: String
 }
 
 type GoLogoutUrls {
@@ -838,6 +986,10 @@ scalar PhoneNumber
 
 type Query {
   dplTokens: DplTokens
+  getAppBrandSettings: BrandSettings!
+  getAppCategories(id: String, type: AppType!): [AppCategory!]!
+  getAppFeesAndPaymentInfo: AppFeesAndPaymentInfo
+  getAppPage(id: String!): AppPage
   getBranches(availabilityContexts: [String!], cmsConfigured: Boolean, isilId: String): [Branch!]!
   goCategories(page: Int = 0): GoCategoriesResult
   goConfiguration: GoConfiguration
@@ -1031,12 +1183,7 @@ type Translation {
 }
 
 type UniloginConfigurationPrivate {
-  clientSecret: String
   pubHubRetailerKeyCode: String
-}
-
-type UniloginConfigurationPublic {
-  municipalityId: String
 }
 
 type UnsupportedType {

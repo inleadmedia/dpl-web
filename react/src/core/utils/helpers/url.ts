@@ -1,4 +1,5 @@
 import { WorkId } from "../types/ids";
+import { requestPatronLogin } from "../../unilogin-user";
 
 export const getCurrentLocation = () => String(window.location);
 
@@ -13,7 +14,9 @@ export const appendQueryParametersToUrl = (
   // We need to clone url in order not to manipulate the incoming object.
   const processedUrl = new URL(url);
   Object.keys(parameters).forEach((key) => {
-    processedUrl.searchParams.set(key, encodeURI(parameters[key]));
+    // Pass raw values: URLSearchParams encodes on its own, and layering
+    // encodeURI on top double-encodes. See docs ADR-013.
+    processedUrl.searchParams.set(key, parameters[key]);
   });
 
   return processedUrl;
@@ -22,10 +25,17 @@ export const appendQueryParametersToUrl = (
 export const getUrlQueryParam = (param: string): null | string => {
   const queryParams = new URLSearchParams(window.location.search);
 
-  return queryParams.get(param)
-    ? decodeURI(String(queryParams.get(param)))
-    : null;
+  // Return the value as-is: URLSearchParams.get already decodes, and layering
+  // decodeURI on top breaks single-encoded values. See docs ADR-013.
+  return queryParams.get(param) ? String(queryParams.get(param)) : null;
 };
+
+// Restore the human-readable colon (a legal query character) in URLs written
+// to the address bar. Display-only: ":" and "%3A" parse identically, and a
+// literal "%3A" in a value serialises as "%253A" so it is never matched.
+// See docs ADR-013.
+export const prettifyQueryColons = (url: URL): string =>
+  `${url.origin}${url.pathname}${url.search.replace(/%3A/gi, ":")}${url.hash}`;
 
 export const setQueryParametersInUrl = (parameters: {
   [key: string]: string;
@@ -35,11 +45,11 @@ export const setQueryParametersInUrl = (parameters: {
     processedUrl.searchParams.set(key, parameters[key]);
   });
 
-  window.history.replaceState(null, "", processedUrl);
+  window.history.replaceState(null, "", prettifyQueryColons(processedUrl));
 };
 
 export const replaceCurrentLocation = (replacementUrl: URL) => {
-  window.history.replaceState(null, "", replacementUrl);
+  window.history.replaceState(null, "", prettifyQueryColons(replacementUrl));
 };
 
 export const removeQueryParametersFromUrl = (parameter: string) => {
@@ -105,6 +115,17 @@ export const constructMaterialUrl = (
   return materialUrl;
 };
 
+export const constructSeriesUrl = (url: URL, seriesId: string) => {
+  const seriesUrl = new URL(url);
+
+  // Replace placeholders with values.
+  seriesUrl.pathname = processUrlPlaceholders(seriesUrl.pathname, [
+    [":seriesid", seriesId]
+  ]);
+
+  return seriesUrl;
+};
+
 export const constructSearchUrl = (searchUrl: URL, q: string) =>
   appendQueryParametersToUrl(searchUrl, {
     q
@@ -131,11 +152,6 @@ export const constructDK5SearchUrl = (searchUrl: URL, dk5: string) =>
     facets: [{ facetName: "dk5", selectedValues: [dk5.toLowerCase()] }]
   });
 
-export const constructAdvancedSearchUrl = (advancedSearchUrl: URL, q: string) =>
-  appendQueryParametersToUrl(advancedSearchUrl, {
-    advancedSearchCql: q
-  });
-
 // Type for facet state in URL (matches search-result-v2 format)
 type FacetUrlState = {
   facetName: string;
@@ -152,19 +168,11 @@ export const constructSearchUrlWithFacets = (args: {
 }) => {
   const { searchUrl, q, facets } = args;
   const processedUrl = new URL(searchUrl);
-  processedUrl.searchParams.set("q", encodeURI(q));
+  processedUrl.searchParams.set("q", q);
   if (facets.length > 0) {
     processedUrl.searchParams.set("facets", JSON.stringify(facets));
   }
   return processedUrl;
-};
-
-export const constructAdvancedSearchSubjectUrl = (
-  advancedSearchUrl: URL,
-  subject: string
-) => {
-  const filters = JSON.stringify([{ term: "term.subject", query: subject }]);
-  return new URL(`${advancedSearchUrl}?filters=${filters}&view=results`);
 };
 
 /**
@@ -217,10 +225,14 @@ export function redirectToLoginAndBack({
   const redirectUrl = appendQueryParametersToUrl(authUrl, {
     "current-path": localPathToReturnTo
   });
-  if (trackingFunction) {
-    trackingFunction().then(() => redirectTo(redirectUrl));
-  }
-  redirectTo(redirectUrl);
+  // A Unilogin student is asked first, since a patron login logs the student
+  // out.
+  requestPatronLogin(() => {
+    if (trackingFunction) {
+      trackingFunction().then(() => redirectTo(redirectUrl));
+    }
+    redirectTo(redirectUrl);
+  });
 }
 
 // Checks whether a valid URL can be made out of a given string.

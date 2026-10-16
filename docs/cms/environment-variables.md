@@ -86,6 +86,31 @@ Hostname for the Redis service.
 
 Port for the Redis service.
 
+## Metrics
+
+- `METRICS_REDIS_HOST`
+
+Hostname of the key-value store holding Prometheus metric counters,
+read by `dpl_metrics`. This is deliberately a *different* instance from
+`REDIS_HOST`: the cache instance runs an LRU eviction policy and gets
+flushed wholesale, either of which would corrupt counters.
+
+When unset, `dpl_metrics` falls back to per-process storage, so counters
+never accumulate and the endpoint reports close to nothing. That keeps
+the module harmless in environments where the service has not been
+rolled out.
+
+- `METRICS_REDIS_SERVICE_PORT`
+
+Port for that service. Defaults to `6379`.
+
+- `METRICS_SCRAPE_TOKEN`
+
+Bearer token Prometheus presents when scraping `/metrics`. Until it is
+set, the endpoint is closed to everyone without the `access dpl metrics`
+permission — a site that installs the module without finishing setup
+does not end up publishing its metrics.
+
 ## CI / System
 
 - `CI`
@@ -102,50 +127,78 @@ System temporary directory, standard Unix variable.
 - `AZURE_MAIL_CONNECTION_STRING`
 
 Connection string for Azure Communication Services (mailing). Added in
-via configuration override (`AzureMailerConfigOverrides`). Shouldn't
-be set in development environment.
+via configuration override, read in
+`dpl_mail/src/Config/AzureMailerConfigOverrides.php`. Shouldn't be set
+in development environment.
 
 - `BNF_GRAPHQL_CONSUMER_SECRET`
 
-Secret for the BNF GraphQL consumer. Set via update hook. Not used.
+Secret for the BNF GraphQL consumer. Set via update hook. Required:
+`dpl_consumers.module` throws if it is unset.
 
 - `BNF_GRAPHQL_CONSUMER_USER_PASSWORD`
 
 Password for the BNF GraphQL consumer user. Needs to match between the
-library site and BNF site. Set via update hook.
+library site and BNF site. Set via update hook. Read in
+`dpl_consumers.module`, and used for the Basic auth header in
+`bnf/src/SailorEndpointConfig.php`.
+
+- `DATAFORSYNINGEN_TOKEN`
+
+Token for Dataforsyningen, the Danish address lookup API used by the React
+apps (`PatronRegistrationBlock`, the branch list). Also applied as the site
+credential of `dk_address.settings` in `all.settings.php`, which the
+`dk_address` module falls back to if Adressevælgeren stops accepting its
+shared token.
 
 - `DRUPAL_PREVIEW_SECRET`
 
-Shared secret for Next.js preview mode. Apparently not used. Set
-(once) on the Next site configuration entity.
+Shared secret for Next.js preview mode. Read in `dpl_go.deploy.php`,
+which requires it in production and stores it as `preview_secret` on the
+`next_site` config entity owned by the `drupal/next` contrib module.
+Whether preview mode is actually exercised has not been verified — the
+value is a short placeholder on every project checked.
 
 - `DRUPAL_REVALIDATE_SECRET`
 
 Shared secret for Next.js on-demand revalidation. Set on the Next site
-configuration entity.
+configuration entity by `dpl_go.deploy.php`, and also read in
+`dpl_update.install`. Go validates it on `GET /cache/revalidate`.
 
-- `GO_DOMAIN`
+- `DPL_GO_BASE_URL`
 
-Used to override the URL of the Go site. (`GoSite`)
+Used to override the URL of the Go site (`GoSite`). Shared with Go, which
+reads the same variable as its own canonical base URL.
 
 - `GO_GRAPHQL_CONSUMER_SECRET`
 
-Secret for the Go GraphQL consumer. Set via update hook. Not used.
+Secret for the Go GraphQL consumer. Set via update hook. Required:
+`dpl_consumers.module` throws if it is unset.
 
 - `NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD`:
 
 Password for the GO GraphQL consumer user. Must match the one Go uses.
-Set by update hooks.
+Set by update hooks. Read in `dpl_consumers.module` and
+`dpl_update.install`; on the Go side `go/lib/config/env.ts` maps it onto
+an internal config key named `GO_GRAPHQL_CONSUMER_USER_PASSWORD`. Note
+that the unprefixed name is never read from the environment.
 
 - `MOBILE_GRAPHQL_CONSUMER_SECRET`
 
-Secret for the Mobile GraphQL consumer. Set via update hook. Not used.
+Secret for the Mobile GraphQL consumer. Set via update hook. Required:
+`dpl_consumers.module` throws if it is unset.
 
 - `MOBILE_GRAPHQL_CONSUMER_USER_PASSWORD`
 
 Password for the Mobile GraphQL consumer user. Used for runtime
 validation of authorization of mobile clients querying the graphql
-API.
+API. Read in `dpl_consumers.module`.
+
+- `VIDEOTOOL_PUBLIC_KEY`
+- `VIDEOTOOL_PRIVATE_KEY`
+
+Credentials for the Videotool media integration. Applied to
+`media_videotool.settings` in `all.settings.php`.
 
 ## Authentication (Adgangsplatforme & UniLogin)
 
@@ -155,12 +208,13 @@ These are automatically picked up for configuration (see
 - `OPENID_CLIENT_ID`: Client ID for Adgangsplatformen OIDC.
 - `OPENID_CLIENT_SECRET`: Client secret for Adgangsplatformen OIDC.
 - `OPENID_AGENCY_ID`: Agency ID for Adgangsplatformen OIDC.
-- `UNILOGIN_CLIENT_SECRET`: Client secret for UniLogin API.
 
 And if you need these, grab someone that's worked in the area before
 and ask them.
 
-- `UNILOGIN_WEBSERVICE_USERNAME`: Webservice username for UniLogin.
-- `UNILOGIN_WEBSERVICE_PASSWORD`: Webservice password for UniLogin.
 - `UNILOGIN_PUBHUB_RETAILER_KEY_CODE`: Retailer key for PubHub.
-- `UNILOGIN_MUNICIPALITY_ID`: Municipality ID for UniLogin.
+
+CMS reads `UNILOGIN_PUBHUB_RETAILER_KEY_CODE`, while Go reads the
+misspelled `UNLILOGIN_PUBHUB_RETAILER_KEY_CODE` (a long-standing typo).
+`.env.1pass` sets both to the same value for local development, but
+only the misspelled name exists as a Lagoon project variable.

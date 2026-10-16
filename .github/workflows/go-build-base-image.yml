@@ -5,16 +5,19 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-[a-z]+.[0-9]+'
   workflow_call:
+    secrets:
+      WEDOBOOKS_NPM_TOKEN:
+        description: >-
+          Token for WeDoBooks' private npm registry. stage1.dockerfile takes
+          it as a BuildKit secret for the pnpm install. Callers pass it with
+          `secrets: inherit`.
+        required: true
 
 env:
   DOCKER_REGISTRY: ghcr.io
-  GH_TOKEN: ${{ secrets.GH_DEPLOYMENT_TOKEN }}
   GO_IMAGE_NAME: '${{ github.repository }}-go'
-  LAGOON_DOMAIN: "dplplat02.dpl.reload.dk"
-  LAGOON_ENVIRONMENT: "${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}"
-  OWNER: ${{ github.repository_owner }}
-  REPO: ${{ github.event.repository.name }}
 
 jobs:
   BuildGoBaseImage:
@@ -29,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.6.0
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
@@ -51,9 +54,14 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v7
         with:
-          file: "go/lagoon/base.dockerfile"
+          file: "go/lagoon/stage1.dockerfile"
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             DPL_VERSION=${{ steps.meta.outputs.version }}
+          # A BuildKit secret, not a build argument: this Dockerfile has a
+          # single stage and that stage is what gets published, so a build
+          # argument would be readable from `docker history`.
+          secrets: |
+            WEDOBOOKS_NPM_TOKEN=${{ secrets.WEDOBOOKS_NPM_TOKEN }}

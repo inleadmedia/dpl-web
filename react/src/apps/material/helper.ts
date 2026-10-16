@@ -1,5 +1,5 @@
 import { compact, first, groupBy, head, uniq, uniqBy } from "lodash";
-import { UseQueryOptions } from "react-query";
+import { UseQueryOptions } from "@tanstack/react-query";
 import { ManifestationHoldings } from "../../components/find-on-shelf/types";
 import { ListData } from "../../components/material/MaterialDetailsList";
 import {
@@ -29,6 +29,7 @@ import {
 } from "../../core/utils/helpers/url";
 import {
   flattenCreators,
+  getAllFaustIds,
   getMaterialType,
   orderManifestationsByYear
 } from "../../core/utils/helpers/general";
@@ -89,6 +90,29 @@ export const getManifestationsFromType = (
 
 export const getFirstManifestation = (manifestations: Manifestation[]) => {
   return first(manifestations) || null;
+};
+
+export const hasPublizonIdentifier = (manifestation: Manifestation) =>
+  manifestation.identifiers?.some(
+    (identifier) => identifier.type === IdentifierTypeEnum.Publizon
+  ) ?? false;
+
+// The PUBLIZON identifier marks a loanable edition. The type is FBI's field
+// name and says nothing about which provider holds the material.
+//
+// Several editions of one material type can be loanable, and the reader
+// expects the newest. Ordering copies the list: orderManifestationsByYear
+// sorts in place, and this list belongs to the caller.
+export const getLoanableManifestation = (manifestations: Manifestation[]) => {
+  const loanableManifestations = manifestations.filter(hasPublizonIdentifier);
+
+  if (!loanableManifestations.length) {
+    return getFirstManifestation(manifestations);
+  }
+
+  return getFirstManifestation(
+    orderManifestationsByYear([...loanableManifestations])
+  );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,6 +178,23 @@ export const getManifestationIsbn = (manifestation: Manifestation) => {
   return isbnIdentifier?.value ?? "";
 };
 
+/**
+ * The identifier a digital material is borrowed, reserved and read by - both
+ * Publizon's identifier and the service layer's `material_id`.
+ *
+ * `IdentifierTypeEnum.Publizon` is FBI's field name, not the provider we call.
+ * Preferred over the ISBN because a manifestation can carry several ISBNs and
+ * the leading one is not always the right edition - a deselected PDF, say.
+ */
+export const getManifestationDigitalIdentifier = (
+  manifestation: Manifestation
+) => {
+  const fbiPublizonIdentifier = manifestation.identifiers?.find(
+    (identifier) => identifier.type === IdentifierTypeEnum.Publizon
+  );
+  return fbiPublizonIdentifier?.value ?? getManifestationIsbn(manifestation);
+};
+
 export const getManifestationSource = (manifestation: Manifestation) => {
   return manifestation.source ?? "";
 };
@@ -200,8 +241,8 @@ export const getManifestationOriginalTitle = (manifestation: Manifestation) => {
   if (manifestation.titles?.original?.length) {
     return manifestation.titles.original.join(", ");
   }
-  // This should never happen, so therefore ist not translated.
-  return "Unknown title";
+  // No original title delivered — return empty so the details row is hidden
+  return "";
 };
 
 export const materialContainsDanish = (work: Work) => {
@@ -392,17 +433,17 @@ export const totalBranchesHaveMaterial = (
   }).length;
 };
 
-export const getInfomediaIds = (manifestations: Manifestation[]) => {
-  const infomediaIds = manifestations
+export const getRetrieverIds = (manifestations: Manifestation[]) => {
+  const retrieverIds = manifestations
     .map((manifestation) =>
       manifestation.access.map((currentAccess) => {
-        return currentAccess.__typename === "InfomediaService"
+        return currentAccess.__typename === "RetrieverService"
           ? currentAccess.id
           : null;
       })
     )
     .flat();
-  return compact(infomediaIds);
+  return compact(retrieverIds);
 };
 
 export const divideManifestationsByMaterialType = (
@@ -425,16 +466,6 @@ export const divideManifestationsByMaterialType = (
     },
     {}
   );
-
-export const getAllIsbns = (manifestations: Manifestation[]) => {
-  return manifestations
-    .map((manifestation) =>
-      manifestation.identifiers
-        .filter((identifier) => identifier.type === IdentifierTypeEnum.Isbn)
-        .map((identifier) => identifier.value)
-    )
-    .flat();
-};
 
 export const getManifestationsWithMaterialType = (
   manifestations: Manifestation[]
@@ -492,8 +523,14 @@ export const reservationModalId = (faustIds: FaustId[]) => {
   return constructModalId("reservation-modal", faustIds.sort());
 };
 
-export const onlineInternalModalId = (faustIds: FaustId[]) => {
-  return constructModalId("online-internal-modal", faustIds.sort());
+// Keyed on the one edition the loan is for, so an opener that covers several
+// editions and the modal rendered for a single one agree on the id.
+export const onlineInternalModalId = (manifestations: Manifestation[]) => {
+  const loanableManifestation = getLoanableManifestation(manifestations);
+  return constructModalId(
+    "online-internal-modal",
+    loanableManifestation ? getAllFaustIds([loanableManifestation]) : []
+  );
 };
 
 export const editionSwitchModalId = () => {
@@ -605,7 +642,9 @@ export const useGetHoldings = ({
   config: UseConfigFunction;
   blacklist: BlacklistType;
   options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof getHoldingsLogisticsV1>>>;
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getHoldingsLogisticsV1>>>
+    >;
   };
 }) => {
   const { data, isLoading, isError } = useGetHoldingsLogisticsV1(
@@ -642,6 +681,27 @@ export const getManifestationBasedOnType = (
   }
   // Fallback returning best representation.
   return bestRepresentation;
+};
+
+// Returns the requested material type only when the given manifestation
+// actually has that type. If it does not, returns undefined so callers
+// (e.g. URL construction) can fall back to the website's normal logic instead
+// of forcing a type the work cannot satisfy.
+//
+// Pass the manifestation already resolved via getManifestationBasedOnType:
+// that helper falls back to the best representation when the work has no
+// manifestation of the requested type, so a non-matching type here means the
+// work cannot satisfy it.
+export const getAvailablePriorityMaterialType = (
+  manifestation: Manifestation,
+  materialType?: ManifestationMaterialType
+): ManifestationMaterialType | undefined => {
+  if (!materialType) {
+    return undefined;
+  }
+  return getManifestationMaterialTypes(manifestation) === materialType
+    ? materialType
+    : undefined;
 };
 
 export const getWorkTitle = (work: Work): string => {
@@ -924,6 +984,32 @@ if (import.meta.vitest) {
 
       const title = getManifestationTitle(manifestation);
       expect(title).toMatchInlineSnapshot(`"Unknown title"`);
+    });
+  });
+
+  describe("getManifestationOriginalTitle", () => {
+    it("returns the original titles joined by a comma", () => {
+      const manifestation = {
+        titles: {
+          original: ["Some Original Title", "Another Original Title"]
+        }
+      } as unknown as Manifestation;
+
+      const title = getManifestationOriginalTitle(manifestation);
+      expect(title).toMatchInlineSnapshot(
+        `"Some Original Title, Another Original Title"`
+      );
+    });
+
+    it("returns an empty string when no original title is available so the details row is hidden (DDF-366)", () => {
+      const manifestation = {
+        titles: {
+          original: []
+        }
+      } as unknown as Manifestation;
+
+      const title = getManifestationOriginalTitle(manifestation);
+      expect(title).toMatchInlineSnapshot(`""`);
     });
   });
 }

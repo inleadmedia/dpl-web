@@ -3,6 +3,7 @@ import { Middleware } from "redux";
 
 type Api =
   | "publizon"
+  | "biblio"
   | "fbs"
   | "dplCms"
   | "cover"
@@ -14,8 +15,7 @@ type Api =
 export type ApiBaseUrlKey = `${Api}BaseUrl`;
 
 export type ServiceBaseUrls =
-  | Record<Api, ApiBaseUrlKey>
-  | Record<string, never>;
+  Record<Api, ApiBaseUrlKey> | Record<string, never>;
 
 type Action = {
   type: string;
@@ -29,6 +29,7 @@ type ServiceBaseUrlKey = keyof ServiceBaseUrls;
 export const serviceUrlKeys = {
   fbs: "fbsBaseUrl",
   publizon: "publizonBaseUrl",
+  biblio: "biblioBaseUrl",
   dplCms: "dplCmsBaseUrl",
   cover: "coverBaseUrl",
   materialList: "materialListBaseUrl",
