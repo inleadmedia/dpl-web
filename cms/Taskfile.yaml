@@ -73,7 +73,18 @@ tasks:
       - sh: test -f react/package.json && test -f design-system/package.json
         msg: Run from cms/ in the dpl-web monorepo (../react and ../design-system required).
     cmds:
-      - task dev:cms:link
+      - |
+        export CI=true
+        if ! node -e 'const [maj]=process.version.slice(1).split("."); process.exit(+maj>=24?0:1)' 2>/dev/null; then
+          if command -v docker >/dev/null 2>&1; then
+            echo "Node $(node -v 2>/dev/null || echo unknown) is below 24 — using node:24.21-alpine via RUN_IN_DOCKER"
+            export RUN_IN_DOCKER=1
+          else
+            echo "ERROR: Node.js ^24.15.0 required (current: $(node -v 2>/dev/null || echo none)). Install Node 24 or provide Docker for RUN_IN_DOCKER."
+            exit 1
+          fi
+        fi
+        task dev:cms:link
 
   drupal:assets:status:
     desc: Report whether a react/design-system bundle build is needed (does not build)
