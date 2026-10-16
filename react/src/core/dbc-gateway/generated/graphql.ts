@@ -1,3 +1,4 @@
+import { DocumentTypeDecoration } from "@graphql-typed-document-node/core";
 import {
   useQuery,
   useMutation,
@@ -32,6 +33,8 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  /** A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
+  Date: { input: unknown; output: unknown };
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: { input: unknown; output: unknown };
   /** An integer in the range from 1 to 100 */
@@ -56,7 +59,8 @@ export type AccessUnion =
   | Ereol
   | InfomediaService
   | InterLibraryLoan
-  | Publizon;
+  | Publizon
+  | RetrieverService;
 
 export type AccessUrl = {
   __typename?: "AccessUrl";
@@ -66,6 +70,8 @@ export type AccessUrl = {
   note?: Maybe<Scalars["String"]["output"]>;
   /** The origin, e.g. "DBC Webarkiv" */
   origin: Scalars["String"]["output"];
+  /** Proxy/login url for the resource when relevant. */
+  proxyUrl?: Maybe<Scalars["String"]["output"]>;
   /** Status from linkcheck */
   status: LinkStatusEnum;
   /** The type of content that can be found at this URL */
@@ -84,6 +90,20 @@ export enum AccessUrlTypeEnum {
   TableOfContents = "TABLE_OF_CONTENTS",
   Thumbnail = "THUMBNAIL"
 }
+
+export type AddBookmarksResponse = {
+  __typename?: "AddBookmarksResponse";
+  /** A list of materials for which bookmark addition failed. */
+  items: Array<BookmarksStatusItem>;
+  /** The overall status of the bookmark addition operation. */
+  status: BookmarksOverallStatusEnum;
+};
+
+export type AddHistoricalLoansResponse = {
+  __typename?: "AddHistoricalLoansResponse";
+  items: Array<PatronHistoricalLoanStatusItem>;
+  status: PatronLoansOverallStatusEnum;
+};
 
 export type Audience = {
   __typename?: "Audience";
@@ -130,6 +150,118 @@ export type BibliographicCategory = {
   code?: Maybe<Scalars["String"]["output"]>;
   /** The code as displayable text */
   display?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type BookmarkItem = {
+  __typename?: "BookmarkItem";
+  /** The application the bookmark belongs to */
+  application: Scalars["String"]["output"];
+  /** creation date of the bookmark */
+  createdAt: Scalars["DateTime"]["output"];
+  /** The unique identifier for the bookmark */
+  id: Scalars["String"]["output"];
+  /** The bibliographic record associated with the bookmark, if it can still be resolved. */
+  material: BookmarkMaterial;
+  /** The unique identifier for the material this bookmark points to. */
+  materialId: Scalars["String"]["output"];
+  /** The selection applied to the bookmarked work. */
+  selection?: Maybe<BookmarkSelection>;
+  /** Stored metadata captured when the bookmark was created. */
+  snapshot: BookmarkSnapshot;
+};
+
+export type BookmarkMaterial = {
+  __typename?: "BookmarkMaterial";
+  manifestation?: Maybe<Manifestation>;
+  /**
+   * Manifestations matching the bookmark selection. This is not necessarily
+   * every manifestation in the work.
+   */
+  manifestations?: Maybe<Array<Manifestation>>;
+  work?: Maybe<Work>;
+};
+
+export type BookmarkMaterialTypesSelection = {
+  __typename?: "BookmarkMaterialTypesSelection";
+  general?: Maybe<Array<GeneralMaterialTypeCodeEnum>>;
+  specific?: Maybe<Array<Scalars["String"]["output"]>>;
+};
+
+export type BookmarkMaterialTypesSelectionInput = {
+  general?: InputMaybe<Array<GeneralMaterialTypeCodeEnum>>;
+  specific?: InputMaybe<Array<Scalars["String"]["input"]>>;
+};
+
+export type BookmarkSelection = {
+  __typename?: "BookmarkSelection";
+  materialTypes: BookmarkMaterialTypesSelection;
+};
+
+export type BookmarkSelectionInput = {
+  materialTypes: BookmarkMaterialTypesSelectionInput;
+};
+
+export type BookmarkSnapshot = {
+  __typename?: "BookmarkSnapshot";
+  creator?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Stored material types for a manifestation or a work selection. This is
+   * null for a bookmark of an entire work.
+   */
+  materialTypes?: Maybe<Array<PatronMaterialTypeSnapshot>>;
+  periodical?: Maybe<PeriodicalSnapshot>;
+  pid?: Maybe<Scalars["String"]["output"]>;
+  title?: Maybe<Scalars["String"]["output"]>;
+  version?: Maybe<Scalars["Int"]["output"]>;
+  workId?: Maybe<Scalars["String"]["output"]>;
+  workType?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type Bookmarks = {
+  __typename?: "Bookmarks";
+  /** The total number of bookmarks for the patron */
+  hitcount: Scalars["Int"]["output"];
+  /** The list of bookmarks for the patron */
+  items: Array<BookmarkItem>;
+  /** The overall status of the bookmarks */
+  status: BookmarksOverallStatusEnum;
+};
+
+export type BookmarksInput = {
+  materialId: Scalars["String"]["input"];
+  selection?: InputMaybe<BookmarkSelectionInput>;
+};
+
+export enum BookmarksOverallStatusEnum {
+  ErrorMissingClientConfiguration = "ERROR_MISSING_CLIENT_CONFIGURATION",
+  ErrorUnauthenticatedToken = "ERROR_UNAUTHENTICATED_TOKEN",
+  Failed = "FAILED",
+  Ok = "OK",
+  PartiallyFailed = "PARTIALLY_FAILED"
+}
+
+export enum BookmarksStatusEnum {
+  AlreadyExists = "ALREADY_EXISTS",
+  Failed = "FAILED",
+  InvalidId = "INVALID_ID",
+  InvalidMaterialId = "INVALID_MATERIAL_ID",
+  NotFound = "NOT_FOUND",
+  Ok = "OK",
+  UnknownError = "UNKNOWN_ERROR"
+}
+
+export type BookmarksStatusItem = {
+  __typename?: "BookmarksStatusItem";
+  /** The unique identifier for the bookmark that was attempted to be added or deleted. */
+  id?: Maybe<Scalars["String"]["output"]>;
+  /** The material for which bookmark addition failed. */
+  material?: Maybe<BookmarkMaterial>;
+  /** The unique identifier for the material for which bookmark addition failed (e.g., a PID or work ID). */
+  materialId?: Maybe<Scalars["String"]["output"]>;
+  /** The normalized selection for the bookmark operation. */
+  selection?: Maybe<BookmarkSelection>;
+  /** Status of the bookmark addition or deletion attempt for a specific material. */
+  status: BookmarksStatusEnum;
 };
 
 export enum CsHoldingsStatusEnum {
@@ -196,6 +328,12 @@ export type Classification = {
   entryType?: Maybe<EntryTypeEnum>;
   /** Name of the classification system */
   system: Scalars["String"]["output"];
+};
+
+/** CQL based filters. Mutually exclusive with ComplexSearchFiltersInput. */
+export type ComplexSearchCqlFiltersInput = {
+  /** A CQL expression used to filter the search result. */
+  cqlfilterquery?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** The complete facet in response */
@@ -280,12 +418,20 @@ export type ComplexSearchFiltersInput = {
   department?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Date of first accession */
   firstAccessionDate?: InputMaybe<Scalars["String"]["input"]>;
+  /** The floatgroup of the item */
+  floatGroup?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Id of publishing issue. */
   issueId?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Local id of the item. */
   itemId?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  /** The last loan date of the item */
+  lastloandate?: InputMaybe<Scalars["String"]["input"]>;
+  /** The loan restriction of the item, g, a or nothing */
+  loanrestriction?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Where is the book physically located  (eg. skønlitteratur). */
   location?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  /** The section which the item belongs to */
+  section?: InputMaybe<Array<Scalars["String"]["input"]>>;
   /** Onloan or OnShelf. */
   status?: InputMaybe<Array<CsHoldingsStatusEnum>>;
   /** More specific location (eg. Fantasy). */
@@ -484,6 +630,11 @@ export enum CopyRequestStatusEnum {
 export type Corporation = CreatorInterface &
   SubjectInterface & {
     __typename?: "Corporation";
+    /**
+     * True when the corporation is followed by 'm.fl.' (and others) in the publication,
+     * meaning that additional unnamed corporations contributed to this creation
+     */
+    andOthers?: Maybe<Scalars["Boolean"]["output"]>;
     /** Added information about the corporation, like M. Folmer Andersen (firma) */
     attributeToName?: Maybe<Scalars["String"]["output"]>;
     /** The full corporation or conference name */
@@ -533,6 +684,11 @@ export type CoverDetails = {
 };
 
 export type CreatorInterface = {
+  /**
+   * True when the creator is followed by 'm.fl.' (and others) in the publication,
+   * meaning that additional unnamed creators contributed to this creation
+   */
+  andOthers?: Maybe<Scalars["Boolean"]["output"]>;
   /** Name of the creator */
   display: Scalars["String"]["output"];
   /** Name of the creator which can be used to sort after */
@@ -541,6 +697,24 @@ export type CreatorInterface = {
   roles: Array<Role>;
   /** VIAF identifier of the creator */
   viafid?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type CurrentLoan = {
+  __typename?: "CurrentLoan";
+  /** Account information for the patron who owns the loan. */
+  account?: Maybe<PatronAccount>;
+  /** Branch information for the agency where the loan belongs. */
+  agency?: Maybe<PatronAgency>;
+  /** Due date reported by OpenUserStatus. */
+  dueDate: Scalars["DateTime"]["output"];
+  /** Identifier assigned to the loan by the library system. */
+  id: Scalars["String"]["output"];
+  /** The manifestation associated with the loan, when it can be resolved. */
+  manifestation?: Maybe<Manifestation>;
+  /** Fallback metadata reported by OpenUserStatus. */
+  snapshot?: Maybe<PatronMaterialSnapshot>;
+  /** Status computed from the due date in the Europe/Copenhagen timezone. */
+  status: PatronLoanStatusEnum;
 };
 
 export type Dk5MainEntry = {
@@ -557,6 +731,20 @@ export type Debug = {
   __typename?: "Debug";
   complexity: Complexity;
   depth: Depth;
+};
+
+export type DeleteBookmarksResponse = {
+  __typename?: "DeleteBookmarksResponse";
+  /** Number of failed bookmark deletions (e.g., due to non-existent bookmark IDs). */
+  items: Array<BookmarksStatusItem>;
+  /** The overall status of the bookmark deletion operation. */
+  status: BookmarksOverallStatusEnum;
+};
+
+export type DeleteHistoricalLoansResponse = {
+  __typename?: "DeleteHistoricalLoansResponse";
+  items: Array<PatronHistoricalLoanStatusItem>;
+  status: PatronLoansOverallStatusEnum;
 };
 
 export type Depth = {
@@ -587,7 +775,10 @@ export type DigitalArticleService = {
 
 export type Edition = {
   __typename?: "Edition";
-  /** Quotation of contributor statements related to the edition */
+  /**
+   * Quotation of contributor statements related to the edition
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   contributors: Array<Scalars["String"]["output"]>;
   /** The edition number and name */
   edition?: Maybe<Scalars["String"]["output"]>;
@@ -731,6 +922,27 @@ export type GenreForm = {
   display?: Maybe<Scalars["String"]["output"]>;
   /** Language of the genre/form term, if applicable */
   language?: Maybe<Language>;
+};
+
+export type HistoricalLoan = {
+  __typename?: "HistoricalLoan";
+  /**
+   * The patron's current account for the loan agency, when that account still exists.
+   * This is not a snapshot of the account at the time of the historical loan.
+   */
+  account?: Maybe<PatronAccount>;
+  /** Branch information for the agency where the loan belonged. */
+  agency?: Maybe<PatronAgency>;
+  /** Stable public UserData identifier used when deleting the historical loan. */
+  id: Scalars["String"]["output"];
+  /** Date on which the material was borrowed, when known. */
+  loanedAt?: Maybe<Scalars["Date"]["output"]>;
+  /** The manifestation associated with the historical loan, when it can still be resolved. */
+  manifestation?: Maybe<Manifestation>;
+  /** Date on which the material was returned, when known. */
+  returnedAt?: Maybe<Scalars["Date"]["output"]>;
+  /** Stored fallback metadata captured when the historical loan was ingested. */
+  snapshot?: Maybe<PatronMaterialSnapshot>;
 };
 
 export enum HoldingsStatusEnum {
@@ -949,7 +1161,10 @@ export type Manifestation = {
   bibliographicCategory?: Maybe<BibliographicCategory>;
   /** CatalogueCodes divided in codes from the national bibliography and other codes */
   catalogueCodes: CatalogueCodes;
-  /** The publication status of a catalogued manifestation. */
+  /**
+   * The publication status of a catalogued manifestation.
+   * @deprecated Use 'Manifestation.materialSelection.cataloguedPublicationStatus' instead expires: 05/12-2026
+   */
   cataloguedPublicationStatus?: Maybe<CataloguedPublicationStatus>;
   /** Classification codes for this manifestation from any classification system */
   classifications: Array<Classification>;
@@ -987,6 +1202,11 @@ export type Manifestation = {
   latestPrinting?: Maybe<Printing>;
   /** Identification of the local id of this manifestation */
   localId?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Metadata related to material selection, including publication status,
+   * selection group, and librarian assessment.
+   */
+  materialSelection?: Maybe<MaterialSelection>;
   /** The type of material of the manifestation based on bibliotek.dk types */
   materialTypes: Array<MaterialType>;
   /** Information on music shelving */
@@ -1007,12 +1227,21 @@ export type Manifestation = {
   publisher: Array<Scalars["String"]["output"]>;
   /** The creation date of the record describing this manifestation in the format YYYYMMDD */
   recordCreationDate: Scalars["String"]["output"];
-  /** Notes about relations to this book/periodical/journal, - like previous names or related journals */
+  /**
+   * Notes about relations to this book/periodical/journal, - like previous names or related journals
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   relatedPublications: Array<RelatedPublication>;
   /** Relations to other manifestations */
   relations: Relations;
   /** Some review data, if this manifestation is a review */
   review?: Maybe<ManifestationReview>;
+  /**
+   * Bibliographic reference data for this manifestation formatted as RIS.
+   * When fetching RIS for multiple manifestations, each record is returned on the
+   * manifestation. To combine them into a single RIS file, join the records with a newline.
+   */
+  ris?: Maybe<Scalars["String"]["output"]>;
   /** Series for this manifestation */
   series: Array<Series>;
   /** Material that can be identified as sheet music */
@@ -1071,11 +1300,17 @@ export type ManifestationTitles = {
   parallel: Array<Scalars["String"]["output"]>;
   /** The sorted title of the entity */
   sort: Scalars["String"]["output"];
-  /** The standard title of the entity, used for music and movies */
+  /**
+   * The standard title of the entity, used for music and movies
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   standard?: Maybe<Scalars["String"]["output"]>;
   /** The title of the entity with the language of the entity in parenthesis after. This field is only generated for non-danish titles. */
   titlePlusLanguage?: Maybe<Scalars["String"]["output"]>;
-  /** Danish translation of the main title */
+  /**
+   * Danish translation of the main title
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   translated?: Maybe<Array<Scalars["String"]["output"]>>;
   /** detailed title for tv series */
   tvSeries?: Maybe<TvSeries>;
@@ -1099,6 +1334,95 @@ export type Manifestations = {
    * Only one manifestation per unit is returned.
    */
   searchHits?: Maybe<Array<SearchHit>>;
+};
+
+/**
+ * Metadata related to material selection, including publication status,
+ * selection group, and librarian assessment.
+ */
+export type MaterialSelection = {
+  __typename?: "MaterialSelection";
+  /** Publication status of the manifestation (e.g. new title, new edition, new print run). */
+  cataloguedPublicationStatus: Array<MaterialSelectionCataloguedPublicationStatus>;
+  /**
+   * The type of library assessment associated with the manifestation:
+   * literature, movie, or multimedia.
+   */
+  librarianAssessment: Array<MaterialSelectionLibrarianAssessment>;
+  /** Recommended selection group for the manifestation: adult, children, or school libraries. */
+  selectionGroup: Array<MaterialSelectionSelectionGroup>;
+};
+
+/** Publication status entry within material selection. */
+export type MaterialSelectionCataloguedPublicationStatus = {
+  __typename?: "MaterialSelectionCataloguedPublicationStatus";
+  /** Danish display label for the publication status, e.g. "Ny titel". */
+  display?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Values that can be used for Complex Search filtering, e.g. ["nt", "ny titel"].
+   * Use these values with term.cataloguedPublicationStatus in Complex Search.
+   */
+  searchValues: Array<Scalars["String"]["output"]>;
+  /** The publication status enum value. */
+  type: MaterialSelectionPublicationStatusEnum;
+};
+
+export enum MaterialSelectionGroupEnum {
+  /** Adult. Display label example: "Voksenafdelinger". */
+  Adult = "ADULT",
+  /** Children. Display label example: "Børnebiblioteker". */
+  Children = "CHILDREN",
+  /** School. Display label example: "Skolebiblioteker". */
+  School = "SCHOOL"
+}
+
+/** Librarian assessment entry within material selection. */
+export type MaterialSelectionLibrarianAssessment = {
+  __typename?: "MaterialSelectionLibrarianAssessment";
+  /** Danish display label for the assessment, e.g. "Har lektørudtalelse (materialevurdering)". */
+  display?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Values that can be used for Complex Search filtering, e.g. ["l", "lektørudtalelse"].
+   * Use these values with term.librarianAssessment in Complex Search.
+   */
+  searchValues: Array<Scalars["String"]["output"]>;
+  /** The librarian assessment enum value. */
+  type: MaterialSelectionLibrarianAssessmentEnum;
+};
+
+export enum MaterialSelectionLibrarianAssessmentEnum {
+  /**
+   * Literature assessment.
+   * Display label example: "Har lektørudtalelse (materialevurdering)".
+   */
+  Literature = "LITERATURE",
+  /** Has a film review. Display label example: "Har filmvurdering". */
+  Movie = "MOVIE",
+  /** Has a multimedia review. Display label example: "Har multimedievurdering". */
+  Multimedia = "MULTIMEDIA"
+}
+
+export enum MaterialSelectionPublicationStatusEnum {
+  /** New edition. Display label example: "Ny udgave". */
+  NewEdition = "NEW_EDITION",
+  /** New print run. Display label example: "Nyt oplag". */
+  NewPrint = "NEW_PRINT",
+  /** New title. Display label example: "Ny titel". */
+  NewTitle = "NEW_TITLE"
+}
+
+/** Selection group entry within material selection. */
+export type MaterialSelectionSelectionGroup = {
+  __typename?: "MaterialSelectionSelectionGroup";
+  /** Danish display label for the selection group, e.g. "Voksenafdelinger". */
+  display?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Values that can be used for Complex Search filtering, e.g. ["v", "voksen"].
+   * Use these values with term.selectionGroup in Complex Search.
+   */
+  searchValues: Array<Scalars["String"]["output"]>;
+  /** The selection group enum value. */
+  type: MaterialSelectionGroupEnum;
 };
 
 export type MaterialType = {
@@ -1284,6 +1608,11 @@ export type MusicShelf = {
 export type Mutation = {
   __typename?: "Mutation";
   elba: ElbaServices;
+  /**
+   * Updates patron information, such as adding or removing bookmarks.
+   * @deprecated @draft
+   */
+  patron?: Maybe<PatronMutation>;
   submitOrder?: Maybe<SubmitOrder>;
 };
 
@@ -1304,7 +1633,10 @@ export type Note = {
   __typename?: "Note";
   /** The actual notes */
   display: Array<Scalars["String"]["output"]>;
-  /** Heading before note */
+  /**
+   * Heading before note
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   heading?: Maybe<Scalars["String"]["output"]>;
   /** The type of note - e.g. note about language, genre etc, NOT_SPECIFIED if not known. */
   type: NoteTypeEnum;
@@ -1333,6 +1665,21 @@ export enum NoteTypeEnum {
   WithdrawnPublication = "WITHDRAWN_PUBLICATION"
 }
 
+/** Enum for sorting bookmarks */
+export enum OrderBookmarksByEnum {
+  CreatedatAsc = "CREATEDAT_ASC",
+  CreatedatDesc = "CREATEDAT_DESC",
+  TitleAsc = "TITLE_ASC",
+  TitleDesc = "TITLE_DESC"
+}
+
+export enum OrderLoansByEnum {
+  DuedateAsc = "DUEDATE_ASC",
+  DuedateDesc = "DUEDATE_DESC",
+  TitleAsc = "TITLE_ASC",
+  TitleDesc = "TITLE_DESC"
+}
+
 export enum OrderTypeEnum {
   Estimate = "ESTIMATE",
   Hold = "HOLD",
@@ -1350,6 +1697,337 @@ export type Pegi = {
   minimumAge?: Maybe<Scalars["Int"]["output"]>;
 };
 
+/** Information about the patron associated with the current access token. */
+export type Patron = {
+  __typename?: "Patron";
+  /** Retrieves the list of accounts for the patron, including pagination and sorting options. */
+  accounts: Array<Maybe<PatronAccount>>;
+  /** Address of the current patron. */
+  address?: Maybe<Scalars["String"]["output"]>;
+  /** Indicates whether the current patron is blocked. */
+  blocked: Scalars["Boolean"]["output"];
+  /** Retrieves the list of bookmarks for the patron, including pagination and sorting options. */
+  bookmarks: Bookmarks;
+  /** Country of the current patron. */
+  country?: Maybe<Scalars["String"]["output"]>;
+  /** Retrieves current loans live from OpenUserStatus. */
+  currentLoans: PatronCurrentLoans;
+  /** Email address of the current patron. */
+  email?: Maybe<Scalars["String"]["output"]>;
+  /** Retrieves consent for storing historical loans and whether the patron is old enough to change it. */
+  historicalLoanConsent: PatronHistoricalLoanConsent;
+  /** Retrieves historical loans stored in UserData. */
+  historicalLoans: PatronHistoricalLoans;
+  /** Agency ID where the current patron is logged in. */
+  loggedInAgencyId?: Maybe<Scalars["String"]["output"]>;
+  /** Branch ID where the current patron is logged in. */
+  loggedInBranchId?: Maybe<Scalars["String"]["output"]>;
+  /** Municipality agency ID of the current patron. */
+  municipalityAgencyId?: Maybe<Scalars["String"]["output"]>;
+  /** Municipality number of the current patron. */
+  municipalityNumber?: Maybe<Scalars["String"]["output"]>;
+  /** Name of the current patron. */
+  name?: Maybe<Scalars["String"]["output"]>;
+  /** Postal code of the current patron. */
+  postalCode?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** Information about the patron associated with the current access token. */
+export type PatronBookmarksArgs = {
+  applications?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  limit?: InputMaybe<Scalars["PaginationLimitScalar"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<OrderBookmarksByEnum>;
+};
+
+/** Information about the patron associated with the current access token. */
+export type PatronCurrentLoansArgs = {
+  limit?: InputMaybe<Scalars["PaginationLimitScalar"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<OrderLoansByEnum>;
+  status?: InputMaybe<PatronLoanStatusEnum>;
+};
+
+/** Information about the patron associated with the current access token. */
+export type PatronHistoricalLoansArgs = {
+  limit?: InputMaybe<Scalars["PaginationLimitScalar"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+export type PatronAccount = {
+  __typename?: "PatronAccount";
+  /** The address of the patron. */
+  address?: Maybe<Scalars["String"]["output"]>;
+  /** The library agency associated with the patron account. */
+  agency?: Maybe<PatronAgency>;
+  /** Indicates whether the patron is blocked or not. */
+  blocked: Scalars["Boolean"]["output"];
+  /** The country of the patron. */
+  country?: Maybe<Scalars["String"]["output"]>;
+  /** The email address of the patron. */
+  email?: Maybe<Scalars["String"]["output"]>;
+  /** The agency ID of the patron. */
+  municipalityAgencyId?: Maybe<Scalars["String"]["output"]>;
+  /** The municipality number of the patron. */
+  municipalityNumber?: Maybe<Scalars["String"]["output"]>;
+  /** Name of the patron. */
+  name?: Maybe<Scalars["String"]["output"]>;
+  /** The postal code of the patron. */
+  postalCode?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PatronAgency = {
+  __typename?: "PatronAgency";
+  /** The postal address of the agency's main branch. */
+  address?: Maybe<Scalars["String"]["output"]>;
+  /** The branches belonging to the agency. */
+  branches: Array<PatronBranch>;
+  /** The catalogue URL of the agency's main branch. */
+  catalogueUrl?: Maybe<Scalars["String"]["output"]>;
+  /** The city in which the agency's main branch is located. */
+  city?: Maybe<Scalars["String"]["output"]>;
+  /** The email address of the agency's main branch. */
+  email?: Maybe<Scalars["String"]["output"]>;
+  /** The unique identifier of the agency. */
+  id: Scalars["String"]["output"];
+  /** The lookup URL of the agency's main branch. */
+  lookupUrl?: Maybe<Scalars["String"]["output"]>;
+  /** The primary name of the agency. */
+  name?: Maybe<Scalars["String"]["output"]>;
+  /** Alternative names associated with the agency. */
+  names?: Maybe<Array<Scalars["String"]["output"]>>;
+  /** The total number of branches belonging to the agency. */
+  numberOfBranches: Scalars["Int"]["output"];
+  /** The opening hours of the agency's main branch. */
+  openingHours?: Maybe<Scalars["String"]["output"]>;
+  /** The phone number of the agency's main branch. */
+  phone?: Maybe<Scalars["String"]["output"]>;
+  /** Indicates whether pickup is allowed at the agency's main branch. */
+  pickupAllowed: Scalars["Boolean"]["output"];
+  /** The postal code of the agency's main branch. */
+  postalCode?: Maybe<Scalars["String"]["output"]>;
+  /** The current status of the agency. */
+  status?: Maybe<Scalars["String"]["output"]>;
+  /** Indicates whether the agency's main branch is temporarily closed. */
+  temporarilyClosed: Scalars["Boolean"]["output"];
+  /** The type of library agency. */
+  type?: Maybe<Scalars["String"]["output"]>;
+  /** The website URL of the agency's main branch. */
+  websiteUrl?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PatronBranch = {
+  __typename?: "PatronBranch";
+  /** The postal address of the branch. */
+  address?: Maybe<Scalars["String"]["output"]>;
+  /** The agency to which the branch belongs. */
+  agency?: Maybe<PatronAgency>;
+  /** The catalogue URL of the branch. */
+  catalogueUrl?: Maybe<Scalars["String"]["output"]>;
+  /** The city in which the branch is located. */
+  city?: Maybe<Scalars["String"]["output"]>;
+  /** The email address of the branch. */
+  email?: Maybe<Scalars["String"]["output"]>;
+  /** The unique identifier of the branch. */
+  id: Scalars["String"]["output"];
+  /** The lookup URL of the branch. */
+  lookupUrl?: Maybe<Scalars["String"]["output"]>;
+  /** The name of the branch. */
+  name?: Maybe<Scalars["String"]["output"]>;
+  /** The opening hours of the branch. */
+  openingHours?: Maybe<Scalars["String"]["output"]>;
+  /** The phone number of the branch. */
+  phone?: Maybe<Scalars["String"]["output"]>;
+  /** Indicates whether pickup is allowed at the branch. */
+  pickupAllowed: Scalars["Boolean"]["output"];
+  /** The postal code of the branch. */
+  postalCode?: Maybe<Scalars["String"]["output"]>;
+  /** The current status of the branch. */
+  status?: Maybe<Scalars["String"]["output"]>;
+  /** Indicates whether the branch is temporarily closed. */
+  temporarilyClosed: Scalars["Boolean"]["output"];
+  /** The type of library branch. */
+  type?: Maybe<Scalars["String"]["output"]>;
+  /** The website URL of the branch. */
+  websiteUrl?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PatronCurrentLoans = {
+  __typename?: "PatronCurrentLoans";
+  /** The total number of current loans before filtering and pagination. */
+  hitcount: Scalars["Int"]["output"];
+  /** Current loans for the requested page. */
+  items: Array<CurrentLoan>;
+  /** The overall status of the current-loan lookup. */
+  status: PatronLoansOverallStatusEnum;
+};
+
+export type PatronHistoricalLoanConsent = {
+  __typename?: "PatronHistoricalLoanConsent";
+  /** Whether the patron's age can be verified as at least 15 years. */
+  canBeChanged: Scalars["Boolean"]["output"];
+  /** Whether the patron has given consent. Null when the status could not be retrieved. */
+  isGranted?: Maybe<Scalars["Boolean"]["output"]>;
+  /** The result of retrieving or changing consent, including age eligibility. */
+  status: PatronHistoricalLoanConsentStatusEnum;
+};
+
+export enum PatronHistoricalLoanConsentStatusEnum {
+  AgeNotVerifiable = "AGE_NOT_VERIFIABLE",
+  ErrorUnauthenticatedToken = "ERROR_UNAUTHENTICATED_TOKEN",
+  Failed = "FAILED",
+  Granted = "GRANTED",
+  NotGranted = "NOT_GRANTED",
+  UnderAge = "UNDER_AGE"
+}
+
+export type PatronHistoricalLoanInput = {
+  /** Agency ID for the library where the material was borrowed, when known. */
+  agencyId?: InputMaybe<Scalars["String"]["input"]>;
+  /**
+   * Borrowing date in YYYY-MM-DD format, when known.
+   * When both dates are supplied, this date cannot be after returnedAt.
+   */
+  loanedAt?: InputMaybe<Scalars["Date"]["input"]>;
+  /** PID or numeric faust number. The identifier type is detected by the gateway. */
+  materialId: Scalars["String"]["input"];
+  /**
+   * Return date in YYYY-MM-DD format, when known.
+   * When both dates are supplied, this date cannot be before loanedAt.
+   */
+  returnedAt?: InputMaybe<Scalars["Date"]["input"]>;
+};
+
+export type PatronHistoricalLoanStatusItem = {
+  __typename?: "PatronHistoricalLoanStatusItem";
+  id?: Maybe<Scalars["String"]["output"]>;
+  materialId?: Maybe<Scalars["String"]["output"]>;
+  status: PatronLoanMutationStatusEnum;
+};
+
+export type PatronHistoricalLoans = {
+  __typename?: "PatronHistoricalLoans";
+  /** The total number of historical loans before pagination. */
+  hitcount: Scalars["Int"]["output"];
+  /** Historical loans in UserData service order. */
+  items: Array<HistoricalLoan>;
+  /** The overall status of the historical-loan lookup. */
+  status: PatronLoansOverallStatusEnum;
+};
+
+export enum PatronLoanMutationStatusEnum {
+  AlreadyExists = "ALREADY_EXISTS",
+  Failed = "FAILED",
+  InvalidDateRange = "INVALID_DATE_RANGE",
+  InvalidId = "INVALID_ID",
+  InvalidMaterialId = "INVALID_MATERIAL_ID",
+  NotFound = "NOT_FOUND",
+  Ok = "OK",
+  UnknownError = "UNKNOWN_ERROR"
+}
+
+export enum PatronLoanStatusEnum {
+  Active = "ACTIVE",
+  Overdue = "OVERDUE"
+}
+
+export enum PatronLoansOverallStatusEnum {
+  ConsentRequired = "CONSENT_REQUIRED",
+  ErrorManualAddsDisabled = "ERROR_MANUAL_ADDS_DISABLED",
+  ErrorUnauthenticatedToken = "ERROR_UNAUTHENTICATED_TOKEN",
+  Failed = "FAILED",
+  Ok = "OK",
+  PartiallyFailed = "PARTIALLY_FAILED"
+}
+
+export type PatronMaterialSnapshot = {
+  __typename?: "PatronMaterialSnapshot";
+  /** Stored creator for the material. */
+  creator?: Maybe<Scalars["String"]["output"]>;
+  /** Stored material type for the material. */
+  materialType?: Maybe<Scalars["String"]["output"]>;
+  /** Stored general and specific material types. */
+  materialTypes: Array<PatronMaterialTypeSnapshot>;
+  /** Stored metadata about the periodical host publication, when relevant. */
+  periodical?: Maybe<PeriodicalSnapshot>;
+  /** Stored pid for the material, if known. */
+  pid?: Maybe<Scalars["String"]["output"]>;
+  /** Stored title for the material. */
+  title?: Maybe<Scalars["String"]["output"]>;
+  /** Version of the stored snapshot format. */
+  version?: Maybe<Scalars["Int"]["output"]>;
+  /** Stored work id for the material, if known. */
+  workId?: Maybe<Scalars["String"]["output"]>;
+  /** Stored work type for the material. */
+  workType?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PatronMaterialTypeSnapshot = {
+  __typename?: "PatronMaterialTypeSnapshot";
+  materialTypeGeneral: PatronMaterialTypeValueSnapshot;
+  materialTypeSpecific: PatronMaterialTypeValueSnapshot;
+};
+
+export type PatronMaterialTypeValueSnapshot = {
+  __typename?: "PatronMaterialTypeValueSnapshot";
+  code?: Maybe<Scalars["String"]["output"]>;
+  display?: Maybe<Scalars["String"]["output"]>;
+};
+
+export type PatronMutation = {
+  __typename?: "PatronMutation";
+  /** Adds one or more bookmarks for the patron. If a bookmark already exists, it will be ignored. */
+  addBookmarks: AddBookmarksResponse;
+  /**
+   * Adds one or more manual historical loans for integration testing.
+   * Snapshot data is resolved by the gateway and cannot be supplied by the client.
+   */
+  addHistoricalLoans: AddHistoricalLoansResponse;
+  /** Deletes one or more bookmarks for the patron. If a bookmark does not exist, it will be ignored. */
+  deleteBookmarks: DeleteBookmarksResponse;
+  /** Deletes one or more historical loans by their public UserData IDs. */
+  deleteHistoricalLoans: DeleteHistoricalLoansResponse;
+  /** Changes consent for storing historical loans. */
+  setHistoricalLoanConsent: SetHistoricalLoanConsentResponse;
+};
+
+export type PatronMutationAddBookmarksArgs = {
+  bookmarks: Array<BookmarksInput>;
+  dryRun?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+export type PatronMutationAddHistoricalLoansArgs = {
+  dryRun?: InputMaybe<Scalars["Boolean"]["input"]>;
+  loans: Array<PatronHistoricalLoanInput>;
+};
+
+export type PatronMutationDeleteBookmarksArgs = {
+  dryRun?: InputMaybe<Scalars["Boolean"]["input"]>;
+  ids: Array<Scalars["String"]["input"]>;
+};
+
+export type PatronMutationDeleteHistoricalLoansArgs = {
+  dryRun?: InputMaybe<Scalars["Boolean"]["input"]>;
+  ids: Array<Scalars["String"]["input"]>;
+};
+
+export type PatronMutationSetHistoricalLoanConsentArgs = {
+  consent: Scalars["Boolean"]["input"];
+  dryRun?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+export type PeriodicalSnapshot = {
+  __typename?: "PeriodicalSnapshot";
+  /** Stored edition statement for the host publication. */
+  edition?: Maybe<Scalars["String"]["output"]>;
+  /** Stored language of the periodical material. */
+  language?: Maybe<Scalars["String"]["output"]>;
+  /** Stored pages within the host publication. */
+  pages?: Maybe<Scalars["String"]["output"]>;
+  /** Stored publisher of the host publication. */
+  publisher?: Maybe<Scalars["String"]["output"]>;
+};
+
 export type PeriodicalType = {
   __typename?: "PeriodicalType";
   /** A code for the type of periodical */
@@ -1363,6 +2041,11 @@ export type Person = CreatorInterface &
     __typename?: "Person";
     /** Creator aliases, creators behind used pseudonym */
     aliases: Array<Person>;
+    /**
+     * True when the person is followed by 'm.fl.' (and others) in the publication,
+     * meaning that additional unnamed persons contributed to this creation
+     */
+    andOthers?: Maybe<Scalars["Boolean"]["output"]>;
     /** Added information about the person, like Henri, konge af Frankrig */
     attributeToName?: Maybe<Scalars["String"]["output"]>;
     /** Birth year of the person */
@@ -1456,17 +2139,39 @@ export type Query = {
   complexSearchIndexes?: Maybe<Array<ComplexSearchIndex>>;
   complexSuggest: ComplexSuggestResponse;
   debug?: Maybe<Debug>;
+  /** @deprecated Use 'retriever' instead expires: 18/12-2026 */
   infomedia: InfomediaResponse;
   linkCheck: LinkCheckService;
   localSuggest: LocalSuggestResponse;
   manifestation?: Maybe<Manifestation>;
   manifestations: Array<Maybe<Manifestation>>;
   mood: MoodQueries;
+  /**
+   * Retrieves information about the patron, such as bookmarks, reservations, and loans.
+   * @deprecated @draft
+   */
+  patron?: Maybe<Patron>;
   /** Get recommendations */
   recommend: RecommendationResponse;
   /** Access to various types of recommendations. */
   recommendations: Recommendations;
   refWorks: Scalars["String"]["output"];
+  /**
+   * Fetch a single article from Retriever by its document id.
+   *
+   * Retriever is a media monitoring service that provides access to articles from newspapers
+   * and other news sources, including full text, publication metadata, and links to the original source.
+   *
+   * Requires an authenticated user with a valid subscription through their municipality of residence.
+   * Check `error` on the response for access or lookup failures.
+   */
+  retriever: RetrieverResponse;
+  /**
+   * Returns bibliographic records formatted as RIS reference data for one or more manifestation pids.
+   * When multiple pids are provided, each RIS record is separated by a newline.
+   * Records are returned in the same order as the provided pids.
+   * If a pid is not found, it is omitted from the response.
+   */
   ris: Scalars["String"]["output"];
   search: SearchResponse;
   series?: Maybe<Series>;
@@ -1478,6 +2183,7 @@ export type Query = {
 
 export type QueryComplexSearchArgs = {
   cql: Scalars["String"]["input"];
+  cqlfilter?: InputMaybe<ComplexSearchCqlFiltersInput>;
   facets?: InputMaybe<ComplexSearchFacetsInput>;
   filters?: InputMaybe<ComplexSearchFiltersInput>;
 };
@@ -1518,6 +2224,10 @@ export type QueryRecommendArgs = {
 
 export type QueryRefWorksArgs = {
   pids: Array<Scalars["String"]["input"]>;
+};
+
+export type QueryRetrieverArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type QueryRisArgs = {
@@ -1670,6 +2380,85 @@ export type Relations = {
   isSoundtrackOfGame: Array<Manifestation>;
   /** This sound track for a movie is related to these movies */
   isSoundtrackOfMovie: Array<Manifestation>;
+};
+
+/** A newspaper or media article. */
+export type RetrieverArticle = {
+  __typename?: "RetrieverArticle";
+  /** Author or byline credited with the article. */
+  byLine?: Maybe<Scalars["String"]["output"]>;
+  /** Full article text as plain text. */
+  fullText?: Maybe<Scalars["String"]["output"]>;
+  /** Full article text formatted with simple HTML tags. */
+  fullTextHtml?: Maybe<Scalars["String"]["output"]>;
+  /** Main headline of the article. */
+  headline?: Maybe<Scalars["String"]["output"]>;
+  /**
+   * Unique document identifier in Retriever (DOC_ID).
+   * Use this value for subsequent article lookups.
+   */
+  id: Scalars["String"]["output"];
+  /** Type of media the article was published in, for example `print` or `web`. */
+  mediaType?: Maybe<Scalars["String"]["output"]>;
+  /** Page number or page range in the original publication. */
+  pages?: Maybe<Scalars["String"]["output"]>;
+  /** Date and time when the article was published, in ISO 8601 format. */
+  publishingDate?: Maybe<Scalars["String"]["output"]>;
+  /** Category of the source publication, for example national news media. */
+  sourceCategory?: Maybe<Scalars["String"]["output"]>;
+  /** Country of the source publication, for example `Denmark`. */
+  sourceCountry?: Maybe<Scalars["String"]["output"]>;
+  /** Numeric identifier of the source publication in Retriever. */
+  sourceId?: Maybe<Scalars["Int"]["output"]>;
+  /** Name of the source publication, for example a newspaper title. */
+  sourceName?: Maybe<Scalars["String"]["output"]>;
+  /** Geographic region or regions covered by the source publication. */
+  sourceRegion?: Maybe<Scalars["String"]["output"]>;
+  /** Secondary headline or deck, when provided by the source. */
+  subHeadline?: Maybe<Scalars["String"]["output"]>;
+  /** Theme or subject category assigned to the article by Retriever. */
+  themeCategory?: Maybe<Scalars["String"]["output"]>;
+  /** URL to a thumbnail preview image of the article. */
+  thumbnail?: Maybe<Scalars["String"]["output"]>;
+  /** URL to open the article in Retriever. */
+  url?: Maybe<Scalars["String"]["output"]>;
+  /** Approximate number of words in the article body. */
+  wordCount?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** Error codes returned when an article cannot be fetched or the user is not allowed to access it. */
+export enum RetrieverErrorEnum {
+  ArticleNotFound = "ARTICLE_NOT_FOUND",
+  BorrowercheckNotAllowed = "BORROWERCHECK_NOT_ALLOWED",
+  BorrowerNotFound = "BORROWER_NOT_FOUND",
+  BorrowerNotInMunicipality = "BORROWER_NOT_IN_MUNICIPALITY",
+  BorrowerNotLoggedIn = "BORROWER_NOT_LOGGED_IN",
+  InternalServerError = "INTERNAL_SERVER_ERROR",
+  LibraryNotFound = "LIBRARY_NOT_FOUND",
+  NoAgencyid = "NO_AGENCYID",
+  ServiceNotLicensed = "SERVICE_NOT_LICENSED",
+  ServiceUnavailable = "SERVICE_UNAVAILABLE"
+}
+
+/** Response wrapper for a single article lookup. */
+export type RetrieverResponse = {
+  __typename?: "RetrieverResponse";
+  /**
+   * The requested article, when available.
+   * Returns null if `error` is set or the article was not found.
+   */
+  article?: Maybe<RetrieverArticle>;
+  /**
+   * Present when the article could not be fetched or the user is not allowed to access it.
+   * When this field is set, `article` will be null.
+   */
+  error?: Maybe<RetrieverErrorEnum>;
+};
+
+export type RetrieverService = {
+  __typename?: "RetrieverService";
+  /** Retriever document ID which can be used to fetch article through Retriever Service */
+  id: Scalars["String"]["output"];
 };
 
 export type ReviewElement = {
@@ -1857,6 +2646,22 @@ export type SeriesMembersArgs = {
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
 };
+
+export type SetHistoricalLoanConsentResponse = {
+  __typename?: "SetHistoricalLoanConsentResponse";
+  /** The updated consent state. Null when the operation was not performed or failed. */
+  historicalLoanConsent?: Maybe<PatronHistoricalLoanConsent>;
+  /** Whether the consent update operation succeeded. */
+  status: SetHistoricalLoanConsentStatusEnum;
+};
+
+export enum SetHistoricalLoanConsentStatusEnum {
+  AgeNotVerifiable = "AGE_NOT_VERIFIABLE",
+  ErrorUnauthenticatedToken = "ERROR_UNAUTHENTICATED_TOKEN",
+  Failed = "FAILED",
+  Ok = "OK",
+  UnderAge = "UNDER_AGE"
+}
 
 export type Setting = SubjectInterface & {
   __typename?: "Setting";
@@ -2137,7 +2942,10 @@ export type Translation = {
 
 export type TvSeries = {
   __typename?: "TvSeries";
-  /** Dansih translated title of the tv serie */
+  /**
+   * Dansih translated title of the tv serie
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   danishLaunchTitle?: Maybe<Scalars["String"]["output"]>;
   /** Detailed information about the disc */
   disc?: Maybe<TvSeriesDetails>;
@@ -2290,11 +3098,17 @@ export type WorkTitles = {
   parallel: Array<Scalars["String"]["output"]>;
   /** The sorted title of the entity */
   sort: Scalars["String"]["output"];
-  /** The standard title of the entity, used for music and movies */
+  /**
+   * The standard title of the entity, used for music and movies
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   standard?: Maybe<Scalars["String"]["output"]>;
   /** The title of the entity with the language of the entity in parenthesis after. This field is only generated for non-danish titles. */
   titlePlusLanguage?: Maybe<Scalars["String"]["output"]>;
-  /** Danish translation of the main title */
+  /**
+   * Danish translation of the main title
+   * @deprecated Field is discontinued and will be removed expires: 05/12-2026
+   */
   translated?: Maybe<Array<Scalars["String"]["output"]>>;
   /** detailed title for tv series */
   tvSeries?: Maybe<TvSeries>;
@@ -2353,6 +3167,73 @@ export type ComplexSuggestQuery = {
       type: string;
       term: string;
       traceId: string;
+    }>;
+  };
+};
+
+export type GetDashboardRecommendationSourceQueryVariables = Exact<{
+  faust?: InputMaybe<Scalars["String"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type GetDashboardRecommendationSourceQuery = {
+  __typename?: "Query";
+  work?: {
+    __typename?: "Work";
+    workId: string;
+    titles: { __typename?: "WorkTitles"; full: Array<string> };
+  } | null;
+};
+
+export type GetDashboardRecommendationSourceByIsbnQueryVariables = Exact<{
+  cql: Scalars["String"]["input"];
+}>;
+
+export type GetDashboardRecommendationSourceByIsbnQuery = {
+  __typename?: "Query";
+  complexSearch: {
+    __typename?: "ComplexSearchResponse";
+    works: Array<{
+      __typename?: "Work";
+      workId: string;
+      titles: { __typename?: "WorkTitles"; full: Array<string> };
+    }>;
+  };
+};
+
+export type GetDashboardRecommendationsQueryVariables = Exact<{
+  id: Scalars["String"]["input"];
+  limit: Scalars["Int"]["input"];
+}>;
+
+export type GetDashboardRecommendationsQuery = {
+  __typename?: "Query";
+  recommend: {
+    __typename?: "RecommendationResponse";
+    result: Array<{
+      __typename?: "Recommendation";
+      work: {
+        __typename?: "Work";
+        workId: string;
+        titles: { __typename?: "WorkTitles"; full: Array<string> };
+        creators: Array<
+          | { __typename?: "Corporation"; display: string }
+          | { __typename?: "Person"; display: string }
+        >;
+        manifestations: {
+          __typename?: "Manifestations";
+          bestRepresentation: {
+            __typename?: "Manifestation";
+            cover: {
+              __typename?: "Cover";
+              large?: {
+                __typename?: "CoverDetails";
+                url?: string | null;
+              } | null;
+            };
+          };
+        };
+      };
     }>;
   };
 };
@@ -2560,9 +3441,10 @@ export type GetSmallWorkQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -2742,9 +3624,10 @@ export type GetSmallWorkQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -2924,9 +3807,10 @@ export type GetSmallWorkQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -3364,9 +4248,10 @@ export type GetMaterialQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -3546,9 +4431,10 @@ export type GetMaterialQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -3728,9 +4614,10 @@ export type GetMaterialQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -4016,9 +4903,10 @@ export type GetMaterialGloballyQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -4198,9 +5086,10 @@ export type GetMaterialGloballyQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -4380,9 +5269,10 @@ export type GetMaterialGloballyQuery = {
               url: string;
               canAlwaysBeLoaned: boolean;
             }
-          | { __typename: "InfomediaService"; id: string }
+          | { __typename: "InfomediaService" }
           | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
           | { __typename: "Publizon" }
+          | { __typename: "RetrieverService"; id: string }
         >;
         shelfmark?: {
           __typename?: "Shelfmark";
@@ -4403,23 +5293,22 @@ export type GetMaterialGloballyQuery = {
   } | null;
 };
 
-export type GetInfomediaQueryVariables = Exact<{
+export type GetRetrieverQueryVariables = Exact<{
   id: Scalars["String"]["input"];
 }>;
 
-export type GetInfomediaQuery = {
+export type GetRetrieverQuery = {
   __typename?: "Query";
-  infomedia: {
-    __typename?: "InfomediaResponse";
-    error?: InfomediaErrorEnum | null;
+  retriever: {
+    __typename?: "RetrieverResponse";
+    error?: RetrieverErrorEnum | null;
     article?: {
-      __typename?: "InfomediaArticle";
-      byLine?: string | null;
-      dateLine?: string | null;
-      headLine?: string | null;
-      hedLine?: string | null;
-      paper?: string | null;
-      text?: string | null;
+      __typename?: "RetrieverArticle";
+      headline?: string | null;
+      subHeadline?: string | null;
+      publishingDate?: string | null;
+      sourceName?: string | null;
+      fullTextHtml?: string | null;
     } | null;
   };
 };
@@ -4442,9 +5331,10 @@ export type GetReviewManifestationsQuery = {
       | { __typename: "AccessUrl"; url: string; origin: string }
       | { __typename: "DigitalArticleService"; issn: string }
       | { __typename: "Ereol" }
-      | { __typename: "InfomediaService"; id: string }
+      | { __typename: "InfomediaService" }
       | { __typename: "InterLibraryLoan" }
       | { __typename: "Publizon" }
+      | { __typename: "RetrieverService"; id: string }
     >;
     edition?: {
       __typename?: "Edition";
@@ -4713,9 +5603,10 @@ export type RecommendFromFaustQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -4898,9 +5789,10 @@ export type RecommendFromFaustQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -5083,9 +5975,10 @@ export type RecommendFromFaustQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -5346,9 +6239,10 @@ export type SearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -5528,9 +6422,10 @@ export type SearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -5710,9 +6605,10 @@ export type SearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -5773,9 +6669,10 @@ export type ComplexSearchWithPaginationWorkAccessQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
         }>;
       };
@@ -5996,9 +6893,10 @@ export type ComplexSearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -6178,9 +7076,10 @@ export type ComplexSearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -6360,9 +7259,10 @@ export type ComplexSearchWithPaginationQuery = {
                 url: string;
                 canAlwaysBeLoaned: boolean;
               }
-            | { __typename: "InfomediaService"; id: string }
+            | { __typename: "InfomediaService" }
             | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
             | { __typename: "Publizon" }
+            | { __typename: "RetrieverService"; id: string }
           >;
           shelfmark?: {
             __typename?: "Shelfmark";
@@ -6384,6 +7284,44 @@ export type ComplexSearchWithPaginationQuery = {
   };
 };
 
+export type GetRelatedWorksQueryVariables = Exact<{
+  cql: Scalars["String"]["input"];
+  offset: Scalars["Int"]["input"];
+  limit: Scalars["PaginationLimitScalar"]["input"];
+  filters: ComplexSearchFiltersInput;
+  sort?: InputMaybe<Array<SortInput> | SortInput>;
+}>;
+
+export type GetRelatedWorksQuery = {
+  __typename?: "Query";
+  complexSearch: {
+    __typename?: "ComplexSearchResponse";
+    works: Array<{
+      __typename?: "Work";
+      workId: string;
+      workTypes: Array<WorkTypeEnum>;
+      titles: { __typename?: "WorkTitles"; full: Array<string> };
+      series: Array<{
+        __typename?: "Series";
+        seriesId?: string | null;
+        title: string;
+        numberInSeries?: string | null;
+        readThisFirst?: boolean | null;
+      }>;
+      manifestations: {
+        __typename?: "Manifestations";
+        bestRepresentation: {
+          __typename?: "Manifestation";
+          cover: {
+            __typename?: "Cover";
+            large?: { __typename?: "CoverDetails"; url?: string | null } | null;
+          };
+        };
+      };
+    }>;
+  };
+};
+
 export type GetSeriesQueryVariables = Exact<{
   seriesId: Scalars["String"]["input"];
   limit: Scalars["Int"]["input"];
@@ -6396,6 +7334,7 @@ export type GetSeriesQuery = {
     __typename?: "Series";
     title: string;
     description?: string | null;
+    mainLanguages: Array<string>;
     hitcount: number;
     members: Array<{
       __typename?: "SerieWork";
@@ -6575,9 +7514,10 @@ export type GetSeriesQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -6760,9 +7700,10 @@ export type GetSeriesQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -6945,9 +7886,10 @@ export type GetSeriesQuery = {
                   url: string;
                   canAlwaysBeLoaned: boolean;
                 }
-              | { __typename: "InfomediaService"; id: string }
+              | { __typename: "InfomediaService" }
               | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
               | { __typename: "Publizon" }
+              | { __typename: "RetrieverService"; id: string }
             >;
             shelfmark?: {
               __typename?: "Shelfmark";
@@ -7330,9 +8272,10 @@ export type ManifestationsSimpleFragment = {
           url: string;
           canAlwaysBeLoaned: boolean;
         }
-      | { __typename: "InfomediaService"; id: string }
+      | { __typename: "InfomediaService" }
       | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
       | { __typename: "Publizon" }
+      | { __typename: "RetrieverService"; id: string }
     >;
     shelfmark?: {
       __typename?: "Shelfmark";
@@ -7506,9 +8449,10 @@ export type ManifestationsSimpleFragment = {
           url: string;
           canAlwaysBeLoaned: boolean;
         }
-      | { __typename: "InfomediaService"; id: string }
+      | { __typename: "InfomediaService" }
       | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
       | { __typename: "Publizon" }
+      | { __typename: "RetrieverService"; id: string }
     >;
     shelfmark?: {
       __typename?: "Shelfmark";
@@ -7682,9 +8626,10 @@ export type ManifestationsSimpleFragment = {
           url: string;
           canAlwaysBeLoaned: boolean;
         }
-      | { __typename: "InfomediaService"; id: string }
+      | { __typename: "InfomediaService" }
       | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
       | { __typename: "Publizon" }
+      | { __typename: "RetrieverService"; id: string }
     >;
     shelfmark?: {
       __typename?: "Shelfmark";
@@ -7724,9 +8669,10 @@ export type ManifestationsAccessFragment = {
           url: string;
           canAlwaysBeLoaned: boolean;
         }
-      | { __typename: "InfomediaService"; id: string }
+      | { __typename: "InfomediaService" }
       | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
       | { __typename: "Publizon" }
+      | { __typename: "RetrieverService"; id: string }
     >;
   }>;
 };
@@ -7888,9 +8834,10 @@ export type ManifestationsSimpleFieldsFragment = {
         url: string;
         canAlwaysBeLoaned: boolean;
       }
-    | { __typename: "InfomediaService"; id: string }
+    | { __typename: "InfomediaService" }
     | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
     | { __typename: "Publizon" }
+    | { __typename: "RetrieverService"; id: string }
   >;
   shelfmark?: {
     __typename?: "Shelfmark";
@@ -7917,9 +8864,10 @@ export type ManifestationReviewFieldsFragment = {
     | { __typename: "AccessUrl"; url: string; origin: string }
     | { __typename: "DigitalArticleService"; issn: string }
     | { __typename: "Ereol" }
-    | { __typename: "InfomediaService"; id: string }
+    | { __typename: "InfomediaService" }
     | { __typename: "InterLibraryLoan" }
     | { __typename: "Publizon" }
+    | { __typename: "RetrieverService"; id: string }
   >;
   edition?: {
     __typename?: "Edition";
@@ -8001,9 +8949,10 @@ export type WorkAccessFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
     }>;
   };
@@ -8206,9 +9155,10 @@ export type WorkSmallFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -8388,9 +9338,10 @@ export type WorkSmallFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -8570,9 +9521,10 @@ export type WorkSmallFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -8851,9 +9803,10 @@ export type WorkMediumFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -9033,9 +9986,10 @@ export type WorkMediumFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -9215,9 +10169,10 @@ export type WorkMediumFragment = {
             url: string;
             canAlwaysBeLoaned: boolean;
           }
-        | { __typename: "InfomediaService"; id: string }
+        | { __typename: "InfomediaService" }
         | { __typename: "InterLibraryLoan"; loanIsPossible: boolean }
         | { __typename: "Publizon" }
+        | { __typename: "RetrieverService"; id: string }
       >;
       shelfmark?: {
         __typename?: "Shelfmark";
@@ -9249,7 +10204,28 @@ export type WithLanguagesFragment = {
   } | null;
 };
 
-export const WithLanguagesFragmentDoc = `
+export class TypedDocumentString<TResult, TVariables>
+  extends String
+  implements DocumentTypeDecoration<TResult, TVariables>
+{
+  __apiType?: NonNullable<
+    DocumentTypeDecoration<TResult, TVariables>["__apiType"]
+  >;
+  private value: string;
+  public __meta__?: Record<string, any> | undefined;
+
+  constructor(value: string, __meta__?: Record<string, any> | undefined) {
+    super(value);
+    this.value = value;
+    this.__meta__ = __meta__;
+  }
+
+  override toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+    return this.value;
+  }
+}
+export const WithLanguagesFragmentDoc = new TypedDocumentString(
+  `
     fragment WithLanguages on Manifestation {
   languages {
     main {
@@ -9258,8 +10234,11 @@ export const WithLanguagesFragmentDoc = `
     }
   }
 }
-    `;
-export const ManifestationBasicDetailsFragmentDoc = `
+    `,
+  { fragmentName: "WithLanguages" }
+);
+export const ManifestationBasicDetailsFragmentDoc = new TypedDocumentString(
+  `
     fragment ManifestationBasicDetails on Manifestation {
   ...WithLanguages
   pid
@@ -9293,8 +10272,18 @@ export const ManifestationBasicDetailsFragmentDoc = `
     }
   }
 }
-    ${WithLanguagesFragmentDoc}`;
-export const ManifestationReviewFieldsFragmentDoc = `
+    fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`,
+  { fragmentName: "ManifestationBasicDetails" }
+);
+export const ManifestationReviewFieldsFragmentDoc = new TypedDocumentString(
+  `
     fragment ManifestationReviewFields on Manifestation {
   pid
   recordCreationDate
@@ -9303,7 +10292,7 @@ export const ManifestationReviewFieldsFragmentDoc = `
   }
   access {
     __typename
-    ... on InfomediaService {
+    ... on RetrieverService {
       id
     }
     ... on DigitalArticleService {
@@ -9350,8 +10339,11 @@ export const ManifestationReviewFieldsFragmentDoc = `
     }
   }
 }
-    `;
-export const ManifestationsAccessFragmentDoc = `
+    `,
+  { fragmentName: "ManifestationReviewFields" }
+);
+export const ManifestationsAccessFragmentDoc = new TypedDocumentString(
+  `
     fragment ManifestationsAccess on Manifestations {
   all {
     pid
@@ -9366,7 +10358,7 @@ export const ManifestationsAccessFragmentDoc = `
         url
         loginRequired
       }
-      ... on InfomediaService {
+      ... on RetrieverService {
         id
       }
       ... on InterLibraryLoan {
@@ -9383,16 +10375,52 @@ export const ManifestationsAccessFragmentDoc = `
     }
   }
 }
-    `;
-export const WorkAccessFragmentDoc = `
+    `,
+  { fragmentName: "ManifestationsAccess" }
+);
+export const WorkAccessFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkAccess on Work {
   workId
   manifestations {
     ...ManifestationsAccess
   }
 }
-    ${ManifestationsAccessFragmentDoc}`;
-export const SeriesSimpleFragmentDoc = `
+    fragment ManifestationsAccess on Manifestations {
+  all {
+    pid
+    identifiers {
+      type
+      value
+    }
+    access {
+      __typename
+      ... on AccessUrl {
+        origin
+        url
+        loginRequired
+      }
+      ... on RetrieverService {
+        id
+      }
+      ... on InterLibraryLoan {
+        loanIsPossible
+      }
+      ... on Ereol {
+        origin
+        url
+        canAlwaysBeLoaned
+      }
+      ... on DigitalArticleService {
+        issn
+      }
+    }
+  }
+}`,
+  { fragmentName: "WorkAccess" }
+);
+export const SeriesSimpleFragmentDoc = new TypedDocumentString(
+  `
     fragment SeriesSimple on Series {
   title
   seriesId
@@ -9409,8 +10437,11 @@ export const SeriesSimpleFragmentDoc = `
   readThisFirst
   readThisWhenever
 }
-    `;
-export const ManifestationsSimpleFieldsFragmentDoc = `
+    `,
+  { fragmentName: "SeriesSimple" }
+);
+export const ManifestationsSimpleFieldsFragmentDoc = new TypedDocumentString(
+  `
     fragment ManifestationsSimpleFields on Manifestation {
   pid
   genreAndForm
@@ -9533,7 +10564,7 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
       loginRequired
       status
     }
-    ... on InfomediaService {
+    ... on RetrieverService {
       id
     }
     ... on InterLibraryLoan {
@@ -9560,8 +10591,18 @@ export const ManifestationsSimpleFieldsFragmentDoc = `
     otherCatalogues
   }
 }
-    ${WithLanguagesFragmentDoc}`;
-export const ManifestationsSimpleFragmentDoc = `
+    fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`,
+  { fragmentName: "ManifestationsSimpleFields" }
+);
+export const ManifestationsSimpleFragmentDoc = new TypedDocumentString(
+  `
     fragment ManifestationsSimple on Manifestations {
   all {
     ...ManifestationsSimpleFields
@@ -9573,8 +10614,167 @@ export const ManifestationsSimpleFragmentDoc = `
     ...ManifestationsSimpleFields
   }
 }
-    ${ManifestationsSimpleFieldsFragmentDoc}`;
-export const WorkSmallFragmentDoc = `
+    fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`,
+  { fragmentName: "ManifestationsSimple" }
+);
+export const WorkSmallFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkSmall on Work {
   workId
   titles {
@@ -9597,9 +10797,194 @@ export const WorkSmallFragmentDoc = `
     ...ManifestationsSimple
   }
 }
-    ${SeriesSimpleFragmentDoc}
-${ManifestationsSimpleFragmentDoc}`;
-export const WorkMediumFragmentDoc = `
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`,
+  { fragmentName: "WorkSmall" }
+);
+export const WorkMediumFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkMedium on Work {
   ...WorkSmall
   materialTypes {
@@ -9645,8 +11030,215 @@ export const WorkMediumFragmentDoc = `
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
-export const ComplexFacetSearchDocument = `
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`,
+  { fragmentName: "WorkMedium" }
+);
+export const ComplexFacetSearchDocument = new TypedDocumentString(`
     query complexFacetSearch($cql: String!, $facets: ComplexSearchFacetsInput, $filters: ComplexSearchFiltersInput) {
   complexSearch(cql: $cql, filters: $filters, facets: $facets) {
     facets {
@@ -9658,7 +11250,7 @@ export const ComplexFacetSearchDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useComplexFacetSearchQuery = <
   TData = ComplexFacetSearchQuery,
@@ -9686,7 +11278,7 @@ export const useComplexFacetSearchQuery = <
   });
 };
 
-export const ComplexSuggestDocument = `
+export const ComplexSuggestDocument = new TypedDocumentString(`
     query complexSuggest($q: String!, $type: ComplexSuggestionTypeEnum!) {
   complexSuggest(q: $q, type: $type) {
     result {
@@ -9696,7 +11288,7 @@ export const ComplexSuggestDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useComplexSuggestQuery = <
   TData = ComplexSuggestQuery,
@@ -9720,13 +11312,352 @@ export const useComplexSuggestQuery = <
   });
 };
 
-export const GetSmallWorkDocument = `
+export const GetDashboardRecommendationSourceDocument =
+  new TypedDocumentString(`
+    query getDashboardRecommendationSource($faust: String, $id: String) {
+  work(faust: $faust, id: $id) {
+    workId
+    titles {
+      full
+    }
+  }
+}
+    `);
+
+export const useGetDashboardRecommendationSourceQuery = <
+  TData = GetDashboardRecommendationSourceQuery,
+  TError = unknown
+>(
+  variables?: GetDashboardRecommendationSourceQueryVariables,
+  options?: Omit<
+    UseQueryOptions<GetDashboardRecommendationSourceQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetDashboardRecommendationSourceQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
+) => {
+  return useQuery<GetDashboardRecommendationSourceQuery, TError, TData>({
+    queryKey:
+      variables === undefined
+        ? ["getDashboardRecommendationSource"]
+        : ["getDashboardRecommendationSource", variables],
+    queryFn: fetcher<
+      GetDashboardRecommendationSourceQuery,
+      GetDashboardRecommendationSourceQueryVariables
+    >(GetDashboardRecommendationSourceDocument, variables),
+    ...options
+  });
+};
+
+export const GetDashboardRecommendationSourceByIsbnDocument =
+  new TypedDocumentString(`
+    query getDashboardRecommendationSourceByIsbn($cql: String!) {
+  complexSearch(cql: $cql, filters: {}) {
+    works(offset: 0, limit: 1) {
+      workId
+      titles {
+        full
+      }
+    }
+  }
+}
+    `);
+
+export const useGetDashboardRecommendationSourceByIsbnQuery = <
+  TData = GetDashboardRecommendationSourceByIsbnQuery,
+  TError = unknown
+>(
+  variables: GetDashboardRecommendationSourceByIsbnQueryVariables,
+  options?: Omit<
+    UseQueryOptions<GetDashboardRecommendationSourceByIsbnQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetDashboardRecommendationSourceByIsbnQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
+) => {
+  return useQuery<GetDashboardRecommendationSourceByIsbnQuery, TError, TData>({
+    queryKey: ["getDashboardRecommendationSourceByIsbn", variables],
+    queryFn: fetcher<
+      GetDashboardRecommendationSourceByIsbnQuery,
+      GetDashboardRecommendationSourceByIsbnQueryVariables
+    >(GetDashboardRecommendationSourceByIsbnDocument, variables),
+    ...options
+  });
+};
+
+export const GetDashboardRecommendationsDocument = new TypedDocumentString(`
+    query getDashboardRecommendations($id: String!, $limit: Int!) {
+  recommend(id: $id, limit: $limit) {
+    result {
+      work {
+        workId
+        titles {
+          full
+        }
+        creators {
+          display
+        }
+        manifestations {
+          bestRepresentation {
+            cover {
+              large {
+                url
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `);
+
+export const useGetDashboardRecommendationsQuery = <
+  TData = GetDashboardRecommendationsQuery,
+  TError = unknown
+>(
+  variables: GetDashboardRecommendationsQueryVariables,
+  options?: Omit<
+    UseQueryOptions<GetDashboardRecommendationsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      GetDashboardRecommendationsQuery,
+      TError,
+      TData
+    >["queryKey"];
+  }
+) => {
+  return useQuery<GetDashboardRecommendationsQuery, TError, TData>({
+    queryKey: ["getDashboardRecommendations", variables],
+    queryFn: fetcher<
+      GetDashboardRecommendationsQuery,
+      GetDashboardRecommendationsQueryVariables
+    >(GetDashboardRecommendationsDocument, variables),
+    ...options
+  });
+};
+
+export const GetSmallWorkDocument = new TypedDocumentString(`
     query getSmallWork($id: String!) {
   work(id: $id) {
     ...WorkSmall
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetSmallWorkQuery = <
   TData = GetSmallWorkQuery,
@@ -9750,13 +11681,54 @@ export const useGetSmallWorkQuery = <
   });
 };
 
-export const GetManifestationViaMaterialByFaustDocument = `
+export const GetManifestationViaMaterialByFaustDocument =
+  new TypedDocumentString(`
     query getManifestationViaMaterialByFaust($faust: String!) {
   manifestation(faust: $faust) {
     ...ManifestationBasicDetails
   }
 }
-    ${ManifestationBasicDetailsFragmentDoc}`;
+    fragment ManifestationBasicDetails on Manifestation {
+  ...WithLanguages
+  pid
+  ownerWork {
+    workId
+  }
+  titles {
+    full
+  }
+  abstract
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+  }
+  edition {
+    publicationYear {
+      display
+    }
+  }
+  series {
+    title
+    members {
+      numberInSeries
+      work {
+        workId
+      }
+    }
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetManifestationViaMaterialByFaustQuery = <
   TData = GetManifestationViaMaterialByFaustQuery,
@@ -9784,7 +11756,8 @@ export const useGetManifestationViaMaterialByFaustQuery = <
   });
 };
 
-export const GetManifestationViaBestRepresentationByFaustDocument = `
+export const GetManifestationViaBestRepresentationByFaustDocument =
+  new TypedDocumentString(`
     query getManifestationViaBestRepresentationByFaust($faust: String!) {
   manifestation(faust: $faust) {
     ownerWork {
@@ -9796,7 +11769,47 @@ export const GetManifestationViaBestRepresentationByFaustDocument = `
     }
   }
 }
-    ${ManifestationBasicDetailsFragmentDoc}`;
+    fragment ManifestationBasicDetails on Manifestation {
+  ...WithLanguages
+  pid
+  ownerWork {
+    workId
+  }
+  titles {
+    full
+  }
+  abstract
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+  }
+  edition {
+    publicationYear {
+      display
+    }
+  }
+  series {
+    title
+    members {
+      numberInSeries
+      work {
+        workId
+      }
+    }
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetManifestationViaBestRepresentationByFaustQuery = <
   TData = GetManifestationViaBestRepresentationByFaustQuery,
@@ -9832,13 +11845,263 @@ export const useGetManifestationViaBestRepresentationByFaustQuery = <
   });
 };
 
-export const GetMaterialDocument = `
+export const GetMaterialDocument = new TypedDocumentString(`
     query getMaterial($wid: String!) {
   work(id: $wid) {
     ...WorkMedium
   }
 }
-    ${WorkMediumFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WorkMedium on Work {
+  ...WorkSmall
+  materialTypes {
+    materialTypeGeneral {
+      code
+    }
+    materialTypeSpecific {
+      display
+    }
+  }
+  mainLanguages {
+    display
+    iso639Set1
+  }
+  subjects {
+    all {
+      display
+    }
+    dbcVerified {
+      display
+    }
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  dk5MainEntry {
+    display
+    code
+  }
+  relations {
+    hasReview {
+      pid
+    }
+    hasAdaptation {
+      ownerWork {
+        workId
+        workTypes
+        titles {
+          main
+        }
+      }
+    }
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetMaterialQuery = <TData = GetMaterialQuery, TError = unknown>(
   variables: GetMaterialQueryVariables,
@@ -9859,13 +12122,263 @@ export const useGetMaterialQuery = <TData = GetMaterialQuery, TError = unknown>(
   });
 };
 
-export const GetMaterialGloballyDocument = `
+export const GetMaterialGloballyDocument = new TypedDocumentString(`
     query getMaterialGlobally($wid: String!) {
   work(id: $wid) {
     ...WorkMedium
   }
 }
-    ${WorkMediumFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WorkMedium on Work {
+  ...WorkSmall
+  materialTypes {
+    materialTypeGeneral {
+      code
+    }
+    materialTypeSpecific {
+      display
+    }
+  }
+  mainLanguages {
+    display
+    iso639Set1
+  }
+  subjects {
+    all {
+      display
+    }
+    dbcVerified {
+      display
+    }
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  dk5MainEntry {
+    display
+    code
+  }
+  relations {
+    hasReview {
+      pid
+    }
+    hasAdaptation {
+      ownerWork {
+        workId
+        workTypes
+        titles {
+          main
+        }
+      }
+    }
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetMaterialGloballyQuery = <
   TData = GetMaterialGloballyQuery,
@@ -9893,51 +12406,104 @@ export const useGetMaterialGloballyQuery = <
   });
 };
 
-export const GetInfomediaDocument = `
-    query getInfomedia($id: String!) {
-  infomedia(id: $id) {
+export const GetRetrieverDocument = new TypedDocumentString(`
+    query getRetriever($id: String!) {
+  retriever(id: $id) {
     error
     article {
-      byLine
-      dateLine
-      headLine
-      hedLine
-      paper
-      text
+      headline
+      subHeadline
+      publishingDate
+      sourceName
+      fullTextHtml
     }
   }
 }
-    `;
+    `);
 
-export const useGetInfomediaQuery = <
-  TData = GetInfomediaQuery,
+export const useGetRetrieverQuery = <
+  TData = GetRetrieverQuery,
   TError = unknown
 >(
-  variables: GetInfomediaQueryVariables,
+  variables: GetRetrieverQueryVariables,
   options?: Omit<
-    UseQueryOptions<GetInfomediaQuery, TError, TData>,
+    UseQueryOptions<GetRetrieverQuery, TError, TData>,
     "queryKey"
   > & {
-    queryKey?: UseQueryOptions<GetInfomediaQuery, TError, TData>["queryKey"];
+    queryKey?: UseQueryOptions<GetRetrieverQuery, TError, TData>["queryKey"];
   }
 ) => {
-  return useQuery<GetInfomediaQuery, TError, TData>({
-    queryKey: ["getInfomedia", variables],
-    queryFn: fetcher<GetInfomediaQuery, GetInfomediaQueryVariables>(
-      GetInfomediaDocument,
+  return useQuery<GetRetrieverQuery, TError, TData>({
+    queryKey: ["getRetriever", variables],
+    queryFn: fetcher<GetRetrieverQuery, GetRetrieverQueryVariables>(
+      GetRetrieverDocument,
       variables
     ),
     ...options
   });
 };
 
-export const GetReviewManifestationsDocument = `
+export const GetReviewManifestationsDocument = new TypedDocumentString(`
     query getReviewManifestations($pid: [String!]!) {
   manifestations(pid: $pid) {
     ...ManifestationReviewFields
   }
 }
-    ${ManifestationReviewFieldsFragmentDoc}`;
+    fragment ManifestationReviewFields on Manifestation {
+  pid
+  recordCreationDate
+  creators {
+    display
+  }
+  access {
+    __typename
+    ... on RetrieverService {
+      id
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+    ... on AccessUrl {
+      url
+      origin
+    }
+  }
+  edition {
+    publicationYear {
+      display
+    }
+  }
+  hostPublication {
+    title
+    issue
+  }
+  creators {
+    display
+  }
+  physicalDescription {
+    summaryFull
+  }
+  dateFirstEdition {
+    display
+  }
+  workYear {
+    display
+  }
+  review {
+    rating
+    reviewByLibrarians {
+      content
+      heading
+      type
+      manifestations {
+        pid
+        titles {
+          main
+        }
+      }
+    }
+  }
+}`);
 
 export const useGetReviewManifestationsQuery = <
   TData = GetReviewManifestationsQuery,
@@ -9965,7 +12531,7 @@ export const useGetReviewManifestationsQuery = <
   });
 };
 
-export const OpenOrderDocument = `
+export const OpenOrderDocument = new TypedDocumentString(`
     mutation openOrder($input: SubmitOrderInput!) {
   submitOrder(input: $input, dryRun: false) {
     status
@@ -9973,7 +12539,7 @@ export const OpenOrderDocument = `
     orderId
   }
 }
-    `;
+    `);
 
 export const useOpenOrderMutation = <TError = unknown, TContext = unknown>(
   options?: UseMutationOptions<
@@ -9999,7 +12565,7 @@ export const useOpenOrderMutation = <TError = unknown, TContext = unknown>(
   });
 };
 
-export const RecommendFromFaustDocument = `
+export const RecommendFromFaustDocument = new TypedDocumentString(`
     query recommendFromFaust($faust: String!, $limit: Int!) {
   recommend(faust: $faust, limit: $limit) {
     result {
@@ -10009,7 +12575,212 @@ export const RecommendFromFaustDocument = `
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useRecommendFromFaustQuery = <
   TData = RecommendFromFaustQuery,
@@ -10037,7 +12808,7 @@ export const useRecommendFromFaustQuery = <
   });
 };
 
-export const SearchFacetDocument = `
+export const SearchFacetDocument = new TypedDocumentString(`
     query searchFacet($q: SearchQueryInput!, $facets: [FacetFieldEnum!]!, $facetLimit: Int!, $filters: SearchFiltersInput) {
   search(q: $q, filters: $filters) {
     facets(facets: $facets) {
@@ -10052,7 +12823,7 @@ export const SearchFacetDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
   variables: SearchFacetQueryVariables,
@@ -10073,7 +12844,7 @@ export const useSearchFacetQuery = <TData = SearchFacetQuery, TError = unknown>(
   });
 };
 
-export const SearchWithPaginationDocument = `
+export const SearchWithPaginationDocument = new TypedDocumentString(`
     query searchWithPagination($q: SearchQueryInput!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: SearchFiltersInput) {
   search(q: $q, filters: $filters) {
     hitcount
@@ -10082,7 +12853,212 @@ export const SearchWithPaginationDocument = `
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useSearchWithPaginationQuery = <
   TData = SearchWithPaginationQuery,
@@ -10110,7 +13086,8 @@ export const useSearchWithPaginationQuery = <
   });
 };
 
-export const ComplexSearchWithPaginationWorkAccessDocument = `
+export const ComplexSearchWithPaginationWorkAccessDocument =
+  new TypedDocumentString(`
     query complexSearchWithPaginationWorkAccess($cql: String!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: ComplexSearchFiltersInput!) {
   complexSearch(cql: $cql, filters: $filters) {
     hitcount
@@ -10119,7 +13096,43 @@ export const ComplexSearchWithPaginationWorkAccessDocument = `
     }
   }
 }
-    ${WorkAccessFragmentDoc}`;
+    fragment ManifestationsAccess on Manifestations {
+  all {
+    pid
+    identifiers {
+      type
+      value
+    }
+    access {
+      __typename
+      ... on AccessUrl {
+        origin
+        url
+        loginRequired
+      }
+      ... on RetrieverService {
+        id
+      }
+      ... on InterLibraryLoan {
+        loanIsPossible
+      }
+      ... on Ereol {
+        origin
+        url
+        canAlwaysBeLoaned
+      }
+      ... on DigitalArticleService {
+        issn
+      }
+    }
+  }
+}
+fragment WorkAccess on Work {
+  workId
+  manifestations {
+    ...ManifestationsAccess
+  }
+}`);
 
 export const useComplexSearchWithPaginationWorkAccessQuery = <
   TData = ComplexSearchWithPaginationWorkAccessQuery,
@@ -10147,7 +13160,7 @@ export const useComplexSearchWithPaginationWorkAccessQuery = <
   });
 };
 
-export const ComplexSearchWithPaginationDocument = `
+export const ComplexSearchWithPaginationDocument = new TypedDocumentString(`
     query complexSearchWithPagination($cql: String!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: ComplexSearchFiltersInput!, $sort: [SortInput!]) {
   complexSearch(cql: $cql, filters: $filters) {
     hitcount
@@ -10156,7 +13169,212 @@ export const ComplexSearchWithPaginationDocument = `
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useComplexSearchWithPaginationQuery = <
   TData = ComplexSearchWithPaginationQuery,
@@ -10184,11 +13402,63 @@ export const useComplexSearchWithPaginationQuery = <
   });
 };
 
-export const GetSeriesDocument = `
+export const GetRelatedWorksDocument = new TypedDocumentString(`
+    query getRelatedWorks($cql: String!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: ComplexSearchFiltersInput!, $sort: [SortInput!]) {
+  complexSearch(cql: $cql, filters: $filters) {
+    works(offset: $offset, limit: $limit, sort: $sort) {
+      workId
+      workTypes
+      titles {
+        full
+      }
+      series {
+        seriesId
+        title
+        numberInSeries
+        readThisFirst
+      }
+      manifestations {
+        bestRepresentation {
+          cover {
+            large {
+              url
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `);
+
+export const useGetRelatedWorksQuery = <
+  TData = GetRelatedWorksQuery,
+  TError = unknown
+>(
+  variables: GetRelatedWorksQueryVariables,
+  options?: Omit<
+    UseQueryOptions<GetRelatedWorksQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<GetRelatedWorksQuery, TError, TData>["queryKey"];
+  }
+) => {
+  return useQuery<GetRelatedWorksQuery, TError, TData>({
+    queryKey: ["getRelatedWorks", variables],
+    queryFn: fetcher<GetRelatedWorksQuery, GetRelatedWorksQueryVariables>(
+      GetRelatedWorksDocument,
+      variables
+    ),
+    ...options
+  });
+};
+
+export const GetSeriesDocument = new TypedDocumentString(`
     query getSeries($seriesId: String!, $limit: Int!, $offset: Int!) {
   series(seriesId: $seriesId) {
     title
     description
+    mainLanguages
     hitcount
     members(limit: $limit, offset: $offset) {
       numberInSeries
@@ -10206,7 +13476,212 @@ export const GetSeriesDocument = `
     }
   }
 }
-    ${WorkSmallFragmentDoc}`;
+    fragment ManifestationsSimple on Manifestations {
+  all {
+    ...ManifestationsSimpleFields
+  }
+  latest {
+    ...ManifestationsSimpleFields
+  }
+  bestRepresentation {
+    ...ManifestationsSimpleFields
+  }
+}
+fragment ManifestationsSimpleFields on Manifestation {
+  pid
+  genreAndForm
+  source
+  subjects {
+    all {
+      display
+    }
+  }
+  ...WithLanguages
+  titles {
+    main
+    original
+  }
+  fictionNonfiction {
+    display
+    code
+  }
+  materialTypes {
+    materialTypeSpecific {
+      display
+    }
+  }
+  creators {
+    display
+    __typename
+  }
+  publisher
+  identifiers {
+    type
+    value
+  }
+  contributors {
+    display
+    roles {
+      function {
+        singular
+      }
+    }
+  }
+  contents {
+    heading
+    type
+    raw
+    entries {
+      title {
+        display
+      }
+      creators {
+        persons {
+          display
+          firstName
+          lastName
+          attributeToName
+        }
+        corporations {
+          display
+          main
+        }
+      }
+      contributors
+      playingTime
+      sublevel {
+        title {
+          display
+        }
+        contributors
+        playingTime
+        sublevel {
+          title {
+            display
+          }
+          contributors
+          playingTime
+        }
+      }
+    }
+  }
+  edition {
+    summary
+    publicationYear {
+      display
+    }
+  }
+  dateFirstEdition {
+    display
+    year
+  }
+  audience {
+    generalAudience
+    ages {
+      display
+    }
+    childrenOrAdults {
+      display
+      code
+    }
+  }
+  notes {
+    display
+  }
+  languages {
+    notes
+  }
+  physicalDescription {
+    summaryFull
+    numberOfPages
+  }
+  hostPublication {
+    summary
+  }
+  accessTypes {
+    code
+  }
+  access {
+    __typename
+    ... on AccessUrl {
+      origin
+      url
+      loginRequired
+      status
+    }
+    ... on RetrieverService {
+      id
+    }
+    ... on InterLibraryLoan {
+      loanIsPossible
+    }
+    ... on Ereol {
+      origin
+      url
+      canAlwaysBeLoaned
+    }
+    ... on DigitalArticleService {
+      issn
+    }
+  }
+  shelfmark {
+    postfix
+    shelfmark
+  }
+  workYear {
+    year
+  }
+  catalogueCodes {
+    nationalBibliography
+    otherCatalogues
+  }
+}
+fragment SeriesSimple on Series {
+  title
+  seriesId
+  isPopular
+  members {
+    numberInSeries
+    work {
+      workId
+      titles {
+        main
+      }
+    }
+  }
+  readThisFirst
+  readThisWhenever
+}
+fragment WorkSmall on Work {
+  workId
+  titles {
+    full
+    original
+  }
+  abstract
+  creators {
+    display
+    __typename
+  }
+  series {
+    ...SeriesSimple
+  }
+  workYear {
+    year
+  }
+  genreAndForm
+  manifestations {
+    ...ManifestationsSimple
+  }
+}
+fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useGetSeriesQuery = <TData = GetSeriesQuery, TError = unknown>(
   variables: GetSeriesQueryVariables,
@@ -10224,7 +13699,7 @@ export const useGetSeriesQuery = <TData = GetSeriesQuery, TError = unknown>(
   });
 };
 
-export const SuggestionsFromQueryStringDocument = `
+export const SuggestionsFromQueryStringDocument = new TypedDocumentString(`
     query suggestionsFromQueryString($q: String!, $branchId: String) {
   localSuggest(q: $q, branchId: $branchId) {
     result {
@@ -10251,7 +13726,14 @@ export const SuggestionsFromQueryStringDocument = `
     }
   }
 }
-    ${WithLanguagesFragmentDoc}`;
+    fragment WithLanguages on Manifestation {
+  languages {
+    main {
+      display
+      iso639Set1
+    }
+  }
+}`);
 
 export const useSuggestionsFromQueryStringQuery = <
   TData = SuggestionsFromQueryStringQuery,
@@ -10279,7 +13761,7 @@ export const useSuggestionsFromQueryStringQuery = <
   });
 };
 
-export const GetCoversByPidsDocument = `
+export const GetCoversByPidsDocument = new TypedDocumentString(`
     query GetCoversByPids($pids: [String!]!) {
   manifestations(pid: $pids) {
     pid
@@ -10307,7 +13789,7 @@ export const GetCoversByPidsDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useGetCoversByPidsQuery = <
   TData = GetCoversByPidsQuery,
@@ -10331,7 +13813,7 @@ export const useGetCoversByPidsQuery = <
   });
 };
 
-export const GetBestRepresentationPidByIsbnDocument = `
+export const GetBestRepresentationPidByIsbnDocument = new TypedDocumentString(`
     query GetBestRepresentationPidByIsbn($cql: String!, $offset: Int!, $limit: PaginationLimitScalar!, $filters: ComplexSearchFiltersInput!) {
   complexSearch(cql: $cql, filters: $filters) {
     works(offset: $offset, limit: $limit) {
@@ -10344,7 +13826,7 @@ export const GetBestRepresentationPidByIsbnDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useGetBestRepresentationPidByIsbnQuery = <
   TData = GetBestRepresentationPidByIsbnQuery,
@@ -10372,7 +13854,7 @@ export const useGetBestRepresentationPidByIsbnQuery = <
   });
 };
 
-export const IntelligentFacetsDocument = `
+export const IntelligentFacetsDocument = new TypedDocumentString(`
     query intelligentFacets($q: SearchQueryInput!, $facetsLimit: Int!, $valuesLimit: Int!, $filters: SearchFiltersInput!) {
   search(q: $q, filters: $filters) {
     intelligentFacets(limit: $facetsLimit) {
@@ -10387,7 +13869,7 @@ export const IntelligentFacetsDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useIntelligentFacetsQuery = <
   TData = IntelligentFacetsQuery,
@@ -10415,7 +13897,7 @@ export const useIntelligentFacetsQuery = <
   });
 };
 
-export const WorkRecommendationsDocument = `
+export const WorkRecommendationsDocument = new TypedDocumentString(`
     query WorkRecommendations($pid: String!, $limit: Int!) {
   recommend(pid: $pid, limit: $limit) {
     result {
@@ -10431,7 +13913,7 @@ export const WorkRecommendationsDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const useWorkRecommendationsQuery = <
   TData = WorkRecommendationsQuery,
@@ -10459,7 +13941,7 @@ export const useWorkRecommendationsQuery = <
   });
 };
 
-export const PlaceCopyDocument = `
+export const PlaceCopyDocument = new TypedDocumentString(`
     mutation placeCopy($input: CopyRequestInput!) {
   elba {
     placeCopyRequest(input: $input) {
@@ -10467,7 +13949,7 @@ export const PlaceCopyDocument = `
     }
   }
 }
-    `;
+    `);
 
 export const usePlaceCopyMutation = <TError = unknown, TContext = unknown>(
   options?: UseMutationOptions<
@@ -10497,6 +13979,11 @@ export const operationNames = {
   Query: {
     complexFacetSearch: "complexFacetSearch" as const,
     complexSuggest: "complexSuggest" as const,
+    getDashboardRecommendationSource:
+      "getDashboardRecommendationSource" as const,
+    getDashboardRecommendationSourceByIsbn:
+      "getDashboardRecommendationSourceByIsbn" as const,
+    getDashboardRecommendations: "getDashboardRecommendations" as const,
     getSmallWork: "getSmallWork" as const,
     getManifestationViaMaterialByFaust:
       "getManifestationViaMaterialByFaust" as const,
@@ -10504,7 +13991,7 @@ export const operationNames = {
       "getManifestationViaBestRepresentationByFaust" as const,
     getMaterial: "getMaterial" as const,
     getMaterialGlobally: "getMaterialGlobally" as const,
-    getInfomedia: "getInfomedia" as const,
+    getRetriever: "getRetriever" as const,
     getReviewManifestations: "getReviewManifestations" as const,
     recommendFromFaust: "recommendFromFaust" as const,
     searchFacet: "searchFacet" as const,
@@ -10512,6 +13999,7 @@ export const operationNames = {
     complexSearchWithPaginationWorkAccess:
       "complexSearchWithPaginationWorkAccess" as const,
     complexSearchWithPagination: "complexSearchWithPagination" as const,
+    getRelatedWorks: "getRelatedWorks" as const,
     getSeries: "getSeries" as const,
     suggestionsFromQueryString: "suggestionsFromQueryString" as const,
     GetCoversByPids: "GetCoversByPids" as const,

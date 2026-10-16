@@ -1,16 +1,5 @@
 # schemas/
 
-> ## 🚨 ACTION REQUIRED ON NEXT DBC-FBI REFRESH 🚨
->
-> **Do not just re-run the existing refresh tasks.** As of 2026-06-01,
-> `graphql/dbc-fbi.temp-next.graphql` and `graphql/dbc-fbi.fbcms-go.graphql`
-> are byte-identical — `temp-next` has caught up to `fbcms-go`.
->
-> On the next refresh, **collapse them into a single `graphql/dbc-fbi.graphql`**
-> sourced from `fbi-api.dbc.dk/fbcms-go` (the canonical truth), and repoint
-> `react/`, `go/`, and `cms/` codegen at the merged file. Then delete the
-> per-consumer rows from the refresh table below.
-
 Single source of truth for API contracts shared across sub-projects or
 sourced from an external system. Generated clients live inside each
 sub-project; only the contracts live here.
@@ -26,40 +15,71 @@ sub-project; only the contracts live here.
    `openapi-generator-cli` / `graphql-codegen` at codegen time; nothing
    reads them at runtime.
 4. **External GraphQL schemas are vendored here as SDL.** Third-party
-   schemas (the DBC FBI gateway, vendored once per host+profile as
-   `dbc-fbi.temp-next.graphql` + `dbc-fbi.fbcms-go.graphql`) are checked
-   in so codegen doesn't need a bearer token. Schemas defined by our
-   own code are vendored alongside their producer instead — see rule 5.
-
-   **See the banner above** — the two `dbc-fbi.*.graphql` files are due
-   to be collapsed into one on the next refresh.
+   schemas (the DBC FBI gateway, vendored as `dbc-fbi.graphql`) are checked
+   in so codegen doesn't need a bearer token. Schemas defined by our own
+   code are vendored alongside their producer instead — see rule 5.
 5. **CMS-produced artifacts stay in `cms/`.** `cms/openapi.json` (REST
    surface) and `cms/dpl-cms.bnf.graphql` (BNF GraphQL SDL,
    snapshotted via Sailor) are artifacts produced by the Drupal CMS
    itself, not upstream contracts — they live next to the code that
    generates them. `go/` codegen reads them from `cms/` directly.
 
+## The FBI gateway: one snapshot, and why it must be authenticated
+
+`graphql/dbc-fbi.graphql` is the whole upstream schema, introspected from
+`fbi-api.dbc.dk/fbcms-go` and consumed by `react/`, `go/` and `cms/`
+alike. The gateway's profiles (`next`, `next-present`, `fbcms-go`) serve
+the same schema, so one snapshot covers every consumer regardless of
+which profile it talks to at runtime. Pick the profile in runtime config,
+not here.
+
+**Introspection must be authenticated.** The gateway does not reject a
+missing or empty bearer token — it treats the caller as anonymous and
+serves a *reduced* schema. `Mutation.submitOrder` and its input and
+response types are among the fields missing from it, so an anonymous
+refresh silently vendors a contract that is a subset of what our clients
+actually query, and react's `openOrder` document then fails to validate
+against it.
+
+An expired or revoked token gets the same treatment as no token at all,
+so `_introspect-fbi` first runs the repo-root `task token:check`, which
+asks `login.bib.dk/userinfo` whether Adgangsplatformen accepts
+`LIBRARY_TOKEN`, and refuses to introspect if it does not.
+
+One environment gotcha: `task`'s `dotenv` does not override a
+variable already exported by your shell. If `LIBRARY_TOKEN` is exported
+empty, the value in `.env` is ignored and every refresh runs anonymously.
+Unset it in your shell rather than fighting the Taskfile.
+
 ## Refresh
+
+These tasks live in `schemas/Taskfile.yml`, which the repo-root
+`Taskfile.yml` does **not** include — run them from this directory.
+There is no `schemas:` prefix.
 
 | Spec | Upstream                                                                                                                                                | Refresh |
 |---|---------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-| `graphql/dbc-fbi.temp-next.graphql` | DBC FBI gateway @ `temp.fbi-api.dbc.dk/next` (will be removed on next refresh - see above) — consumed by `react/`                                       | `task schemas:refresh:dbc-fbi:temp-next` |
-| `graphql/dbc-fbi.fbcms-go.graphql` | DBC FBI gateway @ `fbi-api.dbc.dk/fbcms-go` (prod host, profile matching go's runtime) — consumed by `go/` and `cms/` (via Sailor in the cli container) | `task schemas:refresh:dbc-fbi:fbcms-go` |
-| `openapi/material-list.yaml` | `danskernesdigitalebibliotek/ddb-material-list@develop`                                                                                                 | `task schemas:refresh:material-list` |
-| `openapi/fbs-adapter.yaml` | FBS swagger 1.2 (Cicero), converted via [`itk-dev/dpl-fbs-adapter-tool`](https://github.com/itk-dev/dpl-fbs-adapter-tool)                               | `task schemas:refresh:fbs` (clones the tool into `.cache/`, runs its docker pipeline) |
-| `openapi/publizon-adapter.yaml` | None — edit by hand                                                                                                                                     | `task schemas:refresh:publizon` *(stub that prints this)* |
+| `graphql/dbc-fbi.graphql` | DBC FBI gateway @ `fbi-api.dbc.dk/fbcms-go` — consumed by `react/`, `go/`, `cms/` (via Sailor in the cli container) and `packages/service-layer/` | `task refresh:dbc-fbi` |
+| `openapi/material-list.yaml` | `danskernesdigitalebibliotek/ddb-material-list@develop`                                                                                                 | `task refresh:material-list` |
+| `openapi/fbs-adapter.yaml` | FBS swagger 1.2 (Cicero), converted via [`itk-dev/dpl-fbs-adapter-tool`](https://github.com/itk-dev/dpl-fbs-adapter-tool)                               | `task refresh:fbs` (clones the tool into `.cache/`, runs its docker pipeline) |
+| `openapi/publizon-adapter.yaml` | None — edit by hand                                                                                                                                     | `task refresh:publizon` *(stub that prints this)* |
+| `openapi/biblio-adapter.yaml` | Biblio adapter (DBC) @ [`biblio-adapter.dbc.dk/docs`](https://biblio-adapter.dbc.dk/docs) — consumed by `packages/service-layer/`                                        | Manual: use the "Download OpenAPI specification" button on the docs page and convert the JSON to YAML |
 
 
 All refresh/format tasks run in Docker — `schemas/` has no local
 toolchain (no `node_modules`, no `npm install`). The DBC FBI refresh
-tasks additionally need a bearer token: set `LIBRARY_TOKEN` in the central
-root `.env` (see the repo-root `.env.1pass`, or run `task token:generate`) —
-`schemas/Taskfile.yml` loads it via `dotenv: ['../.env']`.
+task additionally needs a bearer token: set `LIBRARY_TOKEN` in the central
+root `.env` (see the repo-root `.env.1pass`, or run `task token:generate`
+from the repo root) — `schemas/Taskfile.yml` loads it via
+`dotenv: ['../.env']`.
 
 ```sh
-task schemas:refresh          # rebuild schemas from respective sources
-task schemas:format           # prettier-format the schemas (also run by :refresh)
+task refresh          # rebuild schemas from respective sources
+task format           # prettier-format the schemas (also run by :refresh)
 ```
+
+Note that every `refresh:*` task chains `task: format`, which formats
+**all** of `openapi/` and `graphql/` — not just the file being refreshed.
 
 ## Regenerate clients
 
@@ -67,6 +87,14 @@ Codegen is owned by each consuming project. After updating a contract
 here, run the relevant `task codegen:*` tasks in the consuming project
 (see each sub-project's `Taskfile.yml` — `task codegen` shows the
 available codegen tasks).
+
+Refreshing `dbc-fbi.graphql` touches every consumer at once: react's
+`task codegen:dbc:gateway`, go's `task codegen:graphql`, cms's
+`task dev:codegen:fbi-graphql` (Sailor, needs the cli container running), and
+service-layer's `task codegen:fbi`. Re-run them all and typecheck each
+project — upstream drift regularly adds and removes types that the generated
+clients export, and TypeScript code importing a removed type will not be
+caught by validating the `.graphql` documents alone.
 
 ## TO-DOs
 - Move SOAP parts to `/schemas` also. (`/go/lib/soap`)

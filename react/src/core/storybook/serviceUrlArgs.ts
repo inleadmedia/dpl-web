@@ -22,6 +22,16 @@ export const argTypes = {
       }
     }
   },
+  [serviceUrlKeys.biblio]: {
+    description: "Base url for the Biblio adapter API",
+    control: { type: "text" },
+    table: {
+      type: { summary: "text" },
+      defaultValue: {
+        summary: "https://biblio-adapter.dbc.dk"
+      }
+    }
+  },
   [serviceUrlKeys.dplCms]: {
     description: "Base url for the DPL CMS API",
     control: { type: "text" },
@@ -58,7 +68,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next-present/graphql"
+        summary: "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -68,7 +78,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next/graphql"
+        summary: "https://fbi-api.dbc.dk/next/graphql"
       }
     }
   },
@@ -78,7 +88,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://temp.fbi-api.dbc.dk/next-present/graphql"
+        summary: "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -99,12 +109,13 @@ export default {
     readEnv("FBS_BASEURL") ?? "https://fbs-openplatform.dbc.dk",
   [serviceUrlKeys.publizon]:
     readEnv("PUBLIZON_BASEURL") ?? "https://pubhub-openplatform.dbc.dk",
+  [serviceUrlKeys.biblio]:
+    readEnv("BIBLIO_BASEURL") ?? "https://biblio-adapter.dbc.dk",
   [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.local",
   [serviceUrlKeys.cover]: "https://cover.dandigbib.org",
   [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
-  [serviceUrlKeys.fbi]: "https://temp.fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.fbiLocal]: "https://temp.fbi-api.dbc.dk/next/graphql",
-  [serviceUrlKeys.fbiGlobal]:
-    "https://temp.fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbi]: "https://fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbiLocal]: "https://fbi-api.dbc.dk/next/graphql",
+  [serviceUrlKeys.fbiGlobal]: "https://fbi-api.dbc.dk/next-present/graphql",
   userinfoUrl: "https://login.bib.dk/userinfo"
 };

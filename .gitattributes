@@ -9,7 +9,6 @@ go/lib/graphql/generated/** linguist-generated
 react/src/core/dbc-gateway/generated/** linguist-generated
 
 # WSDL codegen (go)
-go/lib/soap/unilogin/wsiinst-v6/generated/** linguist-generated
 go/lib/soap/publizon/v2_7/generated/** linguist-generated
 
 # Orval codegen (go)
@@ -18,6 +17,7 @@ go/lib/rest/publizon/local-adapter/generated/** linguist-generated
 
 # Orval codegen (service layer)
 packages/service-layer/fbs/src/generated/** linguist-generated
+packages/service-layer/biblio/src/generated/** linguist-generated
 
 # Orval codegen (react)
 react/src/core/dpl-cms/dpl-cms.ts linguist-generated

@@ -15,9 +15,9 @@ env:
   SKIP_BAKED_IN_BUILDS: "true"
 
 includes:
-  translations: ./task/Taskfile.translations.yml
-  lagoon: ./task/Taskfile.lagoon.yml
-  database-snapshot: ./task/Taskfile.database-snapshot.yml
+  translations: ./taskfiles/Taskfile.translations.yml
+  lagoon: ./taskfiles/Taskfile.lagoon.yml
+  database-snapshot: ./taskfiles/Taskfile.database-snapshot.yml
 
 vars:
   # Docker image registry.
@@ -373,7 +373,7 @@ tasks:
       - task dev:bnfcli -- node dev-scripts/normalizeGraphqlSchema.js dpl-cms.bnf.graphql
 
   dev:codegen:fbi-graphql:
-    desc: Generate dpl_fbi graphQL classes (reads /schemas/graphql/dbc-fbi.fbcms-go.graphql).
+    desc: Generate dpl_fbi graphQL classes (reads /schemas/graphql/dbc-fbi.graphql).
     cmds:
       - task dev:cli -- drush sailor:codegen dpl_fbi
 
@@ -411,9 +411,12 @@ tasks:
       # dangling link.
       - task -d {{.TASKFILE_DIR}}/.. dev:dotenv:template
       - task dev:reset
+      - task dev:cli -- drush user:password $CYPRESS_DRUPAL_USERNAME $CYPRESS_DRUPAL_PASSWORD
     env:
       DOCKER_COMPOSE_FILES: "{{ .DOCKER_COMPOSE_FILES_CI }}"
       SKIP_LANGUAGE_IMPORT: "true"
+      CYPRESS_DRUPAL_USERNAME: admin
+      CYPRESS_DRUPAL_PASSWORD: admin
 
   ci:reset:clean:
     desc: Create CI setup with a clean database
@@ -447,7 +450,6 @@ tasks:
 
   ci:cypress:run:
     cmds:
-      - task dev:cli -- drush user:password $CYPRESS_DRUPAL_USERNAME $CYPRESS_DRUPAL_PASSWORD
       - task dev:cli -- drush pm:enable -y dpl_webmaster
       - docker compose {{ .DOCKER_COMPOSE_FILES_CI }} run --rm -e CYPRESS_DRUPAL_USERNAME=$CYPRESS_DRUPAL_USERNAME -e CYPRESS_DRUPAL_PASSWORD=$CYPRESS_DRUPAL_PASSWORD cypress --spec "$SPEC_PATH"
     env:
@@ -456,6 +458,15 @@ tasks:
       CYPRESS_DRUPAL_PASSWORD: admin
       # To be overriden by the tasks that use this task.
       SPEC_PATH: ""
+
+  dev:cypress:run:
+    desc: Run Cypress test in docker. Assumes ci:reset has already run.
+    cmds:
+      - docker compose {{ .DOCKER_COMPOSE_FILES_CI }} run --rm -e CYPRESS_DRUPAL_USERNAME=$CYPRESS_DRUPAL_USERNAME -e CYPRESS_DRUPAL_PASSWORD=$CYPRESS_DRUPAL_PASSWORD cypress --spec "{{ .CLI_ARGS }}"
+    env:
+      DOCKER_COMPOSE_FILES: "{{ .DOCKER_COMPOSE_FILES_CI }}"
+      CYPRESS_DRUPAL_USERNAME: admin
+      CYPRESS_DRUPAL_PASSWORD: admin
 
   ci:cypress:unmapped:
     desc: Run Cypress functional tests
@@ -529,14 +540,11 @@ tasks:
     deps: [ci:wiremock:create-mappings, ci:local]
     cmds:
       - pnpm install --frozen-lockfile
-      - task dev:cli -- drush user:password $CYPRESS_DRUPAL_USERNAME $CYPRESS_DRUPAL_PASSWORD
       - pnpm exec cypress open
     env:
       DOCKER_COMPOSE_FILES: "{{ .DOCKER_COMPOSE_FILES_CI }}"
       CYPRESS_BASE_URL: http://localhost:{{ .CYPRESS_BASE_PORT }}
       CYPRESS_WIREMOCK_URL: "{{ .CYPRESS_WIREMOCK_LOCAL }}"
-      CYPRESS_DRUPAL_USERNAME: admin
-      CYPRESS_DRUPAL_PASSWORD: admin
 
   ci:pa11y:
     desc: Run Pa11y to test accessiblity
@@ -581,7 +589,9 @@ tasks:
   source:build:
     summary: Build core source image.
     cmds:
-      - docker build -f {{ .LAGOON_DIR }}/cli.dockerfile --tag dpl-cms-cli:0.0.0 ..
+      # Passed without a value so docker reads WEDOBOOKS_NPM_TOKEN from the
+      # environment instead of the command line.
+      - docker build -f {{ .LAGOON_DIR }}/cli.dockerfile --build-arg WEDOBOOKS_NPM_TOKEN --tag dpl-cms-cli:0.0.0 ..
       - docker build -f {{ .LAGOON_DIR }}/source.dockerfile --tag {{ .RELEASE_FULL_NAME }} ..
 
   source:push:

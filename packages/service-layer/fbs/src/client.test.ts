@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+import { mockJsonResponse } from "../../src/test-utils"
 import { createFbsClient } from "./client"
 
 const baseUrl = "https://fbs.example"
@@ -9,14 +10,6 @@ const reservationsUrl = `${baseUrl}/external/v1/agencyid/patrons/patronid/reserv
 const loansUrl = `${baseUrl}/external/agencyid/patrons/patronid/loans/v2`
 const feesUrl = `${baseUrl}/external/agencyid/patron/patronid/fees/v2?includepaid=false&includenonpayable=true`
 const renewLoansUrl = `${baseUrl}/external/agencyid/patrons/patronid/loans/renew/v2`
-
-const mockJsonResponse = (body: unknown, status = 200) =>
-  ({
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: status === 200 ? "OK" : "Error",
-    json: async () => body,
-  }) as Response
 
 const validPatronBody = {
   authenticateStatus: "VALID",
@@ -32,7 +25,8 @@ const validHoldingsBody = [
   {
     recordId: "12345678",
     reservations: 2,
-    holdings: [{ materials: [{}, {}, {}] }],
+    reservable: true,
+    holdings: [{ materials: [{ available: true }, { available: true }, { available: false }] }],
   },
 ]
 
@@ -113,7 +107,7 @@ describe("createFbsClient.getMaterialAvailability", () => {
     const result = await buildClient().getMaterialAvailability([])
 
     expect(fetch).not.toHaveBeenCalled()
-    expect(result).toEqual({ totalCopies: 0, reservationCount: 0 })
+    expect(result).toEqual({ totalCopies: 0, reservationCount: 0, records: {} })
   })
 
   it("fetches with repeated recordid query params and returns the aggregated DTO", async () => {
@@ -130,7 +124,19 @@ describe("createFbsClient.getMaterialAvailability", () => {
       method: "GET",
       headers: { authorization: "Bearer abc" },
     })
-    expect(result).toEqual({ totalCopies: 3, reservationCount: 2 })
+    expect(result).toEqual({
+      totalCopies: 3,
+      reservationCount: 2,
+      records: {
+        "12345678": {
+          recordId: "12345678",
+          totalCopies: 3,
+          availableCopies: 2,
+          reservationCount: 2,
+          reservable: true,
+        },
+      },
+    })
   })
 
   it("adds an exclude query param per blacklisted branch id", async () => {

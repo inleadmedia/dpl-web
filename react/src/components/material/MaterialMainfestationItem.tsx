@@ -11,6 +11,7 @@ import {
 import { useText } from "../../core/utils/text";
 import MaterialDetailsList, { ListData } from "./MaterialDetailsList";
 import MaterialButtons from "./material-buttons/MaterialButtons";
+import { resolveMaterialButtonsType } from "./material-buttons/resolveMaterialButtonsType";
 import MaterialUnavailableNotice from "./MaterialUnavailableNotice/MaterialUnavailableNotice";
 import CopyLink from "../copy-link/CopyLink";
 import MaterialContents from "./MaterialContents/MaterialContents";
@@ -20,6 +21,7 @@ import {
   getManifestationAudience,
   getManifestationAuthors,
   getManifestationContributors,
+  getManifestationDigitalIdentifier,
   getManifestationEdition,
   getManifestationGenreAndForm,
   getManifestationIsbn,
@@ -48,13 +50,14 @@ export interface MaterialMainfestationItemProps {
 }
 
 const MaterialMainfestationItem: FC<MaterialMainfestationItemProps> = ({
-  manifestation: { materialTypes, pid, creators, identifiers, edition },
+  manifestation: { materialTypes, pid, creators, edition },
   manifestation,
   workId,
   isEditionPicker = false
 }) => {
   const mainfestationTitleId = useId();
   const t = useText();
+  const buttonsType = resolveMaterialButtonsType([manifestation]);
   const shouldOpenDetails = getIdFromUrlHash(HashPrefix.MANIFESTATION) === pid;
   const [isOpen, setIsOpen] = useState(shouldOpenDetails);
   const faustId = convertPostIdToFaustId(pid);
@@ -139,7 +142,7 @@ const MaterialMainfestationItem: FC<MaterialMainfestationItemProps> = ({
           key={`${faustId}-material-manifestation-item`}
           manifestText={materialTypes[0]?.materialTypeSpecific.display}
           faustIds={[faustId]}
-          isbns={identifiers.map((identifier) => identifier.value)}
+          identifier={getManifestationDigitalIdentifier(manifestation) || null}
           accessTypes={accessTypesCodes}
           access={access}
           isVisualOnly
@@ -203,15 +206,19 @@ const MaterialMainfestationItem: FC<MaterialMainfestationItemProps> = ({
         )}
       </div>
       <div className="material-manifestation-item__buttons">
-        <MaterialButtons
-          isSpecificManifestation
-          manifestations={[manifestation]}
-          size="small"
-          workId={workId}
-          materialTitleId={mainfestationTitleId}
-          isEditionPicker={isEditionPicker}
-          fallback={<MaterialUnavailableNotice variant="compact" />}
-        />
+        {buttonsType ? (
+          <MaterialButtons
+            type={buttonsType}
+            isSpecificManifestation
+            manifestations={[manifestation]}
+            size="small"
+            workId={workId}
+            materialTitleId={mainfestationTitleId}
+            isEditionPicker={isEditionPicker}
+          />
+        ) : (
+          <MaterialUnavailableNotice variant="compact" />
+        )}
       </div>
     </div>
   );
