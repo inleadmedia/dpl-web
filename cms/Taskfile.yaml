@@ -60,16 +60,27 @@ tasks:
         export REACT_LIB="${CMS_ROOT}/web/libraries/dpl-react"
         LINK_SCRIPT='
           set -eu
-          source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
-          cd "${REPO_ROOT}" && nvm install && nvm use
-          corepack enable
+          use_monorepo_node() {
+            if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+              # shellcheck disable=SC1090
+              . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+              cd "${REPO_ROOT}" && nvm install && nvm use
+            elif command -v node >/dev/null 2>&1; then
+              cd "${REPO_ROOT}"
+            else
+              echo "ERROR: need nvm or node on PATH (host: install nvm; DDEV: use web container). Or SKIP_REACT_BUILD=true." >&2
+              exit 1
+            fi
+            corepack enable
+          }
+          use_monorepo_node
           task dev:design-system:build
           task dev:wedobooks:build
           cd "${REPO_ROOT}/react" && corepack pnpm run clean && corepack pnpm run build:js:prod && corepack pnpm run build:css:prod
           rm -rf "${DS_ASSETS}" "${REACT_LIB}"
           mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
           cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
-          cp -r "${REPO_ROOT}/react/dist/"* "${REACT_LIB}/"
+          cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
           cd "${CMS_ROOT}" && ./vendor/bin/drush cr -y
         '
         if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
@@ -78,10 +89,41 @@ tasks:
           bash -lc "${LINK_SCRIPT}"
         fi
 
+  drupal:cms-link:copy:
+    desc: Copy host-built design-system + React into CMS (no webpack; for DDEV after building on the Mac)
+    cmds:
+      - |
+        set -eu
+        REPO_ROOT="$(cd .. && pwd)"
+        CMS_ROOT="$(pwd)"
+        DS_BUILD="${REPO_ROOT}/design-system/build"
+        DS_ASSETS="${CMS_ROOT}/web/themes/custom/novel/assets/dpl-design-system"
+        REACT_LIB="${CMS_ROOT}/web/libraries/dpl-react"
+        missing=0
+        for path in "${DS_BUILD}/css" "${DS_BUILD}/js"; do
+          if [ ! -d "$path" ]; then
+            echo "missing: $path — on the host run: task dev:design-system:build" >&2
+            missing=1
+          fi
+        done
+        if [ ! -d "${REPO_ROOT}/react/dist" ] || [ -z "$(ls -A "${REPO_ROOT}/react/dist" 2>/dev/null)" ]; then
+          echo "missing: ${REPO_ROOT}/react/dist — on the host run: task dev:cms:link:deploy" >&2
+          missing=1
+        fi
+        if [ "$missing" -eq 1 ]; then
+          echo "No asset copy; drupal:upgrade continues without refreshed React/design-system." >&2
+          exit 0
+        fi
+        rm -rf "${DS_ASSETS}" "${REACT_LIB}"
+        mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
+        cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
+        cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
+        ./vendor/bin/drush cr -y
+
   drupal:update:
     desc: Install/update composer dependencies and build/restart Go when ../go is present
     cmds:
-      - cp -n .env.example .env || true
+      - test -f .env.example && cp -n .env.example .env || true
       - composer install --no-cache
       - composer drupal:scaffold
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
@@ -134,8 +176,15 @@ tasks:
           export "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}"
         fi
         bash -lc "
-          source \"\${NVM_DIR:-\$HOME/.nvm}/nvm.sh\"
-          nvm install && nvm use
+          set -eu
+          REPO_ROOT=\$(pwd)
+          if [ -s \"\${NVM_DIR:-\$HOME/.nvm}/nvm.sh\" ]; then
+            . \"\${NVM_DIR:-\$HOME/.nvm}/nvm.sh\"
+            cd \"\$REPO_ROOT\" && nvm install && nvm use
+          elif ! command -v node >/dev/null 2>&1; then
+            echo 'ERROR: need nvm or node on PATH' >&2
+            exit 1
+          fi
           corepack enable
           task dev:react:setup
         "
@@ -248,8 +297,16 @@ tasks:
         # Node from monorepo root .nvmrc (same as root Taskfile / node:24.21-alpine).
         export REPO_ROOT="$(cd .. && pwd)"
         GO_BUILD='
-          source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
-          cd "${REPO_ROOT}" && nvm install && nvm use
+          set -eu
+          if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+            . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+            cd "${REPO_ROOT}" && nvm install && nvm use
+          elif command -v node >/dev/null 2>&1; then
+            cd "${REPO_ROOT}"
+          else
+            echo "ERROR: need nvm or node on PATH for go:deploy:build" >&2
+            exit 1
+          fi
           cd "${REPO_ROOT}/go" && corepack enable
           corepack pnpm install --frozen-lockfile
           corepack pnpm run build
