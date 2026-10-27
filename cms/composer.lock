@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ebbf0419a4ba2755387f01a47bf53b21",
+    "content-hash": "6759d04f34428efba80662b1d53e0b3c",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -2308,10 +2308,14 @@
                 "shasum": "9dfd1088a96464237998c3606b63c2d71644a1bf"
             },
             "require": {
-                "drupal/core": "^9.5 || ^10 || ^11"
+                "drupal/core": "^9.5 || ^10 || ^11",
+                "drupal/toolbar": "*"
             },
             "conflict": {
                 "drupal/project_browser": "<2.1.0"
+            },
+            "require-dev": {
+                "drupal/toolbar": "*"
             },
             "type": "drupal-module",
             "extra": {
@@ -2429,7 +2433,7 @@
                     "role": "Developer"
                 },
                 {
-                    "name": "DieterHolvoet",
+                    "name": "dieterholvoet",
                     "homepage": "https://www.drupal.org/user/3567222"
                 }
             ],
@@ -3413,6 +3417,10 @@
                     "homepage": "https://www.drupal.org/user/3442607"
                 },
                 {
+                    "name": "joonaskokko",
+                    "homepage": "https://www.drupal.org/user/1164268"
+                },
+                {
                     "name": "kekkis",
                     "homepage": "https://www.drupal.org/user/813328"
                 }
@@ -4274,7 +4282,7 @@
             "extra": {
                 "drupal": {
                     "version": "3.2.3",
-                    "datestamp": "1785877642",
+                    "datestamp": "1786570530",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -4475,8 +4483,12 @@
                     "homepage": "https://www.drupal.org/user/1301498"
                 },
                 {
-                    "name": "julien&#039;",
+                    "name": "juliengui",
                     "homepage": "https://www.drupal.org/user/3563851"
+                },
+                {
+                    "name": "thibmrt",
+                    "homepage": "https://www.drupal.org/user/3686058"
                 }
             ],
             "description": "Add a Drupal View to select templates from content types",
@@ -4635,6 +4647,22 @@
                     "name": "Andreas De Rijcke (andreasderijcke)",
                     "homepage": "https://www.drupal.org/u/andreasderijcke",
                     "role": "Maintainer"
+                },
+                {
+                    "name": "stefdewa",
+                    "homepage": "https://www.drupal.org/user/2480344"
+                },
+                {
+                    "name": "svdhout",
+                    "homepage": "https://www.drupal.org/user/717826"
+                },
+                {
+                    "name": "tim-diels",
+                    "homepage": "https://www.drupal.org/user/2915097"
+                },
+                {
+                    "name": "tomhollevoet",
+                    "homepage": "https://www.drupal.org/user/3289561"
                 }
             ],
             "description": "Adds additional email validator services and allows to replace the one from Core.",
@@ -4756,6 +4784,10 @@
                     "homepage": "https://www.drupal.org/user/205582"
                 },
                 {
+                    "name": "joelpittet",
+                    "homepage": "https://www.drupal.org/user/160302"
+                },
+                {
                     "name": "mkalkbrenner",
                     "homepage": "https://www.drupal.org/user/124705"
                 },
@@ -4829,6 +4861,10 @@
                 {
                     "name": "Pieter Frenssen",
                     "homepage": "https://www.drupal.org/u/pfrenssen"
+                },
+                {
+                    "name": "huzooka",
+                    "homepage": "https://www.drupal.org/user/281301"
                 },
                 {
                     "name": "pfrenssen",
@@ -6408,6 +6444,10 @@
                     "homepage": "https://www.drupal.org/user/1879760"
                 },
                 {
+                    "name": "joegraduate",
+                    "homepage": "https://www.drupal.org/user/789384"
+                },
+                {
                     "name": "johnwebdev",
                     "homepage": "https://www.drupal.org/user/3331569"
                 },
@@ -6799,6 +6839,10 @@
                 {
                     "name": "shadcn",
                     "homepage": "https://www.drupal.org/user/571032"
+                },
+                {
+                    "name": "thejimbirch",
+                    "homepage": "https://www.drupal.org/user/2507260"
                 }
             ],
             "description": "Next.js + Drupal for Incremental Static Regeneration and Draft mode.",
@@ -7237,7 +7281,7 @@
             "extra": {
                 "drupal": {
                     "version": "8.x-1.23",
-                    "datestamp": "1785907921",
+                    "datestamp": "1786629882",
                     "security-coverage": {
                         "status": "covered",
                         "message": "Covered by Drupal's security advisory policy"
@@ -8225,6 +8269,10 @@
                     "homepage": "https://www.drupal.org/user/3437973"
                 },
                 {
+                    "name": "robloach",
+                    "homepage": "https://www.drupal.org/user/61114"
+                },
+                {
                     "name": "tekante",
                     "homepage": "https://www.drupal.org/user/640024"
                 }
@@ -8699,6 +8747,10 @@
                     "homepage": "https://www.drupal.org/user/1014468"
                 },
                 {
+                    "name": "juliusz_cheddar",
+                    "homepage": "https://www.drupal.org/user/3565308"
+                },
+                {
                     "name": "zaporylie",
                     "homepage": "https://www.drupal.org/user/1532844"
                 }
@@ -8955,6 +9007,7 @@
             },
             "require": {
                 "drupal/core": "^10.1 || ^11",
+                "drupal/telephone": "*",
                 "giggsey/libphonenumber-for-php": "^8.0"
             },
             "suggest": {
@@ -9511,10 +9564,6 @@
                     "homepage": "https://www.drupal.org/user/2480548"
                 },
                 {
-                    "name": "peelas02",
-                    "homepage": "https://www.drupal.org/user/3836090"
-                },
-                {
                     "name": "podarok",
                     "homepage": "https://www.drupal.org/user/116002"
                 }
@@ -9624,7 +9673,7 @@
                     "homepage": "https://www.drupal.org/user/3668491"
                 },
                 {
-                    "name": "Honza Pobořil",
+                    "name": "honza pobořil",
                     "homepage": "https://www.drupal.org/user/123612"
                 },
                 {
@@ -10715,35 +10764,115 @@
             "time": "2023-03-12T18:39:52+00:00"
         },
         {
-            "name": "inleadmedia/dpl-design-system",
-            "version": "0.0.2-dev",
-            "dist": {
-                "type": "path",
-                "url": "../design-system/build",
-                "reference": "a61b259a25779345e11cf47b7a389b64d90e6003"
+            "name": "inleadmedia/easyemail",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/easyemail.git",
+                "reference": "0d04c7d42d0cca8844b4211c43446db5e740d4e7"
             },
-            "type": "drupal-library",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
-        },
-        {
-            "name": "inleadmedia/dpl-react",
-            "version": "0.0.2-dev",
             "dist": {
-                "type": "path",
-                "url": "../react/dist",
-                "reference": "56505f515f2300d469b41792ea9f268f2e488de7"
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/0d04c7d42d0cca8844b4211c43446db5e740d4e7",
+                "reference": "0d04c7d42d0cca8844b4211c43446db5e740d4e7",
+                "shasum": ""
             },
             "require": {
-                "composer/installers": "^1.2 || ^2"
+                "drupal/core": "^10 || ^11",
+                "drupal/entity_reference_revisions": "^1.10",
+                "drupal/paragraphs": "^1.12"
             },
-            "type": "drupal-library",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Newsletter management system with Peytz Mailer integration.",
+            "homepage": "https://github.com/inleadmedia/easyemail",
+            "support": {
+                "source": "https://github.com/inleadmedia/easyemail",
+                "issues": "https://github.com/inleadmedia/easyemail/issues"
+            },
+            "time": "2026-10-15T08:29:35+00:00"
+        },
+        {
+            "name": "inleadmedia/eonext_editorial_search",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/eonext_editorial_search.git",
+                "reference": "56407114542b67356f0b61c00f5fd437bfd52cb2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/56407114542b67356f0b61c00f5fd437bfd52cb2",
+                "reference": "56407114542b67356f0b61c00f5fd437bfd52cb2",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11",
+                "drupal/facets": "^3.0",
+                "drupal/paragraphs": "^1.16",
+                "drupal/search_api": "^1.31"
+            },
+            "suggest": {
+                "dpl_event": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_fbi": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_library_agency": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_library_token": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml).",
+                "dpl_search": "Custom Drupal module dependency; must be present in the host project (see eonext_editorial_search.info.yml)."
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Editorial (web) search for DPL CMS webmaster libraries.",
+            "homepage": "https://github.com/inleadmedia/eonext_editorial_search",
+            "support": {
+                "source": "https://github.com/inleadmedia/eonext_editorial_search",
+                "issues": "https://github.com/inleadmedia/eonext_editorial_search/issues"
+            },
+            "time": "2026-10-15T08:02:51+00:00"
+        },
+        {
+            "name": "inleadmedia/eonext_servicebanner",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/eonext_servicebanner.git",
+                "reference": "a53b847c1c9069622be006633eab52c1237bf91a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_servicebanner/zipball/a53b847c1c9069622be006633eab52c1237bf91a",
+                "reference": "a53b847c1c9069622be006633eab52c1237bf91a",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10.3 || ^11",
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "drupal/core-dev": "^10.3 || ^11"
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Inlead ApS",
+                    "homepage": "https://inlead.dk"
+                }
+            ],
+            "description": "Configurable service banner for library websites (admin UI, REST API, HTML data attributes).",
+            "support": {
+                "issues": "https://github.com/inleadmedia/eonext_servicebanner/issues",
+                "source": "https://github.com/inleadmedia/eonext_servicebanner"
+            },
+            "time": "2026-10-15T09:06:17+00:00"
         },
         {
             "name": "jms/metadata",
@@ -24549,8 +24678,9 @@
         "drupal/openapi_rest": 5,
         "drupal/sparkpost": 15,
         "drupal/ultimate_cron": 10,
-        "inleadmedia/dpl-design-system": 20,
-        "inleadmedia/dpl-react": 20
+        "inleadmedia/easyemail": 20,
+        "inleadmedia/eonext_editorial_search": 20,
+        "inleadmedia/eonext_servicebanner": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -24558,6 +24688,6 @@
         "php": "8.4.*",
         "ext-dom": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
