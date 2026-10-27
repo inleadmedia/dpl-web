@@ -283,14 +283,21 @@ tasks:
   go:deploy:build:
     desc: pnpm install and pnpm build
     dir: "{{.GO_DIR}}"
-    # WeDoBooks token — same as root Taskfile.yml init:pnpm and go/lagoon/stage1.dockerfile.
-    dotenv:
-      - ../.env
+    # WeDoBooks token only from ../.env — do not Task-dotenv the whole file here.
+    # Loading DPL_* from the monorepo .env into the shell overrides go/.env.local
+    # during `next build` (Next.js keeps process.env set before .env.local). Site
+    # URLs and Go GraphQL credentials must come from go/.env.local (see Lagoon
+    # prepare-docker-env-vars.mjs + go:deploy:verify-env).
     cmds:
       - |
         # Non-interactive install: go/lagoon/stage1.dockerfile (ENV CI=true) and
         # cms drupal:build-react (CI=true task dev:react:setup).
         export CI=true
+        ROOT_ENV="$(cd .. && pwd)/.env"
+        if [ -z "${WEDOBOOKS_NPM_TOKEN:-}" ] && [ -f "${ROOT_ENV}" ]; then
+          WEDOBOOKS_NPM_TOKEN="$(grep -E '^WEDOBOOKS_NPM_TOKEN=' "${ROOT_ENV}" | cut -d= -f2- | tr -d '"' | head -1)"
+          export WEDOBOOKS_NPM_TOKEN
+        fi
         if [ -z "${WEDOBOOKS_NPM_TOKEN:-}" ] && ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "${HOME}/.npmrc" 2>/dev/null; then
           echo "warning: no WeDoBooks npm credential — WEDOBOOKS_NPM_TOKEN missing from ../.env and none in ~/.npmrc. See packages/wedobooks/README.md." >&2
         fi
@@ -308,6 +315,9 @@ tasks:
             exit 1
           fi
           cd "${REPO_ROOT}/go" && corepack enable
+          unset DPL_CMS_BASE_URL DPL_GO_BASE_URL \
+            NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_NAME \
+            NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD 2>/dev/null || true
           corepack pnpm install --frozen-lockfile
           corepack pnpm run build
         '
