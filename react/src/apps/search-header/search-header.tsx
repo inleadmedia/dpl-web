@@ -11,7 +11,6 @@ import { Autosuggest } from "../../components/autosuggest/autosuggest";
 import { Suggestion } from "../../core/utils/types/autosuggest";
 import { useUrls } from "../../core/utils/url";
 import {
-  constructAdvancedSearchUrl,
   constructCreatorSearchUrl,
   constructMaterialUrl,
   constructSearchUrl,
@@ -20,6 +19,7 @@ import {
   getUrlQueryParam,
   redirectTo
 } from "../../core/utils/helpers/url";
+import { constructAdvancedSearchUrl } from "../../core/advanced-search/url";
 import { WorkId } from "../../core/utils/types/ids";
 import { useText } from "../../core/utils/text";
 import {
@@ -365,7 +365,11 @@ const SearchHeader: React.FC = () => {
       q.trim() !== '""' &&
       q.trim() !== '"'
     ) {
-      setRedirectUrl(constructAdvancedSearchUrl(advancedSearchUrl, q, searchBranch));
+      setRedirectUrl(constructAdvancedSearchUrl({
+        advancedSearchUrl,
+        advancedSearchCql: q,
+        branchId: searchBranch
+      }));
     } else {
       setRedirectUrl(constructSearchUrl(searchUrl, q, searchBranch));
     }

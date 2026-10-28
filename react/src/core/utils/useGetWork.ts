@@ -30,10 +30,10 @@ const getData = (
   return null;
 };
 
-function toGroupedAbstract(abstract: string[], languages: any[]) {
+function toGroupedAbstract(abstract: string[] | null | undefined, languages: any[] | null | undefined) {
   let group: any = {};
 
-  abstract.forEach((value: string, index: number) => {
+  (abstract ?? []).forEach((value: string, index: number) => {
     group[languages[index]?.isoCode || languages[index]?.iso639Set1 || "unknown"] = value;
   });
 
@@ -101,6 +101,9 @@ function parseMarcField(workData: any, extraMarc?: string, shelfmarkOverride?: a
 
     ["bestRepresentation", "latest"].forEach((manifestationType) => {
       let manifestation = workData.manifestations[manifestationType];
+      if (!manifestation) {
+        return;
+      }
       manifestation._abstractByLang = toGroupedAbstract(manifestation.abstract, lodash.get(manifestation, "languages.main"));
 
       overrideManifestationShelfmark(manifestation, shelfmarkOverrideData);

@@ -1,6 +1,13 @@
+import type {
+  LoanProvider as BiblioLoanProvider,
+  MaterialType as BiblioMaterialType,
+  CanLoanResponseType,
+  SampleFormat,
+} from "../biblio/src/generated/model"
+
 // Backends this package knows how to talk to. Apps never name these in
 // hook calls — only in the resolvers they implement on ServiceLayerConfig.
-export type ApiId = "fbs"
+export type ApiId = "fbs" | "biblio" | "fbi"
 
 export type ServiceLayerConfig = {
   getBaseUrl: (api: ApiId) => string
@@ -11,6 +18,18 @@ export type ServiceLayerConfig = {
   // Unilogin and anonymous) never fire doomed 401 requests. Public data
   // (material availability) ignores it. Defaults to true when omitted.
   isPatronAuthenticated?: boolean
+  // Whether the session may make digital loans through the Biblio adapter. A
+  // superset of isPatronAuthenticated: a patron qualifies, and so does a
+  // Unilogin user, who runs through Adgangsplatformen (GO's ADR-013) and so
+  // holds a real Adgangsplatformen token. The digital hooks gate on this;
+  // falls back to isPatronAuthenticated when omitted (the React apps, where a
+  // Unilogin user is anonymous). Defaults to true when both are omitted.
+  isDigitalLoanAuthenticated?: boolean
+  // TEMPORARY: whether a material the adapter does not know is answered as
+  // unavailable instead of an error - see getDigitalLoanDecision, the one
+  // place that acts on it. A resolver like the others, because the host's
+  // setting lands after this object is built. Omitted means no.
+  tolerateUnknownMaterials?: () => boolean
 }
 
 export type Patron = {
@@ -19,11 +38,26 @@ export type Patron = {
   pickupBranchId: string
   emailAddress: string | undefined
   phoneNumber: string | undefined
+  receiveSms: boolean | undefined
+}
+
+// Availability for one edition, summed across the kommune's branches.
+// `reservable` is FBS's own verdict and is independent of the counts: a
+// lent-out edition stays reservable, and so can one the kommune holds no
+// copies of.
+export type RecordAvailability = {
+  recordId: string
+  totalCopies: number
+  availableCopies: number
+  reservationCount: number
+  reservable: boolean
 }
 
 export type MaterialAvailability = {
   totalCopies: number
   reservationCount: number
+  // Per edition, keyed by FAUST. The totals above stay work-wide.
+  records: Record<string, RecordAvailability>
 }
 
 export type CreateReservationInput = {
@@ -143,3 +177,143 @@ export type RenewedLoanFailed = {
 }
 
 export type RenewedLoan = RenewedLoanSuccess | RenewedLoanFailed
+
+// The types below describe what an app reasons about — a digital loan, a
+// reservation, a lending decision — not which service answered. Biblio
+// (WeDoBooks) is the only source today; a second one would be another mapper
+// onto these same types, not a parallel service-prefixed set. "Digital" means
+// read or listened to in a reader, as opposed to the physical materials FBS
+// lends out.
+
+// A value the adapter's spec closes but the adapter has been seen to break, so
+// any other string is passed through - see openStringUnion. The known values come
+// from the generated models of the spec and keep their autocomplete.
+export type OpenStringUnion<T extends string> = T | (string & {})
+
+// The material type the adapter reports. It has sent types outside its own
+// spec (a podcast) - see opensIn for what can be done with each of them.
+export type MaterialType = OpenStringUnion<BiblioMaterialType>
+
+// Catalogue fields for a digital material. Title and authors are FBI's where
+// it knows the ISBN — see withCatalogueDetails.
+export type DigitalMaterial = {
+  isbn: string
+  materialType: MaterialType
+  title: string
+  description: string
+  publishDate: string
+  languages: string[]
+  // The only catalogue field the contract does not require.
+  authors: string[]
+}
+
+export type DigitalLoan = {
+  loanId: string
+  materialId: string
+  materialType: MaterialType
+  startDate: string
+  endDate: string
+  active: boolean
+  // Title and authors are the catalogue's, publisher and publishDate the
+  // provider's — see ADR-004 for why the correction stops there.
+  title: string
+  authors: string[]
+  publisher: string
+  publishDate: string
+  // Which licence the loan was made under - see LoanProvider, and
+  // isCostFreeLoan for which of them cost the patron nothing.
+  loanProvider: LoanProvider
+}
+
+export type DigitalReservation = {
+  reservationId: string
+  materialId: string
+  materialType: MaterialType
+  createdDate: string
+  // Date where the reservation is expected to be converted to a loan at the
+  // latest.
+  expectedLoanDate: string
+  // Set when the reservation has been offered to the user and can be
+  // accepted (redeemed) as a loan.
+  offerId?: string
+  offerExpiresAt?: string
+}
+
+// Whether and how a material can be had. A status the adapter adds since is
+// passed through and counts as neither available, loanable nor reservable.
+export type LoanDecisionStatus = OpenStringUnion<CanLoanResponseType>
+
+// Which licence the loan would be made under: the organization configures a
+// prioritized list of providers and the backend reports the one it picked.
+// "selection" (Danish blue titles) is bought out and exempt from the quotas,
+// so it is the one the UI may call included - see isCostFreeLoan. The rest
+// ("click" pay-per-loan, "package" subscription) are ways the LIBRARY pays for
+// a loan that still counts against the patron's quota. "free" is not in use
+// yet and confirmed only to be quota-exempt, not free to the patron. Any
+// licence the adapter adds since is simply not included.
+export type LoanProvider = OpenStringUnion<BiblioLoanProvider>
+
+// Whether a loan can be made right now, and if not, why. Covers both the
+// material and the patron (quota, lending blocks) - see isMaterialAvailable.
+// The adapter answers a refused loan/reservation request with this same
+// decision rather than an HTTP error; LoanRequestResult adds the loan.
+export type LoanDecision = {
+  status: LoanDecisionStatus
+  loanProvider?: LoanProvider
+  unavailableReason?: string
+  lendingBlockReason?: string
+}
+
+// The outcome of asking for a loan or a reservation: the decision, plus the
+// loan when the request actually produced one.
+export type LoanRequestResult = LoanDecision & {
+  loan: DigitalLoan | undefined
+}
+
+// Loan quotas for the user per organization. Organizations either count
+// e-books and audiobooks together (combined) or separately (split on format).
+export type DigitalLoanQuota =
+  | {
+      splitOnFormat: false
+      orgId: string
+      orgName: string
+      maxLoans: number
+      maxConcurrentLoans: number
+      currentConcurrentLoans: number
+      currentMonthlyLoans: number
+    }
+  | {
+      splitOnFormat: true
+      orgId: string
+      orgName: string
+      maxLoans: { ebook: number; audiobook: number }
+      maxConcurrentLoans: { ebook: number; audiobook: number }
+      currentConcurrentLoans: { ebook: number; audiobook: number }
+      currentMonthlyLoans: { ebook: number; audiobook: number }
+    }
+
+// How many reservations the organization lets a patron hold at once. Null for
+// an organization that counts the two formats together: a combined ceiling of
+// 5 means five in total, which no consumer has wording for.
+export type DigitalReservationLimits = { ebook: number; audiobook: number }
+
+// A promotional excerpt of a digital material: the file itself, not a loan.
+// `url` is signed and short-lived - measured at roughly six hours, though the
+// contract claims a week - so a page opens the one it was given rather than
+// holding on to it across sessions. `format` is the adapter's
+// own answer for what the material is, so it decides whether the excerpt
+// opens in the reader or in the player.
+export type DigitalSample = {
+  format: DigitalSampleFormat
+  url: string
+}
+
+// The file a sample arrives as - an excerpt of an e-book is an EPUB, of an
+// audiobook an MP3.
+export type DigitalSampleFormat = SampleFormat
+
+// Short-lived token that signs the patron in to the reader and player.
+export type ReaderSignInToken = {
+  token: string
+  expiresInSeconds: number
+}

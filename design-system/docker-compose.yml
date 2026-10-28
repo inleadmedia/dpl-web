@@ -9,10 +9,8 @@ x-volumes:
 
 x-user:
   &default-user
-    # $PWD is bind-mounted in, so the container must run as the host user or
-    # the build output lands here owned by someone else. The Taskfile sets
-    # UID. The group is the image's own `node` group, which owns /home/node.
-    user: ${UID:-1000}:${GID:-1000}
+    # The default user under which the containers should run. Change this if you are on linux and run with another user than id `1000`
+    user: '1000'
 
 services:
   node:

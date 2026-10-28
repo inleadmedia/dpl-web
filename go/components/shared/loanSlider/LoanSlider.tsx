@@ -1,7 +1,7 @@
 "use client"
 
+import type { DigitalLoan } from "@danskernesdigitalebibliotek/dpl-service-layer"
 import { useWindowSize } from "@uidotdev/usehooks"
-import { differenceInDays } from "date-fns"
 import "keen-slider/keen-slider.min.css"
 import { useKeenSlider } from "keen-slider/react"
 import { useRouter } from "next/navigation"
@@ -19,17 +19,22 @@ import QuotasSection, {
 import { cyKeys } from "@/cypress/support/constants"
 import { WorkTeaserSearchPageFragment } from "@/lib/graphql/generated/fbi/graphql"
 import { cn } from "@/lib/helpers/helper.cn"
-import { displayCreators } from "@/lib/helpers/helper.creators"
 import { buildSelectedLoan } from "@/lib/helpers/helper.patron"
 import { LoanListResult } from "@/lib/rest/publizon/adapter/generated/model"
 import { openModal } from "@/store/modal.store"
 
+// TODO(publizon-sunset): remove when the Publizon API is phased out —
+// loanData goes and biblioLoans becomes the only loan source (modal props
+// below).
 type LoanSliderProps = {
   works: WorkTeaserSearchPageFragment[]
   loanData: LoanListResult
+  // Loans made through the Biblio adapter, shown alongside the Publizon ones
+  // while the two providers coexist.
+  biblioLoans?: DigitalLoan[]
 }
 
-const LoanSlider = ({ works, loanData }: LoanSliderProps) => {
+const LoanSlider = ({ works, loanData, biblioLoans }: LoanSliderProps) => {
   const router = useRouter()
   const [sliderRef, internalSlider] = useKeenSlider(loanSliderOptions, [WheelControls])
   const [reachedStart, setReachStart] = useState(true)
@@ -66,6 +71,12 @@ const LoanSlider = ({ works, loanData }: LoanSliderProps) => {
   }
   const onRightClick = () => {
     internalSlider.current?.next()
+  }
+  // Slides move by transform, so the browser can't scroll a keyboard-focused
+  // card into view itself — follow focus, but leave fully visible cards alone.
+  const bringIntoView = (index: number) => {
+    const slide = internalSlider.current?.track?.details?.slides[index]
+    if (slide && slide.portion < 1) internalSlider.current?.moveToIdx(index)
   }
 
   return (
@@ -104,27 +115,27 @@ const LoanSlider = ({ works, loanData }: LoanSliderProps) => {
           data-cy={cyKeys["loan-slider"]}>
           {works.map((work, index) => {
             const loanManifestation = work.manifestations.all[0]
-            const manifestationIsbn = loanManifestation.identifiers.find(
-              identifier => identifier.type === "ISBN"
-            )?.value
-            const loan = loanData.loans?.find(l => l.libraryBook?.identifier === manifestationIsbn)
-            const daysUntil = loan?.loanExpireDateUtc
-              ? differenceInDays(new Date(loan.loanExpireDateUtc), new Date())
-              : null
             return (
+              // Named by the card's content — cover title and the visible
+              // expiry label; an aria-label would override both.
               <button
                 type="button"
                 data-cy={cyKeys["loan-slider-work"]}
                 key={loanManifestation.pid}
-                aria-label={`Se detaljer om dit lån af ${work.titles.full[0]} af ${displayCreators(work.creators, 1)}${daysUntil !== null ? `. Udløber om ${daysUntil} dage` : ""}`}
+                onFocus={() => bringIntoView(index)}
                 className={cn(
                   `keen-slider__slide focus-visible outline-accent-foreground rounded-base flex
                   cursor-pointer items-center !overflow-visible focus:outline-offset-2`
                 )}
                 onClick={() => {
-                  const selection = buildSelectedLoan(work, loanData)
+                  const selection = buildSelectedLoan(work, loanData, biblioLoans)
                   if (!selection) return
-                  openModal("DigitalLoansModal", { works, loanData, initialLoan: selection })
+                  openModal("DigitalLoansModal", {
+                    works,
+                    loanData,
+                    biblioLoans,
+                    initialLoan: selection,
+                  })
                 }}>
                 <LoanCard
                   manifestation={loanManifestation}
@@ -134,6 +145,7 @@ const LoanSlider = ({ works, loanData }: LoanSliderProps) => {
                   setEbookLoans={setEbookLoans}
                   setBlueLoans={setBlueLoans}
                 />
+                <span className="sr-only">Vis detaljer</span>
               </button>
             )
           })}
@@ -176,7 +188,7 @@ const LoanSlider = ({ works, loanData }: LoanSliderProps) => {
           audioLoans={audioLoans}
           ebookLoans={ebookLoans}
           blueLoans={blueLoans}
-          onViewAll={() => openModal("DigitalLoansModal", { works, loanData })}
+          onViewAll={() => openModal("DigitalLoansModal", { works, loanData, biblioLoans })}
         />
       </Suspense>
     </div>

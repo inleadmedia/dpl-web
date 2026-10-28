@@ -3,6 +3,7 @@ export type {
   ApiId,
   Patron,
   MaterialAvailability,
+  RecordAvailability,
   ServiceLayerConfig,
   CreateReservationInput,
   CreateReservationResult,
@@ -21,7 +22,7 @@ export type {
 export { RESERVATION_FAILURE_REASONS, RENEWAL_FAILURE_REASONS } from "./types"
 
 // React provider — wraps an app subtree and supplies config to the hooks.
-export { ServiceLayerProvider } from "./context/ServiceLayerContext"
+export { ServiceLayerProvider, useServiceLayerConfig } from "./context/ServiceLayerContext"
 
 // React hooks — fetch + lifecycle. Require ServiceLayerProvider above in the tree.
 export { usePatron } from "./hooks/usePatron"
@@ -54,3 +55,52 @@ export { createReservation } from "./reservation"
 export { getReservations, deleteReservation } from "./reservations"
 export { getLoans, renewLoans } from "./loans"
 export { getFees } from "./fees"
+
+// Biblio adapter — the digital-materials provider behind the CMS feature flag.
+// Only what the apps consume is exported: hooks, the predicates reading their
+// answers, the query keys they invalidate, and the reader's query. The raw
+// functions stay internal until something server-side needs them.
+export {
+  isMaterialAvailable,
+  isMaterialLoanable,
+  isMaterialReservable,
+  isRequestGranted,
+} from "./digital-loan-decision"
+export { isCostFreeLoan } from "./digital-loans"
+export { opensIn } from "./material-type"
+export type { OpensInType } from "./material-type"
+export { getDigitalLoanQuota } from "./digital-quotas"
+export { digitalLoanDecisionQueryKey } from "./queries/digital-loan-decision"
+export { digitalLoansQueryKey } from "./queries/digital-loans"
+export { digitalLoanQuotasQueryKey } from "./queries/digital-quotas"
+export { digitalReservationsQueryKey } from "./queries/digital-reservations"
+export { readerSignInTokenQuery } from "./queries/reader"
+export { useDigitalAcceptOffer } from "./hooks/useDigitalAcceptOffer"
+export { useDigitalCreateLoan } from "./hooks/useDigitalCreateLoan"
+export { useDigitalCreateReservation } from "./hooks/useDigitalCreateReservation"
+export { useDigitalDeleteReservation } from "./hooks/useDigitalDeleteReservation"
+export { useDigitalLoanDecision } from "./hooks/useDigitalLoanDecision"
+export { useDigitalMaterialHolding } from "./hooks/useDigitalMaterialHolding"
+export { useDigitalLoanQuotas } from "./hooks/useDigitalLoanQuotas"
+export { useDigitalLoans } from "./hooks/useDigitalLoans"
+export { useDigitalQuotas } from "./hooks/useDigitalQuotas"
+export { useDigitalMaterial } from "./hooks/useDigitalMaterial"
+export { useDigitalReservations } from "./hooks/useDigitalReservations"
+export { useDigitalSample } from "./hooks/useDigitalSample"
+export { useDigitalSupportId } from "./hooks/useDigitalSupportId"
+export type { QuotaUsage } from "./digital-quotas"
+export type {
+  DigitalMaterial,
+  MaterialType,
+  LoanProvider,
+  DigitalLoan,
+  DigitalReservation,
+  LoanDecision,
+  LoanDecisionStatus,
+  LoanRequestResult,
+  DigitalLoanQuota,
+  DigitalReservationLimits,
+  DigitalSample,
+  DigitalSampleFormat,
+  ReaderSignInToken,
+} from "./types"

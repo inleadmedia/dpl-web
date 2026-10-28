@@ -7,19 +7,24 @@ import { LoanId } from "../../../../core/utils/types/ids";
 import StatusCircle from "../utils/status-circle";
 import StatusBadge from "../utils/status-badge";
 import LinkButton from "../../../../components/Buttons/LinkButton";
-import { Button } from "../../../../components/Buttons/Button";
+import PlayerButton from "../../../../components/reader-player/PlayerButton";
 import { Cover } from "../../../../components/cover/cover";
 import AuthorYear from "../../../../components/author-year/authorYear";
 import { useText } from "../../../../core/utils/text";
 import { formatDateTimeUtc } from "../../../../core/utils/helpers/date";
-import { getReaderPlayerTypeFromPublizonProductType } from "../../../../components/reader-player/helper";
+import { readerUrl } from "../../../../components/reader-player/helper";
 import { useEventStatistics } from "../../../../core/statistics/useStatistics";
 import { statistics } from "../../../../core/statistics/statistics";
+import {
+  getCurrentUrlWithHash,
+  replaceCurrentLocation
+} from "../../../../core/utils/helpers/url";
+import { useScrollToLocation } from "../../../../core/utils/UseScrollToLocation";
 
 export interface DigitalLoanCardProps {
   loan: LoanType;
   openLoanDetailsModal: (loan: LoanType) => void;
-  onPlayDigital: (orderId: string) => void;
+  onPlayDigital: (loan: LoanType) => void;
   loanId?: LoanId | null;
 }
 
@@ -30,13 +35,18 @@ const DigitalLoanCard: FC<DigitalLoanCardProps & MaterialProps> = ({
   onPlayDigital,
   loanId
 }) => {
-  const { dueDate, loanDate, identifier, periodical, orderId } = loan;
+  const {
+    dueDate,
+    loanDate,
+    identifier,
+    periodical,
+    orderId,
+    digitalProvider
+  } = loan;
   const t = useText();
   const { track } = useEventStatistics();
 
-  const readerPlayerType = getReaderPlayerTypeFromPublizonProductType(
-    material?.digitalProductType
-  );
+  const readerPlayerType = material?.opensIn ?? null;
   const titleId = `${loanId || identifier}-title`;
   const openDetails = () => openLoanDetailsModal(loan);
   const {
@@ -51,17 +61,18 @@ const DigitalLoanCard: FC<DigitalLoanCardProps & MaterialProps> = ({
   } = material || {};
   const coverId = pid || identifier || "";
 
+  // Coming back from the reader or player reloads the list too late for the
+  // browser to restore the scroll position, so the url hash marks the loan.
+  useScrollToLocation([material]);
+  const rememberLoanInUrl = () =>
+    replaceCurrentLocation(new URL(getCurrentUrlWithHash(titleId)));
+
   const renderPrimaryAction = () => {
     if (!orderId || !readerPlayerType) return null;
     if (readerPlayerType === "reader") {
       return (
         <LinkButton
-          url={
-            new URL(
-              `/reader?orderid=${encodeURIComponent(orderId)}`,
-              window.location.href
-            )
-          }
+          url={readerUrl(orderId, digitalProvider)}
           buttonType="none"
           variant="filled"
           size="small"
@@ -73,6 +84,7 @@ const DigitalLoanCard: FC<DigitalLoanCardProps & MaterialProps> = ({
               trackedData: orderId
             })
           }
+          onClick={rememberLoanInUrl}
         >
           {t("onlineMaterialReaderText", {
             placeholders: { "@materialType": material?.materialType || "" }
@@ -81,23 +93,24 @@ const DigitalLoanCard: FC<DigitalLoanCardProps & MaterialProps> = ({
       );
     }
     return (
-      <Button
-        dataCy="loan-list-player-button"
+      <PlayerButton
+        orderId={orderId}
+        provider={digitalProvider}
         label={t("onlineMaterialPlayerText", {
           placeholders: { "@materialType": material?.materialType || "" }
         })}
-        buttonType="none"
-        variant="filled"
         size="small"
-        collapsible={false}
-        onClick={() => {
+        dataCy="loan-list-player-button"
+        trackClick={() =>
           track("click", {
             id: statistics.publizonReadListen.id,
             name: statistics.publizonReadListen.name,
             trackedData: orderId
-          });
-          onPlayDigital(orderId);
-        }}
+          })
+        }
+        onNavigate={rememberLoanInUrl}
+        // The list mounts the Publizon modal itself, one per open player.
+        onPlayInModal={() => onPlayDigital(loan)}
       />
     );
   };
@@ -105,7 +118,10 @@ const DigitalLoanCard: FC<DigitalLoanCardProps & MaterialProps> = ({
   if (!material) return null;
 
   return (
-    <div className="list-reservation list-reservation--no-hover my-32">
+    <div
+      className="list-reservation list-reservation--no-hover my-32"
+      data-scroll-target={titleId}
+    >
       <div className="list-reservation__material">
         <Cover
           ids={[coverId]}

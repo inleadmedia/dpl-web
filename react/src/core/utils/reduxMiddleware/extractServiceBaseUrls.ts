@@ -3,6 +3,7 @@ import { Middleware } from "redux";
 
 type Api =
   | "publizon"
+  | "biblio"
   | "fbs"
   | "dplCms"
   | "cover"
@@ -29,6 +30,7 @@ type ServiceBaseUrlKey = keyof ServiceBaseUrls;
 export const serviceUrlKeys = {
   fbs: "fbsBaseUrl",
   publizon: "publizonBaseUrl",
+  biblio: "biblioBaseUrl",
   dplCms: "dplCmsBaseUrl",
   cover: "coverBaseUrl",
   materialList: "materialListBaseUrl",
