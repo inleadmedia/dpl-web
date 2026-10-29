@@ -264,5 +264,3 @@ export const useGetWork = (
 
   return { data: null, isLoading: true, error: null, workType: "unknown" };
 };
-
-export default {};

@@ -79,12 +79,6 @@ export const initialAdvancedSearchQuery: AdvancedSearchQuery = {
   ]
 };
 
-export const advancedSearchFilters = {
-  materialTypes: "term.generalmaterialtype",
-  fiction: "term.fictionnonfiction",
-  accessibility: "term.accesstype"
-};
-
 export const enum AdvancedSortMapStrings {
   Relevance = "relevance",
   TitleAsc = "sort.title.asc",

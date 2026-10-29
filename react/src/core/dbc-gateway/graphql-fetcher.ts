@@ -68,5 +68,3 @@ export const fetcher = <TData, TVariables>(
       });
   };
 };
-
-export default {};

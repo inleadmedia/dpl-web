@@ -7,6 +7,7 @@ import {
 } from "../../apps/material/helper";
 import {
   constructDK5SearchUrl,
+  constructGenreAndFormSearchUrl,
   constructMaterialUrl,
   constructSearchUrl,
   constructSubjectSearchUrl
@@ -46,6 +47,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     subjects,
     relations,
     dk5MainEntry,
+    genreAndForm,
     manifestations
   } = work;
 
@@ -121,6 +123,11 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     }));
 
   const subjectsList = [...localSubjects, ...dbcSubjects];
+
+  const genreAndFormList = genreAndForm.map((item) => ({
+    url: constructGenreAndFormSearchUrl(searchUrl, item),
+    term: item
+  }));
 
   const filmAdaptationsList = getUniqueMovies(relations).map((item) => {
     return {
@@ -229,16 +236,14 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
             dataCy="material-description-series"
           />
 
-          {
-            descriptionTermFields.map((customField: any) => {
-              return <HorizontalTermLine
-                key={ customField.label }
-                title={ customField.label }
-                linkList={ customField.tags }
-                dataCy={ customField.cy || "material-description-custom" }
-              />
-            })
-          }
+          {descriptionTermFields.map((customField: any) => (
+            <HorizontalTermLine
+              key={customField.label}
+              title={customField.label}
+              linkList={customField.tags}
+              dataCy={customField.cy || "material-description-custom"}
+            />
+          ))}
         </div>
         {showShareButtons && <ButtonShare className="mt-64" />}
       </>

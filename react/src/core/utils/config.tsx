@@ -67,5 +67,3 @@ export const withConfig = <T extends object>(
 ) => {
   return withSuffix(Component, "Config", addConfigEntries);
 };
-
-export default {};
