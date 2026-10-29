@@ -48,7 +48,11 @@ export const logoutUniloginSSO = async (session: IronSession<TSessionData>) => {
   const endSessionUrl = client.buildEndSessionUrl(config, {
     id_token_hint: id_token,
   })
-  await fetch(endSessionUrl)
+
+  const response = await fetch(endSessionUrl);
+  // wait for response body, in other case it will stuck at NodeJS and will cause the memory leak.
+  // https://github.com/vercel/next.js/issues/43493 - closed, but with no resolve
+  await response.arrayBuffer();
 }
 
 export const handleAdgangsplatformenLogout = async (session: IronSession<TSessionData>) => {

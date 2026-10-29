@@ -38,6 +38,10 @@ const prefetchUserLoans = async (sessionType: "unilogin" | "adgangsplatformen") 
         headers: { cookie: cookieStore.toString() },
       })
       if (!response.ok) {
+        // wait for response body, in other case it will stuck at NodeJS and will cause the memory leak.
+        // https://github.com/vercel/next.js/issues/43493 - closed, but with no resolve
+        await response.arrayBuffer()
+
         throw new Error(`Failed to fetch user loans: ${response.status}`)
       }
       return response.json()

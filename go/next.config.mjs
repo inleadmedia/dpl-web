@@ -74,7 +74,9 @@ const nextConfig = {
     return config
   },
   images: {
-    unoptimized: env.NODE_ENV !== "production",
+    // There a memory leak related to image optimizer: https://github.com/vercel/next.js/issues/44685
+    unoptimized: true,
+    //unoptimized: env.NODE_ENV !== "production",
     remotePatterns: [
       {
         protocol: "https",
