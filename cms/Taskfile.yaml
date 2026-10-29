@@ -71,7 +71,14 @@ tasks:
               echo "ERROR: need nvm or node on PATH (host: install nvm; DDEV: use web container). Or SKIP_REACT_BUILD=true." >&2
               exit 1
             fi
-            corepack enable
+            # System Node (e.g. Jenkins site user): enable writes to /usr/bin and fails with EACCES.
+            # nvm Node: enable is user-writable. Either way, corepack pnpm works if corepack is on PATH.
+            if ! corepack enable 2>/dev/null; then
+              command -v corepack >/dev/null 2>&1 || {
+                echo "ERROR: corepack enable failed and corepack is not on PATH — install nvm and Node from .nvmrc for this user." >&2
+                exit 1
+              }
+            fi
           }
           use_monorepo_node
           task dev:design-system:build
@@ -185,7 +192,12 @@ tasks:
             echo 'ERROR: need nvm or node on PATH' >&2
             exit 1
           fi
-          corepack enable
+          if ! corepack enable 2>/dev/null; then
+            command -v corepack >/dev/null 2>&1 || {
+              echo 'ERROR: corepack enable failed — use nvm + .nvmrc Node for this user.' >&2
+              exit 1
+            }
+          fi
           task dev:react:setup
         "
       - touch react/dist/.bundle-stamp
@@ -314,7 +326,13 @@ tasks:
             echo "ERROR: need nvm or node on PATH for go:deploy:build" >&2
             exit 1
           fi
-          cd "${REPO_ROOT}/go" && corepack enable
+          cd "${REPO_ROOT}/go"
+          if ! corepack enable 2>/dev/null; then
+            command -v corepack >/dev/null 2>&1 || {
+              echo "ERROR: corepack enable failed — use nvm + .nvmrc Node for this user." >&2
+              exit 1
+            }
+          fi
           # Upstream removed this route in 2026.44.1; non-delete deploy sync can leave it behind.
           rm -rf "app/(routes)/api/getBase64" 2>/dev/null || true
           unset DPL_CMS_BASE_URL DPL_GO_BASE_URL \
