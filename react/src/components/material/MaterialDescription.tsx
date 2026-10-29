@@ -152,6 +152,18 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
       tags: seriesMembersList,
       cy: "material-description-series-members"
     },
+    [t("subjectNumberText")]: {
+      label: t("subjectNumberText"),
+      tags: shouldShowDk5 && dk5MainEntry ? [{
+        url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
+        term: dk5MainEntry.display
+      }] : []
+    },
+    [t("genreAndFormText")]: {
+      label: t("genreAndFormText"),
+      tags: genreAndFormList,
+      cy: "material-description-genre-and-form"
+    },
     [t("identifierText")]: {
       label: t("identifierText"),
       tags: subjectsList,
@@ -166,13 +178,6 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
       label: t("filmAdaptationsText"),
       tags: filmAdaptationsList,
       cy: "material-description-film-adaptations"
-    },
-    [t("subjectNumberText")]: {
-      label: t("subjectNumberText"),
-      tags: shouldShowDk5 && dk5MainEntry ? [{
-        url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
-        term: dk5MainEntry.display
-      }] : []
     }
   };
 
