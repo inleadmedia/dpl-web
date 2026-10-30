@@ -2,6 +2,7 @@
 # are ignored repo-wide by the root .gitignore.
 
 dist
+dist-standalone-modules
 dev
 cypress/videos/apps
 cypress/screenshots/apps

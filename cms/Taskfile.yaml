@@ -11,6 +11,7 @@ vars:
 env:
   SKIP_LANGUAGE_IMPORT: false
   SKIP_GO_DEPLOY: false
+  SKIP_REACT_BUILD: false
   DRUSH_EXEC: "./vendor/bin/drush"
 
 tasks:
@@ -41,19 +42,103 @@ tasks:
       - ${DRUSH_EXEC} user:create patron --password="test"
       - ${DRUSH_EXEC} user:role:add 'patron' patron
 
+  drupal:cms-link:
+    desc: Build (if needed) and copy React/design-system into CMS using Node from monorepo .nvmrc
+    dotenv:
+      - ../.env
+    cmds:
+      - |
+        set -eu
+        export CI=true
+        if [ -z "${WEDOBOOKS_NPM_TOKEN:-}" ] && ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "${HOME}/.npmrc" 2>/dev/null; then
+          echo "warning: no WeDoBooks npm credential — WEDOBOOKS_NPM_TOKEN missing from ../.env and none in ~/.npmrc. See packages/wedobooks/README.md." >&2
+        fi
+        export REPO_ROOT="$(cd .. && pwd)"
+        export CMS_ROOT="$(pwd)"
+        export DS_BUILD="${REPO_ROOT}/design-system/build"
+        export DS_ASSETS="${CMS_ROOT}/web/themes/custom/novel/assets/dpl-design-system"
+        export REACT_LIB="${CMS_ROOT}/web/libraries/dpl-react"
+        LINK_SCRIPT='
+          set -eu
+          use_monorepo_node() {
+            if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+              # shellcheck disable=SC1090
+              . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+              cd "${REPO_ROOT}" && nvm install && nvm use
+            elif command -v node >/dev/null 2>&1; then
+              cd "${REPO_ROOT}"
+            else
+              echo "ERROR: need nvm or node on PATH (host: install nvm; DDEV: use web container). Or SKIP_REACT_BUILD=true." >&2
+              exit 1
+            fi
+            # System Node (e.g. Jenkins site user): enable writes to /usr/bin and fails with EACCES.
+            # nvm Node: enable is user-writable. Either way, corepack pnpm works if corepack is on PATH.
+            if ! corepack enable 2>/dev/null; then
+              command -v corepack >/dev/null 2>&1 || {
+                echo "ERROR: corepack enable failed and corepack is not on PATH — install nvm and Node from .nvmrc for this user." >&2
+                exit 1
+              }
+            fi
+          }
+          use_monorepo_node
+          task dev:design-system:build
+          task dev:wedobooks:build
+          cd "${REPO_ROOT}/react" && corepack pnpm run clean && corepack pnpm run build:js:prod && corepack pnpm run build:css:prod
+          rm -rf "${DS_ASSETS}" "${REACT_LIB}"
+          mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
+          cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
+          cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
+          cd "${CMS_ROOT}" && ./vendor/bin/drush cr -y
+        '
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          env "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}" bash -lc "${LINK_SCRIPT}"
+        else
+          bash -lc "${LINK_SCRIPT}"
+        fi
+
+  drupal:cms-link:copy:
+    desc: Copy host-built design-system + React into CMS (no webpack; for DDEV after building on the Mac)
+    cmds:
+      - |
+        set -eu
+        REPO_ROOT="$(cd .. && pwd)"
+        CMS_ROOT="$(pwd)"
+        DS_BUILD="${REPO_ROOT}/design-system/build"
+        DS_ASSETS="${CMS_ROOT}/web/themes/custom/novel/assets/dpl-design-system"
+        REACT_LIB="${CMS_ROOT}/web/libraries/dpl-react"
+        missing=0
+        for path in "${DS_BUILD}/css" "${DS_BUILD}/js"; do
+          if [ ! -d "$path" ]; then
+            echo "missing: $path — on the host run: task dev:design-system:build" >&2
+            missing=1
+          fi
+        done
+        if [ ! -d "${REPO_ROOT}/react/dist" ] || [ -z "$(ls -A "${REPO_ROOT}/react/dist" 2>/dev/null)" ]; then
+          echo "missing: ${REPO_ROOT}/react/dist — on the host run: task dev:cms:link:deploy" >&2
+          missing=1
+        fi
+        if [ "$missing" -eq 1 ]; then
+          echo "No asset copy; drupal:upgrade continues without refreshed React/design-system." >&2
+          exit 0
+        fi
+        rm -rf "${DS_ASSETS}" "${REACT_LIB}"
+        mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
+        cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
+        cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
+        ./vendor/bin/drush cr -y
+
   drupal:update:
     desc: Install/update composer dependencies and build/restart Go when ../go is present
     cmds:
-      - cp -n .env.example .env || true
-      - rm -rf web/libraries/dpl-react web/themes/custom/novel/assets/dpl-design-system
+      - test -f .env.example && cp -n .env.example .env || true
       - composer install --no-cache
       - composer drupal:scaffold
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
       - |
-        if [ "${SKIP_FRONTEND_BUILD:-}" = "true" ]; then
-          echo "Skipping frontend build (SKIP_FRONTEND_BUILD=true)"
+        if [ "${SKIP_REACT_BUILD}" = true ] || [ "${SKIP_FRONTEND_BUILD:-}" = true ]; then
+          echo "Skipping React/design-system link (SKIP_REACT_BUILD or SKIP_FRONTEND_BUILD)"
         else
-          task -t Taskfile.yaml drupal:build-react
+          task -t Taskfile.yaml drupal:cms-link
         fi
       - |
         if [ "${SKIP_GO_DEPLOY}" = true ]; then
@@ -67,34 +152,70 @@ tasks:
         fi
 
   drupal:build-react:
-    desc: Build react/design-system and copy into CMS (pnpm monorepo; run from cms/)
+    desc: Build react/design-system when sources changed (task --dry to check; task --force to rebuild). Prefer on the host; needs WEDOBOOKS_NPM_TOKEN in ../.env inside DDEV.
     dir: ..
+    dotenv:
+      - .env
+      - ../.env
     preconditions:
       - sh: test -f react/package.json && test -f design-system/package.json
         msg: Run from cms/ in the dpl-web monorepo (../react and ../design-system required).
+    sources:
+      - react/src/**/*
+      - react/package.json
+      - react/pnpm-lock.yaml
+      - react/composer.json
+      - react/webpack*.js
+      - react/tsconfig.json
+      - design-system/src/**/*
+      - design-system/public/**/*
+      - design-system/package.json
+      - design-system/pnpm-lock.yaml
+      - design-system/composer.json
+      - packages/wedobooks/**/*
+      - pnpm-lock.yaml
+    generates:
+      - react/dist/.bundle-stamp
     cmds:
       - |
         export CI=true
-        if ! node -e 'const [maj]=process.version.slice(1).split("."); process.exit(+maj>=24?0:1)' 2>/dev/null; then
-          if command -v docker >/dev/null 2>&1; then
-            echo "Node $(node -v 2>/dev/null || echo unknown) is below 24 — using node:24.21-alpine via RUN_IN_DOCKER"
-            export RUN_IN_DOCKER=1
-          else
-            echo "ERROR: Node.js ^24.15.0 required (current: $(node -v 2>/dev/null || echo none)). Install Node 24 or provide Docker for RUN_IN_DOCKER."
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          export "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}"
+        fi
+        bash -lc "
+          set -eu
+          REPO_ROOT=\$(pwd)
+          if [ -s \"\${NVM_DIR:-\$HOME/.nvm}/nvm.sh\" ]; then
+            . \"\${NVM_DIR:-\$HOME/.nvm}/nvm.sh\"
+            cd \"\$REPO_ROOT\" && nvm install && nvm use
+          elif ! command -v node >/dev/null 2>&1; then
+            echo 'ERROR: need nvm or node on PATH' >&2
             exit 1
           fi
-        fi
-        task dev:cms:link
+          if ! corepack enable 2>/dev/null; then
+            command -v corepack >/dev/null 2>&1 || {
+              echo 'ERROR: corepack enable failed — use nvm + .nvmrc Node for this user.' >&2
+              exit 1
+            }
+          fi
+          task dev:react:setup
+        "
+      - touch react/dist/.bundle-stamp
 
   drupal:assets:status:
     desc: Report whether a react/design-system bundle build is needed (does not build)
     cmds:
       - |
-        if [ ! -d web/libraries/dpl-react ] || [ ! -d web/themes/custom/novel/assets/dpl-design-system ]; then
-          echo "NEEDS_BUILD (CMS asset dirs missing — run: task -t Taskfile.yaml drupal:build-react)"
+        STAMP=../react/dist/.bundle-stamp
+        if [ ! -f "$STAMP" ]; then
+          echo "NEEDS_BUILD (no bundle stamp — run: task -t Taskfile.yaml drupal:build-react)"
           exit 0
         fi
-        echo "Run 'task -t Taskfile.yaml drupal:build-react' to rebuild and recopy react/design-system into CMS."
+        if task -t Taskfile.yaml drupal:build-react --dry 2>&1 | grep -q 'task up to date'; then
+          echo "UP_TO_DATE (stamp: $STAMP)"
+        else
+          echo "NEEDS_BUILD (sources newer than stamp: $STAMP)"
+        fi
 
   drupal:locale:
     desc: Update translation strings
@@ -123,8 +244,15 @@ tasks:
 
   drupal:upgrade:
     desc: Run database updates and config import on an existing instance
+    env:
+      EONEXT_MOBILESEARCH_SKIP: "1"
     cmds:
       - task -t Taskfile.yaml drupal:update
+      # Drop the compiled container so new module services (e.g.
+      # dpl_po.po_file_builder from 2026.34) exist before Drush instantiates
+      # every drush.services.yml command. sql:query bootstraps only to
+      # DATABASE, so it still works when the cached container is stale.
+      - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
       - ${DRUSH_EXEC} en varnish_purger -y
       - ${DRUSH_EXEC} updb -y
       - ${DRUSH_EXEC} cim -y
@@ -156,7 +284,7 @@ tasks:
         EOF
 
   go:deploy:
-    desc: Build and restart Go (yarn install, yarn build, pm2 restart)
+    desc: Build and restart Go (pnpm install, pnpm build, pm2 restart)
     deps: [go:deploy:preconditions]
     cmds:
       - task -t Taskfile.yaml go:deploy:plan
@@ -165,11 +293,59 @@ tasks:
       - task -t Taskfile.yaml go:deploy:pm2-restart
 
   go:deploy:build:
-    desc: yarn install and yarn build
+    desc: pnpm install and pnpm build
     dir: "{{.GO_DIR}}"
+    # WeDoBooks token only from ../.env — do not Task-dotenv the whole file here.
+    # Loading DPL_* from the monorepo .env into the shell overrides go/.env.local
+    # during `next build` (Next.js keeps process.env set before .env.local). Site
+    # URLs and Go GraphQL credentials must come from go/.env.local (see Lagoon
+    # prepare-docker-env-vars.mjs + go:deploy:verify-env).
     cmds:
-      - yarn install --frozen-lockfile
-      - yarn build
+      - |
+        # Non-interactive install: go/lagoon/stage1.dockerfile (ENV CI=true) and
+        # cms drupal:build-react (CI=true task dev:react:setup).
+        export CI=true
+        ROOT_ENV="$(cd .. && pwd)/.env"
+        if [ -z "${WEDOBOOKS_NPM_TOKEN:-}" ] && [ -f "${ROOT_ENV}" ]; then
+          WEDOBOOKS_NPM_TOKEN="$(grep -E '^WEDOBOOKS_NPM_TOKEN=' "${ROOT_ENV}" | cut -d= -f2- | tr -d '"' | head -1)"
+          export WEDOBOOKS_NPM_TOKEN
+        fi
+        if [ -z "${WEDOBOOKS_NPM_TOKEN:-}" ] && ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "${HOME}/.npmrc" 2>/dev/null; then
+          echo "warning: no WeDoBooks npm credential — WEDOBOOKS_NPM_TOKEN missing from ../.env and none in ~/.npmrc. See packages/wedobooks/README.md." >&2
+        fi
+        # Node from monorepo root .nvmrc (same as root Taskfile / node:24.21-alpine).
+        export REPO_ROOT="$(cd .. && pwd)"
+        GO_BUILD='
+          set -eu
+          if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+            . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+            cd "${REPO_ROOT}" && nvm install && nvm use
+          elif command -v node >/dev/null 2>&1; then
+            cd "${REPO_ROOT}"
+          else
+            echo "ERROR: need nvm or node on PATH for go:deploy:build" >&2
+            exit 1
+          fi
+          cd "${REPO_ROOT}/go"
+          if ! corepack enable 2>/dev/null; then
+            command -v corepack >/dev/null 2>&1 || {
+              echo "ERROR: corepack enable failed — use nvm + .nvmrc Node for this user." >&2
+              exit 1
+            }
+          fi
+          # Upstream removed this route in 2026.44.1; non-delete deploy sync can leave it behind.
+          rm -rf "app/(routes)/api/getBase64" 2>/dev/null || true
+          unset DPL_CMS_BASE_URL DPL_GO_BASE_URL \
+            NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_NAME \
+            NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD 2>/dev/null || true
+          corepack pnpm install --frozen-lockfile
+          corepack pnpm run build
+        '
+        if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
+          env "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}" bash -lc "${GO_BUILD}"
+        else
+          bash -lc "${GO_BUILD}"
+        fi
 
   go:deploy:pm2-restart:
     desc: Restart PM2 app (start if missing)
@@ -179,7 +355,7 @@ tasks:
         if pm2 describe {{.GO_PM2_APP_NAME}} >/dev/null 2>&1; then
           pm2 restart {{.GO_PM2_APP_NAME}}
         else
-          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/.bin/next start -p {{.GO_DEPLOY_PORT}}
+          pm2 start {{.GO_DEPLOY_NODE_BIN}} --name {{.GO_PM2_APP_NAME}} -- ./node_modules/next/dist/bin/next start -p {{.GO_DEPLOY_PORT}}
         fi
         pm2 save
 
