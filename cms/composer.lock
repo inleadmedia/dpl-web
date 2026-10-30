@@ -10801,12 +10801,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/eonext_editorial_search.git",
-                "reference": "b955c5b51251ed99b506d8a720317a6ecd721f57"
+                "reference": "cd7014d8cdad49ffdf9366d458244407e3ac5952"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/b955c5b51251ed99b506d8a720317a6ecd721f57",
-                "reference": "b955c5b51251ed99b506d8a720317a6ecd721f57",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/cd7014d8cdad49ffdf9366d458244407e3ac5952",
+                "reference": "cd7014d8cdad49ffdf9366d458244407e3ac5952",
                 "shasum": ""
             },
             "require": {
@@ -10833,7 +10833,7 @@
                 "source": "https://github.com/inleadmedia/eonext_editorial_search",
                 "issues": "https://github.com/inleadmedia/eonext_editorial_search/issues"
             },
-            "time": "2026-10-30T09:19:20+00:00"
+            "time": "2026-10-30T09:37:23+00:00"
         },
         {
             "name": "inleadmedia/eonext_servicebanner",
