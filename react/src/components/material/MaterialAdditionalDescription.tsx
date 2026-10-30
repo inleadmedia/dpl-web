@@ -14,9 +14,13 @@ const MaterialAdditionalDescription: React.FC<MaterialAdditionalDescriptionProps
     if (!fieldsOptions)
       return {};
 
-    let body = fieldsOptions.merge([], fieldsOptions.getter(work), { outputType: "text" });
-    if (Array.isArray(body))
+    let body = fieldsOptions.merge([], fieldsOptions.getter(work), { outputType: "list" });
+    if (Array.isArray(body) && fieldsOptions.output !== "multi-paragraph")
       body = body.join(" ").trim();
+
+    // Covert back to array for paragraph renderer
+    if (Array.isArray(body) === false)
+      body = [body].filter(Boolean);
 
     return {
       label: fieldsOptions.label,
@@ -35,7 +39,7 @@ const MaterialAdditionalDescription: React.FC<MaterialAdditionalDescriptionProps
     };
   }, [work, work.parsedExtraMarc, fieldsOptions]);
 
-  if (!fieldsOptions || (!data.body && data.tags.length === 0))
+  if (!fieldsOptions || ((!data.body || data.body.length === 0) && data.tags.length === 0))
     return null;
 
   return (
@@ -46,9 +50,13 @@ const MaterialAdditionalDescription: React.FC<MaterialAdditionalDescriptionProps
             {t(data.label)}
           </h2>
 
-          <p className="text-body-large material-description__content">
-            {data.body}
-          </p>
+          {
+            data.body?.map((line: string, index: number) => {
+              return <p key={index} className="text-body-large material-description__content">
+                {line}
+              </p>;
+            })
+          }
         </>
       )}
 
