@@ -58,7 +58,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
 
   let descriptionTermFields = React.useMemo(() => {
     return Object.values(customFields || {}).map((fieldData: any) => {
-      if (fieldData.label === "body")
+      if (fieldData.label === "body" || fieldData.label === "bodyOptions")
         return;
 
       let values = fieldData.getter(work);
@@ -80,7 +80,15 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     if (!overrideData)
       return null;
 
-    return (overrideData.getter(work) || []).filter(Boolean).join("\n");
+    let bodyOverride = (overrideData.getter(work) || []).filter(Boolean);
+    if (Array.isArray(bodyOverride) && customFields?.bodyOptions?.output !== "multi-paragraph")
+      bodyOverride = bodyOverride.join(" ").trim();
+
+    // Covert back to array for paragraph renderer
+    if (Array.isArray(bodyOverride) === false)
+      bodyOverride = [bodyOverride];
+
+    return bodyOverride;
   }, [customFields, work]);
 
   const localSubjectsAgencyIds = config("localSubjectsAgencyIdsConfig", {
@@ -192,9 +200,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   const bestRepresentationContents =
     work.manifestations.bestRepresentation?.contents;
 
-  let descriptionContent = work.abstract;
-  if (descriptionOverride !== null)
-    descriptionContent = [descriptionOverride].filter(Boolean);
+  let descriptionContent = descriptionOverride || work.abstract;
 
   return (
     <section className="material-description" data-cy="material-description">
@@ -206,7 +212,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
                 {t("descriptionHeadlineText")}
               </h2>
               {
-                descriptionContent?.map((line, index) => {
+                descriptionContent?.map((line: string, index: number) => {
                   return <p key={index} className="material-description__content">
                     {line}
                   </p>;
