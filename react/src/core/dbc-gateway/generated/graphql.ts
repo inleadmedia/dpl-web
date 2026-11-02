@@ -11796,6 +11796,13 @@ export const GetMaterialDocument = new TypedDocumentString(`
 fragment ManifestationsSimpleFields on Manifestation {
   pid
   genreAndForm
+  genreForm {
+    display
+    language {
+      isoCode
+      display
+    }
+  }
   source
   subjects {
     all {
@@ -11832,6 +11839,25 @@ fragment ManifestationsSimpleFields on Manifestation {
         singular
       }
     }
+  }
+  abstract
+  subjects {
+    all {
+      display
+      type
+      language {
+        isoCode
+        display
+      }
+    }
+    dbcVerified {
+      display
+      type
+    }
+  }
+  classifications {
+    code
+    entryType
   }
   contents {
     heading
@@ -11883,6 +11909,13 @@ fragment ManifestationsSimpleFields on Manifestation {
   }
   audience {
     generalAudience
+    audienceGeneral {
+      display
+      language {
+        isoCode
+        display
+      }
+    }
     ages {
       display
     }
@@ -11893,6 +11926,7 @@ fragment ManifestationsSimpleFields on Manifestation {
   }
   notes {
     display
+    type
   }
   languages {
     notes
