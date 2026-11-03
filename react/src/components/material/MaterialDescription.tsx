@@ -88,7 +88,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
 
     // Covert back to array for paragraph renderer
     if (Array.isArray(bodyOverride) === false)
-      bodyOverride = [bodyOverride];
+      bodyOverride = [bodyOverride].filter(Boolean);
 
     return bodyOverride;
   }, [customFields, work]);
