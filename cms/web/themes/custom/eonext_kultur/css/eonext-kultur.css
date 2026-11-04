@@ -15,6 +15,27 @@
   --ek-header-search-clock-gap: 32px;
   --font-body: var(--ek-font-body);
   --font-title: var(--ek-font-heading);
+  /* Match .banner__title sizing from dpl-design-system base.css */
+  --ek-heading-banner-size: 28px;
+  --ek-heading-banner-line-height: 32px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --ek-heading-banner-line-height: 1.2;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --ek-heading-banner-size: 42px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --ek-heading-banner-size: 44px;
+  }
 }
 
 /* Global typography — Open Sans body, Futura PT headings. */
@@ -562,12 +583,53 @@ article .rich-text :where(p, li) {
   line-height: 1.2;
 }
 
+/* WYSIWYG h2 — same scale as homepage .banner__title; h3 stays subordinate. */
 article .rich-text h2,
-article .rich-text h3 {
+article .disclosure__content-padding.rich-text h2 {
   font-family: var(--ek-font-heading) !important;
-  font-size: 24px !important;
+  font-size: var(--ek-heading-banner-size) !important;
+  font-weight: 400;
+  line-height: var(--ek-heading-banner-line-height);
+}
+
+article .rich-text h3,
+article .disclosure__content-padding.rich-text h3 {
+  font-family: var(--ek-font-heading) !important;
+  font-size: 18px !important;
   font-weight: 400;
   line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  article .rich-text h3,
+  article .disclosure__content-padding.rich-text h3 {
+    font-size: 24px !important;
+    line-height: 1.2;
+  }
+}
+
+/* Intro text after page hero (Praktisk etc.) — same pattern as Book lokale. */
+.paragraphs__item--eonext_kultur_page_hero + .paragraphs__item--text_body .rich-text,
+.paragraphs__item--text_body.ek-text-body--centered .rich-text,
+.paragraph--type--text-body.ek-text-body--centered .rich-text {
+  max-width: 820px;
+  margin-inline: auto;
+  padding-block: 2rem 1rem;
+  color: var(--ek-navy, #235881);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.paragraphs__item--eonext_kultur_page_hero + .paragraphs__item--text_body .rich-text p,
+.paragraphs__item--text_body.ek-text-body--centered .rich-text p,
+.paragraph--type--text-body.ek-text-body--centered .rich-text p {
+  margin: 0 0 0.75rem;
+}
+
+.paragraphs__item--eonext_kultur_page_hero + .paragraphs__item--text_body .rich-text p:last-child,
+.paragraphs__item--text_body.ek-text-body--centered .rich-text p:last-child,
+.paragraph--type--text-body.ek-text-body--centered .rich-text p:last-child {
+  margin-bottom: 0;
 }
 
 article .rich-text ul,
@@ -1308,9 +1370,28 @@ article .rich-text ol > li::before {
 
 .ek-social-banner {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 1rem;
   padding: 2rem 1rem;
-  background: var(--ek-cream, #f5f0e8);
+  text-align: center;
+  background: var(--ek-cream, #fefaf1);
+}
+
+.ek-social-banner__title {
+  margin: 0;
+  font-family: var(--ek-font-heading);
+  font-size: var(--ek-heading-banner-size);
+  font-weight: 400;
+  line-height: var(--ek-heading-banner-line-height);
+  color: var(--ek-navy, #235881);
+}
+
+.ek-social-banner__text {
+  max-width: 820px;
+  margin: 0;
+  color: var(--ek-navy, #235881);
 }
 
 .ek-social-banner__icons {

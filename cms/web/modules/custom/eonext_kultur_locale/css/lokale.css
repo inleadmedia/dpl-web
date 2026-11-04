@@ -492,7 +492,8 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
   padding: 2rem 1rem 3rem;
   color: var(--ek-navy, #235881);
   font-size: 16px;
-  line-height: 1.2;
+  line-height: 1.6;
+  text-align: center;
 }
 
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text p {
@@ -504,10 +505,25 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h2 {
   margin: 0 0 1rem;
   font-family: var(--ek-font-heading, inherit);
-  font-size: 24px !important;
+  font-size: var(--ek-heading-banner-size) !important;
+  font-weight: 400;
+  line-height: var(--ek-heading-banner-line-height);
+  color: var(--ek-navy, #235881);
+}
+
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--ek-font-heading, inherit);
+  font-size: 18px !important;
   font-weight: 400;
   line-height: 1.2;
   color: var(--ek-navy, #235881);
+}
+
+@media (min-width: 768px) {
+  section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h3 {
+    font-size: 24px !important;
+  }
 }
 
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text h2:not(:first-of-type) {

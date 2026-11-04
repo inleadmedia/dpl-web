@@ -9,9 +9,12 @@
   box-sizing: border-box;
 }
 
-.eonext-kultur-events.content-list-page {
+.eonext-kultur-events.content-list-page,
+.content-list-page.eonext-kultur-events {
   margin-top: 0;
   padding-top: 0;
+  padding-bottom: 2.5rem;
+  background-color: var(--ek-cream, #fefaf1);
 }
 
 .content-list-page.eonext-kultur-events .eonext-kultur-events__layout {
@@ -55,7 +58,7 @@
   margin: 0;
   padding: 16px 24px;
   border: none;
-  background: var(--c-global-primary, #f6f5f0);
+  background: var(--ek-cream, #fefaf1);
   color: var(--c-text-primary-black, #000);
   font-family: var(--font-body, "Open Sans", sans-serif);
   font-size: 14px;
@@ -681,18 +684,18 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.2;
-  color: var(--ek-teal, #089aa7);
+  color: var(--ek-navy, #235881);
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: var(--c-text-primary-white, #fff);
-  border: 1px solid var(--ek-teal, #089aa7);
+  border: 1px solid var(--ek-navy, #235881);
 }
 
 .eonext-kultur-event-card__link:hover .eonext-kultur-event-card__cta,
 .eonext-kultur-event-card__link:focus-visible .eonext-kultur-event-card__cta {
   color: var(--c-text-primary-white, #fff);
-  background: var(--ek-teal, #089aa7);
+  background: var(--ek-navy, #235881);
 }
 
 @media (min-width: 640px) {

@@ -83,7 +83,7 @@ final class EventDetailBuilder {
       $series,
     );
 
-    if ($series instanceof EventSeries) {
+    if ($series instanceof EventSeries && $detail['image'] === NULL) {
       $series_image = $this->buildBannerImage($series, ['field_event_image', 'field_teaser_image']);
       if ($series_image !== NULL) {
         $detail['image'] = $series_image;

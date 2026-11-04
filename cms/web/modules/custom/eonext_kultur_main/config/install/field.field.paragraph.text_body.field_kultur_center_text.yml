@@ -1,0 +1,26 @@
+uuid: f8a9b0c1-d2e3-4567-8901-bcdef0123456
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_kultur_center_text
+    - paragraphs.paragraphs_type.text_body
+  enforced:
+    module:
+      - eonext_kultur_main
+id: paragraph.text_body.field_kultur_center_text
+field_name: field_kultur_center_text
+entity_type: paragraph
+bundle: text_body
+label: 'Center text'
+description: 'Centers the text block (same style as the intro on Book lokale).'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

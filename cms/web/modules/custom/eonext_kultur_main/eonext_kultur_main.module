@@ -26,6 +26,16 @@ function eonext_kultur_main_preprocess_paragraph__eonext_kultur_social_banner(ar
     return;
   }
 
+  $variables['title'] = '';
+  if ($paragraph->hasField('field_kultur_footer_title') && !$paragraph->get('field_kultur_footer_title')->isEmpty()) {
+    $variables['title'] = (string) $paragraph->get('field_kultur_footer_title')->value;
+  }
+
+  $variables['text'] = '';
+  if ($paragraph->hasField('field_kultur_footer_text') && !$paragraph->get('field_kultur_footer_text')->isEmpty()) {
+    $variables['text'] = (string) $paragraph->get('field_kultur_footer_text')->value;
+  }
+
   foreach (['field_kultur_footer_facebook' => 'facebook_url', 'field_kultur_footer_instagram' => 'instagram_url'] as $field => $key) {
     if (!$paragraph->hasField($field) || $paragraph->get($field)->isEmpty()) {
       $variables[$key] = '';
@@ -318,6 +328,20 @@ function eonext_kultur_main_preprocess_field(array &$variables): void {
     $itemParagraph = _eonext_kultur_main_item_paragraph($item);
     if ($itemParagraph instanceof ParagraphInterface && $itemParagraph->bundle() === FooterSocialLoader::PARAGRAPH_BUNDLE) {
       unset($variables['items'][$delta]);
+      continue;
+    }
+
+    if ($itemParagraph instanceof ParagraphInterface
+      && $itemParagraph->bundle() === 'text_body'
+      && $itemParagraph->hasField('field_kultur_center_text')
+      && !$itemParagraph->get('field_kultur_center_text')->isEmpty()
+      && (bool) $itemParagraph->get('field_kultur_center_text')->value) {
+      if (isset($variables['items'][$delta]['attributes']) && $variables['items'][$delta]['attributes'] instanceof \Drupal\Core\Template\Attribute) {
+        $variables['items'][$delta]['attributes']->addClass('ek-text-body--centered');
+      }
+      elseif (isset($variables['items'][$delta]['attributes']['class']) && is_array($variables['items'][$delta]['attributes']['class'])) {
+        $variables['items'][$delta]['attributes']['class'][] = 'ek-text-body--centered';
+      }
     }
   }
 }

@@ -1,4 +1,10 @@
 <section class="ek-social-banner">
+  {% if title %}
+    <h2 class="ek-social-banner__title">{{ title }}</h2>
+  {% endif %}
+  {% if text %}
+    <div class="ek-social-banner__text rich-text">{{ text|raw }}</div>
+  {% endif %}
   <div class="ek-social-banner__icons">
     {% if facebook_url %}
       <a class="ek-social-banner__icon" href="{{ facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook">

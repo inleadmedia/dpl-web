@@ -250,6 +250,24 @@ function _eonext_kultur_apply_nav_teaser_variables(array &$variables, EntityInte
 }
 
 /**
+ * Implements hook_preprocess_HOOK() for text body paragraphs.
+ */
+function eonext_kultur_preprocess_paragraph__text_body(array &$variables): void {
+  $paragraph = $variables['paragraph'] ?? NULL;
+  if (!$paragraph instanceof ParagraphInterface) {
+    return;
+  }
+
+  if (!$paragraph->hasField('field_kultur_center_text') || $paragraph->get('field_kultur_center_text')->isEmpty()) {
+    return;
+  }
+
+  if ((bool) $paragraph->get('field_kultur_center_text')->value) {
+    $variables['attributes']['class'][] = 'ek-text-body--centered';
+  }
+}
+
+/**
  * Implements hook_preprocess_HOOK() for banner paragraphs.
  */
 function eonext_kultur_preprocess_paragraph__banner(array &$variables): void {

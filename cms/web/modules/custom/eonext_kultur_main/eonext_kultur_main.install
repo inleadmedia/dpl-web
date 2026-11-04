@@ -815,6 +815,54 @@ function eonext_kultur_main_update_9028(): string {
 }
 
 /**
+ * Text body centering option and social banner title/text (EONEXT-436).
+ */
+function eonext_kultur_main_update_9029(): string {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'field.storage.paragraph.field_kultur_center_text',
+    'field.field.paragraph.text_body.field_kultur_center_text',
+    'field.field.paragraph.eonext_kultur_social_banner.field_kultur_footer_title',
+    'field.field.paragraph.eonext_kultur_social_banner.field_kultur_footer_text',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data) {
+      continue;
+    }
+
+    if (str_starts_with($config_name, 'field.storage.')) {
+      if (!FieldStorageConfig::load($data['id'])) {
+        FieldStorageConfig::create($data)->save();
+      }
+      continue;
+    }
+
+    if (!FieldConfig::load($data['id'])) {
+      FieldConfig::create($data)->save();
+    }
+  }
+
+  $text_body_form = EntityFormDisplay::load('paragraph.text_body.default');
+  if ($text_body_form instanceof EntityFormDisplay) {
+    $text_body_form
+      ->setComponent('field_kultur_center_text', [
+        'type' => 'boolean_checkbox',
+        'weight' => 5,
+        'settings' => [
+          'display_label' => TRUE,
+        ],
+      ])
+      ->save();
+  }
+
+  _eonext_kultur_main_configure_social_map_paragraph_displays();
+
+  return 'Added optional centered text for text body paragraphs and title/text on social banner paragraphs.';
+}
+
+/**
  * Enables a paragraph bundle on page nodes.
  */
 function _eonext_kultur_main_enable_page_paragraph_bundle(string $bundle): void {
@@ -845,8 +893,10 @@ function _eonext_kultur_main_configure_social_map_paragraph_displays(): void {
       'status' => TRUE,
     ]);
   $social_form
-    ->setComponent('field_kultur_footer_facebook', ['type' => 'link_default', 'weight' => 0])
-    ->setComponent('field_kultur_footer_instagram', ['type' => 'link_default', 'weight' => 1])
+    ->setComponent('field_kultur_footer_title', ['type' => 'string_textfield', 'weight' => 0])
+    ->setComponent('field_kultur_footer_text', ['type' => 'text_textarea', 'weight' => 1])
+    ->setComponent('field_kultur_footer_facebook', ['type' => 'link_default', 'weight' => 2])
+    ->setComponent('field_kultur_footer_instagram', ['type' => 'link_default', 'weight' => 3])
     ->save();
 
   $map_form = EntityFormDisplay::load('paragraph.eonext_kultur_map_link.default')
@@ -870,6 +920,8 @@ function _eonext_kultur_main_configure_social_map_paragraph_displays(): void {
       ]);
     if ($bundle === 'eonext_kultur_social_banner') {
       $view
+        ->removeComponent('field_kultur_footer_title')
+        ->removeComponent('field_kultur_footer_text')
         ->removeComponent('field_kultur_footer_facebook')
         ->removeComponent('field_kultur_footer_instagram')
         ->save();
