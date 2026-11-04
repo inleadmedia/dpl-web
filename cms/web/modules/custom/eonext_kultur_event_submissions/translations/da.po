@@ -38,6 +38,46 @@ msgid "Organization"
 msgstr "Organisation"
 
 msgctxt "eonext_kultur_event_submissions"
+msgid "Organization / company"
+msgstr "Organisation / virksomhed"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organization / company is required."
+msgstr "Organisation / virksomhed skal udfyldes."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact phone is required."
+msgstr "Kontakttelefon skal udfyldes."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Settlement"
+msgstr "Bygde"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "We received your Kulturnat event submission"
+msgstr "Vi har modtaget dit Kulturnat-arrangement"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Thank you for submitting “@title” to Kulturnat. We will review your event "
+"and get back to you by email."
+msgstr ""
+"Tak fordi du indsendte “@title” til Kulturnat. Vi gennemgår arrangementet "
+"og vender tilbage til dig på e-mail."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Your Kulturnat event was approved"
+msgstr "Dit Kulturnat-arrangement er godkendt"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Your event “@title” has been approved and published on the Kulturnat "
+"programme."
+msgstr ""
+"Dit arrangement “@title” er godkendt og offentliggjort på Kulturnat-"
+"programmet."
+
+msgctxt "eonext_kultur_event_submissions"
 msgid "Street address"
 msgstr "Gadeadresse"
 

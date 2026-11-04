@@ -39,6 +39,46 @@ msgid "Organization"
 msgstr "Organisationi"
 
 msgctxt "eonext_kultur_event_submissions"
+msgid "Organization / company"
+msgstr "Atuisut / suliffik"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Organization / company is required."
+msgstr "Atuisut / suliffik piumasaqarpoq."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Contact phone is required."
+msgstr "Attaveqaataa telefonimik piumasaqarpoq."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Settlement"
+msgstr "Najugaq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "We received your Kulturnat event submission"
+msgstr "Kulturnat-imut pilersaarutit tigusimavugut"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Thank you for submitting “@title” to Kulturnat. We will review your event "
+"and get back to you by email."
+msgstr ""
+"Qujanaq “@title” Kulturnat-imut nassiussavit. Pisoq taanna misissuineq "
+"arlaqqissaaq e-mailikkut."
+
+msgctxt "eonext_kultur_event_submissions"
+msgid "Your Kulturnat event was approved"
+msgstr "Kulturnat pilersaarutit akuerineqarpoq"
+
+msgctxt "eonext_kultur_event_submissions"
+msgid ""
+"Your event “@title” has been approved and published on the Kulturnat "
+"programme."
+msgstr ""
+"Pilersaarutit “@title” akuerineqarpoq aammalu Kulturnat programminni "
+"saqqummersinneqarpoq."
+
+msgctxt "eonext_kultur_event_submissions"
 msgid "Street address"
 msgstr "Aqqusineq"
 

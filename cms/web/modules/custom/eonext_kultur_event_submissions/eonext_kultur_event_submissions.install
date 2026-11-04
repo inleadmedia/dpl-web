@@ -392,18 +392,19 @@ function _eonext_kultur_event_submissions_update_address_field_settings(): void 
     return;
   }
 
-  $storage->set('settings', [
-    'field_overrides' => [
-      'givenName' => ['override' => 'hidden'],
-      'additionalName' => ['override' => 'hidden'],
-      'familyName' => ['override' => 'hidden'],
-      'addressLine2' => ['override' => 'hidden'],
-      'addressLine3' => ['override' => 'hidden'],
-      'sortingCode' => ['override' => 'hidden'],
-      'dependentLocality' => ['override' => 'hidden'],
-      'administrativeArea' => ['override' => 'hidden'],
-    ],
-  ])->save();
+  $settings = $storage->getSettings();
+  $overrides = $settings['field_overrides'] ?? [];
+  unset($overrides['dependentLocality']);
+  $settings['field_overrides'] = $overrides + [
+    'givenName' => ['override' => 'hidden'],
+    'additionalName' => ['override' => 'hidden'],
+    'familyName' => ['override' => 'hidden'],
+    'addressLine2' => ['override' => 'hidden'],
+    'addressLine3' => ['override' => 'hidden'],
+    'sortingCode' => ['override' => 'hidden'],
+    'administrativeArea' => ['override' => 'hidden'],
+  ];
+  $storage->set('settings', $settings)->save();
 }
 
 /**
@@ -600,4 +601,31 @@ function eonext_kultur_event_submissions_update_9016(): string {
   }
 
   return "Repaired {$repaired} published Kulturnat event(s): instance addresses and paragraph field settings.";
+}
+
+/**
+ * Shows settlement on submissions, hides country on the public form, requires phone.
+ */
+function eonext_kultur_event_submissions_update_9017(): string {
+  _eonext_kultur_event_submissions_update_address_field_settings();
+
+  $entity_type_id = 'kultur_event_submission';
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+  $field_definitions = \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission::baseFieldDefinitions($entity_type);
+  $phone_storage = $update_manager->getFieldStorageDefinition('contact_phone', $entity_type_id);
+  if ($phone_storage !== NULL) {
+    $phone_storage->setRequired(TRUE);
+    $update_manager->updateFieldStorageDefinition($phone_storage);
+  }
+
+  $address_storage = $update_manager->getFieldStorageDefinition('address', $entity_type_id);
+  if ($address_storage !== NULL && isset($field_definitions['address'])) {
+    $address_storage->setSettings($field_definitions['address']->getSettings());
+    $update_manager->updateFieldStorageDefinition($address_storage);
+  }
+
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  return 'Updated Kulturnat submission address and contact phone field settings.';
 }

@@ -148,10 +148,8 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
           AddressField::GIVEN_NAME => ['override' => FieldOverride::HIDDEN],
           AddressField::ADDITIONAL_NAME => ['override' => FieldOverride::HIDDEN],
           AddressField::FAMILY_NAME => ['override' => FieldOverride::HIDDEN],
-          AddressField::ADDRESS_LINE2 => ['override' => FieldOverride::HIDDEN],
           AddressField::ADDRESS_LINE3 => ['override' => FieldOverride::HIDDEN],
           AddressField::SORTING_CODE => ['override' => FieldOverride::HIDDEN],
-          AddressField::DEPENDENT_LOCALITY => ['override' => FieldOverride::HIDDEN],
           AddressField::ADMINISTRATIVE_AREA => ['override' => FieldOverride::HIDDEN],
         ],
       ])
@@ -232,7 +230,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
 
     $fields['contact_phone'] = BaseFieldDefinition::create('string')
       ->setLabel(new TranslatableMarkup('Contact phone', [], ['context' => 'eonext_kultur_event_submissions']))
-      ->setRequired(FALSE)
+      ->setRequired(TRUE)
       ->setSetting('max_length', 64)
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE)

@@ -35,6 +35,45 @@
     },
   };
 
+  const NUUK_CITY = 'nuuk';
+
+  /**
+   * Toggles required asterisks on labels.
+   */
+  const toggleRequiredLabel = (control, isRequired) => {
+    if (!control) {
+      return;
+    }
+    control.removeAttribute('required');
+    const formItem = control.closest('.form-item');
+    if (!formItem) {
+      return;
+    }
+    const label = formItem.querySelector('label');
+    if (label) {
+      label.classList.toggle('js-form-required', isRequired);
+      label.classList.toggle('form-required', isRequired);
+      label.classList.toggle('input-label--required', isRequired);
+    }
+  };
+
+  /**
+   * Shows or hides an address subfield wrapper.
+   */
+  const setAddressFieldVisible = (form, fieldName, visible) => {
+    const control = form.querySelector(`[name="address[0][address][${fieldName}]"]`);
+    if (!control) {
+      return;
+    }
+    const formItem = control.closest('.form-item');
+    if (formItem) {
+      formItem.style.display = visible ? '' : 'none';
+    }
+    if (!visible) {
+      control.value = '';
+    }
+  };
+
   /**
    * Toggles required asterisks on Danish fields when Nuuk is selected.
    *
@@ -50,30 +89,26 @@
             'textarea[name="description_da[0][value]"]',
             'input[name="title_da[0][value]"]',
           ];
-
-          const toggleRequiredLabel = (control, isNuuk) => {
-            if (!control) {
-              return;
-            }
-            control.removeAttribute('required');
-            const formItem = control.closest('.form-item');
-            if (!formItem) {
-              return;
-            }
-            const label = formItem.querySelector('label');
-            if (label) {
-              label.classList.toggle('js-form-required', isNuuk);
-              label.classList.toggle('form-required', isNuuk);
-              label.classList.toggle('input-label--required', isNuuk);
-            }
-          };
+          const alwaysRequiredSelectors = [
+            'input[name="address[0][address][organization]"]',
+            'input[name="contact_phone[0][value]"]',
+          ];
 
           const updateRequired = () => {
             const checked = form.querySelector('input[name="city"]:checked');
-            const isNuuk = checked && checked.value === 'nuuk';
+            const isNuuk = checked && checked.value === NUUK_CITY;
+
             nuukFieldSelectors.forEach((selector) => {
               toggleRequiredLabel(form.querySelector(selector), isNuuk);
             });
+
+            alwaysRequiredSelectors.forEach((selector) => {
+              toggleRequiredLabel(form.querySelector(selector), true);
+            });
+
+            setAddressFieldVisible(form, 'postal_code', !isNuuk);
+            setAddressFieldVisible(form, 'locality', !isNuuk);
+            setAddressFieldVisible(form, 'address_line2', !isNuuk);
           };
 
           cityInputs.forEach((input) => input.addEventListener('change', updateRequired));

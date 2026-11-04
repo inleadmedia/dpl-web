@@ -4,16 +4,42 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_event_submissions\Form;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\EntityConstraintViolationListInterface;
 use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\eonext_kultur_event_submissions\Service\SubmissionMailNotifier;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Public Kulturnat event registration form.
  */
 final class KulturEventSubmissionPublicForm extends ContentEntityForm {
+
+  public function __construct(
+    EntityRepositoryInterface $entity_repository,
+    EntityTypeBundleInfoInterface $entity_type_bundle_info,
+    TimeInterface $time,
+    private readonly SubmissionMailNotifier $mailNotifier,
+  ) {
+    parent::__construct($entity_repository, $entity_type_bundle_info, $time);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container): static {
+    return new static(
+      $container->get('entity.repository'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('datetime.time'),
+      $container->get('eonext_kultur_event_submissions.mail_notifier'),
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -81,6 +107,16 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
     $form = parent::buildForm($form, $form_state);
     $form['#after_build'][] = 'eonext_kultur_event_submissions_public_form_after_build';
 
+    if (isset($form['address']['widget'][0]['address'])) {
+      $address_element = &$form['address']['widget'][0]['address'];
+      $address_element['#after_build'][] = 'eonext_kultur_event_submissions_public_address_states_after_build';
+      $address_element['#element_validate'] ??= [];
+      array_unshift(
+        $address_element['#element_validate'],
+        'eonext_kultur_event_submissions_public_address_element_validate',
+      );
+    }
+
     foreach (['description_gl', 'description_da'] as $field_name) {
       if (!isset($form[$field_name]['widget'][0])) {
         continue;
@@ -132,6 +168,11 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
+    eonext_kultur_event_submissions_normalize_address_form_state($form_state);
+    $address = $form_state->getValue('address');
+    if (is_array($address) && isset($address[0]['address']) && is_array($address[0]['address'])) {
+      $this->entity->set('address', [$address[0]['address']]);
+    }
     parent::validateForm($form, $form_state);
 
     $city = $form_state->getValue('city');
@@ -171,6 +212,35 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
       }
     }
 
+    $contactPhone = $form_state->getValue('contact_phone');
+    if (is_array($contactPhone)) {
+      $contactPhone = $contactPhone[0]['value'] ?? '';
+    }
+    if (trim((string) $contactPhone) === '') {
+      $message = $this->t('Contact phone is required.', [], ['context' => 'eonext_kultur_event_submissions']);
+      if (isset($form['contact_phone']['widget'][0]['value'])) {
+        $form_state->setError($form['contact_phone']['widget'][0]['value'], $message);
+      }
+      else {
+        $form_state->setErrorByName('contact_phone', $message);
+      }
+    }
+
+    $addressValue = $form_state->getValue('address');
+    $organization = '';
+    if (is_array($addressValue)) {
+      $organization = trim((string) ($addressValue[0]['address']['organization'] ?? ''));
+    }
+    if ($organization === '') {
+      $message = $this->t('Organization / company is required.', [], ['context' => 'eonext_kultur_event_submissions']);
+      if (isset($form['address']['widget'][0]['address']['organization'])) {
+        $form_state->setError($form['address']['widget'][0]['address']['organization'], $message);
+      }
+      else {
+        $form_state->setErrorByName('address', $message);
+      }
+    }
+
     $start = $this->getDateTimeFromFormValue($form_state->getValue('event_start'));
     $end = $this->getDateTimeFromFormValue($form_state->getValue('event_end'));
     if ($start !== NULL && $end !== NULL && $end->getTimestamp() < $start->getTimestamp()) {
@@ -193,6 +263,8 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
     $submission->set('status', SubmissionConstants::STATUS_PENDING);
 
     $result = parent::save($form, $form_state);
+
+    $this->mailNotifier->sendReceived($submission);
 
     $this->messenger()->addStatus($this->t(
       'Thank you. Your event has been submitted for review.',

@@ -1,0 +1,23 @@
+facets.facet.event_categories:
+  title: 'Event categories facet'
+  base_route_name: entity.facets_facet.collection
+  names:
+    - facets.facet.event_categories
+
+facets.facet.event_city:
+  title: 'Event city facet'
+  base_route_name: entity.facets_facet.collection
+  names:
+    - facets.facet.event_city
+
+facets.facet.event_screen_names:
+  title: 'Event screen names facet'
+  base_route_name: entity.facets_facet.collection
+  names:
+    - facets.facet.event_screen_names
+
+facets.facet.event_tags:
+  title: 'Event tags facet'
+  base_route_name: entity.facets_facet.collection
+  names:
+    - facets.facet.event_tags

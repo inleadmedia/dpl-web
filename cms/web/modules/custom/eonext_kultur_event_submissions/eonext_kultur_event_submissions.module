@@ -7,6 +7,7 @@
 
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use CommerceGuys\Addressing\AddressFormat\FieldOverride;
+use CommerceGuys\Addressing\AddressFormat\FieldOverrides;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Datetime\Element\Datetime;
 use Drupal\Core\Entity\EntityInterface;
@@ -236,18 +237,171 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     return;
   }
 
-  $element['address']['#available_countries'] = ['GL', 'DK'];
+  $element['address']['#available_countries'] = ['GL'];
   $element['address']['#after_build'][] = 'eonext_kultur_event_submissions_public_address_labels_after_build';
+  $element['address']['#after_build'][] = 'eonext_kultur_event_submissions_public_address_states_after_build';
   $element['address']['#field_overrides'] = [
     AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
     AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
     AddressField::FAMILY_NAME => FieldOverride::HIDDEN,
-    AddressField::ADDRESS_LINE2 => FieldOverride::HIDDEN,
     AddressField::ADDRESS_LINE3 => FieldOverride::HIDDEN,
     AddressField::SORTING_CODE => FieldOverride::HIDDEN,
-    AddressField::DEPENDENT_LOCALITY => FieldOverride::HIDDEN,
     AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
   ];
+}
+
+/**
+ * Reads the selected city machine name from form state or user input.
+ */
+function eonext_kultur_event_submissions_form_city(FormStateInterface $form_state): ?string {
+  $city = $form_state->getValue('city');
+  if (is_array($city)) {
+    if (isset($city[0]['value']) && is_string($city[0]['value'])) {
+      return $city[0]['value'];
+    }
+    if (isset($city['value']) && is_string($city['value'])) {
+      return $city['value'];
+    }
+  }
+  if (is_string($city) && $city !== '') {
+    return $city;
+  }
+
+  $user_input = $form_state->getUserInput();
+  if (isset($user_input['city']) && is_string($user_input['city']) && $user_input['city'] !== '') {
+    return $user_input['city'];
+  }
+
+  return NULL;
+}
+
+/**
+ * Applies Nuuk defaults to the address field value in form state.
+ */
+function eonext_kultur_event_submissions_normalize_address_form_state(FormStateInterface $form_state): void {
+  if (eonext_kultur_event_submissions_form_city($form_state) !== SubmissionConstants::CITY_NUUK) {
+    return;
+  }
+
+  $user_input = $form_state->getUserInput();
+  $address = $form_state->getValue('address');
+  if ((!is_array($address) || !isset($address[0]['address']))
+    && isset($user_input['address'][0]['address']) && is_array($user_input['address'][0]['address'])) {
+    $address = $user_input['address'];
+  }
+  if (!is_array($address) || !isset($address[0]['address']) || !is_array($address[0]['address'])) {
+    return;
+  }
+
+  $address[0]['address']['country_code'] = $address[0]['address']['country_code'] ?: 'GL';
+  $address[0]['address']['locality'] = 'Nuuk';
+  if (trim((string) ($address[0]['address']['postal_code'] ?? '')) === '') {
+    $address[0]['address']['postal_code'] = '3900';
+  }
+  $address[0]['address']['address_line2'] = '';
+
+  $form_state->setValue('address', $address);
+
+  if (isset($user_input['address'][0]['address']) && is_array($user_input['address'][0]['address'])) {
+    $user_input['address'][0]['address']['country_code'] = $address[0]['address']['country_code'];
+    $user_input['address'][0]['address']['locality'] = 'Nuuk';
+    $user_input['address'][0]['address']['postal_code'] = $address[0]['address']['postal_code'];
+    $user_input['address'][0]['address']['address_line2'] = '';
+    $form_state->setUserInput($user_input);
+  }
+}
+
+/**
+ * Element validate: normalize Nuuk address before Address module validation.
+ */
+function eonext_kultur_event_submissions_public_address_element_validate(array &$element, FormStateInterface $form_state, array &$complete_form): void {
+  $user_input = $form_state->getUserInput();
+  if (isset($user_input['address']) && is_array($user_input['address'])) {
+    $form_state->setValue('address', $user_input['address']);
+  }
+
+  eonext_kultur_event_submissions_normalize_address_form_state($form_state);
+
+  if (eonext_kultur_event_submissions_form_city($form_state) !== SubmissionConstants::CITY_NUUK) {
+    return;
+  }
+
+  $address = $form_state->getValue('address');
+  if (!is_array($address) || !isset($address[0]['address']) || !is_array($address[0]['address'])) {
+    return;
+  }
+
+  foreach ($address[0]['address'] as $key => $value) {
+    if (!isset($element[$key])) {
+      continue;
+    }
+    $element[$key]['#value'] = $value;
+    if (isset($element[$key]['#default_value'])) {
+      $element[$key]['#default_value'] = $value;
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function eonext_kultur_event_submissions_entity_presave(EntityInterface $entity): void {
+  if (!$entity instanceof KulturEventSubmission || $entity->get('address')->isEmpty()) {
+    return;
+  }
+
+  $values = $entity->get('address')->first()->getValue();
+  $values['country_code'] = $values['country_code'] ?: 'GL';
+
+  if ($entity->get('city')->value === SubmissionConstants::CITY_NUUK) {
+    $values['locality'] = 'Nuuk';
+    if (trim((string) ($values['postal_code'] ?? '')) === '') {
+      $values['postal_code'] = '3900';
+    }
+  }
+
+  $entity->set('address', [$values]);
+}
+
+/**
+ * Implements hook_mail().
+ */
+function eonext_kultur_event_submissions_mail($key, &$message, $params): void {
+  $message['subject'] = $params['subject'] ?? '';
+  $message['body'][] = $params['body'] ?? '';
+}
+
+/**
+ * After-build callback: translated labels on public address subfields.
+ */
+function eonext_kultur_event_submissions_public_address_states_after_build(array $element, FormStateInterface $form_state): array {
+  $other_city_selector = [
+    ':input[name="city"]' => ['value' => SubmissionConstants::CITY_OTHER],
+  ];
+  $is_nuuk = eonext_kultur_event_submissions_form_city($form_state) === SubmissionConstants::CITY_NUUK;
+
+  foreach (['postal_code', 'locality', 'address_line2'] as $field_name) {
+    if (!isset($element[$field_name])) {
+      continue;
+    }
+    $element[$field_name]['#states'] = [
+      'required' => $other_city_selector,
+      'visible' => $other_city_selector,
+    ];
+    if ($is_nuuk) {
+      $element[$field_name]['#required'] = FALSE;
+      $element[$field_name]['#access'] = FALSE;
+    }
+  }
+
+  if ($is_nuuk) {
+    eonext_kultur_event_submissions_normalize_address_form_state($form_state);
+    $element['#field_overrides'][AddressField::POSTAL_CODE] = FieldOverride::OPTIONAL;
+    $element['#field_overrides'][AddressField::LOCALITY] = FieldOverride::OPTIONAL;
+    $element['#parsed_field_overrides'] = new FieldOverrides($element['#field_overrides']);
+  }
+
+  return $element;
 }
 
 /**
@@ -256,27 +410,20 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
 function eonext_kultur_event_submissions_public_address_labels_after_build(array $element, FormStateInterface $form_state): array {
   $translation_options = ['context' => 'eonext_kultur_event_submissions'];
   $labels = [
-    'country_code' => t('Country', [], $translation_options),
-    'organization' => t('Organization', [], $translation_options),
+    'organization' => t('Organization / company', [], $translation_options),
     'address_line1' => t('Street address', [], $translation_options),
+    'address_line2' => t('Settlement', [], $translation_options),
     'postal_code' => t('Postal code', [], $translation_options),
     'locality' => t('City', [], $translation_options),
   ];
   foreach ($labels as $key => $title) {
-    if ($key === 'country_code' && isset($element['country_code']['country_code'])) {
-      $element['country_code']['country_code']['#title'] = $title;
-      $element['country_code']['#title'] = $title;
-    }
-    elseif (isset($element[$key])) {
+    if (isset($element[$key])) {
       $element[$key]['#title'] = $title;
     }
   }
-  if (isset($element['postal_code'])) {
-    $element['postal_code']['#description'] = t(
-      'Greenland postal codes are 4 digits starting with 39 (e.g. 3900). Danish postal codes are 4 digits (e.g. 1000).',
-      [],
-      $translation_options
-    );
+
+  if (isset($element['country_code'])) {
+    $element['country_code']['#access'] = FALSE;
   }
 
   return $element;

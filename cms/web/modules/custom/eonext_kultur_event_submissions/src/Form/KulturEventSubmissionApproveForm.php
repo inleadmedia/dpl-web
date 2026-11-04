@@ -13,6 +13,7 @@ use Drupal\Core\Url;
 use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
 use Drupal\eonext_kultur_event_submissions\KulturEventSubmissionInterface;
 use Drupal\eonext_kultur_event_submissions\Service\EventSeriesPublisher;
+use Drupal\eonext_kultur_event_submissions\Service\SubmissionMailNotifier;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -26,6 +27,7 @@ final class KulturEventSubmissionApproveForm extends ContentEntityConfirmFormBas
     EntityTypeBundleInfoInterface $entity_type_bundle_info,
     TimeInterface $time,
     private readonly EventSeriesPublisher $eventSeriesPublisher,
+    private readonly SubmissionMailNotifier $mailNotifier,
   ) {
     parent::__construct($entity_repository, $entity_type_bundle_info, $time);
   }
@@ -39,6 +41,7 @@ final class KulturEventSubmissionApproveForm extends ContentEntityConfirmFormBas
       $container->get('entity_type.bundle.info'),
       $container->get('datetime.time'),
       $container->get('eonext_kultur_event_submissions.event_series_publisher'),
+      $container->get('eonext_kultur_event_submissions.mail_notifier'),
     );
   }
 
@@ -106,6 +109,8 @@ final class KulturEventSubmissionApproveForm extends ContentEntityConfirmFormBas
     $this->entity->set('status', SubmissionConstants::STATUS_APPROVED);
     $this->entity->set('eventseries', ['target_id' => $series->id()]);
     $this->entity->save();
+
+    $this->mailNotifier->sendApproved($this->entity);
 
     $this->messenger()->addStatus($this->t('Submission approved. Event series %title was created.', [
       '%title' => $series->label(),

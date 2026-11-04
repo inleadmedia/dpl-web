@@ -916,3 +916,47 @@ function _eonext_kultur_main_repair_single_text_body_paragraph(ParagraphInterfac
 
   return TRUE;
 }
+
+/**
+ * Enables translations for event category taxonomy terms (Kulturnat).
+ */
+function eonext_kultur_main_update_9028(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return 'Content translation is not enabled; skipped category translation setup.';
+  }
+
+  $messages = [];
+  $manager = \Drupal::service('content_translation.manager');
+  if (!$manager->isEnabled('taxonomy_term', 'categories')) {
+    $manager->setEnabled('taxonomy_term', 'categories', TRUE);
+    $messages[] = 'Enabled content translation for categories taxonomy terms.';
+  }
+
+  $language_settings = ContentLanguageSettings::load('taxonomy_term.categories');
+  if (!$language_settings instanceof ContentLanguageSettings) {
+    $language_settings = ContentLanguageSettings::create([
+      'target_entity_type_id' => 'taxonomy_term',
+      'target_bundle' => 'categories',
+    ]);
+  }
+  if ($language_settings->getDefaultLangcode() !== 'da') {
+    $language_settings->setDefaultLangcode('da');
+  }
+  $language_settings->setLanguageAlterable(TRUE);
+  $language_settings->save();
+  $messages[] = 'Categories can now be translated (da/kl).';
+
+  foreach (['editor', 'local_administrator'] as $role_id) {
+    $role = \Drupal::entityTypeManager()->getStorage('user_role')->load($role_id);
+    if ($role === NULL) {
+      continue;
+    }
+    if (!$role->hasPermission('translate any entity')) {
+      $role->grantPermission('translate any entity');
+      $role->save();
+      $messages[] = "Granted translate any entity to {$role_id}.";
+    }
+  }
+
+  return implode(' ', $messages) ?: 'Category translation is already configured.';
+}

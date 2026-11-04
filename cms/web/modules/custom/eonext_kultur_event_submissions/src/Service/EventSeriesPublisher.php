@@ -381,8 +381,10 @@ final class EventSeriesPublisher {
       $parts = array_filter([
         trim((string) ($address->organization ?? '')),
         trim((string) ($address->address_line1 ?? '')),
+        trim((string) ($address->address_line2 ?? '')),
         trim((string) ($address->postal_code ?? '')),
         trim((string) ($address->locality ?? '')),
+        trim((string) ($address->dependent_locality ?? '')),
       ]);
       if ($parts !== []) {
         return implode(', ', $parts);
