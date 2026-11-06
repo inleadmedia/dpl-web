@@ -13,6 +13,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\paragraphs\ParagraphInterface;
 
 /**
  * Implements hook_install().
@@ -46,11 +47,32 @@ function eonext_kultur_branches_update_9002(): string {
 }
 
 /**
+ * Ensures Foreninger paragraph type exists; drops orphan paragraph rows (fix edit form crash).
+ */
+function eonext_kultur_branches_update_9003(): string {
+  eonext_kultur_branches_ensure_foreninger_listing_paragraph();
+  eonext_kultur_branches_enable_foreninger_listing_paragraph();
+
+  $removed = eonext_kultur_branches_remove_orphan_paragraphs_missing_type();
+  if ($removed === 0) {
+    return 'Foreninger listing paragraph type is installed; no orphan paragraphs removed.';
+  }
+
+  return sprintf(
+    'Foreninger listing paragraph type ensured; removed %d orphan paragraph(s) whose bundle type was missing (fixes ParagraphsWidget crash on edit).',
+    $removed
+  );
+}
+
+/**
  * Imports the foreninger listing paragraph when not already installed.
  */
 function eonext_kultur_branches_ensure_foreninger_listing_paragraph(): void {
   $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_branches');
   $storage = new FileStorage($module_path . '/config/install');
+
+  $bundle = ForeningerConstants::PARAGRAPH_BUNDLE;
+  $type_missing = \Drupal::entityTypeManager()->getStorage('paragraphs_type')->load($bundle) === NULL;
 
   foreach ([
     'paragraphs.paragraphs_type.eonext_kultur_foreninger_listing',
@@ -58,14 +80,69 @@ function eonext_kultur_branches_ensure_foreninger_listing_paragraph(): void {
     'core.entity_view_display.paragraph.eonext_kultur_foreninger_listing.default',
   ] as $config_name) {
     $data = $storage->read($config_name);
-    if (!$data || !\Drupal::config($config_name)->isNew()) {
+    if (!$data) {
       continue;
     }
 
-    \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    $config = \Drupal::config($config_name);
+    if ($config->isNew() || $type_missing) {
+      \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+    }
   }
 
   \Drupal::entityTypeManager()->getStorage('paragraphs_type')->resetCache();
+}
+
+/**
+ * Removes paragraphs whose bundle has no paragraphs_type (causes getParagraphType() === NULL).
+ *
+ * @return int
+ *   Number of paragraph entities removed.
+ */
+function eonext_kultur_branches_remove_orphan_paragraphs_missing_type(): int {
+  $ptype_storage = \Drupal::entityTypeManager()->getStorage('paragraphs_type');
+  $valid_bundles = array_flip(array_keys($ptype_storage->loadMultiple()));
+
+  $paragraph_storage = \Drupal::entityTypeManager()->getStorage('paragraph');
+  $pids = $paragraph_storage->getQuery()
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if ($pids === []) {
+    return 0;
+  }
+
+  $removed = 0;
+  foreach ($paragraph_storage->loadMultiple($pids) as $paragraph) {
+    if (!$paragraph instanceof ParagraphInterface) {
+      continue;
+    }
+    if (isset($valid_bundles[$paragraph->bundle()])) {
+      continue;
+    }
+
+    $parent = $paragraph->getParentEntity();
+    $field_name = $paragraph->hasField('parent_field_name') ? (string) ($paragraph->get('parent_field_name')->value ?? '') : '';
+    if ($parent !== NULL && $field_name !== '' && $parent->hasField($field_name)) {
+      $values = [];
+      foreach ($parent->get($field_name) as $item) {
+        if ((int) $item->target_id === (int) $paragraph->id()) {
+          continue;
+        }
+        $values[] = [
+          'target_id' => $item->target_id,
+          'target_revision_id' => $item->target_revision_id,
+        ];
+      }
+      $parent->set($field_name, $values);
+      $parent->save();
+    }
+
+    $paragraph->delete();
+    $removed++;
+  }
+
+  return $removed;
 }
 
 /**
