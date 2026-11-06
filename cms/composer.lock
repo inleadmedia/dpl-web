@@ -10769,12 +10769,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "40edca74e13fd7f2dfbafc19f503a35aa30a948e"
+                "reference": "ad79a6066448ebc906e8df52794d7eed131ab17c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/40edca74e13fd7f2dfbafc19f503a35aa30a948e",
-                "reference": "40edca74e13fd7f2dfbafc19f503a35aa30a948e",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/ad79a6066448ebc906e8df52794d7eed131ab17c",
+                "reference": "ad79a6066448ebc906e8df52794d7eed131ab17c",
                 "shasum": ""
             },
             "require": {
@@ -10793,7 +10793,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-11-05T15:56:35+00:00"
+            "time": "2026-11-06T10:19:38+00:00"
         },
         {
             "name": "inleadmedia/eonext_editorial_search",
