@@ -607,8 +607,6 @@ function eonext_kultur_events_views_pre_render(ViewExecutable $view): void {
  * Sets publication date when an event series is published, mirroring articles.
  */
 function eonext_kultur_events_eventseries_presave(EventSeries $event_series): void {
-  _eonext_kultur_events_sync_teaser_image_from_event_image($event_series);
-
   if (!$event_series->hasField('field_publication_date')) {
     return;
   }
@@ -622,44 +620,4 @@ function eonext_kultur_events_eventseries_presave(EventSeries $event_series): vo
     || ($event_series->isPublished() && !$original->isPublished())) {
     $event_series->set('field_publication_date', (new DrupalDateTime('now'))->format('Y-m-d'));
   }
-}
-
-/**
- * Implements hook_ENTITY_TYPE_presave() for eventinstance.
- */
-function eonext_kultur_events_eventinstance_presave(EventInstance $event_instance): void {
-  _eonext_kultur_events_sync_teaser_image_from_event_image($event_instance);
-}
-
-/**
- * Implements hook_entity_presave().
- */
-function eonext_kultur_events_entity_presave(EntityInterface $entity): void {
-  if ($entity->getEntityTypeId() !== 'organization_event') {
-    return;
-  }
-
-  _eonext_kultur_events_sync_teaser_image_from_event_image($entity);
-}
-
-/**
- * Copies the main event image to the teaser image when the teaser is empty.
- *
- * Previously this ran on every save, so any distinct teaser/crop was overwritten
- * by the main image — cards and hero could look "mixed" or wrong after edit.
- */
-function _eonext_kultur_events_sync_teaser_image_from_event_image(EntityInterface $entity): void {
-  if (!$entity->hasField('field_event_image') || !$entity->hasField('field_teaser_image')) {
-    return;
-  }
-
-  if ($entity->get('field_event_image')->isEmpty()) {
-    return;
-  }
-
-  if (!$entity->get('field_teaser_image')->isEmpty()) {
-    return;
-  }
-
-  $entity->set('field_teaser_image', $entity->get('field_event_image')->getValue());
 }
