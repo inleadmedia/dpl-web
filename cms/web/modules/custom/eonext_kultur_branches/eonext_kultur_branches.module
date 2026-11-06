@@ -8,8 +8,11 @@
 declare(strict_types=1);
 
 use Drupal\Core\Menu\MenuLinkInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\node\NodeInterface;
+use Drupal\paragraphs\ParagraphInterface;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -128,8 +131,6 @@ function eonext_kultur_branches_preprocess_views_view(array &$variables): void {
   if ($view->id() !== \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_ID) {
     return;
   }
-
-  $variables['#attached']['library'][] = 'eonext_kultur_branches/foreninger-listing';
 
   if (!eonext_kultur_branches_is_listing_page()) {
     return;
@@ -274,6 +275,8 @@ function eonext_kultur_branches_views_pre_view(ViewExecutable $view, $display_id
     return;
   }
 
+  eonext_kultur_branches_views_pre_view_embedded_page_context($view, $display_id);
+
   /** @var \Drupal\eonext_kultur_branches\ForeningerListingRegistry $registry */
   $registry = \Drupal::service('eonext_kultur_branches.listing_registry');
   $enabled_nids = $registry->getEnabledNids();
@@ -386,6 +389,57 @@ function eonext_kultur_branches_views_pre_view(ViewExecutable $view, $display_id
 }
 
 /**
+ * When the view is embedded on the foreninger page, fixes path/URL for Views AJAX.
+ */
+function eonext_kultur_branches_views_pre_view_embedded_page_context(ViewExecutable $view, string $display_id): void {
+  if ($display_id !== \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_DISPLAY) {
+    return;
+  }
+
+  if (\Drupal::routeMatch()->getRouteName() === 'view.foreninger.' . $display_id) {
+    return;
+  }
+
+  $nid = _eonext_kultur_branches_foreninger_listing_page_nid();
+  if ($nid === NULL) {
+    return;
+  }
+
+  $request = \Drupal::request();
+  if ($request->attributes->get('_route') === 'views.ajax') {
+    $listing_path = eonext_kultur_branches_foreninger_listing_page_path();
+    if ($listing_path !== NULL) {
+      $view->override_url = Url::fromUserInput($listing_path);
+    }
+    return;
+  }
+
+  if (!empty($view->override_path)) {
+    return;
+  }
+
+  $current = \Drupal::service('path.current')->getPath();
+  $alias = \Drupal::service('path_alias.manager')->getAliasByPath($current);
+  $view->override_path = ltrim($alias !== $current ? $alias : $current, '/');
+  $view->override_url = Url::fromRoute('<current>');
+}
+
+/**
+ * Implements hook_views_pre_render().
+ */
+function eonext_kultur_branches_views_pre_render(ViewExecutable $view): void {
+  if ($view->id() !== \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_ID) {
+    return;
+  }
+
+  if ($view->current_display !== \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_DISPLAY) {
+    return;
+  }
+
+  $view->element['#attached']['library'][] = 'eonext_kultur_branches/foreninger-listing';
+}
+
+/**
  * Implements hook_views_post_execute().
  */
 function eonext_kultur_branches_views_post_execute(ViewExecutable $view): void {
@@ -431,12 +485,103 @@ function eonext_kultur_branches_kultur_site_pages_alter(array &$pages): void {
  */
 function eonext_kultur_branches_is_listing_page(): bool {
   $route = \Drupal::routeMatch()->getRouteName();
-  if ($route === 'view.foreninger.page_1') {
-    return TRUE;
+
+  if ($route === 'entity.node.canonical') {
+    $node = \Drupal::routeMatch()->getParameter('node');
+    if ($node instanceof NodeInterface) {
+      $nid = (int) $node->id();
+      $configured = _eonext_kultur_branches_foreninger_listing_page_nid();
+      if ($configured !== NULL && $nid === $configured && $node->isPublished()) {
+        return TRUE;
+      }
+    }
   }
 
+  // Embedded view on node pages may expose extra view routes (e.g. admin).
   $path = trim(\Drupal::service('path.current')->getPath(), '/');
-  return $path === 'foreninger';
+  if ($path === 'foreninger-view') {
+    return eonext_kultur_branches_foreninger_listing_page_path() !== NULL;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Path of the page node that embeds the foreninger view (e.g. /foreninger).
+ */
+function eonext_kultur_branches_foreninger_listing_page_path(): ?string {
+  $route = \Drupal::routeMatch()->getRouteName();
+  if ($route === 'view.foreninger.' . \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_DISPLAY) {
+    return NULL;
+  }
+
+  $path = \Drupal::service('path.current')->getPath();
+  if ($path === '' || $path === '/views/ajax') {
+    return NULL;
+  }
+
+  return $path;
+}
+
+/**
+ * Returns the node ID configured as the foreninger listing page, if set.
+ */
+function _eonext_kultur_branches_foreninger_listing_page_nid(): ?int {
+  $nid = \Drupal::config('eonext_kultur_branches.settings')->get('foreninger_listing_page_nid');
+  return is_numeric($nid) ? (int) $nid : NULL;
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for field.
+ */
+function eonext_kultur_branches_preprocess_field(array &$variables): void {
+  if (($variables['field_name'] ?? '') !== 'field_paragraphs') {
+    return;
+  }
+
+  foreach ($variables['items'] as &$item) {
+    $paragraph = _eonext_kultur_branches_item_paragraph($item);
+    if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== \Drupal\eonext_kultur_branches\ForeningerConstants::PARAGRAPH_BUNDLE) {
+      continue;
+    }
+
+    $item['content'] = views_embed_view(
+      \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_ID,
+      \Drupal\eonext_kultur_branches\ForeningerConstants::VIEW_DISPLAY
+    );
+    $item['content']['#paragraph'] = $paragraph;
+  }
+}
+
+/**
+ * Resolves the paragraph entity from a field item render array.
+ */
+function _eonext_kultur_branches_item_paragraph(array $item): ?ParagraphInterface {
+  $content = $item['content'] ?? [];
+  $candidates = [
+    $content['#paragraph'] ?? NULL,
+    $content['#entity'] ?? NULL,
+    $content[0]['#paragraph'] ?? NULL,
+    $content[0]['#entity'] ?? NULL,
+  ];
+
+  foreach ($candidates as $candidate) {
+    if ($candidate instanceof ParagraphInterface) {
+      return $candidate;
+    }
+  }
+
+  if (!is_array($content)) {
+    return NULL;
+  }
+
+  foreach (Element::children($content, TRUE) as $child) {
+    if (isset($content[$child]['#paragraph']) && $content[$child]['#paragraph'] instanceof ParagraphInterface) {
+      return $content[$child]['#paragraph'];
+    }
+  }
+
+  return NULL;
 }
 
 /**
@@ -469,22 +614,32 @@ function eonext_kultur_branches_is_branch_detail_page(?array $variables = NULL):
  * Ensures the main menu Foreninger link exists.
  */
 function eonext_kultur_branches_ensure_main_menu_link(): void {
+  $nid = _eonext_kultur_branches_foreninger_listing_page_nid();
+  $uri = 'internal:/foreninger';
+
+  if ($nid !== NULL && ($node = \Drupal::entityTypeManager()->getStorage('node')->load($nid)) instanceof NodeInterface && $node->isPublished()) {
+    $uri = 'entity:node/' . $nid;
+  }
+
   $storage = \Drupal::entityTypeManager()->getStorage('menu_link_content');
   foreach ($storage->loadByProperties(['menu_name' => 'main']) as $link) {
     if (!$link instanceof MenuLinkInterface) {
       continue;
     }
-    if ((string) $link->getTitle() === 'Foreninger') {
-      return;
-    }
-    if (str_starts_with($link->getUrlObject()->toString(), '/foreninger')) {
+    $matches_title = (string) $link->getTitle() === 'Foreninger';
+    $matches_path = str_starts_with($link->getUrlObject()->toString(), '/foreninger');
+    if ($matches_title || $matches_path) {
+      if ($nid !== NULL) {
+        $link->set('link', ['uri' => $uri]);
+        $link->save();
+      }
       return;
     }
   }
 
   $link = MenuLinkContent::create([
     'title' => 'Foreninger',
-    'link' => ['uri' => 'internal:/foreninger'],
+    'link' => ['uri' => $uri],
     'menu_name' => 'main',
     'weight' => 45,
     'langcode' => 'da',

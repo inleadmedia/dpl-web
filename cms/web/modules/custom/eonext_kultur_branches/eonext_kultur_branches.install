@@ -7,10 +7,20 @@
 
 declare(strict_types=1);
 
+use Drupal\Core\Config\FileStorage;
+use Drupal\eonext_kultur_branches\ForeningerConstants;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\Entity\Node;
+use Drupal\node\NodeInterface;
+use Drupal\paragraphs\Entity\Paragraph;
+
 /**
  * Implements hook_install().
  */
 function eonext_kultur_branches_install(): void {
+  eonext_kultur_branches_ensure_foreninger_listing_paragraph();
+  eonext_kultur_branches_enable_foreninger_listing_paragraph();
+  eonext_kultur_branches_create_foreninger_listing_page();
   eonext_kultur_branches_ensure_main_menu_link();
   \Drupal::service('eonext_kultur_branches.listing_registry')->initializeListingItems();
 }
@@ -20,6 +30,129 @@ function eonext_kultur_branches_install(): void {
  */
 function eonext_kultur_branches_update_9001(): void {
   \Drupal::service('eonext_kultur_branches.listing_registry')->initializeListingItems();
+}
+
+/**
+ * Foreninger as a page node, embeds listing; view path moved off /foreninger.
+ */
+function eonext_kultur_branches_update_9002(): string {
+  eonext_kultur_branches_configure_foreninger_view_path();
+  eonext_kultur_branches_ensure_foreninger_listing_paragraph();
+  eonext_kultur_branches_enable_foreninger_listing_paragraph();
+  $msg = eonext_kultur_branches_create_foreninger_listing_page();
+  eonext_kultur_branches_ensure_main_menu_link();
+
+  return $msg;
+}
+
+/**
+ * Imports the foreninger listing paragraph when not already installed.
+ */
+function eonext_kultur_branches_ensure_foreninger_listing_paragraph(): void {
+  $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_branches');
+  $storage = new FileStorage($module_path . '/config/install');
+
+  foreach ([
+    'paragraphs.paragraphs_type.eonext_kultur_foreninger_listing',
+    'core.entity_form_display.paragraph.eonext_kultur_foreninger_listing.default',
+    'core.entity_view_display.paragraph.eonext_kultur_foreninger_listing.default',
+  ] as $config_name) {
+    $data = $storage->read($config_name);
+    if (!$data || !\Drupal::config($config_name)->isNew()) {
+      continue;
+    }
+
+    \Drupal::configFactory()->getEditable($config_name)->setData($data)->save(TRUE);
+  }
+
+  \Drupal::entityTypeManager()->getStorage('paragraphs_type')->resetCache();
+}
+
+/**
+ * Allows the foreninger listing paragraph on page nodes.
+ */
+function eonext_kultur_branches_enable_foreninger_listing_paragraph(): void {
+  $field = FieldConfig::loadByName('node', 'page', 'field_paragraphs');
+  if (!$field instanceof FieldConfig) {
+    return;
+  }
+
+  $bundle = ForeningerConstants::PARAGRAPH_BUNDLE;
+  $settings = $field->getSetting('handler_settings');
+  $settings['target_bundles'][$bundle] = $bundle;
+  $settings['target_bundles_drag_drop'][$bundle] = [
+    'weight' => 84,
+    'enabled' => TRUE,
+  ];
+  $field->setSetting('handler_settings', $settings);
+  $field->save();
+}
+
+/**
+ * Ensures the View page display path is not /foreninger (reserved for the node).
+ */
+function eonext_kultur_branches_configure_foreninger_view_path(): void {
+  $config = \Drupal::configFactory()->getEditable('views.view.foreninger');
+  if ($config->isNew()) {
+    return;
+  }
+  $path = $config->get('display.page_1.display_options.path');
+  if ($path === 'foreninger-view' || $path === NULL) {
+    return;
+  }
+  $config->set('display.page_1.display_options.path', 'foreninger-view')->save(TRUE);
+}
+
+/**
+ * Creates the Foreninger page at /foreninger with an embedded listing paragraph.
+ */
+function eonext_kultur_branches_create_foreninger_listing_page(): string {
+  $existing_nid = \Drupal::config('eonext_kultur_branches.settings')->get('foreninger_listing_page_nid');
+  if (is_numeric($existing_nid)) {
+    $node = \Drupal::entityTypeManager()->getStorage('node')->load((int) $existing_nid);
+    if ($node instanceof NodeInterface && $node->isPublished()) {
+      return 'Foreninger listing page already configured (node ' . $node->id() . ').';
+    }
+  }
+
+  $alias_manager = \Drupal::service('path_alias.manager');
+  $existing_path = $alias_manager->getPathByAlias(ForeningerConstants::LISTING_PATH);
+  if (str_starts_with($existing_path, '/node/')) {
+    $node_storage = \Drupal::entityTypeManager()->getStorage('node');
+    $possible = $node_storage->load((int) substr($existing_path, 6));
+    if ($possible instanceof NodeInterface && $possible->bundle() === 'page') {
+      \Drupal::configFactory()->getEditable('eonext_kultur_branches.settings')
+        ->set('foreninger_listing_page_nid', (int) $possible->id())
+        ->save();
+      eonext_kultur_branches_ensure_main_menu_link();
+
+      return 'Foreninger page already exists at ' . ForeningerConstants::LISTING_PATH . ' (node ' . $possible->id() . ').';
+    }
+  }
+
+  $paragraph = Paragraph::create([
+    'type' => ForeningerConstants::PARAGRAPH_BUNDLE,
+  ]);
+  $node = Node::create([
+    'type' => 'page',
+    'title' => 'Foreninger',
+    'uid' => 1,
+    'status' => 1,
+    'langcode' => \Drupal::languageManager()->getDefaultLanguage()->getId(),
+    'field_display_titles' => 0,
+    'field_paragraphs' => [$paragraph],
+    'path' => [
+      'alias' => ForeningerConstants::LISTING_PATH,
+      'pathauto' => 0,
+    ],
+  ]);
+  $node->save();
+
+  \Drupal::configFactory()->getEditable('eonext_kultur_branches.settings')
+    ->set('foreninger_listing_page_nid', (int) $node->id())
+    ->save();
+
+  return 'Created the foreninger listing page at ' . ForeningerConstants::LISTING_PATH . ' (node ' . $node->id() . ').';
 }
 
 /**

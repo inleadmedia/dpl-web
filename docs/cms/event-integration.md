@@ -84,3 +84,7 @@ using this information when updating events.
 
 Please read [the related ADR](./architecture/adr-012-api-versioning.md) for how
 we handle API versioning.
+
+## Place2Book (Korsor)
+
+[Korsor Place2Book integration](./korsor-place2book-integration.md) — setup, workflow, and estimates.
