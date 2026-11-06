@@ -643,7 +643,10 @@ function eonext_kultur_events_entity_presave(EntityInterface $entity): void {
 }
 
 /**
- * Copies the main event image to the teaser image when an image is set.
+ * Copies the main event image to the teaser image when the teaser is empty.
+ *
+ * Previously this ran on every save, so any distinct teaser/crop was overwritten
+ * by the main image — cards and hero could look "mixed" or wrong after edit.
  */
 function _eonext_kultur_events_sync_teaser_image_from_event_image(EntityInterface $entity): void {
   if (!$entity->hasField('field_event_image') || !$entity->hasField('field_teaser_image')) {
@@ -651,6 +654,10 @@ function _eonext_kultur_events_sync_teaser_image_from_event_image(EntityInterfac
   }
 
   if ($entity->get('field_event_image')->isEmpty()) {
+    return;
+  }
+
+  if (!$entity->get('field_teaser_image')->isEmpty()) {
     return;
   }
 
