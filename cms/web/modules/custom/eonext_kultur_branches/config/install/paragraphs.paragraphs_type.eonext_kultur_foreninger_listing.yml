@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_kultur_branches
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      content_elements: content_elements
+id: eonext_kultur_foreninger_listing
+label: 'Foreninger listing'
+icon_uuid: null
+icon_default: null
+description: 'Embeds the foreninger branches overview used on /foreninger.'
+behavior_plugins: {  }
