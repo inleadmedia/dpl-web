@@ -485,7 +485,7 @@ button.ek-lokale-actions__terms {
   padding-top: 0;
 }
 
-/* Content pages with page hero (e.g. bookingbetingelser). */
+/* Content pages with page hero (e.g. Praktisk, bookingbetingelser). */
 section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body .rich-text {
   max-width: 820px;
   margin-inline: auto;
@@ -493,6 +493,12 @@ section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--tex
   color: var(--ek-navy, #235881);
   font-size: 16px;
   line-height: 1.6;
+  text-align: left;
+}
+
+/* Center only intro (first text_body after hero) or when editor enables "Center text". */
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--eonext_kultur_page_hero + .paragraphs__item--text_body .rich-text,
+section:has(.ek-page-hero):not(:has(.ek-lokaler-listing)) .paragraphs__item--text_body.ek-text-body--centered .rich-text {
   text-align: center;
 }
 

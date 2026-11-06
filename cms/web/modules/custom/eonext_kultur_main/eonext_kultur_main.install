@@ -863,6 +863,27 @@ function eonext_kultur_main_update_9029(): string {
 }
 
 /**
+ * Removes optional manual nav spot link fields (superseded by page-based listing).
+ */
+function eonext_kultur_main_update_9031(): string {
+  foreach (['field_kultur_nav_spot_manual_link_1', 'field_kultur_nav_spot_manual_link_2'] as $field_name) {
+    $field = FieldConfig::loadByName('paragraph', 'nav_spots_manual', $field_name);
+    if ($field instanceof FieldConfig) {
+      $field->delete();
+    }
+  }
+
+  foreach (['field_kultur_nav_spot_manual_link_1', 'field_kultur_nav_spot_manual_link_2'] as $field_name) {
+    $storage = FieldStorageConfig::loadByName('paragraph', $field_name);
+    if ($storage instanceof FieldStorageConfig) {
+      $storage->delete();
+    }
+  }
+
+  return 'Removed manual nav spot link fields; use normal pages for listings like Foreninger.';
+}
+
+/**
  * Enables a paragraph bundle on page nodes.
  */
 function _eonext_kultur_main_enable_page_paragraph_bundle(string $bundle): void {

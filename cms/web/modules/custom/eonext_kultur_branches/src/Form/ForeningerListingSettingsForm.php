@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Drupal\eonext_kultur_branches\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
@@ -22,9 +22,9 @@ final class ForeningerListingSettingsForm extends ConfigFormBase {
 
   public function __construct(
     ConfigFactoryInterface $config_factory,
-    private readonly EntityTypeManagerInterface $entityTypeManager,
+    TypedConfigManagerInterface $typed_config_manager,
   ) {
-    parent::__construct($config_factory);
+    parent::__construct($config_factory, $typed_config_manager);
   }
 
   /**
@@ -33,7 +33,7 @@ final class ForeningerListingSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container): static {
     return new static(
       $container->get('config.factory'),
-      $container->get('entity_type.manager'),
+      $container->get('config.typed'),
     );
   }
 
@@ -175,7 +175,10 @@ final class ForeningerListingSettingsForm extends ConfigFormBase {
       return NULL;
     }
 
-    return $this->entityTypeManager->getStorage('media')->load((int) $media_id);
+    // Do not inject EntityTypeManager on this form: private service properties are
+    // omitted from FormBase serialization and stay uninitialized across AJAX rebuilds
+    // (e.g. media_library upload), which caused "must not be accessed before initialization".
+    return \Drupal::entityTypeManager()->getStorage('media')->load((int) $media_id);
   }
 
 }

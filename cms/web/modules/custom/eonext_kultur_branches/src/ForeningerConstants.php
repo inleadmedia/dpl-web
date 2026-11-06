@@ -13,6 +13,11 @@ final class ForeningerConstants {
 
   public const VIEW_DISPLAY = 'page_1';
 
+  /**
+   * Paragraph bundle that embeds the foreninger listing view on a page node.
+   */
+  public const PARAGRAPH_BUNDLE = 'eonext_kultur_foreninger_listing';
+
   public const LISTING_PATH = '/foreninger';
 
   public const EVENTS_PER_BRANCH = 4;

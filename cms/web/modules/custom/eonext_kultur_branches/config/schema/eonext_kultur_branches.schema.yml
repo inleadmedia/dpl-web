@@ -2,6 +2,9 @@ eonext_kultur_branches.settings:
   type: config_object
   label: 'Kultur foreninger listing settings'
   mapping:
+    foreninger_listing_page_nid:
+      type: integer
+      label: 'Foreninger listing page node ID'
     hero_heading:
       type: string
       label: 'Hero heading'

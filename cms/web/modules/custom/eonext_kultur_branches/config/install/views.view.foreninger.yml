@@ -14,7 +14,7 @@ dependencies:
 id: foreninger
 label: Foreninger
 module: views
-description: 'Lists promoted branches with upcoming events on /foreninger.'
+description: 'Lists promoted branches with upcoming events on pages embedding this view.'
 tag: ''
 base_table: node_field_data
 base_field: nid
@@ -137,7 +137,7 @@ display:
     position: 1
     display_options:
       display_extenders: {  }
-      path: foreninger
+      path: foreninger-view
     cache_metadata:
       max-age: -1
       contexts:

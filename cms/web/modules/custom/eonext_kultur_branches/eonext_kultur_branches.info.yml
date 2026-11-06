@@ -7,6 +7,7 @@ dependencies:
   - drupal:node
   - drupal:views
   - drupal:user
+  - paragraphs:paragraphs
   - eonext_kultur_events:eonext_kultur_events
   - eonext_kultur_locale:eonext_kultur_locale
   - eonext_kultur_main:eonext_kultur_main
