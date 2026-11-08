@@ -563,7 +563,47 @@ display:
             multiple: 0
           break_phrase: true
           not: false
-      filters: {  }
+      filters:
+        status:
+          id: status
+          table: users_field_data
+          field: status
+          relationship: uid
+          group_type: group
+          admin_label: ''
+          entity_type: user
+          entity_field: status
+          plugin_id: boolean
+          operator: '='
+          value: '1'
+          group: 1
+          exposed: false
+          expose:
+            operator_id: ''
+            label: Active
+            description: ''
+            use_operator: false
+            operator: status_op
+            operator_limit_selection: false
+            operator_list: {  }
+            identifier: status
+            required: false
+            remember: false
+            multiple: false
+            remember_roles:
+              authenticated: authenticated
+          is_grouped: false
+          group_info:
+            label: ''
+            description: ''
+            identifier: ''
+            optional: true
+            widget: select
+            multiple: false
+            remember: false
+            default_group: All
+            default_group_multiple: {  }
+            group_items: {  }
       style:
         type: html_list
         options:
@@ -604,6 +644,17 @@ display:
           admin_label: 'field_department: Taxonomy term'
           plugin_id: standard
           required: false
+        uid:
+          id: uid
+          table: eonext_library_staff
+          field: uid
+          relationship: none
+          group_type: group
+          admin_label: User
+          entity_type: eonext_library_staff
+          entity_field: uid
+          plugin_id: standard
+          required: true
       header: {  }
       footer: {  }
       display_extenders: {  }
