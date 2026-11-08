@@ -5,6 +5,7 @@
  * Library staff logic.
  */
 
+use Drupal\Core\Cache\Cache;
 use Drupal\eonext_staff\Entity\LibraryStaff;
 use Drupal\paragraphs\ParagraphInterface;
 use Drupal\user\UserInterface;
@@ -137,6 +138,41 @@ function eonext_staff_preprocess_views_view_field(array &$variables): void {
       'class' => ['eonext-library-staff__name-link'],
     ],
   ];
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for user entities.
+ *
+ * When a linked user is blocked or unblocked, invalidate staff caches so the
+ * public listing and profile access update immediately.
+ */
+function eonext_staff_user_update(UserInterface $account): void {
+  if (!isset($account->original) || !$account->original instanceof UserInterface) {
+    return;
+  }
+
+  if ($account->isActive() === $account->original->isActive()) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('eonext_library_staff');
+  $staff_ids = $storage->getQuery()
+    ->condition('uid', $account->id())
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if ($staff_ids === []) {
+    return;
+  }
+
+  $cache_tags = ['eonext_library_staff_list'];
+  foreach ($staff_ids as $staff_id) {
+    $cache_tags[] = 'eonext_library_staff:' . $staff_id;
+  }
+  Cache::invalidateTags($cache_tags);
+  \Drupal::entityTypeManager()
+    ->getAccessControlHandler('eonext_library_staff')
+    ->resetCache();
 }
 
 /**
