@@ -1,2 +1,9 @@
+administer eonext_library_staff:
+  title: 'Administer library staff'
+  restrict access: true
+
 edit eonext_library_staff:
   title: 'Edit library staff'
+
+delete eonext_library_staff:
+  title: 'Delete library staff'

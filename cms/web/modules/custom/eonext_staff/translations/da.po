@@ -29,3 +29,18 @@ msgstr "Filtrer efter filialer"
 
 msgid "If nothing is selected, staff from all branches will be shown."
 msgstr "Hvis intet er valgt, vises medarbejdere fra alle filialer."
+
+msgid "Administer library staff"
+msgstr "Administrer bibliotekspersonale"
+
+msgid "Edit library staff"
+msgstr "Rediger bibliotekspersonale"
+
+msgid "Delete library staff"
+msgstr "Slet bibliotekspersonale"
+
+msgid "Are you sure you want to delete the staff profile for %label?"
+msgstr "Er du sikker på, at du vil slette medarbejderprofilen for %label?"
+
+msgid "The staff profile for %label has been deleted. The user account was not deleted."
+msgstr "Medarbejderprofilen for %label er blevet slettet. Brugerkontoen blev ikke slettet."

@@ -26,4 +26,16 @@ final class LibraryStaffHtmlRouteProvider extends DefaultHtmlRouteProvider {
     return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDeleteFormRoute(EntityTypeInterface $entity_type): ?Route {
+    if ($route = parent::getDeleteFormRoute($entity_type)) {
+      $route->setOption('_admin_route', TRUE);
+      return $route;
+    }
+
+    return NULL;
+  }
+
 }
