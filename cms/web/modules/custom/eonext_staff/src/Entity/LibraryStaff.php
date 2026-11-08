@@ -22,6 +22,7 @@ use Drupal\eonext_staff\LibraryStaffInterface;
  *     "access" = "Drupal\eonext_staff\LibraryStaffAccessControlHandler",
  *     "form" = {
  *       "edit" = "Drupal\eonext_staff\Form\LibraryStaffForm",
+ *       "delete" = "Drupal\eonext_staff\Form\LibraryStaffDeleteForm",
  *     },
  *     "route_provider" = {
  *       "html" = "Drupal\eonext_staff\Routing\LibraryStaffHtmlRouteProvider",
@@ -37,6 +38,7 @@ use Drupal\eonext_staff\LibraryStaffInterface;
  *   },
  *   links = {
  *     "canonical" = "/staff/{eonext_library_staff}",
+ *     "delete-form" = "/staff/{eonext_library_staff}/delete",
  *   },
  *   field_ui_base_route = "entity.eonext_library_staff.settings",
  * )

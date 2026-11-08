@@ -46,3 +46,13 @@ function eonext_staff_post_update_interest_description_rich_text(): string {
 
   return 'Interest description rich text field is configured.';
 }
+
+/**
+ * Hide staff linked to blocked users from the public staff listing.
+ */
+function eonext_staff_post_update_filter_staff_by_active_users(): string {
+  \Drupal::moduleHandler()->loadInclude('eonext_staff', 'install');
+  eonext_staff_update_staff_view_active_users();
+
+  return 'Staff view now excludes staff linked to blocked user accounts.';
+}
