@@ -12,6 +12,10 @@
 #   SKIP_REACT_BUILD=true   (DDEV — skip React OOM)
 #   SKIP_LOCALE=1           skip locale import at end
 #
+# Data safety: no SQL truncate of content; only legacy config/schema fixes.
+#   Nodes, paragraphs, media, users (except orphan removed fields), branch/lokale stay.
+#   eonext_kultur.settings: backup in state, restore after cim.
+#
 set -euo pipefail
 
 CMS_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -36,6 +40,7 @@ use Drupal\Core\Extension\Exception\UnknownExtensionException;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\taxonomy\Entity\Term;
 use Drupal\user\Entity\Role;
 
 $step = getenv('KORSOR_STEP') ?: '';
@@ -161,71 +166,69 @@ switch ($step) {
     break;
 
   case 'purge_cim_legacy_blockers':
-    // Old Korsør DB: event engine, org workflows/vocab, ee_frontend — not in branch sync.
-    $etm = \Drupal::entityTypeManager();
+    // Config-only cleanup for cim (no SQL truncate — nodes/paragraphs/users stay intact).
+    // Legacy: eonext_event_engine, org approval workflows, ee_frontend — not in branch sync.
     $deleted = [];
+    $etm = \Drupal::entityTypeManager();
     foreach (['organization_category', 'organization_categories'] as $vid) {
       if (!$etm->getStorage('taxonomy_vocabulary')->load($vid)) {
         continue;
       }
-      $tids = $etm->getStorage('taxonomy_term')->getQuery()
-        ->accessCheck(FALSE)
-        ->condition('vid', $vid)
-        ->execute();
-      if ($tids !== []) {
-        $etm->getStorage('taxonomy_term')->delete(
-          $etm->getStorage('taxonomy_term')->loadMultiple($tids),
-        );
-        $deleted[] = 'terms:' . $vid;
+      try {
+        $tids = $etm->getStorage('taxonomy_term')->getQuery()
+          ->accessCheck(FALSE)
+          ->condition('vid', $vid)
+          ->execute();
+        if ($tids !== []) {
+          $etm->getStorage('taxonomy_term')->delete(
+            $etm->getStorage('taxonomy_term')->loadMultiple($tids),
+          );
+          $deleted[] = 'taxonomy_terms:' . $vid . ':' . count($tids);
+        }
       }
-    }
-    if ($etm->hasDefinition('content_moderation_state')) {
-      $state_storage = $etm->getStorage('content_moderation_state');
-      $state_ids = $state_storage->getQuery()->accessCheck(FALSE)->execute();
-      if ($state_ids !== []) {
-        $state_storage->delete($state_storage->loadMultiple($state_ids));
-        $deleted[] = 'content_moderation_state';
+      catch (Throwable $e) {
+        echo "taxonomy {$vid}: {$e->getMessage()} (config cleanup may still allow cim).\n";
       }
     }
     if ($etm->hasDefinition('workflow')) {
-      $workflow_storage = $etm->getStorage('workflow');
       foreach (['organization_approval', 'events_approval'] as $wid) {
-        $workflow = $workflow_storage->load($wid);
-        if ($workflow) {
-          $workflow->delete();
+        try {
+          $etm->getStorage('workflow')->load($wid)?->delete();
           $deleted[] = 'workflow:' . $wid;
+        }
+        catch (Throwable) {
         }
       }
     }
-    foreach (['workflow_transition', 'workflow_type'] as $entity_type_id) {
-      if (!$etm->hasDefinition($entity_type_id)) {
-        continue;
-      }
-      $storage = $etm->getStorage($entity_type_id);
-      $ids = $storage->getQuery()->accessCheck(FALSE)->execute();
-      if ($ids !== []) {
-        $storage->delete($storage->loadMultiple($ids));
-        $deleted[] = $entity_type_id;
+    $config_storage = \Drupal::service('config.storage');
+    $config_prefixes = [
+      'workflow.',
+      'field.field.municipality.',
+      'field.storage.municipality.',
+      'field.field.organization_event.',
+      'field.storage.organization_event.',
+      'core.entity_form_display.municipality.',
+      'core.entity_view_display.municipality.',
+      'core.entity_form_display.organization_event.',
+      'core.entity_view_display.organization_event.',
+      'eonext_event_engine.',
+      'municipality.',
+      'organization_event.',
+      'taxonomy.vocabulary.organization_category',
+      'taxonomy.vocabulary.organization_categories',
+    ];
+    foreach ($config_prefixes as $prefix) {
+      foreach ($config_storage->listAll($prefix) as $name) {
+        \Drupal::configFactory()->getEditable($name)->delete();
+        $deleted[] = $name;
       }
     }
-    $config_storage = \Drupal::service('config.storage');
-    $config_names = array_unique(array_merge(
-      $config_storage->listAll('workflow.'),
-      $config_storage->listAll('field.field.municipality.'),
-      $config_storage->listAll('field.storage.municipality.'),
-      $config_storage->listAll('field.field.organization_event.'),
-      $config_storage->listAll('field.storage.organization_event.'),
-      $config_storage->listAll('eonext_event_engine.'),
-      $config_storage->listAll('municipality.'),
-      $config_storage->listAll('organization_event.'),
-      $config_storage->listAll('taxonomy.vocabulary.organization_categor'),
-    ));
-    foreach ($config_names as $name) {
-      if (!preg_match('/organization_categor|organization_approval|events_approval|municipality|organization_event|eonext_event_engine|^workflow\./', $name)) {
-        continue;
+    foreach ($config_storage->listAll('block.block.') as $block_name) {
+      $theme = \Drupal::configFactory()->get($block_name)->get('theme');
+      if ($theme === 'ee_frontend') {
+        \Drupal::configFactory()->getEditable($block_name)->delete();
+        $deleted[] = $block_name;
       }
-      \Drupal::configFactory()->getEditable($name)->delete();
-      $deleted[] = $name;
     }
     $extension = \Drupal::configFactory()->getEditable('core.extension');
     $modules = $extension->get('module') ?? [];
@@ -277,6 +280,134 @@ switch ($step) {
     }
     $count = count($deleted);
     echo $count === 0 ? "No CIM legacy blockers.\n" : "Purged {$count} CIM blocker item(s).\n";
+    break;
+
+  case 'prepare_user_config_for_cim':
+    // Legacy event-engine roles/fields on user — not in branch sync (cim deletes them).
+    $cf = \Drupal::configFactory();
+    $sync = new FileStorage(DRUPAL_ROOT . '/../config/sync');
+    foreach (['employee', 'organisation_member', 'organisation_owner'] as $rid) {
+      $name = 'user.role.' . $rid;
+      if (!$cf->get($name)->isNew()) {
+        $cf->getEditable($name)->delete();
+        echo "Deleted legacy role config {$name}.\n";
+      }
+    }
+    $legacy_fields = ['field_user_organization', 'field_user_phone'];
+    foreach ($cf->listAll('core.entity_') as $display_name) {
+      if (!str_contains($display_name, '.user.user.')) {
+        continue;
+      }
+      $display = $cf->getEditable($display_name);
+      $data = $display->getRawData();
+      $changed = FALSE;
+      foreach ($legacy_fields as $field_name) {
+        $dep = 'field.field.user.user.' . $field_name;
+        foreach (['content', 'hidden'] as $section) {
+          if (isset($data[$section][$field_name])) {
+            unset($data[$section][$field_name]);
+            $changed = TRUE;
+          }
+        }
+        if (isset($data['dependencies']['config'])) {
+          $before = count($data['dependencies']['config']);
+          $data['dependencies']['config'] = array_values(array_filter(
+            $data['dependencies']['config'],
+            static fn (string $item): bool => $item !== $dep,
+          ));
+          if (count($data['dependencies']['config']) !== $before) {
+            $changed = TRUE;
+          }
+        }
+      }
+      if ($changed) {
+        $display->setData($data)->save();
+        echo "Cleaned {$display_name}.\n";
+      }
+    }
+    foreach (['core.entity_form_display.user.user.default', 'core.entity_view_display.user.user.default'] as $name) {
+      $data = $sync->read($name);
+      if ($data) {
+        $cf->getEditable($name)->setData($data)->save(TRUE);
+        echo "Pre-applied {$name} from sync.\n";
+      }
+    }
+    $register = $sync->read('core.entity_form_display.user.user.register');
+    if ($register) {
+      $cf->getEditable('core.entity_form_display.user.user.register')->setData($register)->save(TRUE);
+    }
+    elseif (!$cf->get('core.entity_form_display.user.user.register')->isNew()) {
+      $cf->getEditable('core.entity_form_display.user.user.register')->delete();
+    }
+    foreach ($legacy_fields as $field_name) {
+      foreach (["field.field.user.user.{$field_name}", "field.storage.user.{$field_name}"] as $name) {
+        if (!$cf->get($name)->isNew()) {
+          $cf->getEditable($name)->delete();
+          echo "Deleted {$name}.\n";
+        }
+      }
+    }
+    break;
+
+  case 'delete_kultur_theme_settings_before_cim':
+    // Theme settings only (placeholder colors etc.) — NOT nodes/paragraphs/slider module settings.
+    $name = 'eonext_kultur.settings';
+    $config = \Drupal::configFactory()->get($name);
+    if (!$config->isNew()) {
+      $raw = $config->getRawData();
+      if ($raw !== []) {
+        \Drupal::state()->set('korsor_backup.eonext_kultur.settings', $raw);
+        echo "Backed up {$name} to state (korsor_backup).\n";
+      }
+      \Drupal::configFactory()->getEditable($name)->delete();
+      echo "Removed {$name} temporarily so cim can run; restored after theme:enable.\n";
+    }
+    break;
+
+  case 'restore_kultur_theme_settings':
+    $backup = \Drupal::state()->get('korsor_backup.eonext_kultur.settings');
+    if (!is_array($backup) || $backup === []) {
+      echo "No kultur theme settings backup to restore.\n";
+      break;
+    }
+    \Drupal::configFactory()->getEditable('eonext_kultur.settings')->setData($backup)->save(TRUE);
+    \Drupal::state()->delete('korsor_backup.eonext_kultur.settings');
+    echo "Restored eonext_kultur.settings from backup.\n";
+    break;
+
+  case 'preapply_sync_roles_and_theme':
+    // Active DB roles still reference removed workflows — branch sync does not.
+    $sync = new FileStorage(DRUPAL_ROOT . '/../config/sync');
+    foreach (['administrator', 'editor', 'local_administrator'] as $rid) {
+      $name = 'user.role.' . $rid;
+      $data = $sync->read($name);
+      if (!$data) {
+        continue;
+      }
+      \Drupal::configFactory()->getEditable($name)->setData($data)->save(TRUE);
+      echo "Pre-applied {$name} from sync.\n";
+    }
+    foreach (['system.theme'] as $name) {
+      $data = $sync->read($name);
+      if ($data) {
+        \Drupal::configFactory()->getEditable($name)->setData($data)->save(TRUE);
+        echo "Pre-applied {$name} from sync.\n";
+      }
+    }
+    $sync_ext = $sync->read('core.extension');
+    if (is_array($sync_ext)) {
+      $ext = \Drupal::configFactory()->getEditable('core.extension');
+      $modules = $ext->get('module') ?? [];
+      $themes = $sync_ext['theme'] ?? [];
+      foreach (['eonext_event_engine', 'address_dawa', 'ee_frontend'] as $ghost) {
+        unset($modules[$ghost]);
+      }
+      unset($themes['ee_frontend']);
+      asort($modules);
+      asort($themes);
+      $ext->set('module', $modules)->set('theme', $themes)->save();
+      echo "Aligned core.extension themes with sync (no ee_frontend).\n";
+    }
     break;
 
   case 'prune_stale_event_config':
@@ -784,17 +915,132 @@ switch ($step) {
     echo "Ensured service_message field storage/config.\n";
     break;
 
-  case 'import_audiences_vocab':
-    $sync = \Drupal::service('config.storage.sync');
-    foreach (['taxonomy.vocabulary.audiences', 'language.content_settings.taxonomy_term.audiences'] as $name) {
-      $data = $sync->read($name);
+  case 'ensure_audiences_vocab':
+    // DPL deploy hook installs default audience terms before vocabulary exists in Korsør sync.
+    $sync = new FileStorage(DRUPAL_ROOT . '/../config/sync');
+    $config_factory = \Drupal::configFactory();
+    $vocab = $config_factory->get('taxonomy.vocabulary.audiences');
+    if (!$vocab->get('uuid')) {
+      $data = $sync->read('taxonomy.vocabulary.audiences');
       if (!$data) {
-        echo "Skip (not in sync): {$name}\n";
+        $data = [
+          'uuid' => \Drupal::service('uuid')->generate(),
+          'langcode' => 'da',
+          'status' => TRUE,
+          'dependencies' => ['module' => ['flat_taxonomy']],
+          'third_party_settings' => [
+            'flat_taxonomy' => ['flat' => 1],
+          ],
+          'name' => 'Målgrupper',
+          'vid' => 'audiences',
+          'description' => 'Målgrupper, f.eks "børn", "unge", "voksne"',
+          'weight' => 0,
+          'new_revision' => FALSE,
+        ];
+        echo "Bootstrapped taxonomy.vocabulary.audiences.\n";
+      }
+      else {
+        echo "Imported taxonomy.vocabulary.audiences from sync.\n";
+      }
+      $config_factory->getEditable('taxonomy.vocabulary.audiences')->setData($data)->save();
+    }
+    $lcs = 'language.content_settings.taxonomy_term.audiences';
+    if (!$config_factory->get($lcs)->get('uuid')) {
+      $data = $sync->read($lcs);
+      if (!$data) {
+        $data = [
+          'uuid' => \Drupal::service('uuid')->generate(),
+          'langcode' => 'en',
+          'status' => TRUE,
+          'dependencies' => [
+            'config' => ['taxonomy.vocabulary.audiences'],
+          ],
+          'id' => 'taxonomy_term.audiences',
+          'target_entity_type_id' => 'taxonomy_term',
+          'target_bundle' => 'audiences',
+          'default_langcode' => 'da',
+          'language_alterable' => FALSE,
+        ];
+        echo "Bootstrapped {$lcs}.\n";
+      }
+      else {
+        echo "Imported {$lcs} from sync.\n";
+      }
+      $config_factory->getEditable($lcs)->setData($data)->save();
+    }
+    $count = (int) \Drupal::entityQuery('taxonomy_term')
+      ->accessCheck(FALSE)
+      ->condition('vid', 'audiences')
+      ->count()
+      ->execute();
+    if ($count === 0) {
+      foreach (['Børn', 'Unge', 'Voksne'] as $label) {
+        Term::create(['vid' => 'audiences', 'name' => $label])->save();
+      }
+      echo "Created default audience terms (Børn, Unge, Voksne).\n";
+    }
+    else {
+      echo "Audience terms already present ({$count}).\n";
+    }
+    break;
+
+  case 'ensure_gsearch_enabled':
+    if (!\Drupal::moduleHandler()->moduleExists('gsearch')) {
+      \Drupal::service('module_installer')->install(['gsearch']);
+      echo "Enabled gsearch (core.extension is config-ignored).\n";
+    }
+    else {
+      echo "gsearch already enabled.\n";
+    }
+    break;
+
+  case 'skip_dpl_deploy_uninstall_gsearch':
+    // Korsør keeps gsearch field config (config_ignore); do not uninstall gsearch on deploy.
+    $kv = \Drupal::keyValue('deploy_hook');
+    $done = $kv->get('dpl_update') ?: [];
+    if (!in_array('dpl_update_deploy_uninstall_gsearch', $done, TRUE)) {
+      $done[] = 'dpl_update_deploy_uninstall_gsearch';
+      $kv->set('dpl_update', array_values($done));
+      echo "Marked dpl_update_deploy_uninstall_gsearch skipped (Korsør).\n";
+    }
+    else {
+      echo "Deploy hook uninstall_gsearch already recorded.\n";
+    }
+    $installer = \Drupal::service('module_installer');
+    if (!\Drupal::moduleHandler()->moduleExists('gsearch')) {
+      $installer->install(['gsearch']);
+      echo "Re-enabled gsearch module.\n";
+    }
+    break;
+
+  case 'fix_stale_address_gsearch_plugins':
+    // After partial DPL migration, active config may still reference the removed plugin.
+    $replace_in_array = static function (array &$data) use (&$replace_in_array): bool {
+      $changed = FALSE;
+      foreach ($data as $key => &$value) {
+        if (is_array($value)) {
+          if ($replace_in_array($value)) {
+            $changed = TRUE;
+          }
+        }
+        elseif ($value === 'address_gsearch') {
+          $data[$key] = 'dk_address';
+          $changed = TRUE;
+        }
+      }
+      return $changed;
+    };
+    $fixed = [];
+    foreach (\Drupal::configFactory()->listAll() as $name) {
+      $editable = \Drupal::configFactory()->getEditable($name);
+      $data = $editable->getRawData();
+      if ($data === [] || !$replace_in_array($data)) {
         continue;
       }
-      \Drupal::configFactory()->getEditable($name)->setData($data)->save();
-      echo "Imported: {$name}\n";
+      $editable->setData($data)->save();
+      $fixed[] = $name;
     }
+    echo $fixed === [] ? "No stale address_gsearch plugins.\n" : 'Fixed plugins in: ' . implode(', ', $fixed) . "\n";
     break;
 
   case 'import_unilogin_role':
@@ -876,6 +1122,7 @@ drush_y sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE 
 run_php prune_missing_extensions
 run_php remove_address_dawa
 run_php prune_missing_extensions
+run_php ensure_router_alias_column
 
 echo "════════════════════════════════════════════════════════════"
 echo " varnish_purger (temporary)"
@@ -917,11 +1164,19 @@ echo "════════════════════════�
 run_php protect_kultur_config
 run_php delete_stale_organization
 run_php purge_cim_legacy_blockers
+run_php prepare_user_config_for_cim
+run_php ensure_gsearch_enabled
+run_php preapply_sync_roles_and_theme
+run_php delete_kultur_theme_settings_before_cim
 run_php prune_stale_event_config
 if ! drush_y cim -y; then
   run_php protect_kultur_config
   run_php delete_stale_organization
   run_php purge_cim_legacy_blockers
+  run_php prepare_user_config_for_cim
+  run_php ensure_gsearch_enabled
+  run_php preapply_sync_roles_and_theme
+  run_php delete_kultur_theme_settings_before_cim
   run_php prune_stale_event_config
   drush_y cim -y
 fi
@@ -931,17 +1186,23 @@ echo " post-cim + deploy:hook"
 echo "════════════════════════════════════════════════════════════"
 run_php restore_kultur_sliders
 run_php ensure_service_message_config
-run_php import_audiences_vocab
+run_php ensure_audiences_vocab
+run_php skip_dpl_deploy_uninstall_gsearch
 run_php import_unilogin_role
 if ! drush_y deploy:hook -y; then
-  run_php import_audiences_vocab
+  run_php ensure_audiences_vocab
+  run_php skip_dpl_deploy_uninstall_gsearch
   run_php import_unilogin_role
   drush_y deploy:hook -y
 fi
+run_php fix_stale_address_gsearch_plugins
 
 echo "════════════════════════════════════════════════════════════"
 echo " theme + sliders + cleanup"
 echo "════════════════════════════════════════════════════════════"
+run_php fix_stale_address_gsearch_plugins
+drush_y theme:enable eonext_kultur -y
+run_php restore_kultur_theme_settings
 drush_y config:set system.theme default eonext_kultur -y
 run_php resync_slider_view_modes
 drush_y pm-uninstall varnish_purger -y
