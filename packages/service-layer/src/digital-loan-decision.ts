@@ -1,0 +1,69 @@
+import { createBiblioClient } from "../biblio/src"
+import { resolveBiblioConfig } from "./internal/resolveBiblioConfig"
+import type { LoanDecision, LoanDecisionStatus, ServiceLayerConfig } from "./types"
+
+// Whether the user can borrow a material right now. The answer covers both the
+// material (is it available?) and the user (quota, lending blocks), so callers
+// must pick the part they care about - see isMaterialAvailable.
+export async function getDigitalLoanDecision(
+  config: ServiceLayerConfig,
+  materialId: string
+): Promise<LoanDecision> {
+  try {
+    const biblio = createBiblioClient(resolveBiblioConfig(config))
+    return await biblio.getLoanDecision(materialId)
+  } catch (error) {
+    // Said out loud, because the page only shows a failed decision as an
+    // unavailable material - see digitalLoanDecisionQuery.
+    console.error("Biblio loan decision failed", error)
+    throw error
+  }
+}
+
+/**
+ * Whether the MATERIAL itself can be borrowed right now.
+ *
+ * Statuses that describe the user rather than the material - an exhausted
+ * quota, blocked lending, missing credentials - leave the material itself
+ * available. This mirrors Publizon, where status 0 ("not loanable, max loans
+ * reached") is also counted as available.
+ */
+export const isMaterialAvailable = (status: LoanDecisionStatus): boolean => {
+  switch (status) {
+    case "loanable":
+    case "monthly_limit_exceeded":
+    case "concurrent_limit_exceeded":
+    case "no_valid_credentials":
+    case "lending_blocked":
+      return true
+    // "reservable" is equivalent to Publizon's status 5 (reservation queue).
+    // A status this package does not know is not promised as available.
+    default:
+      return false
+  }
+}
+
+/**
+ * Whether the user can borrow the material right now - the loan button's
+ * answer, so a spent quota counts as "no", as with Publizon's status 0.
+ */
+export const isMaterialLoanable = (status: LoanDecisionStatus): boolean => status === "loanable"
+
+/**
+ * Whether the user can join the queue for the material.
+ *
+ * A wishable material is deliberately excluded: wishing is not reserving, and
+ * there is no Publizon equivalent to render it with.
+ */
+export const isMaterialReservable = (status: LoanDecisionStatus): boolean => status === "reservable"
+
+/**
+ * Whether the adapter acted on a loan or reservation request.
+ *
+ * `POST /v1/loans` and `POST /v1/reservations` answer 200/201 with a decision
+ * rather than an HTTP error when they refuse, so the status is the only thing
+ * separating "you are queued" from "your quota is spent". Only the two
+ * statuses that mean the request could be fulfilled count as granted.
+ */
+export const isRequestGranted = (status: LoanDecisionStatus): boolean =>
+  status === "loanable" || status === "reservable"

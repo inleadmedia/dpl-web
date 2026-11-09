@@ -1,5 +1,22 @@
-import withPlaiceholder from "@plaiceholder/next"
+import path from "path"
 import { env } from "process"
+import { fileURLToPath } from "url"
+
+// Force singleton instances of packages that hold React/QueryClient context.
+// Workspace packages (e.g. dpl-service-layer) resolve through their symlink
+// to their own directory, whose node_modules holds their own dev copies of
+// these. Without the aliases those copies load as a second instance at
+// runtime, which breaks any React context (QueryClientContext, etc.) shared
+// across the boundary. tsconfig.json mirrors this for @tanstack/react-query
+// types.
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const singletonModules = ["react", "react-dom", "@tanstack/react-query"]
+// Turbopack expects paths relative to the project root (no leading slash).
+const turbopackAliases = Object.fromEntries(singletonModules.map(m => [m, `./node_modules/${m}`]))
+// Webpack accepts absolute paths.
+const webpackAliases = Object.fromEntries(
+  singletonModules.map(m => [m, path.resolve(__dirname, "node_modules", m)])
+)
 
 function dynamicAllowedHostnames() {
   const allowed = []
@@ -26,6 +43,7 @@ function dynamicAllowedHostnames() {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ["@danskernesdigitalebibliotek/dpl-service-layer"],
   cacheComponents: true,
   typescript: {
     // @todo This is a temporary solution!!
@@ -34,6 +52,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   turbopack: {
+    resolveAlias: turbopackAliases,
     rules: {
       "*.svg": {
         loaders: [
@@ -48,14 +67,16 @@ const nextConfig = {
       },
     },
   },
+  webpack: config => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      ...webpackAliases,
+    }
+    return config
+  },
   images: {
     unoptimized: env.NODE_ENV !== "production",
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**",
-      },
       {
         protocol: "https",
         hostname: "fbiinfo-present.dbc.dk",
@@ -71,4 +92,4 @@ const nextConfig = {
   },
 }
 
-export default withPlaiceholder(nextConfig)
+export default nextConfig

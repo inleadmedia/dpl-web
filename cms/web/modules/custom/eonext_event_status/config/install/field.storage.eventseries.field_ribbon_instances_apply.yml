@@ -1,0 +1,22 @@
+uuid: f1bf90af-cdda-4329-9cfb-b11d247339ad
+langcode: en
+status: true
+dependencies:
+  module:
+  - recurring_events
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
+id: eventseries.field_ribbon_instances_apply
+field_name: field_ribbon_instances_apply
+entity_type: eventseries
+type: boolean
+settings: {}
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {}
+persist_with_no_fields: false
+custom_storage: false

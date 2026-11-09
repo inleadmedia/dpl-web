@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { first, orderBy, uniq } from "lodash";
 import { vi } from "vitest";
 import { CoverProps } from "../../../components/cover/cover";
@@ -13,7 +12,10 @@ import { FaustId, Pid } from "../types/ids";
 import { getUrlQueryParam } from "./url";
 import { LoanType } from "../types/loan-type";
 import { ListType } from "../types/list-type";
-import { ManifestationReviewFieldsFragment } from "../../dbc-gateway/generated/graphql";
+import {
+  FictionNonfictionCodeEnum,
+  ManifestationReviewFieldsFragment
+} from "../../dbc-gateway/generated/graphql";
 import { FeeV2 } from "../../fbs/model/feeV2";
 import { ReservationType } from "../types/reservation-type";
 import { ManifestationMaterialType } from "../types/material-type";
@@ -33,6 +35,20 @@ export const getManifestationPublicationYear = (
   return manifestation.edition?.publicationYear?.display || null;
 };
 
+// Parses the edition number from the edition summary. The number can appear
+// anywhere in the string and the FBI data leads with the year, e.g.
+// "2025 (167. ajourførte udgave)" -> 167. Returns null when no "N. udgave"
+// pattern is present so the caller can fall back to leaving the order
+// untouched.
+export const getManifestationEditionNumber = (
+  manifestation: Manifestation
+): number | null => {
+  const match = manifestation.edition?.summary?.match(
+    /(\d+)\.\s*(?:\S+\s+)?udgave/i
+  );
+  return match ? Number(match[1]) : null;
+};
+
 export const orderManifestationsByYear = (
   manifestations: Manifestation[],
   order: "asc" | "desc" = "desc"
@@ -40,10 +56,22 @@ export const orderManifestationsByYear = (
   return manifestations.sort((a, b) => {
     const currentDate = Number(getManifestationPublicationYear(a));
     const prevDate = Number(getManifestationPublicationYear(b));
-    if (order === "desc") {
-      return prevDate - currentDate;
+    const yearComparison =
+      order === "desc" ? prevDate - currentDate : currentDate - prevDate;
+    if (yearComparison !== 0) {
+      return yearComparison;
     }
-    return currentDate - prevDate;
+    // Tiebreaker: for editions sharing a publication year, order by edition
+    // number (e.g. "167. udgave" before "166. udgave") to match bibliotek.dk
+    // and ensure "latest edition" picks the actual newest one.
+    const currentEdition = getManifestationEditionNumber(a);
+    const prevEdition = getManifestationEditionNumber(b);
+    if (currentEdition === null || prevEdition === null) {
+      return 0;
+    }
+    return order === "desc"
+      ? prevEdition - currentEdition
+      : currentEdition - prevEdition;
   });
 };
 
@@ -51,14 +79,6 @@ export const flattenCreators = (creators: WorkSmall["creators"]) =>
   creators.map((creator) => {
     return creator.display;
   });
-
-const getCreatorsFromManifestations = (manifestations: Manifestation[]) => {
-  const creators = manifestations.reduce<string[]>((acc: string[], curr) => {
-    return [...acc, ...flattenCreators(curr.creators)];
-  }, [] as string[]);
-
-  return Array.from(new Set(creators)) as string[];
-};
 
 export const creatorsToString = (
   creators: string[],
@@ -74,36 +94,9 @@ export const creatorsToString = (
   return "";
 };
 
-export const getCreatorTextFromManifestations = (
-  manifestations: Manifestation[],
-  t: UseTextFunction
-) => {
-  const creators = getCreatorsFromManifestations(manifestations);
-
-  return creatorsToString(creators, t);
-};
-
-// We deliberately left this function here although we don't use it anywhere in the
-// project. It can be used if ever needed to retrieve a chronologically oldest edition,
-// provided a manifestation object.
-export const getFirstPublishedManifestation = (
-  manifestations: Manifestation[]
-) => {
-  const ordered = orderManifestationsByYear(manifestations, "asc");
-  return ordered[0];
-};
-
 export const getLatestManifestation = (manifestations: Manifestation[]) => {
   const ordered = orderManifestationsByYear(manifestations, "desc");
   return ordered[0];
-};
-
-export const getFirstPublishedYear = (manifestations: Manifestation[]) => {
-  return String(
-    getManifestationPublicationYear(
-      getFirstPublishedManifestation(manifestations)
-    )
-  );
 };
 
 // This function is used to find the most representative pid of a work.
@@ -127,14 +120,6 @@ export const getColors = () => {
 
 export const getRecommenderMaterialLimits = () => {
   return getConf("recommenderMaterialLimits", configuration);
-};
-
-export const usePrevious = <Type>(value: Type) => {
-  const ref = useRef<Type>(null);
-  useEffect(() => {
-    ref.current = value;
-  }, [value]);
-  return ref.current;
 };
 
 export const convertPostIdToFaustId = (postId: Pid) => {
@@ -215,16 +200,6 @@ export const getDueDatesLoan = (list: LoanType[]) => {
   ) as string[];
 };
 
-export const getDueDatesForModal = (list: LoanType[], date: string) => {
-  return list.filter(({ dueDate }) => dueDate === date);
-};
-
-// If modalids are longer than 0, a modal is open.
-// If a modal is open, the list should not be displayed.
-export const isAModalDisplayed = (modalIds: string[]) => {
-  return modalIds.length > 0;
-};
-
 export const getPageSizeFromConfiguration = (pageSizeConf: ConfScope) => {
   const { pageSize } = getDeviceConf(pageSizeConf, configuration);
   return Number(pageSize);
@@ -276,7 +251,13 @@ export const stringifyValue = (value: string | null | undefined) =>
 
 export const materialIsFiction = ({
   fictionNonfiction
-}: Work | Manifestation) => fictionNonfiction?.code === "FICTION";
+}: Work | Manifestation) =>
+  fictionNonfiction?.code === FictionNonfictionCodeEnum.Fiction;
+
+export const materialFictionNonfictionIsNotSpecified = ({
+  fictionNonfiction
+}: Work | Manifestation) =>
+  fictionNonfiction?.code === FictionNonfictionCodeEnum.NotSpecified;
 
 export const getListItems = (list: ListType[], itemsShown: number) => {
   return [...list].splice(0, itemsShown);
@@ -320,14 +301,6 @@ export const pageSizeGlobal = (
 
 export const materialIsOverdue = (date: string | undefined | null) =>
   date ? dateHasPassed(date) : false;
-
-export const loansOverdue = (loans: LoanType[]): boolean => {
-  return loans.every((loan) => materialIsOverdue(loan.dueDate));
-};
-
-export const sameLoanDate = (loans: string[]): boolean => {
-  return loans.every((loanDate, i, arr) => loanDate === arr[0]);
-};
 
 export const tallyUpFees = (fees: FeeV2[]) => {
   return formatCurrency(fees.reduce((total, { amount }) => total + amount, 0));
@@ -544,8 +517,6 @@ export const isEnterOrSpacePressed = (key: string): boolean => {
   return key === "Enter" || key === " ";
 };
 
-export default {};
-
 /* ********************************* Vitest Section  ********************************* */
 if (import.meta.vitest) {
   const { describe, expect, it } = import.meta.vitest;
@@ -591,7 +562,11 @@ if (import.meta.vitest) {
     it("should fill in with url params if property value is undefined", () => {
       // We'll fake the url param getter to return a value.
       // So when we request the url param, we'll get the value: "some-url-param-value"
-      vi.mock("./url", () => ({
+      // Only the getter is faked. A whole-module mock would hoist out of this
+      // block and leave every test that touches general.ts - which is every
+      // test that renders a Button - without the rest of url.ts.
+      vi.mock("./url", async (importOriginal) => ({
+        ...(await importOriginal<typeof import("./url")>()),
         getUrlQueryParam: vi
           .fn()
           .mockImplementation(() => "some-url-param-value")
@@ -602,6 +577,81 @@ if (import.meta.vitest) {
         "some-url-param": "some-url-param-value",
         foo: "bar"
       });
+    });
+  });
+
+  const manifestationWithEdition = (summary: string, year: string) =>
+    ({
+      edition: { summary, publicationYear: { display: year } }
+    }) as Manifestation;
+
+  describe("getManifestationEditionNumber", () => {
+    it("parses the edition number from a year-leading summary", () => {
+      expect(
+        getManifestationEditionNumber(
+          manifestationWithEdition("2025 (167. ajourførte udgave)", "2025")
+        )
+      ).toBe(167);
+    });
+
+    it("parses the edition number from a plain 'N. udgave' summary", () => {
+      expect(
+        getManifestationEditionNumber(
+          manifestationWithEdition("167. udgave, 2025", "2025")
+        )
+      ).toBe(167);
+    });
+
+    it("returns null when the summary has no edition number", () => {
+      expect(
+        getManifestationEditionNumber(
+          manifestationWithEdition("2025 (særudgave)", "2025")
+        )
+      ).toBeNull();
+    });
+  });
+
+  describe("orderManifestationsByYear", () => {
+    // Editions sharing a publication year must be ordered by edition number
+    // (highest first), so "167. udgave" beats "166. udgave" and "Seneste
+    // udgave" picks the actual newest edition.
+    it("orders same-year editions by edition number regardless of input order", () => {
+      const ed166 = manifestationWithEdition(
+        "2025 (166. ajourførte udgave)",
+        "2025"
+      );
+      const ed167 = manifestationWithEdition(
+        "2025 (167. ajourførte udgave)",
+        "2025"
+      );
+      const older = manifestationWithEdition("2024 (1. udgave)", "2024");
+
+      // Both incoming orders must yield the same result. A year-only sort is
+      // stable and would leave the tied editions untouched, so it would only
+      // match one of these two orderings — proving the tiebreaker does the work.
+      expect(orderManifestationsByYear([ed166, ed167, older])).toEqual([
+        ed167,
+        ed166,
+        older
+      ]);
+      expect(orderManifestationsByYear([ed167, ed166, older])).toEqual([
+        ed167,
+        ed166,
+        older
+      ]);
+    });
+
+    it("picks the highest edition of the tied year as the latest manifestation", () => {
+      const ed166 = manifestationWithEdition(
+        "2025 (166. ajourførte udgave)",
+        "2025"
+      );
+      const ed167 = manifestationWithEdition(
+        "2025 (167. ajourførte udgave)",
+        "2025"
+      );
+
+      expect(getLatestManifestation([ed166, ed167])).toBe(ed167);
     });
   });
 }

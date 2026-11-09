@@ -35,6 +35,13 @@ class BnfImporter {
   ];
 
   /**
+   * Node uuids that was imported in this request.
+   *
+   * @var bool[]
+   */
+  protected array $importedNodes = [];
+
+  /**
    * Constructor.
    */
   public function __construct(
@@ -43,6 +50,18 @@ class BnfImporter {
     protected EntityTypeManagerInterface $entityTypeManager,
     protected ImportContextStack $importContext,
   ) {}
+
+  /**
+   * Whether the given node/uuid was imported in this request.
+   */
+  public function wasJustImported(NodeInterface|string $node) : bool {
+    if ($node instanceof NodeInterface) {
+      /** @var string $node */
+      $node = $node->uuid();
+    }
+
+    return array_key_exists($node, $this->importedNodes);
+  }
 
   /**
    * Get node title from BNF.
@@ -86,19 +105,20 @@ class BnfImporter {
       $existingNode = reset($existingNodes);
 
       // Skip import if  node is locally claimed (editor opted out of updates).
-      if ($existingNode instanceof NodeInterface && $this->isLocallyClaimed($existingNode)) {
+      if ($existingNode instanceof NodeInterface && self::isLocallyClaimed($existingNode)) {
         $this->logger->info("Skipped BNF import of locally claimed node {$uuid}.");
         return NULL;
       }
 
-      // If the node we're looking to import is unpublished, we want to see
-      // if it already exists. If not, we want to ignore it.
+      // Don't create nodes that haven't been published on BNF yet.
       if (!$nodeData->status) {
         if (!$existingNode instanceof NodeInterface) {
           $this->logger->info("Skipped BNF import of unpublished node {$uuid}.");
           return NULL;
         }
       }
+
+      $this->importedNodes[$uuid] = TRUE;
 
       $newSourceChanged = (string) $nodeData->changed->timestamp;
 
@@ -175,17 +195,31 @@ class BnfImporter {
    * Returns UUIDs of new/updated content, and the timestamp of the last change
    * (suitable for passing to this function as `since` the next time round).
    *
-   * @return array{'uuids': string[], 'youngest': int}
+   * A failed query yields the same "nothing new" answer as a stream that has
+   * simply been quiet, so that a source we cannot reach stalls the
+   * subscription rather than resetting it. `success` is what tells the two
+   * apart, for callers that care about the difference - reporting how the
+   * synchronisation is faring, mainly, since the outcome is otherwise only in
+   * the log.
+   *
+   * @return array{'uuids': string[], 'youngest': int, 'success': bool}
    *   Updated content data.
    */
   public function newContent(string $uuid, int $since, string $endpointUrl): array {
     $this->setEndpoint($endpointUrl);
+
+    $success = TRUE;
 
     try {
       $response = NewContent::execute($uuid, (new DateTimeImmutable("@$since"))->format(\DateTimeInterface::RFC3339));
       $newContent = $response->errorFree()->data->newContent;
 
       if ($newContent->errors) {
+        // Errors and content are not exclusive: the response may still carry
+        // uuids, and we take them. The check was not clean, though, so it is
+        // not reported as a success either.
+        $success = FALSE;
+
         foreach ($newContent->errors as $error) {
           $this->logger->error('GraphQL error querying new content: @message', ['@message' => $error->message]);
         }
@@ -196,10 +230,13 @@ class BnfImporter {
           'uuids' => $newContent->uuids,
           'youngest' => DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC3339, $newContent->youngest)
             ->getTimestamp(),
+          'success' => $success,
         ];
       }
     }
     catch (\Throwable $e) {
+      $success = FALSE;
+
       $this->logger->error('Error querying new content: @message', ['@message' => $e->getMessage()]);
     }
 
@@ -207,13 +244,14 @@ class BnfImporter {
     return [
       'uuids' => [],
       'youngest' => $since,
+      'success' => $success,
     ];
   }
 
   /**
    * Check if a node is locally claimed.
    */
-  protected function isLocallyClaimed(NodeInterface $node): bool {
+  public static function isLocallyClaimed(NodeInterface $node): bool {
     if (!$node->hasField(BnfStateEnum::FIELD_NAME) || $node->get(BnfStateEnum::FIELD_NAME)->isEmpty()) {
       return FALSE;
     }

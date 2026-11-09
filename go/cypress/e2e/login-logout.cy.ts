@@ -1,15 +1,28 @@
-import routes from "@/lib/config/resolvers/routes"
-
 import getAdgangsplatformenUserToken from "../factories/dpl-cms/getAdgangsplatformenUserToken"
-import configuration from "../factories/unilogin/configuration"
-import institution from "../factories/unilogin/institution"
-import introspection from "../factories/unilogin/introspection"
-import tokenSet from "../factories/unilogin/tokenSet"
-import userinfo from "../factories/unilogin/userinfo"
-import { mockAPProfilePage, mockFrontpage, mockUniloginProfilePage } from "../support/mocks"
+import {
+  mockAPProfilePage,
+  mockConfig,
+  mockFrontpage,
+  mockUniloginLoginCallback,
+  mockUniloginProfilePage,
+} from "../support/mocks"
+
+// On desktop the login UI renders as a side-anchored Sheet; on mobile it
+// renders as a bottom Drawer. Desktop has a close button, the mobile drawer
+// is dismissed by clicking the overlay.
+const isMobile = Cypress.env("viewport") === "mobile"
+const loginContainerKey = isMobile ? "global-drawer" : "global-sheet"
+const closeLoginContainer = () => {
+  if (isMobile) {
+    cy.dataCy("global-drawer-overlay").click({ force: true })
+  } else {
+    cy.dataCy("global-sheet-close-button").click()
+  }
+}
 
 describe("Login / Logout UI Tests", () => {
   beforeEach(() => {
+    mockConfig()
     mockFrontpage()
     cy.visit("/")
 
@@ -23,13 +36,13 @@ describe("Login / Logout UI Tests", () => {
     cy.dataCy("profile-button").click()
 
     // Check if login modal is open and visible
-    cy.dataCy("global-sheet").should("be.visible")
+    cy.dataCy(loginContainerKey).should("be.visible")
 
-    // Close login modal
-    cy.dataCy("global-sheet-close-button").click()
+    // Close login modal (desktop: close button, mobile: click overlay)
+    closeLoginContainer()
 
     // Check if login modal is closed
-    cy.dataCy("global-sheet").should("not.exist")
+    cy.dataCy(loginContainerKey).should("not.exist")
   })
 
   it("Should open unilogin page", () => {
@@ -37,22 +50,21 @@ describe("Login / Logout UI Tests", () => {
     cy.dataCy("profile-button").click()
 
     // Check if login modal is open and visible
-    cy.dataCy("global-sheet").should("be.visible")
+    cy.dataCy(loginContainerKey).should("be.visible")
 
-    const uniloginUrl = routes["routes.login.unilogin"]
-
-    // Intercept unilogin callback page
-    cy.intercept("GET", uniloginUrl, {
+    // Intercept the mocked CMS login page, which forces Unilogin
+    cy.intercept("GET", "/mocked/login*", {
       statusCode: 200,
       body: "<html>I am login page</html>",
       headers: { "content-type": "text/html" },
     })
 
-    // Click UNI•Login button
+    // Click Unilogin button
     cy.dataCy("login-sheet-unilogin-button").click()
 
-    // Check if mocked unilogin page is open
-    cy.location("pathname").should("eq", uniloginUrl)
+    // Check if mocked CMS login page is open with Unilogin forced
+    cy.location("pathname").should("eq", "/mocked/login")
+    cy.location("search").should("eq", "?idp=unilogin")
   })
 
   it("Should open adgangsplatformen page", () => {
@@ -60,7 +72,7 @@ describe("Login / Logout UI Tests", () => {
     cy.dataCy("profile-button").click()
 
     // Check if login modal is open and visible
-    cy.dataCy("global-sheet").should("be.visible")
+    cy.dataCy(loginContainerKey).should("be.visible")
 
     // Intercept mocked adgangsplatformen login page
     cy.intercept("GET", "/mocked/login*", {
@@ -77,8 +89,9 @@ describe("Login / Logout UI Tests", () => {
   })
 })
 
-describe("UNI•Login: Login / Logout API Tests", () => {
+describe("Unilogin: Login / Logout API Tests", () => {
   beforeEach(() => {
+    mockConfig()
     mockFrontpage()
     cy.visit("/")
 
@@ -88,47 +101,17 @@ describe("UNI•Login: Login / Logout API Tests", () => {
   })
 
   const performLoginCallback = () => {
-    const mockedCallbackUrl =
-      "/auth/callback/unilogin?session_state=60cda845-402f-4085-b41d-3e4e773e04d4&code=3a6c3675-8ec8-472f-bcd5-9425be472d6d.60cda845-402f-4085-b41d-3e4e773e04d4.135f0ca5-6083-4b5c-9de6-d4a1b3f8d60c"
+    mockUniloginLoginCallback()
 
-    cy.mockServerRest({
-      method: "GET",
-      path: "/.well-known/openid-configuration",
-      data: configuration.build(),
-    })
-
-    cy.mockServerRest({
-      method: "POST",
-      path: "/token",
-      data: tokenSet.build(),
-    })
-
-    cy.mockServerRest({
-      method: "POST",
-      path: "/introspect",
-      data: introspection.build(),
-    })
-
-    cy.mockServerRest({
-      method: "GET",
-      path: "/userinfo",
-      data: userinfo.build(),
-    })
-
-    cy.mockServerSoap({
-      path: "/institution",
-      data: institution,
-    })
-
-    cy.visit(mockedCallbackUrl)
+    cy.visit("/auth/callback/adgangsplatformen")
   }
 
-  it("Should login when performing unilogin callback", () => {
+  it("Should login when the CMS hands out a Unilogin token", () => {
     // Click profile button
     cy.dataCy("profile-button").click()
 
     // Check if login modal is open and visible
-    cy.dataCy("global-sheet").should("be.visible")
+    cy.dataCy(loginContainerKey).should("be.visible")
 
     performLoginCallback()
 
@@ -150,7 +133,7 @@ describe("UNI•Login: Login / Logout API Tests", () => {
     cy.dataCy("profile-button").click()
 
     // Check if login modal is open and visible
-    cy.dataCy("global-sheet").should("be.visible")
+    cy.dataCy(loginContainerKey).should("be.visible")
 
     performLoginCallback()
     mockUniloginProfilePage()
@@ -163,6 +146,7 @@ describe("UNI•Login: Login / Logout API Tests", () => {
 
 describe("Adgangsplatformen: Login / Logout API Tests", () => {
   beforeEach(() => {
+    mockConfig()
     mockFrontpage()
     cy.visit("/")
 

@@ -12,8 +12,13 @@ import { PublizonErrorArgs } from "../../core/storybook/publizonErrorArgs";
 import { CopyLinkArgs } from "../../core/storybook/copyLinkArgs";
 import { MappArgs } from "../../core/storybook/mappArgs";
 import { EditionSwitchModalArgs } from "../../core/storybook/editionSwitchModalArgs";
+import { PlayerModalProps } from "../../core/storybook/playerModalArgs";
+import { OpenOrderProps } from "../../core/storybook/openOrderArgs";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import withPageStatistics from "../../core/statistics/withPageStatistics";
 import useSetSmoothScroll from "../../core/utils/useSetSmoothScroll";
+import { MaterialUnavailableNoticeArgs } from "../../components/material/MaterialUnavailableNotice/MaterialUnavailableNoticeArgs";
+import { MaterialContentsArgs } from "../../components/material/MaterialContents/MaterialContentsArgs";
 
 interface MaterialEntryTextProps {
   alreadyReservedText: string;
@@ -68,13 +73,11 @@ interface MaterialEntryTextProps {
   findOnShelfModalScreenReaderModalDescriptionText: string;
   findOnShelfTableDescriptionText: string;
   firstAvailableEditionText: string;
+  genreAndFormText: string;
   getOnlineText: string;
   goToText: string;
   reservationDetailsNoInterestAfterTitleText: string;
   identifierText: string;
-  infomediaCopyrightText: string;
-  infomediaModalCloseModalAriaLabelText: string;
-  infomediaModalScreenReaderModalDescriptionText: string;
   inSameSeriesText: string;
   inSeriesText: string;
   instantLoanSubTitleText: string;
@@ -128,30 +131,12 @@ interface MaterialEntryTextProps {
   onlineInternalSuccessLoanedText: string;
   onlineInternalSuccessManualBorrowingNoticeText: string;
   onlineInternalSuccessReservedText: string;
+  onlineLimitMonthAlwaysLoanableLinkText: string;
   onlineLimitMonthAudiobookInfoText: string;
   onlineLimitMonthEbookInfoText: string;
   onlineMaterialPlayerText: string;
   onlineMaterialReaderText: string;
   onlineMaterialTeaserText: string;
-  openOrderAuthenticationErrorText: string;
-  openOrderErrorMissingPincodeText: string;
-  openOrderInvalidOrderText: string;
-  openOrderNoServicerequesterText: string;
-  openOrderNotOwnedIllLocText: string;
-  openOrderNotOwnedNoIllLocText: string;
-  openOrderNotOwnedWrongIllMediumtypeText: string;
-  openOrderOrsErrorText: string;
-  openOrderOwnedOwnCatalogueText: string;
-  openOrderOwnedWrongMediumtypeText: string;
-  openOrderResponseTitleText: string;
-  openOrderServiceUnavailableText: string;
-  openOrderStatusOwnedAcceptedText: string;
-  openOrderUnknownErrorText: string;
-  openOrderUnknownPickupagencyText: string;
-  openOrderUnknownUserText: string;
-  openOrderUserBlockedByAgencyText: string;
-  openOrderUserNoLongerExistOnAgencyText: string;
-  openOrderUserNotVerifiedText: string;
   orderDigitalCopyButtonLoadingText: string;
   orderDigitalCopyButtonText: string;
   orderDigitalCopyDescriptionText: string;
@@ -177,8 +162,6 @@ interface MaterialEntryTextProps {
   outOfText: string;
   periodicalSelectEditionText: string;
   periodicalSelectYearText: string;
-  playerModalCloseButtonText: string;
-  playerModalDescriptionText: string;
   queueText: string;
   ratingIsText: string;
   readArticleText: string;
@@ -192,13 +175,16 @@ interface MaterialEntryTextProps {
   reservationErrorsTitleText: string;
   reservationModalCloseModalAriaLabelText: string;
   reservationModalScreenReaderModalDescriptionText: string;
+  reservationRecommendationsTitleText: string;
   reservationSuccesIsReservedForYouText: string;
   reservationSuccessPreferredPickupBranchText: string;
-  reservationSuccesTitleText: string;
   reserveBookText: string;
   reserveText: string;
   reserveWithMaterialTypeText: string;
   relatedContentText: string;
+  retrieverCopyrightText: string;
+  retrieverModalCloseModalAriaLabelText: string;
+  retrieverModalScreenReaderModalDescriptionText: string;
   reviewsText: string;
   saveButtonText: string;
   seeOnlineText: string;
@@ -236,8 +222,14 @@ export interface MaterialEntryProps
     PublizonErrorArgs,
     CopyLinkArgs,
     MappArgs,
-    EditionSwitchModalArgs {
+    EditionSwitchModalArgs,
+    PlayerModalProps,
+    BiblioAdapterArgs,
+    OpenOrderProps,
+    MaterialUnavailableNoticeArgs,
+    MaterialContentsArgs {
   wid: WorkId;
+  isInjectionExample?: boolean;
 }
 
 /*
@@ -307,11 +299,32 @@ export interface MaterialEntryProps
   }
 */
 
-const WrappedMaterialEntry: React.FC<MaterialEntryProps> = ({ wid }) => {
+const WrappedMaterialEntry: React.FC<MaterialEntryProps> = ({ wid, isInjectionExample }) => {
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = React.useState(0);
+
   useSetSmoothScroll();
+
+  if (isInjectionExample) {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("../../components/material/QuickLoanTextInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+  }
+
   return (
     <GuardedApp app="material">
-      <Material wid={wid} />
+      <div data-current-date={ currentDate || "" }>
+        <Material wid={wid} />
+      </div>
     </GuardedApp>
   );
 };

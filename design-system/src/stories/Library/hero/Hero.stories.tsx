@@ -2,11 +2,12 @@ import { StoryFn, Meta } from "@storybook/react-webpack5";
 
 import Hero from "./Hero";
 import ImageCredited from "../image-credited/ImageCredited";
+import { ContentListItemStatuses } from "../content-list-item-status/ContentListItemStatus";
 
 const defaultArgs = {
   image: (
     <ImageCredited
-      src="https://images.unsplash.com/photo-1531058020387-3be344556be6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8ZXZlbnR8fHx8fHwxNzAyOTEwMzE0&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=1080"
+      src="images/event_audience.jpg"
       description="Photo by Unsplash"
       year="©2021"
     />
@@ -49,12 +50,18 @@ export default {
     },
   },
   args: defaultArgs,
-  excludeStories: ["EventArgs", "ParagraphArgs", "PageArgs"],
+  excludeStories: [
+    "EventArgs",
+    "EventCancelledArgs",
+    "ParagraphArgs",
+    "PageArgs",
+  ],
 } as Meta<typeof Hero>;
 
 const Template: StoryFn<typeof Hero> = (args) => <Hero {...args} />;
 
 export const Event = Template.bind({});
+export const EventCancelled = Template.bind({});
 export const Paragraph = Template.bind({});
 export const Page = Template.bind({});
 
@@ -62,6 +69,11 @@ export const EventArgs = {
   ...defaultArgs,
   description: undefined,
   type: undefined,
+};
+
+export const EventCancelledArgs = {
+  ...EventArgs,
+  status: ContentListItemStatuses.CANCELLED,
 };
 
 export const ParagraphArgs = {
@@ -81,5 +93,6 @@ export const PageArgs = {
 };
 
 Event.args = EventArgs;
+EventCancelled.args = EventCancelledArgs;
 Paragraph.args = ParagraphArgs;
 Page.args = PageArgs;

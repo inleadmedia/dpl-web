@@ -2,10 +2,7 @@ import { PatronV5 } from "../../../core/fbs/model";
 import useSavePatron from "../../../core/utils/useSavePatron";
 
 export type ModalReservationFormTextType =
-  | "email"
-  | "sms"
-  | "pickup"
-  | "interestPeriod";
+  "email" | "sms" | "pickup" | "interestPeriod";
 
 export const modalReservationFormId = (type: ModalReservationFormTextType) =>
   `modal-reservation-form-${type}`;
@@ -94,5 +91,3 @@ export function modalReservationFormSelectTypeIsInterestPeriod(
 ): type is "interestPeriod" {
   return type === "interestPeriod";
 }
-
-export default {};

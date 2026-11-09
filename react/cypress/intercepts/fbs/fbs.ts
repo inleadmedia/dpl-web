@@ -1,4 +1,8 @@
-import { reservationResponseFactory } from "../../factories/fbs/fbs.factory";
+import {
+  reservationResponseFactory,
+  reservationDetailsFactory,
+  fbsLoanFactory
+} from "../../factories/fbs/fbs.factory";
 import { availabilityFactory } from "../../factories/fbs/availability.factory";
 import { holdingsForRecordFactory } from "../../factories/fbs/holdings.factory";
 import { scenarios } from "./scenarios";
@@ -109,4 +113,52 @@ export const givenReservationWillSucceed = (
       overrides as Parameters<typeof reservationResponseFactory.build>[0]
     )
   }).as("createReservation");
+};
+
+/**
+ * Given: User has a single physical loan from FBS.
+ *
+ * This only stubs the FBS `/loans/v2` endpoint. The loan row also needs
+ * manifestation data (title, author, year) from the FBI gateway, so pair
+ * this with `givenManifestationByFaust(...)` from
+ * `cypress/intercepts/fbi/manifestation.ts` — otherwise the row stays in
+ * its loading skeleton state.
+ */
+export const givenUserHasPhysicalLoan = (
+  options: Parameters<typeof fbsLoanFactory.build>[0] = {}
+) => {
+  givenUserHasPhysicalLoans([options]);
+};
+
+/**
+ * Given: User has several physical loans from FBS, one per options object.
+ * Pair with manifestation data as for `givenUserHasPhysicalLoan`.
+ */
+export const givenUserHasPhysicalLoans = (
+  loans: Parameters<typeof fbsLoanFactory.build>[0][],
+  options: { delay?: number } = {}
+) => {
+  const { delay } = options;
+
+  cy.intercept("GET", "**/external/agencyid/patrons/patronid/loans/v2**", {
+    statusCode: 200,
+    delay,
+    body: loans.map((options) => fbsLoanFactory.build(options))
+  }).as("fbsUserLoansPhysical");
+};
+
+/**
+ * Given: User has a single physical reservation from FBS.
+ */
+export const givenUserHasPhysicalReservation = (
+  options: Parameters<typeof reservationDetailsFactory.build>[0] = {}
+) => {
+  cy.intercept(
+    "GET",
+    "**/external/v1/agencyid/patrons/patronid/reservations/v2**",
+    {
+      statusCode: 200,
+      body: [reservationDetailsFactory.build(options)]
+    }
+  ).as("fbsUserReservationsPhysical");
 };

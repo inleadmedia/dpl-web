@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { withText } from "../../core/utils/text";
 import { withUrls } from "../../core/utils/url";
 import OpeningHoursEditor, {
@@ -38,13 +38,31 @@ const OpeningHoursEditorEntry: React.FC<
   OpeningHoursEditorEntryTextProps &
     OpeningHoursEditorType &
     OpeningHoursEditorEntryConfigProps
-> = ({ initialDate }) => {
+> = ({ initialDate, isInjectionExample }) => {
   const initialDateParam = getInitialDateFromUrl();
-  return (
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = useState(0);
+
+  if (isInjectionExample) {
+    useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("./OpeningHoursEditorCustomLocaleInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+  }
+
+  return <div data-current-date={ currentDate || "" }>
     <OpeningHoursEditor
       initialDate={initialDate ?? (initialDateParam || new Date())}
     />
-  );
+  </div>;
 };
 
 export default withConfig(withUrls(withText(OpeningHoursEditorEntry)));

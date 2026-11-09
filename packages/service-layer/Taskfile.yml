@@ -1,0 +1,21 @@
+version: "3"
+
+# packages/service-layer is a pnpm workspace package consumed by other
+# sub-projects. The codegen it owns regenerates its internal adapters from
+# the contracts in /schemas.
+
+tasks:
+  codegen:fbs:
+    desc: Regenerate the internal FBS adapter from /schemas/openapi/fbs-adapter.yaml
+    cmds:
+      - pnpm run codegen:fbs
+
+  codegen:biblio:
+    desc: Regenerate the internal Biblio adapter from /schemas/openapi/biblio-adapter.yaml
+    cmds:
+      - pnpm run codegen:biblio
+
+  codegen:fbi:
+    desc: Regenerate the internal FBI adapter from /schemas/graphql/dbc-fbi.graphql
+    cmds:
+      - pnpm run codegen:fbi

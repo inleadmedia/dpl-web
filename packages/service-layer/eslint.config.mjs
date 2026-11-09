@@ -1,0 +1,49 @@
+import js from "@eslint/js"
+import globals from "globals"
+import tseslint from "typescript-eslint"
+
+export default tseslint.config(
+  {
+    ignores: [
+      "fbs/src/generated/**",
+      "biblio/src/generated/**",
+      "fbi/src/generated/**",
+      "node_modules/**",
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+    rules: {
+      "no-console": ["error", { allow: ["warn", "error", "info"] }],
+      "no-restricted-properties": [
+        "error",
+        {
+          object: "describe",
+          property: "only",
+          message: "describe.only() leaves a single test running. Remove it.",
+        },
+        {
+          object: "it",
+          property: "only",
+          message: "it.only() leaves a single test running. Remove it.",
+        },
+        {
+          object: "test",
+          property: "only",
+          message: "test.only() leaves a single test running. Remove it.",
+        },
+      ],
+      // An underscore marks a binding that exists for its side effect on the
+      // type checker - see the contract assertions in the adapters' mappers.
+      "@typescript-eslint/no-unused-vars": ["error", { varsIgnorePattern: "^_" }],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "separate-type-imports" },
+      ],
+    },
+  }
+)

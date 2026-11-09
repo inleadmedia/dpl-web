@@ -2,7 +2,7 @@
 
 namespace Drupal\eonext_translation\EventSubscriber;
 
-use Drupal\dpl_go\GoSite;
+use Drupal\dpl_go\GoSiteInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -15,7 +15,7 @@ class GoRedirectCleanerSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(protected GoSite $goSite) {}
+  public function __construct(protected GoSiteInterface $goSite) {}
 
   /**
    * {@inheritdoc}

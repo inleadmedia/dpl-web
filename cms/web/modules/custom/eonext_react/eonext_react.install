@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for the EO NEXT React module.
+ */
+
+use Drupal\eonext_react\InjectedJavascript;
+
+/**
+ * Add the hook-to-react and ordering settings.
+ */
+function eonext_react_update_10001(): string {
+  $config = \Drupal::configFactory()->getEditable(InjectedJavascript::CONFIG_ID);
+
+  if ($config->get('hook_to_react') === NULL) {
+    $config->set('hook_to_react', TRUE);
+  }
+  if ($config->get('order') === NULL) {
+    $config->set('order', InjectedJavascript::ORDER_BEFORE_MOUNT);
+  }
+
+  $config->save();
+  \Drupal::service('library.discovery')->clearCachedDefinitions();
+
+  return 'Added the hook-to-react and injected JavaScript ordering settings.';
+}

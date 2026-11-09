@@ -1,0 +1,16 @@
+eonext_react.settings:
+  type: config_object
+  label: 'React settings'
+  mapping:
+    langcode:
+      type: langcode
+      label: 'Language code'
+    javascript:
+      type: text
+      label: 'JavaScript injected into non-administrative pages'
+    hook_to_react:
+      type: boolean
+      label: 'Load hook-to-react.js alongside the injected JavaScript'
+    order:
+      type: string
+      label: 'Whether the injected JavaScript runs before or after mount.js'

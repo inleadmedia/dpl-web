@@ -181,7 +181,12 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
   }, [isFormMode, rawCql, resetAndCollectPageStatistics, translatedCql]);
 
   return (
-    <form action={handleSearch}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSearch();
+      }}
+    >
       {isFormMode && (
         <>
           <h1 className="text-header-h2 advanced-search__title capitalize-first">
@@ -248,7 +253,7 @@ const AdvancedSearchHeader: React.FC<AdvancedSearchHeaderProps> = ({
       <section className="advanced-search__footer">
         {!isFormMode && (
           <Link
-            className="link-tag advanced-search__back-button cursor-pointer"
+            className="link-tag advanced-search__back-button"
             href={new URL("/advancedsearch", window.location.href)}
           >
             {t("toAdvancedSearchButtonText")}

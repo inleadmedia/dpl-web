@@ -3,6 +3,8 @@ event-status:
   js:
     js/event-status.js: {}
   dependencies:
+    - core/drupal
+    - core/drupalSettings
     - core/once
   css:
     theme:

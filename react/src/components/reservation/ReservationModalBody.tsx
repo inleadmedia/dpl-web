@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { first } from "lodash";
 import Various from "@danskernesdigitalebibliotek/dpl-design-system/build/icons/collection/Various.svg";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useModalButtonHandler } from "../../core/utils/modal";
 import {
   convertPostIdsToFaustIds,
   getAllPids,
   getMaterialType,
+  getWorkPid,
   materialIsFiction
 } from "../../core/utils/helpers/general";
 import { useText } from "../../core/utils/text";
@@ -39,6 +40,7 @@ import {
   Work
 } from "../../core/utils/types/entities";
 import {
+  canSubmitOpenOrderReservation,
   getPreferredBranch,
   constructReservationData,
   getAuthorLine,
@@ -62,7 +64,8 @@ import { excludeBlacklistedBranches } from "../../core/utils/branches";
 import { InstantLoanConfigType } from "../../core/utils/types/instant-loan";
 import {
   OpenOrderMutation,
-  useOpenOrderMutation
+  useOpenOrderMutation,
+  useWorkRecommendationsQuery
 } from "../../core/dbc-gateway/generated/graphql";
 import ModalMessage from "../message/modal-message/ModalMessage";
 import configuration, { getConf } from "../../core/configuration";
@@ -74,6 +77,8 @@ import {
   getFutureDateString,
   getFutureDateStringISO
 } from "../../core/utils/helpers/date";
+import MaterialGrid from "../material-grid/MaterialGrid";
+import { WorkId } from "../../core/utils/types/ids";
 
 type ReservationModalProps = {
   selectedManifestations: Manifestation[];
@@ -175,9 +180,14 @@ export const ReservationModalBody = ({
   const expiryDate = getFutureDateString(interestPeriod);
   const materialType = getMaterialType(selectedManifestations);
 
+  const userHasEmail = Boolean(patron?.emailAddress);
+
   const canSubmitFbs =
     manifestationsToReserve?.length && !materialIsReservableFromAnotherLibrary;
-  const canSubmitOpenOrder = materialIsReservableFromAnotherLibrary && patron;
+  const canSubmitOpenOrder = canSubmitOpenOrderReservation({
+    materialIsReservableFromAnotherLibrary,
+    patron
+  });
 
   const saveReservation = () => {
     if (canSubmitFbs) {
@@ -204,16 +214,18 @@ export const ReservationModalBody = ({
             // This state is used to show the success or error modal.
             setReservationResponse(res);
             // Because after a successful reservation the holdings (reservations) are updated.
-            queryClient.invalidateQueries(
-              getGetHoldingsLogisticsV1QueryKey({ recordid: faustIds })
-            );
+            queryClient.invalidateQueries({
+              queryKey: getGetHoldingsLogisticsV1QueryKey({
+                recordid: faustIds
+              })
+            });
           },
           onError: () => {
             setReservationStatus("error");
           }
         }
       );
-    } else if (canSubmitOpenOrder) {
+    } else if (canSubmitOpenOrder && patron) {
       setReservationStatus("pending");
       const { patronId, name, emailAddress, preferredPickupBranch } = patron;
       // Save reservation to open order.
@@ -269,8 +281,6 @@ export const ReservationModalBody = ({
       instantLoanBranchHoldings,
       instantLoanThreshold
     );
-
-  const userHasEmail = Boolean(patron?.emailAddress);
 
   // Disable submit based on the exact conditions used in saveReservation
   const isSubmitDisabled =
@@ -412,6 +422,7 @@ export const ReservationModalBody = ({
           )}
           holdings={holdings}
           numberInQueue={reservationDetails.numberInQueue}
+          recommendations={<Recommendations work={work} />}
         />
       )}
       {!reservationSuccess && reservationResults && (
@@ -424,4 +435,34 @@ export const ReservationModalBody = ({
   );
 };
 
-export default ReservationModalBody;
+const Recommendations = (props: { work: Work }) => {
+  const t = useText();
+  const pid = getWorkPid(props.work);
+
+  const { data: recommendationData } = useWorkRecommendationsQuery(
+    {
+      pid,
+      limit: 4
+    },
+    { enabled: !!pid }
+  );
+
+  const recommendations = recommendationData?.recommend.result ?? [];
+
+  const workIds = recommendations.map((recommendation) => {
+    return recommendation.work.workId;
+  });
+
+  const materialProps = workIds.map((workId) => ({
+    wid: workId as WorkId
+  }));
+
+  return (
+    <div className="reservation-success__recommendations">
+      <h3 className="reservation-success__recommendations-title">
+        {t("reservationRecommendationsTitleText")}
+      </h3>
+      <MaterialGrid initialMaximumDisplay={4} materials={materialProps} />
+    </div>
+  );
+};

@@ -1,0 +1,26 @@
+uuid: beb5fc86-7edc-43ce-a24f-378c11548809
+langcode: en
+status: true
+dependencies:
+  config:
+  - field.storage.eventseries.field_ribbon_color
+  - recurring_events.eventseries_type.default
+  module:
+  - color_field
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
+id: eventseries.default.field_ribbon_color
+field_name: field_ribbon_color
+entity_type: eventseries
+bundle: default
+label: Ribbon Color
+description: ''
+required: false
+translatable: false
+default_value: {}
+default_value_callback: ''
+settings:
+  opacity: 0
+field_type: color_field_type

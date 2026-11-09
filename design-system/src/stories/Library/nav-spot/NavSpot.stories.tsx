@@ -40,10 +40,7 @@ export default {
   args: {
     title: "Bøger som har gjort en forskel for romanens udvikling",
     subtitle: "Stine Pilgaard vinder De Gyldne Laurbær",
-    media,
-    url: "#",
-    buttonLabel: "Læs mere",
-    imageAlignment: "left",
+    media: <ImageCredited src="images/bookcase_sofa.jpg" />,
   },
   parameters: {
     design: {

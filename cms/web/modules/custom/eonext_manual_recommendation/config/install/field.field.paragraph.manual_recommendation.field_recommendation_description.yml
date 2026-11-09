@@ -1,0 +1,19 @@
+uuid: bfd1448a-e88b-4ecf-b1b1-920f67543631
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_recommendation_description
+    - paragraphs.paragraphs_type.manual_recommendation
+id: paragraph.manual_recommendation.field_recommendation_description
+field_name: field_recommendation_description
+entity_type: paragraph
+bundle: manual_recommendation
+label: Description
+description: 'This is the description for a recommendation.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

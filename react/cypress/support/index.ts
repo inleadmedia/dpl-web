@@ -8,6 +8,29 @@ import { Operations } from "../../src/core/dbc-gateway/types";
 // Install cypress-terminal-report logs collector
 require("cypress-terminal-report/src/installLogsCollector")();
 
+// AbortError is thrown deliberately when fetch requests are cancelled (e.g.
+// when a new search supersedes an in-flight one). DbcGateWayHttpError appears
+// in after-each teardown when gateway requests race with test cleanup. Neither
+// signals a real test failure, so tell Cypress to ignore both.
+Cypress.on("uncaught:exception", (err) => {
+  if (err.name === "AbortError" || err.name === "DbcGateWayHttpError") {
+    return false;
+  }
+  return true;
+});
+
+// Stop the whole run at the first failing test when CYPRESS_FAIL_FAST=1.
+// A local run is usually about one broken thing, and letting the remaining
+// tests play out only delays the output that says what broke. Off by default,
+// so CI still runs every test.
+if (Cypress.env("FAIL_FAST")) {
+  afterEach(function stopOnFirstFailure(this: Mocha.Context) {
+    if (this.currentTest?.state === "failed") {
+      (Cypress as unknown as { runner: { stop: () => void } }).runner.stop();
+    }
+  });
+}
+
 // Stub real FBI cover image bytes for every spec so tests never touch the live
 // network. Specs that need a different stub can override with their own
 // cy.intercept — the most-recently-registered intercept wins.
@@ -48,6 +71,11 @@ type InterceptGraphqlParams = {
   fixtureFilePath?: string;
   body?: unknown;
   statusCode?: number;
+  // When true, registers the handler as a Cypress middleware intercept so it
+  // runs before ALL regular (non-middleware) intercepts regardless of LIFO
+  // order. Use this when cross-spec intercept accumulation would otherwise
+  // push this handler down the LIFO chain past the point where it is called.
+  middleware?: boolean;
 };
 Cypress.Commands.add(
   "interceptGraphql",
@@ -55,19 +83,31 @@ Cypress.Commands.add(
     operationName,
     fixtureFilePath,
     body,
-    statusCode = 200
+    statusCode = 200,
+    middleware = false
   }: InterceptGraphqlParams) => {
-    cy.intercept("POST", "**/next*/graphql", (req) => {
-      if (hasOperationName(req, operationName)) {
-        if (fixtureFilePath) {
-          req.reply({ fixture: fixtureFilePath, statusCode });
-        } else if (body) {
-          req.reply({ statusCode, body });
-        } else {
-          req.reply({ statusCode });
+    // Use **/graphql* (not **/next*/graphql) to match both next/graphql and
+    // next-present/graphql. Cypress 15's LIFO handler chain is unreliable with
+    // concurrent requests when using the narrower path pattern. The trailing *
+    // matches the operation name we append as a query parameter.
+    cy.intercept(
+      {
+        method: "POST",
+        url: "**/graphql*",
+        ...(middleware ? { middleware } : {})
+      },
+      (req) => {
+        if (hasOperationName(req, operationName)) {
+          if (fixtureFilePath) {
+            req.reply({ fixture: fixtureFilePath, statusCode });
+          } else if (body) {
+            req.reply({ statusCode, body });
+          } else {
+            req.reply({ statusCode });
+          }
         }
       }
-    }).as(`${operationName} GraphQL operation`);
+    ).as(`${operationName} GraphQL operation`);
   }
 );
 /**
@@ -103,15 +143,25 @@ Cypress.Commands.add(
 
 // Data cy attribute selector helpers.
 const visible = (checkVisible: boolean) => (checkVisible ? ":visible" : "");
-Cypress.Commands.add("getBySel", (selector, checkVisible = false) => {
-  return cy.get(`[data-cy="${selector}"]${visible(checkVisible)}`);
-});
-Cypress.Commands.add("getBySelLike", (selector, checkVisible = false) => {
-  return cy.get(`[data-cy*="${selector}"]${visible(checkVisible)}`);
-});
+Cypress.Commands.add(
+  "getBySel",
+  (selector: string, checkVisible: boolean = false) => {
+    return cy.get(`[data-cy="${selector}"]${visible(checkVisible)}`);
+  }
+);
+Cypress.Commands.add(
+  "getBySelLike",
+  (selector: string, checkVisible: boolean = false) => {
+    return cy.get(`[data-cy*="${selector}"]${visible(checkVisible)}`);
+  }
+);
 Cypress.Commands.add(
   "getBySelStartEnd",
-  (startSelector, endSelector, checkVisible = false) => {
+  (
+    startSelector: string,
+    endSelector: string,
+    checkVisible: boolean = false
+  ) => {
     const v = visible(checkVisible);
     return cy.get(
       `[data-cy^="${startSelector}"]${v}[data-cy$="${endSelector}"]${v}`
@@ -148,9 +198,7 @@ Cypress.Commands.add(
   "mockGeolocation",
   (latitude: number, longitude: number) => {
     cy.window().then(($window) => {
-      cy.stub(
-        $window.navigator.geolocation,
-        "getCurrentPosition",
+      cy.stub($window.navigator.geolocation, "getCurrentPosition").callsFake(
         (callback) => {
           return callback({ coords: { latitude, longitude } });
         }
@@ -168,7 +216,7 @@ declare global {
        */
       createFakeLibrarySession(): void;
       createFakeAuthenticatedSession(): void;
-      interceptGraphql(params: InterceptGraphqlParams): void;
+      interceptGraphql(params: InterceptGraphqlParams): Chainable;
       interceptRest(params: InterceptRestParams): void;
       getBySel(selector: string, checkVisible?: boolean): Chainable;
       getBySelLike(selector: string, checkVisible?: boolean): Chainable;

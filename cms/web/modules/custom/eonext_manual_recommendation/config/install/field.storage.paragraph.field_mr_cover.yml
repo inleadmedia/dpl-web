@@ -1,0 +1,20 @@
+uuid: 86f7d163-a100-4516-8425-a16016d56841
+langcode: en
+status: true
+dependencies:
+  module:
+    - media
+    - paragraphs
+id: paragraph.field_mr_cover
+field_name: field_mr_cover
+entity_type: paragraph
+type: entity_reference
+settings:
+  target_type: media
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
