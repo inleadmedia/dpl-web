@@ -129,3 +129,11 @@ export const Primary: Story = {
     openingHoursEditEventTitleText: "Edit opening hour"
   }
 };
+
+export const CustomLocaleSidebarInjection: Story = {
+  name: "Expanded sidebar injection",
+  args: {
+    ...meta.args,
+    isInjectionExample: true
+  }
+};

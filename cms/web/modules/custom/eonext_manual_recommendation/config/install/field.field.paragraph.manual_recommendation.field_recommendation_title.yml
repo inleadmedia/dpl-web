@@ -1,0 +1,24 @@
+uuid: d75959e6-0788-4fad-b1b9-d73b1ceee849
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_recommendation_title
+    - filter.format.basic
+    - paragraphs.paragraphs_type.manual_recommendation
+  module:
+    - text
+id: paragraph.manual_recommendation.field_recommendation_title
+field_name: field_recommendation_title
+entity_type: paragraph
+bundle: manual_recommendation
+label: Heading
+description: 'The heading shown alongside the recommended material.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - basic
+field_type: text

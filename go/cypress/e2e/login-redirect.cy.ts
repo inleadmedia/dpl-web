@@ -1,16 +1,10 @@
-import routes from "@/lib/config/resolvers/routes"
-
 import getAdgangsplatformenUserToken from "../factories/dpl-cms/getAdgangsplatformenUserToken"
 import getMaterial from "../factories/fbi/getMaterial"
-import configuration from "../factories/unilogin/configuration"
-import institution from "../factories/unilogin/institution"
-import introspection from "../factories/unilogin/introspection"
-import tokenSet from "../factories/unilogin/tokenSet"
-import userinfo from "../factories/unilogin/userinfo"
-import { mockFrontpage } from "../support/mocks"
+import { mockConfig, mockFrontpage, mockUniloginLoginCallback } from "../support/mocks"
 
 describe("Login redirect after loan attempt", () => {
   beforeEach(() => {
+    mockConfig()
     mockFrontpage()
 
     // Suppress known SSR hydration error from ResponsiveDialog/useMediaQuery.
@@ -22,7 +16,7 @@ describe("Login redirect after loan attempt", () => {
     cy.visit("/")
   })
 
-  it("Should redirect to loan modal after UNI•Login when loan was attempted", () => {
+  it("Should redirect to loan modal after Unilogin when loan was attempted", () => {
     cy.interceptGraphql({
       operationName: "getMaterial",
       data: getMaterial.build(),
@@ -33,24 +27,25 @@ describe("Login redirect after loan attempt", () => {
     // Select audiobook tab
     cy.get("[data-cy='slide-select-option']").eq(1).click()
 
-    // Click "Lån lydbog" to open LoginSheet
+    // Click "Lån lydbog" to open LoanLoginModal
     cy.contains("Lån lydbog").click()
 
-    // LoginSheet should be visible
-    cy.dataCy("global-sheet").should("be.visible")
+    // LoanLoginModal should be visible
+    cy.dataCy("loan-login-modal").should("be.visible")
 
-    // Intercept UNI•Login URL to prevent leaving the test domain
-    cy.intercept("GET", routes["routes.login.unilogin"], {
+    // Intercept the mocked CMS login page to prevent leaving the test domain
+    cy.intercept("GET", "/mocked/login*", {
       statusCode: 200,
       body: "<html>I am login page</html>",
       headers: { "content-type": "text/html" },
     })
 
-    // Click UNI•Login button — this sets the redirect cookie, then navigates
-    cy.dataCy("login-sheet-unilogin-button").click()
+    // Click Unilogin button — this sets the redirect cookie, then navigates
+    cy.dataCy("loan-login-modal-unilogin-button").click()
 
     // Verify we arrived at the login page (cookie is now set)
-    cy.location("pathname").should("eq", routes["routes.login.unilogin"])
+    cy.location("pathname").should("eq", "/mocked/login")
+    cy.location("search").should("eq", "?idp=unilogin")
 
     // Re-mock getMaterial for the redirected page load
     cy.interceptGraphql({
@@ -58,44 +53,16 @@ describe("Login redirect after loan attempt", () => {
       data: getMaterial.build(),
     })
 
-    // Mock UNI•Login OAuth endpoints
-    const mockedCallbackUrl =
-      "/auth/callback/unilogin?session_state=60cda845-402f-4085-b41d-3e4e773e04d4&code=3a6c3675-8ec8-472f-bcd5-9425be472d6d.60cda845-402f-4085-b41d-3e4e773e04d4.135f0ca5-6083-4b5c-9de6-d4a1b3f8d60c"
-
-    cy.mockServerRest({
-      method: "GET",
-      path: "/.well-known/openid-configuration",
-      data: configuration.build(),
-    })
-
-    cy.mockServerRest({
-      method: "POST",
-      path: "/token",
-      data: tokenSet.build(),
-    })
-
-    cy.mockServerRest({
-      method: "POST",
-      path: "/introspect",
-      data: introspection.build(),
-    })
-
-    cy.mockServerRest({
-      method: "GET",
-      path: "/userinfo",
-      data: userinfo.build(),
-    })
-
-    cy.mockServerSoap({
-      path: "/institution",
-      data: institution,
-    })
+    // Mock the CMS handing out a Unilogin token
+    mockUniloginLoginCallback()
 
     // Visit the callback URL — server reads the redirect cookie and redirects
-    cy.visit(mockedCallbackUrl)
+    cy.visit("/auth/callback/adgangsplatformen")
 
-    // Assert we were redirected to the material page with the loan modal open
-    cy.url().should("include", "modal=LoanMaterialModal")
+    // Assert we were redirected to the material page with the loan modal open.
+    // The modal param is a one-shot inbox — it opens the modal and is
+    // stripped from the URL — so assert the visible outcome instead.
+    cy.dataCy("loan-material-modal").should("be.visible")
     cy.location("pathname").should("not.eq", "/user/profile")
   })
 
@@ -110,11 +77,11 @@ describe("Login redirect after loan attempt", () => {
     // Select ebook tab
     cy.get("[data-cy='slide-select-option']").eq(2).click()
 
-    // Click "Lån e-bog" to open LoginSheet
+    // Click "Lån e-bog" to open LoanLoginModal
     cy.contains("Lån e-bog").click()
 
-    // LoginSheet should be visible
-    cy.dataCy("global-sheet").should("be.visible")
+    // LoanLoginModal should be visible
+    cy.dataCy("loan-login-modal").should("be.visible")
 
     // Intercept Adgangsplatformen login URL
     cy.intercept("GET", "/mocked/login*", {
@@ -124,7 +91,7 @@ describe("Login redirect after loan attempt", () => {
     })
 
     // Click Adgangsplatformen button — this sets the redirect cookie, then navigates
-    cy.dataCy("login-sheet-adgangsplatformen-button").click()
+    cy.dataCy("loan-login-modal-adgangsplatformen-button").click()
 
     // Verify we arrived at the login page (cookie is now set)
     cy.location("pathname").should("eq", "/mocked/login")
@@ -146,8 +113,10 @@ describe("Login redirect after loan attempt", () => {
     // Visit the callback URL — server reads the redirect cookie and redirects
     cy.visit("/auth/callback/adgangsplatformen")
 
-    // Assert we were redirected to the material page with the loan modal open
-    cy.url().should("include", "modal=LoanMaterialModal")
+    // Assert we were redirected to the material page with the loan modal open.
+    // The modal param is a one-shot inbox — it opens the modal and is
+    // stripped from the URL — so assert the visible outcome instead.
+    cy.dataCy("loan-material-modal").should("be.visible")
     cy.location("pathname").should("not.eq", "/user/profile")
   })
 })

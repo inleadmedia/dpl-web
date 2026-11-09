@@ -6,6 +6,9 @@ import globalTextArgs, {
 import serviceUrlArgs, {
   argTypes as serviceUrlArgTypes
 } from "../../../core/storybook/serviceUrlArgs";
+import globalConfigArgs, {
+  argTypes as globalConfigArgTypes
+} from "../../../core/storybook/globalConfigArgs";
 import MaterialGridAutomatic from "./MaterialGridAutomatic.entry";
 import MaterialGridSkeleton from "../../../components/material-grid/MaterialGridSkeleton";
 import { AdvancedSortMapStrings } from "../../advanced-search/types";
@@ -18,6 +21,7 @@ const meta: Meta<typeof MaterialGridAutomatic> = {
   argTypes: {
     ...globalTextArgTypes,
     ...serviceUrlArgTypes,
+    ...globalConfigArgTypes,
     title: {
       description: "Title",
       control: { type: "text" }
@@ -81,6 +85,11 @@ const meta: Meta<typeof MaterialGridAutomatic> = {
         type: "number"
       }
     },
+    materialType: {
+      description:
+        "Prioritised material type opened when a material is clicked (falls back to normal logic if unavailable)",
+      control: { type: "text" }
+    },
     buttonText: {
       description: "Button text",
       control: { type: "text" }
@@ -124,6 +133,7 @@ export const Primary: Story = {
   args: {
     ...globalTextArgs,
     ...serviceUrlArgs,
+    ...globalConfigArgs,
     title: "Recommended materials",
     description:
       "This is a long description of the materials selected, or whatever else you want to put in here",
@@ -136,6 +146,7 @@ export const Primary: Story = {
     sort: AdvancedSortMapStrings.Relevance,
     firstaccessiondateitem: "",
     requestedAmount: 12,
+    materialType: "",
     buttonText: "Show all",
     showAllLinkConfig: "https://slagbib-eonext.stg.inlead.dev/",
     materialUrl: "/work/:workid",

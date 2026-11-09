@@ -2,6 +2,6 @@
   "name": "inleadmedia/dpl-react",
   "type": "drupal-library",
   "require": {
-      "composer/installers": "^1.2.0"
+      "composer/installers": "^1.2 || ^2"
   }
 }

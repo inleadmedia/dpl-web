@@ -154,3 +154,11 @@ export const Search: Story = {
     <StoryHeader search={<SearchHeaderEntry {...args} />} />
   )
 };
+
+export const InleadInjection: Story = {
+  ...Search,
+  args: {
+    ...Search.args,
+    isInjectionExample: true
+  }
+};

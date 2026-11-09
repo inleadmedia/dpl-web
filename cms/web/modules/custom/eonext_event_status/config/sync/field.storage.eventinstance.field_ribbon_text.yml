@@ -1,0 +1,25 @@
+uuid: a94cfb93-778a-4fbc-bd85-62f4e27a24c3
+langcode: en
+status: true
+dependencies:
+  module:
+  - recurring_events
+  - eonext_event_status
+  enforced:
+    module:
+    - eonext_event_status
+id: eventinstance.field_ribbon_text
+field_name: field_ribbon_text
+entity_type: eventinstance
+type: string
+settings:
+  max_length: 255
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {}
+persist_with_no_fields: false
+custom_storage: false

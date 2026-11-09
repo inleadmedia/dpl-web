@@ -36,6 +36,9 @@ import globalConfigArgs, {
 import blockedArgs, {
   argTypes as blockedArgTypes
 } from "../../core/storybook/blockedArgs";
+import biblioAdapterArgs, {
+  argTypes as biblioAdapterArgTypes
+} from "../../core/storybook/biblioAdapterArgs";
 
 const meta: Meta<typeof DashBoard> = {
   title: "Apps / Dashboard",
@@ -55,6 +58,7 @@ const meta: Meta<typeof DashBoard> = {
     ...reservationListArgTypes,
     ...globalTextArgTypes,
     ...globalConfigArgTypes,
+    ...biblioAdapterArgTypes,
     // Urls
     physicalLoansUrl: {
       control: { type: "text" }
@@ -62,7 +66,13 @@ const meta: Meta<typeof DashBoard> = {
     reservationsUrl: {
       control: { type: "text" }
     },
+    userProfileUrl: {
+      control: { type: "text" }
+    },
     yourProfileText: {
+      control: { type: "text" }
+    },
+    dashboardUserProfileLinkText: {
       control: { type: "text" }
     },
     // Config
@@ -151,6 +161,18 @@ const meta: Meta<typeof DashBoard> = {
     },
     dashboardReservationsLinkText: {
       control: { type: "text" }
+    },
+    dashboardRecommendationsHeadingText: {
+      control: { type: "text" }
+    },
+    dashboardRecommendationsLoanCaptionText: {
+      control: { type: "text" }
+    },
+    dashboardRecommendationsReservationCaptionText: {
+      control: { type: "text" }
+    },
+    dashboardRecommendationsFavoriteCaptionText: {
+      control: { type: "text" }
     }
   }
 };
@@ -173,11 +195,14 @@ export const Primary: Story = {
     ...reservationListArgs,
     ...globalTextArgs,
     ...globalConfigArgs,
+    ...biblioAdapterArgs,
     blacklistedAvailabilityBranchesConfig:
       "FBS-751032,FBS-751031,FBS-751009,FBS-751027,FBS-751024,DK-775164",
     physicalLoansUrl: "/user/me/loans",
     reservationsUrl: "/user/me/reservations",
+    userProfileUrl: "/user/me",
     yourProfileText: "Your profile",
+    dashboardUserProfileLinkText: "User profile",
     feesText: "Fees",
     totalOwedText: "You owe in total",
     dashboardSeeMoreFeesText: "See more",
@@ -205,6 +230,20 @@ export const Primary: Story = {
     expirationWarningDaysBeforeConfig: "6",
     dashboardLoansLinkText: "All loans",
     dashboardReservationsLinkText: "All reservations",
+    dashboardRecommendationsHeadingText: "Inspiration for you",
+    dashboardRecommendationsLoanCaptionText: "Because you borrowed",
+    dashboardRecommendationsReservationCaptionText: "Because you reserved",
+    dashboardRecommendationsFavoriteCaptionText:
+      "Because your favorites list contains",
     materialDetailsOverdueText: "Overdue"
+  }
+};
+
+// The Biblio adapter feature flag turned on: the digital loan counts combine
+// Publizon loans with loans from the Biblio adapter.
+export const DashboardWithBiblioAdapter: Story = {
+  args: {
+    ...Primary.args,
+    useBiblioAdapterConfig: "1"
   }
 };

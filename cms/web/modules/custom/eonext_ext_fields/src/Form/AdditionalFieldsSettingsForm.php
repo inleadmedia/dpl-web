@@ -2,6 +2,8 @@
 
 namespace Drupal\eonext_ext_fields\Form;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Extension\ModuleExtensionList;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\ConfigTarget;
@@ -20,28 +22,24 @@ class AdditionalFieldsSettingsForm extends ConfigFormBase {
   public const FBI_FIELD_PATTERN = '[a-z]+(\.[a-z]+)*';
 
   /**
-   * The module extension list service.
-   *
-   * @var \Drupal\Core\Extension\ModuleExtensionList
-   */
-  protected $moduleExtensionList;
-
-  /**
    * Constructs the AdditionalFieldsSettingsForm object.
-   *
-   * @param \Drupal\Core\Extension\ModuleExtensionList $module_extension_list
-   *   The module extension list service.
    */
-  public function __construct(ModuleExtensionList $module_extension_list) {
-    $this->moduleExtensionList = $module_extension_list;
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    TypedConfigManagerInterface $typed_config_manager,
+    protected ModuleExtensionList $moduleExtensionList,
+  ) {
+    parent::__construct($config_factory, $typed_config_manager);
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): static {
     return new static(
-      $container->get('extension.list.module')
+      $container->get('config.factory'),
+      $container->get('config.typed'),
+      $container->get('extension.list.module'),
     );
   }
 

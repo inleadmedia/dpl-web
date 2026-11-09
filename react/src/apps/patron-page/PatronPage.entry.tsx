@@ -6,6 +6,7 @@ import PatronPage from "./PatronPage";
 import { BlockedPatronEntryTextProps } from "../../core/storybook/blockedArgs";
 import withIsPatronBlockedHoc from "../../core/utils/withIsPatronBlockedHoc";
 import GlobalUrlEntryPropsInterface from "../../core/utils/types/global-url-props";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import { GlobalEntryTextProps } from "../../core/storybook/globalTextArgs";
 
 interface PatronPageConfigProps {
@@ -19,6 +20,7 @@ interface PatronPageConfigProps {
 }
 
 export interface PatronPageUrlProps {
+  dashboardUrl: string;
   deletePatronUrl: string;
   pauseReservationInfoUrl: string;
 }
@@ -38,6 +40,7 @@ interface PatronPageTextProps {
   patronPageChangePincodeBodyText: string;
   patronPageChangePincodeHeaderText: string;
   patronPageConfirmPincodeLabelText: string;
+  patronPageDashboardLinkText: string;
   patronPageDeleteProfileLinkText: string;
   patronPageDeleteProfileText: string;
   patronPageHandleResponseInformationText: string;
@@ -52,9 +55,8 @@ interface PatronPageTextProps {
   patronPagePincodesNotTheSameText: string;
   patronPagePincodeTooShortValidationText: string;
   patronPageSaveButtonText: string;
-  patronPageStatusSectionBodyText: string;
   patronPageStatusSectionHeaderText: string;
-  patronPageStatusSectionLoanHeaderText: string;
+  patronPageStatusSectionLinkText: string;
   patronPageStatusSectionLoansAudioBooksText: string;
   patronPageStatusSectionLoansEbooksText: string;
   patronPageStatusSectionOutOfAriaLabelAudioBooksText: string;
@@ -82,6 +84,7 @@ export interface PatronPageProps
     PatronPageTextProps,
     PatronPageUrlProps,
     GlobalEntryTextProps,
+    BiblioAdapterArgs,
     GlobalUrlEntryPropsInterface {}
 
 const PatronPageEntry: FC<PatronPageProps> = () => <PatronPage />;

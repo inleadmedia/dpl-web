@@ -1,0 +1,6 @@
+eonext_event_status.admin:
+  title: 'Event status'
+  description: 'Install and verify event ribbon fields'
+  parent: system.admin_config_system
+  route_name: eonext_event_status.admin
+  weight: 50

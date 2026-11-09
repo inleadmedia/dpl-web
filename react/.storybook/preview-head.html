@@ -8,12 +8,17 @@
   };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/en-gb.js"></script>
+<script src="http://localhost:8000/inlead-dpl-service-banner.js"></script>
+<script src="http://localhost:8000/inlead-dpl-editorial-suggestions.js"></script>
 
 <script>
   window.FullCalendar = {
     globalLocales: {
       push: function(locale) {
         window.DPL_fullCalendarCustomLocale = locale;
+
+        window.Inlead_DPL_ServiceBanner;
+        window.Inlead_DPL_EditorialSuggestions;
       }
     }
   };

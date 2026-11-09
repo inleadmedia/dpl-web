@@ -1,0 +1,4 @@
+administer eonext quick loan:
+  title: 'Administer quick loan display'
+  description: 'Configure quick loan (Kviklån) information on the material page.'
+  restrict access: TRUE

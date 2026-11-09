@@ -1,4 +1,4 @@
-import { TOKEN_LIBRARY_KEY } from "../../core/token";
+import { TOKEN_LIBRARY_KEY, TOKEN_USER_KEY } from "../../core/token";
 import {
   digitalLoansData,
   feesData,
@@ -12,11 +12,14 @@ describe("Fee list", () => {
     cy.window().then((win) => {
       const wednesday20220603 = new Date("2022-10-21T10:00:00.000").getTime();
 
-      // Sets time to a specific date
-      // https://github.com/cypress-io/cypress/issues/7577
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      cy.clock(wednesday20220603).then((clock: any) => clock.bind(window));
+      // Sets time to a specific date. cy.clock() applies to the application
+      // under test automatically when called before cy.visit().
+      // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+      // notify scheduler, leaving every component stuck in its loading state.
+      cy.clock(wednesday20220603, ["Date"]);
       win.sessionStorage.setItem(TOKEN_LIBRARY_KEY, "random-token");
+      // Loans, reservations and fees are only fetched for a patron.
+      win.sessionStorage.setItem(TOKEN_USER_KEY, "random-token");
 
       cy.intercept("GET", "**/external/agencyid/patrons/patronid/v4**", {
         patron: {

@@ -56,7 +56,10 @@ class SailorEndpointConfig extends EndpointConfig {
    * {@inheritdoc}
    */
   public function schemaPath(): string {
-    return __DIR__ . '/../schema/fbi.graphql';
+    // Introspected from the fbcms-go profile, while the runtime profile is
+    // next (see Fbi::FBI_PROFILE). The profiles serve identical schemas —
+    // see schemas/README.md.
+    return '/schemas/graphql/dbc-fbi.graphql';
   }
 
   /**

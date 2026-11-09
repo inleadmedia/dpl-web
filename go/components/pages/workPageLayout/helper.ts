@@ -5,9 +5,8 @@ import goConfig from "@/lib/config/goConfig"
 import {
   ManifestationSearchPageTeaserFragment,
   ManifestationWorkPageFragment,
-  WorkFullWorkPageFragment,
 } from "@/lib/graphql/generated/fbi/graphql"
-import { LibraryProfile, LoanListResult } from "@/lib/rest/publizon/adapter/generated/model"
+import { resolveUrl } from "@/lib/helpers/helper.routes"
 import { MaterialTypeIconNamesType } from "@/lib/types/icons"
 
 export const getManifestationMaterialType = (
@@ -120,9 +119,19 @@ export const getEbookManifestationOrFallbackManifestation = (
   bestRepresentation: ManifestationWorkPageFragment | ManifestationSearchPageTeaserFragment,
   manifestations: ManifestationWorkPageFragment[] | ManifestationSearchPageTeaserFragment[]
 ): ManifestationWorkPageFragment | ManifestationSearchPageTeaserFragment => {
-  const ebookManifestation = manifestations.find(manifestation =>
-    isEbookMaterialType(manifestation.materialTypes[0]?.materialTypeSpecific.code)
-  )
+  const isEbook = (
+    manifestation: ManifestationWorkPageFragment | ManifestationSearchPageTeaserFragment
+  ) => isEbookMaterialType(manifestation.materialTypes[0]?.materialTypeSpecific.code)
+
+  // A work can expose several e-book editions, e.g. a deselected ("fravalgt")
+  // PDF and the loanable EPUB. The loanable edition carries a PUBLIZON
+  // identifier, so prefer it; otherwise keep the first e-book edition.
+  const ebookManifestation =
+    manifestations.find(
+      manifestation =>
+        isEbook(manifestation) &&
+        manifestation.identifiers.some(identifier => identifier.type === "PUBLIZON")
+    ) ?? manifestations.find(isEbook)
 
   if (ebookManifestation) {
     return ebookManifestation
@@ -177,21 +186,65 @@ export const isAudioMaterialType = (code: string): boolean => audioMaterialTypeC
 export const isPodcastMaterialType = (code: string): boolean =>
   podcastMaterialTypeCodes.includes(code)
 
-export const getManifestationLabel = (
-  manifestation: ManifestationWorkPageFragment | ManifestationSearchPageTeaserFragment
-): string => {
-  const code = manifestation.materialTypes[0]?.materialTypeSpecific.code
-  return translateMaterialTypesStringForRender(code)?.toLowerCase() || ""
+export type TMaterialCategory = "physical" | "ebook" | "audio" | null
+
+// Collapses the four material-type predicates into the three categories the
+// loan / reservation UI actually branches on.
+export const getMaterialCategory = (code: string | undefined): TMaterialCategory => {
+  if (!code) return null
+  if (isPhysicalMaterialType(code)) return "physical"
+  if (isEbookMaterialType(code)) return "ebook"
+  if (isAudioMaterialType(code) || isPodcastMaterialType(code)) return "audio"
+  return null
 }
 
-export const getManifestationByMaterialType = (
-  work: WorkFullWorkPageFragment,
-  materialType: string
-): ManifestationWorkPageFragment | undefined => {
-  return work.manifestations.all.find(manifestation =>
-    manifestation.materialTypes.some(type => type.materialTypeSpecific.display === materialType)
-  )
+export const getEbookPreviewUrl = (workId: string, identifier: string) =>
+  resolveUrl({
+    routeParams: { work: "work", ":wid": workId, read: "read" },
+    queryParams: { id: identifier },
+  })
+
+// TODO(publizon-sunset): remove when the Publizon API is phased out —
+// getReadUrlForLoan then only knows loanId, and the orderId query param dies
+// with pubhub's reader.
+export const getEbookReadUrl = (workId: string, orderId: string) =>
+  resolveUrl({
+    routeParams: { work: "work", ":wid": workId, read: "read" },
+    queryParams: { orderId },
+  })
+
+// The read url for a loan the Biblio adapter issued — opens the WeDoBooks
+// reader, where orderId (above) opens Publizon's. The loan decides the
+// reader, so both urls stay valid side by side while the providers coexist.
+export const getDigitalReadUrl = (workId: string, loanId: string) =>
+  resolveUrl({
+    routeParams: { work: "work", ":wid": workId, read: "read" },
+    queryParams: { loanId },
+  })
+
+// The rule "the loan decides the reader" as code: a Biblio loan (loanId)
+// opens the WeDoBooks reader, a Publizon loan (orderId) pubhub's. Every
+// read-link goes through here so the callers cannot drift apart on it.
+export const getReadUrlForLoan = (workId: string, loan: { orderId?: string; loanId?: string }) =>
+  loan.loanId ? getDigitalReadUrl(workId, loan.loanId) : getEbookReadUrl(workId, loan.orderId ?? "")
+
+export type ManifestationLabelForm = "indefinite" | "definite"
+
+export const getManifestationLabel = (
+  manifestation: ManifestationWorkPageFragment | ManifestationSearchPageTeaserFragment,
+  form: ManifestationLabelForm = "indefinite"
+): string => {
+  const code = manifestation.materialTypes[0]?.materialTypeSpecific.code
+  const label = translateMaterialTypesStringForRender(code)?.toLowerCase() || ""
+  if (!label || form === "indefinite") return label
+  return toDanishDefinite(label)
 }
+
+// Danish definite-article suffix for common-gender material labels.
+// Words ending in unstressed -e take -n (tegneserie → tegneserien);
+// everything else takes -en (bog → bogen, podcast → podcasten).
+const toDanishDefinite = (label: string): string =>
+  label.endsWith("e") ? `${label}n` : `${label}en`
 
 export const getManifestationLanguageCode = (manifestation: ManifestationWorkPageFragment) => {
   if (!manifestation) return undefined
@@ -255,61 +308,4 @@ export const getManifestationMaterialTypeIcon = (
 ): MaterialTypeIconNamesType | undefined => {
   const materialType = getManifestationMaterialType(manifestation)
   return getIconNameFromMaterialType(materialType.code)
-}
-
-export const canUserLoanMoreMaterials = (
-  dataLoans: LoanListResult | null | undefined,
-  dataLibraryProfile: LibraryProfile | null | undefined,
-  manifestation: ManifestationWorkPageFragment
-) => {
-  if (!manifestation) {
-    return false
-  }
-
-  const code = manifestation.materialTypes[0]?.materialTypeSpecific.code
-  const icons = goConfig("materialtypes.icons")
-
-  // Check if material is an audiobook
-  if ((icons.audioBookOnline as string[]).includes(code)) {
-    return !!(
-      dataLibraryProfile?.maxConcurrentAudioLoansPerBorrower &&
-      dataLoans?.userData?.totalAudioLoans !== undefined &&
-      dataLibraryProfile.maxConcurrentAudioLoansPerBorrower > dataLoans.userData.totalAudioLoans
-    )
-  }
-
-  // Check if material is an ebook
-  if ((icons.ebook as string[]).includes(code)) {
-    return !!(
-      dataLibraryProfile?.maxConcurrentEbookLoansPerBorrower &&
-      dataLoans?.userData?.totalEbookLoans !== undefined &&
-      dataLibraryProfile.maxConcurrentEbookLoansPerBorrower > dataLoans.userData.totalEbookLoans
-    )
-  }
-
-  // Podcasts are always loanable, unless user has reached the limit of 30 costFree loans
-  if ((icons.podcast as string[]).includes(code)) {
-    return canUserLoanMoreCostFreeMaterials(dataLoans)
-  }
-
-  // Physical materials and unknown types are not loanable online
-  return false
-}
-
-export const canUserLoanMoreCostFreeMaterials = (dataLoans: LoanListResult | undefined | null) => {
-  // If we can't determine the total costFree loans, we can't determine if the user can loan more
-  if (
-    dataLoans?.userData?.totalAudioLoans === undefined ||
-    dataLoans?.userData?.totalEbookLoans === undefined ||
-    dataLoans?.loans === undefined ||
-    dataLoans?.loans === null
-  ) {
-    return false
-  }
-  // Check if the user has reached a total of 30 costFree loans - if so, no more can be loaned
-  const costFreeLoans =
-    dataLoans.loans.length -
-    (dataLoans.userData.totalAudioLoans + dataLoans.userData.totalEbookLoans)
-
-  return costFreeLoans < 30
 }

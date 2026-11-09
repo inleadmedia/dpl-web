@@ -3,6 +3,9 @@ import PatronPage from "./PatronPage.entry";
 import serviceUrlArgs, {
   argTypes as serviceUrlArgTypes
 } from "../../core/storybook/serviceUrlArgs";
+import biblioAdapterArgs, {
+  argTypes as biblioAdapterArgTypes
+} from "../../core/storybook/biblioAdapterArgs";
 import pincodeArgs, {
   argTypes as pincodeArgTypes
 } from "../../core/storybook/pincodeArgs";
@@ -23,6 +26,7 @@ const meta: Meta<typeof PatronPage> = {
   // @ts-ignore: can't figure out how to type globalConfigArgTypes, serviceUrlArgTypes and globalTextArgTypes
   argTypes: {
     ...serviceUrlArgTypes,
+    ...biblioAdapterArgTypes,
     ...pincodeArgTypes,
     ...blockedArgTypes,
     ...globalTextArgTypes,
@@ -37,10 +41,16 @@ const meta: Meta<typeof PatronPage> = {
     branchesConfig: {
       control: { type: "text" }
     },
+    dashboardUrl: {
+      control: { type: "text" }
+    },
     deletePatronUrl: {
       control: { type: "text" }
     },
     pauseReservationInfoUrl: {
+      control: { type: "text" }
+    },
+    advancedSearchUrl: {
       control: { type: "text" }
     },
     textNotificationsEnabledConfig: {
@@ -48,6 +58,9 @@ const meta: Meta<typeof PatronPage> = {
     },
     // Texts
     patronPageHeaderText: {
+      control: { type: "text" }
+    },
+    patronPageDashboardLinkText: {
       control: { type: "text" }
     },
     pauseReservationModalHeaderText: {
@@ -104,10 +117,7 @@ const meta: Meta<typeof PatronPage> = {
     patronPageStatusSectionHeaderText: {
       control: { type: "text" }
     },
-    patronPageStatusSectionBodyText: {
-      control: { type: "text" }
-    },
-    patronPageStatusSectionLoanHeaderText: {
+    patronPageStatusSectionLinkText: {
       control: { type: "text" }
     },
     patronPageStatusSectionLoansEbooksText: {
@@ -196,6 +206,7 @@ const meta: Meta<typeof PatronPage> = {
   },
   args: {
     ...serviceUrlArgs,
+    ...biblioAdapterArgs,
     ...pincodeArgs,
     ...blockedArgs,
     ...globalTextArgs,
@@ -206,6 +217,8 @@ const meta: Meta<typeof PatronPage> = {
       "FBS-751032,FBS-751031,FBS-751009,FBS-751027,FBS-751024",
     branchesConfig:
       '[\n   {\n      "branchId":"DK-775120",\n      "title":"Højbjerg"\n   },\n   {\n      "branchId":"DK-775122",\n      "title":"Beder-Malling"\n   },\n   {\n      "branchId":"DK-775144",\n      "title":"Gellerup"\n   },\n   {\n      "branchId":"DK-775167",\n      "title":"Lystrup"\n   },\n   {\n      "branchId":"DK-775146",\n      "title":"Harlev"\n   },\n   {\n      "branchId":"DK-775168",\n      "title":"Skødstrup"\n   },\n   {\n      "branchId":"FBS-751010",\n      "title":"Arresten"\n   },\n   {\n      "branchId":"DK-775147",\n      "title":"Hasle"\n   },\n   {\n      "branchId":"FBS-751032",\n      "title":"Må ikke benyttes"\n   },\n   {\n      "branchId":"FBS-751031",\n      "title":"Fjernlager 1"\n   },\n   {\n      "branchId":"DK-775126",\n      "title":"Solbjerg"\n   },\n   {\n      "branchId":"FBS-751030",\n      "title":"ITK"\n   },\n   {\n      "branchId":"DK-775149",\n      "title":"Sabro"\n   },\n   {\n      "branchId":"DK-775127",\n      "title":"Tranbjerg"\n   },\n   {\n      "branchId":"DK-775160",\n      "title":"Risskov"\n   },\n   {\n      "branchId":"DK-775162",\n      "title":"Hjortshøj"\n   },\n   {\n      "branchId":"DK-775140",\n      "title":"Åby"\n   },\n   {\n      "branchId":"FBS-751009",\n      "title":"Fjernlager 2"\n   },\n   {\n      "branchId":"FBS-751029",\n      "title":"Stadsarkivet"\n   },\n   {\n      "branchId":"FBS-751027",\n      "title":"Intern"\n   },\n   {\n      "branchId":"FBS-751026",\n      "title":"Fælles undervejs"\n   },\n   {\n      "branchId":"FBS-751025",\n      "title":"Fællessekretariatet"\n   },\n   {\n      "branchId":"DK-775133",\n      "title":"Bavnehøj"\n   },\n   {\n      "branchId":"FBS-751024",\n      "title":"Fjernlånte materialer"\n   },\n   {\n      "branchId":"DK-775100",\n      "title":"Hovedbiblioteket"\n   },\n   {\n      "branchId":"DK-775170",\n      "title":"Trige"\n   },\n   {\n      "branchId":"DK-775150",\n      "title":"Tilst"\n   },\n   {\n      "branchId":"DK-775130",\n      "title":"Viby"\n   },\n   {\n      "branchId":"DK-775164",\n      "title":"Egå"\n   }\n]',
+    dashboardUrl: "/user/me/dashboard",
+    advancedSearchUrl: "/advancedsearch",
     deletePatronUrl:
       "https://images.unsplash.com/photo-1560888126-5c13ad3f9345?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2371&q=80", // A goat.
     pauseReservationInfoUrl:
@@ -213,6 +226,7 @@ const meta: Meta<typeof PatronPage> = {
     textNotificationsEnabledConfig: "1",
     // Texts
     patronPageHeaderText: "Patron profile page",
+    patronPageDashboardLinkText: "Dashboard",
     pauseReservationModalHeaderText: "Pause reservations on physical items",
     pauseReservationModalBodyText:
       "Pause your reservations early, since reservations that are already being processed, will not be paused.",
@@ -235,9 +249,8 @@ const meta: Meta<typeof PatronPage> = {
     patronContactEmailCheckboxText:
       "Receive emails about your loans, reservations, and so forth",
     patronPageStatusSectionHeaderText: "Digital loans",
-    patronPageStatusSectionBodyText:
-      "There is a number of materials without limitation to amounts of loans per month.",
-    patronPageStatusSectionLoanHeaderText: "Loans per month",
+    patronPageStatusSectionLinkText:
+      "See titles that don't count towards your quota",
     patronPageStatusSectionLoansEbooksText: "E-books",
     patronPageStatusSectionLoansAudioBooksText: "Audiobooks",
     patronPageChangePickupHeaderText: "Reservations",
@@ -281,3 +294,11 @@ export default meta;
 type Story = StoryObj<typeof PatronPage>;
 
 export const PatronPageEntry: Story = {};
+
+// The Biblio adapter feature flag turned on. The support identifier and the
+// loan quotas then come from the adapter instead of Publizon.
+export const PatronPageWithBiblioAdapter: Story = {
+  args: {
+    useBiblioAdapterConfig: "1"
+  }
+};

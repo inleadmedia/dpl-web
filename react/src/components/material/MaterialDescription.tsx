@@ -6,19 +6,23 @@ import {
   materialContainsDanish
 } from "../../apps/material/helper";
 import {
-  constructAdvancedSearchSubjectUrl,
   constructDK5SearchUrl,
+  constructGenreAndFormSearchUrl,
   constructMaterialUrl,
   constructSearchUrl,
   constructSubjectSearchUrl
 } from "../../core/utils/helpers/url";
+import { constructAdvancedSearchSubjectUrl } from "../../core/advanced-search/url";
 import { useConfig } from "../../core/utils/config";
 import { useText } from "../../core/utils/text";
 import { Work } from "../../core/utils/types/entities";
 import { Pid, WorkId } from "../../core/utils/types/ids";
 import { useUrls } from "../../core/utils/url";
 import HorizontalTermLine from "../horizontal-term-line/HorizontalTermLine";
-import { materialIsFiction } from "../../core/utils/helpers/general";
+import {
+  materialIsFiction,
+  materialFictionNonfictionIsNotSpecified
+} from "../../core/utils/helpers/general";
 import SeriesList from "../card-item-list/card-list-item/series-list";
 import MaterialContents from "./MaterialContents/MaterialContents";
 import ButtonShare from "../button-share/button-share";
@@ -36,12 +40,14 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   const searchUrl = u("searchUrl");
   const advancedSearchUrl = u("advancedSearchUrl");
   const materialUrl = u("materialUrl");
+  const seriesUrl = u("seriesUrl");
   const {
     fictionNonfiction,
     series,
     subjects,
     relations,
     dk5MainEntry,
+    genreAndForm,
     manifestations
   } = work;
 
@@ -54,7 +60,7 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
 
   let descriptionTermFields = React.useMemo(() => {
     return Object.values(customFields || {}).map((fieldData: any) => {
-      if (fieldData.label === "body")
+      if (fieldData.label === "body" || fieldData.label === "bodyOptions")
         return;
 
       let values = fieldData.getter(work);
@@ -76,7 +82,15 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     if (!overrideData)
       return null;
 
-    return (overrideData.getter(work) || []).filter(Boolean).join("\n");
+    let bodyOverride = (overrideData.getter(work) || []).filter(Boolean);
+    if (Array.isArray(bodyOverride) && customFields?.bodyOptions?.output !== "multi-paragraph")
+      bodyOverride = bodyOverride.join(" ").trim();
+
+    // Covert back to array for paragraph renderer
+    if (Array.isArray(bodyOverride) === false)
+      bodyOverride = [bodyOverride].filter(Boolean);
+
+    return bodyOverride;
   }, [customFields, work]);
 
   const localSubjectsAgencyIds = config("localSubjectsAgencyIdsConfig", {
@@ -118,6 +132,11 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
 
   const subjectsList = [...localSubjects, ...dbcSubjects];
 
+  const genreAndFormList = genreAndForm.map((item) => ({
+    url: constructGenreAndFormSearchUrl(searchUrl, item),
+    term: item
+  }));
+
   const filmAdaptationsList = getUniqueMovies(relations).map((item) => {
     return {
       url: constructMaterialUrl(materialUrl, item.ownerWork.workId as WorkId),
@@ -125,20 +144,33 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
     };
   });
 
-  const fictionNonfictionList = fictionNonfiction
-    ? [
-        {
-          url: constructSearchUrl(searchUrl, fictionNonfiction.display),
-          term: fictionNonfiction.display
-        }
-      ]
-    : [];
+  const fictionNonfictionList =
+    fictionNonfiction && !materialFictionNonfictionIsNotSpecified(work)
+      ? [
+          {
+            url: constructSearchUrl(searchUrl, fictionNonfiction.display),
+            term: fictionNonfiction.display
+          }
+        ]
+      : [];
 
   let knownFileds: any = {
     [t("inSameSeriesText")]: {
       label: t("inSameSeriesText"),
       tags: seriesMembersList,
       cy: "material-description-series-members"
+    },
+    [t("subjectNumberText")]: {
+      label: t("subjectNumberText"),
+      tags: shouldShowDk5 && dk5MainEntry ? [{
+        url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
+        term: dk5MainEntry.display
+      }] : []
+    },
+    [t("genreAndFormText")]: {
+      label: t("genreAndFormText"),
+      tags: genreAndFormList,
+      cy: "material-description-genre-and-form"
     },
     [t("identifierText")]: {
       label: t("identifierText"),
@@ -154,13 +186,6 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
       label: t("filmAdaptationsText"),
       tags: filmAdaptationsList,
       cy: "material-description-film-adaptations"
-    },
-    [t("subjectNumberText")]: {
-      label: t("subjectNumberText"),
-      tags: shouldShowDk5 && dk5MainEntry ? [{
-        url: constructDK5SearchUrl(searchUrl, dk5MainEntry.code),
-        term: dk5MainEntry.display
-      }] : []
     }
   };
 
@@ -187,19 +212,28 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
   const bestRepresentationContents =
     work.manifestations.bestRepresentation?.contents;
 
+  let descriptionContent = descriptionOverride || work.abstract;
+
   return (
     <section className="material-description" data-cy="material-description">
       <>
-        { (descriptionOverride || work.abstract && work.abstract[0]) && (
-          <>
-            <h2 className="material-description__heading">
-              {t("descriptionHeadlineText")}
-            </h2>
-            <p className="material-description__content">
-              { descriptionOverride === null ? work.abstract && work.abstract[0] : descriptionOverride }
-            </p>
-          </>
-        )}
+        {
+          descriptionContent?.length
+            ? <>
+              <h2 className="material-description__heading">
+                {t("descriptionHeadlineText")}
+              </h2>
+              {
+                descriptionContent?.map((line: string, index: number) => {
+                  return <p key={index} className="material-description__content">
+                    {line}
+                  </p>;
+                })
+              }
+            </>
+            : null
+        }
+
         {bestRepresentationContents && (
           <MaterialContents contents={bestRepresentationContents} />
         )}
@@ -207,21 +241,20 @@ const MaterialDescription: React.FC<MaterialDescriptionProps> = ({ work, customF
           <SeriesList
             series={series}
             searchUrl={searchUrl}
+            seriesUrl={seriesUrl}
             t={t}
             workId={work.workId}
             dataCy="material-description-series"
           />
 
-          {
-            descriptionTermFields.map((customField: any) => {
-              return <HorizontalTermLine
-                key={ customField.label }
-                title={ customField.label }
-                linkList={ customField.tags }
-                dataCy={ customField.cy || "material-description-custom" }
-              />
-            })
-          }
+          {descriptionTermFields.map((customField: any) => (
+            <HorizontalTermLine
+              key={customField.label}
+              title={customField.label}
+              linkList={customField.tags}
+              dataCy={customField.cy || "material-description-custom"}
+            />
+          ))}
         </div>
         {showShareButtons && <ButtonShare className="mt-64" />}
       </>

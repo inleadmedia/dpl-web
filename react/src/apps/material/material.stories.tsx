@@ -33,6 +33,18 @@ import editionSwitchModalArgs, {
 import materialContentsArgs, {
   argTypes as materialContentsArgTypes
 } from "../../components/material/MaterialContents/MaterialContentsArgs";
+import playerModalArgs, {
+  argTypes as playerModalArgTypes
+} from "../../core/storybook/playerModalArgs";
+import openOrderArgs, {
+  argTypes as openOrderArgTypes
+} from "../../core/storybook/openOrderArgs";
+import materialUnavailableNoticeArgs, {
+  argTypes as materialUnavailableNoticeArgTypes
+} from "../../components/material/MaterialUnavailableNotice/MaterialUnavailableNoticeArgs";
+import biblioAdapterArgs, {
+  argTypes as biblioAdapterArgTypes
+} from "../../core/storybook/biblioAdapterArgs";
 
 const meta: Meta<typeof MaterialEntry> = {
   title: "Apps / Material",
@@ -41,6 +53,7 @@ const meta: Meta<typeof MaterialEntry> = {
   // @ts-ignore: can't figure out how to type serviceUrlArgTypes and globalTextArgTypes
   argTypes: {
     ...serviceUrlArgTypes,
+    ...biblioAdapterArgTypes,
     ...globalTextArgTypes,
     ...globalConfigArgTypes,
     ...deleteReservationModalArgTypes,
@@ -51,8 +64,15 @@ const meta: Meta<typeof MaterialEntry> = {
     ...reservationListArgTypes,
     ...editionSwitchModalArgTypes,
     ...materialContentsArgTypes,
+    ...playerModalArgTypes,
+    ...openOrderArgTypes,
+    ...materialUnavailableNoticeArgTypes,
     searchUrl: {
       description: "Path to the search result page",
+      control: { type: "text" }
+    },
+    seriesUrl: {
+      description: "Path to the series landing page",
       control: { type: "text" }
     },
     materialUrl: {
@@ -149,14 +169,6 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Edition/Week",
       control: { type: "text" }
     },
-    playerModalCloseButtonText: {
-      description: "Close",
-      control: { type: "text" }
-    },
-    playerModalDescriptionText: {
-      description: "Player modal description text",
-      control: { type: "text" }
-    },
     reserveBookText: {
       description: "Reserve",
       control: { type: "text" }
@@ -187,6 +199,10 @@ const meta: Meta<typeof MaterialEntry> = {
     },
     descriptionHeadlineText: {
       description: "Description headline",
+      control: { type: "text" }
+    },
+    genreAndFormText: {
+      description: "Genre and form",
       control: { type: "text" }
     },
     identifierText: {
@@ -397,6 +413,10 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Online limit info text",
       control: { type: "text" }
     },
+    onlineLimitMonthAlwaysLoanableLinkText: {
+      description: "Link to titles that don't count towards the quota",
+      control: { type: "text" }
+    },
     onlineMaterialPlayerText: {
       description: "Material button online player text",
       control: { type: "text" }
@@ -441,8 +461,8 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Days",
       control: { type: "text" }
     },
-    reservationSuccesTitleText: {
-      description: "Reservation Success title",
+    reservationRecommendationsTitleText: {
+      description: "Reservation Success recommendations title",
       control: { type: "text" }
     },
     reservationSuccesIsReservedForYouText: {
@@ -638,16 +658,16 @@ const meta: Meta<typeof MaterialEntry> = {
       description: "Choose one text",
       control: { type: "text" }
     },
-    infomediaModalScreenReaderModalDescriptionText: {
-      description: "Infomedia modal screen reader description",
+    retrieverModalScreenReaderModalDescriptionText: {
+      description: "Retriever modal screen reader description",
       control: { type: "text" }
     },
-    infomediaModalCloseModalAriaLabelText: {
-      description: "Close infomedia modal",
+    retrieverModalCloseModalAriaLabelText: {
+      description: "Close Retriever modal",
       control: { type: "text" }
     },
-    infomediaCopyrightText: {
-      description: "Infomedia copyright notice text",
+    retrieverCopyrightText: {
+      description: "Retriever copyright notice text",
       control: { type: "text" }
     },
     saveButtonText: {
@@ -793,82 +813,6 @@ const meta: Meta<typeof MaterialEntry> = {
     interestPeriodsConfig: {
       control: { type: "text" }
     },
-    openOrderResponseTitleText: {
-      description: "Reservation Success title",
-      control: { type: "text" }
-    },
-    openOrderAuthenticationErrorText: {
-      description: "Open order authentication error text",
-      control: { type: "text" }
-    },
-    openOrderUserBlockedByAgencyText: {
-      description: "Open order user blocked by agency text",
-      control: { type: "text" }
-    },
-    openOrderUserNotVerifiedText: {
-      description: "Open order user not verified text",
-      control: { type: "text" }
-    },
-    openOrderUserNoLongerExistOnAgencyText: {
-      description: "Open order user no longer exists on agency text",
-      control: { type: "text" }
-    },
-    openOrderInvalidOrderText: {
-      description: "Open order invalid order text",
-      control: { type: "text" }
-    },
-    openOrderNotOwnedIllLocText: {
-      description: "Open order item localized for ILL text",
-      control: { type: "text" }
-    },
-    openOrderNotOwnedNoIllLocText: {
-      description: "Open order item not localized for ILL text",
-      control: { type: "text" }
-    },
-    openOrderNotOwnedWrongIllMediumtypeText: {
-      description: "Open order wrong ILL medium type text",
-      control: { type: "text" }
-    },
-    openOrderNoServicerequesterText: {
-      description: "Open order no service requester text",
-      control: { type: "text" }
-    },
-    openOrderOrsErrorText: {
-      description: "Open order ORS error text",
-      control: { type: "text" }
-    },
-    openOrderStatusOwnedAcceptedText: {
-      description: "Open order status owned accepted text",
-      control: { type: "text" }
-    },
-    openOrderOwnedOwnCatalogueText: {
-      description: "Open order available in own catalogue text",
-      control: { type: "text" }
-    },
-    openOrderOwnedWrongMediumtypeText: {
-      description: "Open order wrong medium type for available item text",
-      control: { type: "text" }
-    },
-    openOrderServiceUnavailableText: {
-      description: "Open order service unavailable text",
-      control: { type: "text" }
-    },
-    openOrderUnknownErrorText: {
-      description: "Open order unknown error text",
-      control: { type: "text" }
-    },
-    openOrderUnknownPickupagencyText: {
-      description: "Open order unknown pickup agency text",
-      control: { type: "text" }
-    },
-    openOrderUnknownUserText: {
-      description: "Open order unknown user text",
-      control: { type: "text" }
-    },
-    openOrderErrorMissingPincodeText: {
-      description: "Open order error missing pincode text",
-      control: { type: "text" }
-    },
     shareOnFacebookText: {
       description: "Share on Facebook",
       control: { type: "text" }
@@ -892,6 +836,7 @@ const meta: Meta<typeof MaterialEntry> = {
   },
   args: {
     ...serviceUrlArgs,
+    ...biblioAdapterArgs,
     ...globalTextArgs,
     ...globalConfigArgs,
     ...deleteReservationModalArgs,
@@ -902,10 +847,14 @@ const meta: Meta<typeof MaterialEntry> = {
     ...reservationListArgs,
     ...editionSwitchModalArgs,
     ...materialContentsArgs,
+    ...playerModalArgs,
+    ...openOrderArgs,
+    ...materialUnavailableNoticeArgs,
     searchUrl: "/search",
+    seriesUrl: "/serie/:seriesid",
     materialUrl: "/work/:workid",
     advancedSearchUrl: "/advancedsearch",
-    wid: "work-of:870970-basis:141399357",
+    wid: "work-of:870970-basis:140058203",
     agencyIdConfig: "710100",
     localSubjectsAgencyIdsConfig: "",
     smsNotificationsForReservationsEnabledConfig: "1",
@@ -930,8 +879,6 @@ const meta: Meta<typeof MaterialEntry> = {
     materialGridRelatedSelectAriaLabelText: "Select material filter",
     periodicalSelectYearText: "Year",
     periodicalSelectEditionText: "Edition",
-    playerModalDescriptionText: "Modal for player",
-    playerModalCloseButtonText: "Close",
     reserveBookText: "Reserve book",
     reserveText: "Reserve",
     reserveWithMaterialTypeText: "Reserve @materialType",
@@ -942,6 +889,7 @@ const meta: Meta<typeof MaterialEntry> = {
     reservableFromAnotherLibraryText: "Ordered from another library.",
     findOnBookshelfText: "Find on shelf",
     descriptionHeadlineText: "Description",
+    genreAndFormText: "Genre and form",
     identifierText: "Tags",
     inSameSeriesText: "In the same series",
     numberDescriptionText: "Nr.",
@@ -1001,6 +949,8 @@ const meta: Meta<typeof MaterialEntry> = {
       "You have borrowed @count out of @limit possible e-books this month",
     onlineLimitMonthAudiobookInfoText:
       "You have borrowed @count out of @limit possible audio-books this month",
+    onlineLimitMonthAlwaysLoanableLinkText:
+      "See titles that don't count towards your quota",
     onlineMaterialPlayerText: "Listen to @materialType",
     onlineMaterialReaderText: "Read @materialType",
     onlineMaterialTeaserText: "Try @materialType",
@@ -1014,7 +964,7 @@ const meta: Meta<typeof MaterialEntry> = {
       "You will receive an email when the material is ready",
     reservationDetailsNoInterestAfterTitleText: "Have no interest after",
     daysText: "Days",
-    reservationSuccesTitleText: "Material is available and reserved for you!",
+    reservationRecommendationsTitleText: "You might also be interested in...",
     reservationSuccesIsReservedForYouText: "is reserved for you",
     reservationSuccessPreferredPickupBranchText:
       "Material is available and you will get a message when it is ready for pickup - pickup at @branch",
@@ -1077,9 +1027,9 @@ const meta: Meta<typeof MaterialEntry> = {
     modalReservationFormPickupHeaderDescriptionText:
       "If you wish to change the pick-up location for your reservation, you can do it here.",
     chooseOneText: "Choose one",
-    infomediaModalScreenReaderModalDescriptionText: "Modal for infomedia",
-    infomediaModalCloseModalAriaLabelText: "Close infomedia modal",
-    infomediaCopyrightText:
+    retrieverModalScreenReaderModalDescriptionText: "Modal for Retriever",
+    retrieverModalCloseModalAriaLabelText: "Close Retriever modal",
+    retrieverCopyrightText:
       "All material in Retriever is covered by copyright law and may not be copied without special permission.",
     saveButtonText: "Save",
     orderDigitalCopyModalScreenReaderModalDescriptionText:
@@ -1135,31 +1085,6 @@ const meta: Meta<typeof MaterialEntry> = {
       '{ "threshold": "1", "matchStrings": ["Standard"], "enabled": "true" }',
     interestPeriodsConfig:
       '{ "interestPeriods":[ { "value":14, "label":"14 days" }, { "value":30, "label":"1 month" }, { "value":60, "label":"2 months" }, { "value":90, "label":"3 months" }, { "value":180, "label":"6 months" }, { "value":365, "label":"1 year" } ], "defaultInterestPeriod":{ "value":"14", "label":"14 days" } }',
-    openOrderResponseTitleText: "Order from another library:",
-    openOrderAuthenticationErrorText: "Authentication error occurred",
-    openOrderUserBlockedByAgencyText: "You are blocked by the agency",
-    openOrderUserNotVerifiedText: "User could not be verified",
-    openOrderUserNoLongerExistOnAgencyText:
-      "User no longer exists at the specified agency",
-    openOrderInvalidOrderText: "Your order is invalid",
-    openOrderNotOwnedIllLocText:
-      "Your material has been ordered from another library",
-    openOrderNotOwnedNoIllLocText:
-      "Item not available and not localized for ILL",
-    openOrderNotOwnedWrongIllMediumtypeText:
-      "Item not available, ILL of this medium type not accepted",
-    openOrderNoServicerequesterText: "Service requester is obligatory",
-    openOrderOrsErrorText: "Error occurred while sending order to ORS",
-    openOrderStatusOwnedAcceptedText: "Your order is accepted",
-    openOrderOwnedOwnCatalogueText:
-      "Item available, order through the library's catalogue",
-    openOrderOwnedWrongMediumtypeText:
-      "Item available but medium type not accepted",
-    openOrderServiceUnavailableText: "Service is currently unavailable",
-    openOrderUnknownErrorText: "An unknown error occurred",
-    openOrderUnknownPickupagencyText: "Specified pickup agency not found",
-    openOrderUnknownUserText: "User not found",
-    openOrderErrorMissingPincodeText: "Missing pincode",
     shareOnFacebookText: "Share on Facebook",
     shareOnFacebookAriaLabelText: "Share this page on Facebook",
     copyLinkText: "Copy link",
@@ -1202,7 +1127,7 @@ export const newspaperPeriodical: Story = {
   }
 };
 
-export const Infomedia: Story = {
+export const Retriever: Story = {
   args: {
     ...Default.args,
     wid: "work-of:870971-avis:138119807"
@@ -1387,5 +1312,45 @@ export const ContentsRaw: Story = {
   args: {
     ...Default.args,
     wid: "work-of:150086-netmusik:00795041726629"
+  }
+};
+
+// The Biblio adapter feature flag turned on. Digital materials are then
+// served by Biblio rather than Publizon.
+export const MaterialWithBiblioAdapter: Story = {
+  args: {
+    ...Default.args,
+    useBiblioAdapterConfig: "1"
+  }
+};
+
+// TEMPORARY: the Publizon reservation queue frozen for migration. The flag
+// that switches provider is off - the library still lends through Publizon -
+// so this is the state where a material on loan can no longer be reserved.
+export const MaterialWithClosedPublizonReservations: Story = {
+  args: {
+    ...Default.args,
+    publizonReservationsClosedConfig: "1"
+  }
+};
+
+// TEMPORARY, with the toleration flag it exercises: the adapter answers 404
+// for materials the catalogue lists but WeDoBooks has not provisioned yet,
+// and this story lets the tests cover that they render as unavailable
+// rather than fail the page.
+export const MaterialWithTolerantBiblioAdapter: Story = {
+  args: {
+    ...Default.args,
+    useBiblioAdapterConfig: "1",
+    biblioTolerateUnknownMaterialsConfig: "1"
+  }
+};
+
+export const KviklanAvailability: Story = {
+  name: "Kviklan availability Inlead injection",
+  args: {
+    ...Default.args,
+    wid: "work-of:870970-basis:140058203",
+    isInjectionExample: true
   }
 };

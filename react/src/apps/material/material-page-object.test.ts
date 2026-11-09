@@ -1,6 +1,7 @@
 import { MaterialPage } from "../../../cypress/page-objects/material/MaterialPage";
 import { interceptPublizonCalls } from "../../../cypress/intercepts/publizon/interceptPublizonCalls";
 import {
+  givenAFictionNonfictionNotSpecifiedMaterial,
   givenAMaterial,
   givenAMaterialMusic,
   givenANonFictionMaterial,
@@ -26,12 +27,12 @@ describe("Material Page Object Test", () => {
     // Intercept all external API calls that could cause issues
 
     // DBC Gateway GraphQL calls (both main and present)
-    cy.intercept("POST", "**/next/graphql", {
+    cy.intercept("POST", "**/next/graphql*", {
       statusCode: 200,
       body: { data: null }
     }).as("dbcGatewayMain");
 
-    cy.intercept("POST", "**/next-present/graphql", {
+    cy.intercept("POST", "**/next-present/graphql*", {
       statusCode: 200,
       body: { data: null }
     }).as("dbcGatewayPresent");
@@ -158,6 +159,34 @@ describe("Material Page Object Test", () => {
         .shouldContainAll(["skønlitteratur"]);
     });
 
+    describe("Fiction/non-fiction row", () => {
+      it("Should show the row for a known fictionNonfiction code", () => {
+        // Given: A material whose fictionNonfiction code is FICTION (skønlitteratur)
+        materialPage = new MaterialPage();
+        givenAMaterial();
+
+        // When: The user visits the material page
+        materialPage.visit([]);
+
+        // Then: The Fiction/non-fiction row should be rendered with the display value
+        materialPage.elements
+          .fictionNonfiction()
+          .shouldContainAll(["skønlitteratur"]);
+      });
+
+      it("Should hide the row when fictionNonfiction is not specified", () => {
+        // Given: A material whose fictionNonfiction code is NOT_SPECIFIED
+        materialPage = new MaterialPage();
+        givenAFictionNonfictionNotSpecifiedMaterial();
+
+        // When: The user visits the material page
+        materialPage.visit([]);
+
+        // Then: The Fiction/non-fiction row should not be rendered
+        materialPage.elements.fictionNonfiction().should("not.exist");
+      });
+    });
+
     describe("Header Buttons", () => {
       it("Should show Reserve and Find on shelf buttons for physical books", () => {
         // Given: A material page
@@ -274,7 +303,7 @@ describe("Material Page Object Test", () => {
           details.open();
 
           // Then: Should display multiple detail items
-          details.elements.listItems().should("have.length", 9);
+          details.elements.listItems().should("have.length", 8);
           details.elements.listDescription().should("be.visible");
 
           // And: Should display Language
@@ -284,9 +313,6 @@ describe("Material Page Object Test", () => {
           details
             .getValueByKey("Edition")
             .shouldContainAll(["2017 (2. udgave)"]);
-
-          // And: Should display Genre
-          details.getValueByKey("Genre").shouldContainAll(["romaner"]);
 
           // And: Should display Original title
           details
@@ -472,6 +498,10 @@ describe("Material Page Object Test", () => {
         // Given: A material page with authentication and successful reservation setup
         materialPage = new MaterialPage();
         givenAMaterial();
+        cy.interceptGraphql({
+          operationName: "WorkRecommendations",
+          fixtureFilePath: "material/material-grid-related-recommendations.json"
+        });
         cy.createFakeAuthenticatedSession();
         givenReservationWillSucceed();
 
@@ -489,12 +519,7 @@ describe("Material Page Object Test", () => {
           // Title message
           success.elements
             .titleText()
-            .shouldContainAll(["Material is available and reserved for you!"]);
-
-          // Material title confirmation
-          success.elements
-            .reservedForYouText()
-            .shouldContainAll(["De syv søstre is reserved for you"]);
+            .shouldContainAll(['"De syv søstre" is reserved for you']);
 
           // Queue position and stock count
           success.elements

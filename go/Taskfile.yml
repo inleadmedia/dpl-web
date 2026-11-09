@@ -5,62 +5,150 @@ version: "3"
 
 dotenv: [".task.env"]
 
-vars:
-  # Docker image registry.
-  # Eg.
-  #   - ghcr.io/danskernesdigitalebibliotek
-  #   - docker.io/someregistry
-  RELEASE_IMAGE_REGISTRY: '{{.RELEASE_IMAGE_REGISTRY | default "ghcr.io/danskernesdigitalebibliotek"}}'
-  # Registry host used for docker login (must not include namespace/path).
-  RELEASE_IMAGE_REGISTRY_HOST: '{{ index (splitList "/" .RELEASE_IMAGE_REGISTRY) 0 }}'
-  # Get total amount of commits on the main branch. Used as build number.
-  COMMIT_COUNT:
-    sh: git rev-list --count origin/main
-  # The version number we want to tag the source build with.
-  # It can be specified by adding RELEASE_TAG=XX when running command.
-  # Otherwise it will default to the COMMIT_COUNT variable.
-  RELEASE_IMAGE_TAG: "{{.RELEASE_IMAGE_TAG | default .COMMIT_COUNT }}"
-  # Constructing docker image name.
-  RELEASE_IMAGE_NAME: '{{.RELEASE_IMAGE_NAME | default "dpl-go-node"}}'
-  RELEASE_FULL_NAME: "{{.RELEASE_IMAGE_REGISTRY}}/{{.RELEASE_IMAGE_NAME}}:{{.RELEASE_IMAGE_TAG}}"
-  # Where is the docker file(s) we use for our builds residing?
-  LAGOON_DIR: "lagoon"
+# NOTE Go's release images are built in CI, not from here:
+# .github/workflows/go-build-base-image.yml builds lagoon/stage1.dockerfile and
+# pushes it to ghcr.io/danskernesdigitalebibliotek/dpl-web-go. Lagoon then
+# builds lagoon/stage2.dockerfile on top of that tag.
 
 tasks:
   dev:nvm:use:
     summary: Use project Node.js version with nvm
     silent: true
     cmds:
-      - bash -lc 'source "${NVM_DIR:-$HOME/.nvm}/nvm.sh" && nvm use'
-
-  ghcr:login:
-    summary: Login into Github Container Registry
-    cmds:
-      - echo {{ .CR_PAT }} | docker login {{ .RELEASE_IMAGE_REGISTRY_HOST }} -u "${GITHUB_ACTOR:-github-actions[bot]}" --password-stdin
-    preconditions:
-      - sh: "[ ! -z {{.CR_PAT}} ]"
-        msg: "Env variable CR_PAT is not set or empty."
-
-  source:build:
-    summary: Build node image.
-    cmds:
-      - docker build -f {{ .LAGOON_DIR }}/node.dockerfile --tag {{ .RELEASE_FULL_NAME }} .
-
-  source:push:
-    summary: Push core source image to container registry.
-    deps: [ghcr:login]
-    cmds:
-      - docker push {{ .RELEASE_FULL_NAME }}
-
-  source:deploy:
-    desc: Build and push core source docker image.
-    cmds:
-      - task: source:build
-      - task: source:push
+      - bash -lc 'source "${NVM_DIR:-$HOME/.nvm}/nvm.sh" && nvm install && nvm use'
 
   dev:reset:
     desc: Install development environment and clean up
     cmds:
+      # go/.env is a symlink to the central root .env. Bootstrap + ensure it.
+      - "[ -f ../.env ] || cp ../.env.example ../.env"
+      - "[ -e .env ] || ln -s ../.env .env"
       - task dev:nvm:use
-      - yarn
-      - yarn dev:https
+      - pnpm install
+      - pnpm run dev:https
+
+  codegen:rest-services:
+    desc: Regenerate REST service clients via orval.
+    cmds:
+      - task dev:nvm:use
+      - pnpm run codegen:all-rest-services
+
+  codegen:graphql:
+    desc: Regenerate dpl-cms + FBI GraphQL clients from the committed SDL in /schemas/graphql/.
+    cmds:
+      - task dev:nvm:use
+      - pnpm run codegen:graphql
+
+  codegen:publizon:
+    desc: Regenerate Publizon REST client.
+    cmds:
+      - task dev:nvm:use
+      - pnpm run codegen:publizon
+
+  codegen:pubhub:
+    desc: Regenerate Pubhub SOAP client from WSDL.
+    cmds:
+      - task dev:nvm:use
+      - pnpm run codegen:pubhub
+
+  lagoon:stage1:build:
+    desc: Build the Go base image (lagoon/stage1.dockerfile) locally.
+    summary: |
+      CI is what publishes this image; this task is for trying the build
+      itself - most usefully the pnpm install, which needs a credential for
+      WeDoBooks' private registry and gets it as a BuildKit secret rather
+      than a build argument, because this stage is the one that ships.
+
+      The token comes from the central .env (task dev:dotenv:generate). Check
+      afterwards that it did not follow the image:
+
+        docker history --no-trunc dpl-web-go:local | grep -i wedobooks
+        docker run --rm dpl-web-go:local sh -c 'cat "$HOME/.npmrc"'
+    dotenv: ["../.env"]
+    cmds:
+      # env= reads the value from the environment rather than a file, so the
+      # token never lands on disk on the way in either.
+      - docker build
+        --file lagoon/stage1.dockerfile
+        --secret id=WEDOBOOKS_NPM_TOKEN,env=WEDOBOOKS_NPM_TOKEN
+        --tag dpl-web-go:local
+        ..
+    preconditions:
+      - sh: '[ -n "$WEDOBOOKS_NPM_TOKEN" ]'
+        msg: "WEDOBOOKS_NPM_TOKEN is missing from the central .env - run 'task dev:dotenv:generate'. See packages/wedobooks/README.md."
+
+  argos:capture:
+    desc: Screenshot stories into ./screenshots, rendered like Argos' screenshots in CI
+    summary: |
+      Builds the static Storybook and runs the visual suite against it, with
+      the browser in the Playwright image matching the installed Playwright,
+      so screenshots render like CI's. Pass story files to screenshot only
+      some, e.g. `task argos:capture -- components/shared/button`.
+
+      The container shares the host's network, which on macOS needs OrbStack
+      or Docker Desktop's host networking.
+    # The variables CI builds Storybook with.
+    dotenv: [".env.test"]
+    vars:
+      PLAYWRIGHT_VERSION:
+        sh: >-
+          sed -n 's/^  "version": "\([^"]*\)".*/\1/p' node_modules/playwright/package.json
+      CONTAINER: go-argos-playwright
+    cmds:
+      - rm -rf screenshots
+      # The tools directly, not through pnpm, whose dependency check before a
+      # run fails while another project's node_modules hold a container's
+      # install.
+      - node_modules/.bin/storybook build --quiet
+      # The container serves the static Storybook too, so nothing on the host
+      # outlives the task. The playwright package the tests use, so client and
+      # server match. --init reaps the browsers the server starts, --ipc=host
+      # gives Chromium more shared memory than Docker's 64 MB. On loopback
+      # only, as --unsafe lets clients pass any launch option.
+      - >-
+        docker run --detach --rm --init --ipc=host --network host --name {{.CONTAINER}}
+        --volume "$PWD":/work:ro --workdir /work
+        mcr.microsoft.com/playwright:v{{.PLAYWRIGHT_VERSION}}-noble
+        sh -c 'node node_modules/http-server/bin/http-server storybook-static -a 127.0.0.1 -p 6106 --silent &
+        exec node node_modules/playwright/cli.js run-server --host 127.0.0.1 --port 3100 --unsafe'
+        > /dev/null
+      - defer: docker stop {{.CONTAINER}} > /dev/null
+      - node_modules/.bin/wait-on --timeout 60000 tcp:127.0.0.1:3100 http-get://127.0.0.1:6106/index.json
+      - >-
+        PLAYWRIGHT_SERVER=ws://127.0.0.1:3100/ NODE_OPTIONS=--experimental-vm-modules
+        node_modules/.bin/test-storybook --config-dir .storybook/test-runners/visual
+        --url http://127.0.0.1:6106 {{.CLI_ARGS}}
+
+  dev:argos:
+    desc: Upload screenshots of unpushed commits to Argos
+    summary: |
+      Screenshots stories like `argos:capture` and uploads them to Argos,
+      compared with the CI baseline of BASE (default develop). Pass story
+      files to upload only some. Needs ARGOS_TOKEN in the root .env.
+    vars:
+      BASE: '{{.BASE | default "develop"}}'
+      BRANCH:
+        sh: git rev-parse --abbrev-ref HEAD
+    env:
+      ARGOS_TOKEN:
+        sh: sed -n 's/^ARGOS_TOKEN=//p' .env 2>/dev/null | tr -d '"'
+    preconditions:
+      - sh: test -n "$ARGOS_TOKEN"
+        msg: ARGOS_TOKEN is missing from the root .env. Run `task dev:dotenv:generate` in the repository root.
+      - sh: test "{{.BRANCH}}" != HEAD
+        msg: Check out a branch first.
+      - sh: 'case "{{.BRANCH}}" in develop|main|release/*) exit 1;; esac'
+        msg: Baselines for {{.BRANCH}} come from CI only.
+      # Argos files the build under HEAD, so it must show HEAD's code.
+      - sh: test -z "$(git status --porcelain)"
+        msg: Commit your change locally first.
+      # Fetched first, as HEAD may have been pushed from another clone.
+      - sh: git fetch --quiet origin && test -z "$(git branch -r --contains HEAD)"
+        msg: HEAD is already pushed, so CI compares it.
+    cmds:
+      - task: argos:capture
+      # A subset build compares against the baseline but never becomes one.
+      - >-
+        ARGOS_REFERENCE_BRANCH={{.BASE}}
+        ARGOS_REFERENCE_COMMIT=$(git merge-base HEAD origin/{{.BASE}})
+        node_modules/.bin/argos upload --build-name go --subset ./screenshots

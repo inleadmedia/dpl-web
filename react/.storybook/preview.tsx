@@ -8,12 +8,11 @@ import { withErrorBoundary } from "react-error-boundary";
 import ErrorBoundaryAlert from "../src/components/error-boundary-alert/ErrorBoundaryAlert";
 import Store from "../src/components/store";
 
-
 const getSessionStorage = (type) => window.sessionStorage.getItem(type);
 const userToken =
-  process.env.STORYBOOK_USER_TOKEN ?? getSessionStorage(TOKEN_USER_KEY);
+  process.env.STORYBOOK_USER_TOKEN || getSessionStorage(TOKEN_USER_KEY);
 const libraryToken =
-  process.env.STORYBOOK_LIBRARY_TOKEN ?? getSessionStorage(TOKEN_LIBRARY_KEY);
+  process.env.STORYBOOK_LIBRARY_TOKEN || getSessionStorage(TOKEN_LIBRARY_KEY);
 
 if (userToken) {
   setToken(TOKEN_USER_KEY, userToken);

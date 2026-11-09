@@ -6,9 +6,28 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Site\Settings;
 use Drupal\eonext_mobilesearch\Event\EntityActionEvent;
 use Drupal\eonext_mobilesearch\Form\MobilesearchNodesExportForm;
 use Drupal\eonext_mobilesearch\Mobilesearch\DTO\MobilesearchEntityInterface;
+
+/**
+ * Whether MOS HTTP sync should be skipped for this request.
+ *
+ * Bulk entity saves from hook_update_n (e.g. field inheritance, langcode)
+ * must not POST every event to the live MOS index.
+ */
+function eonext_mobilesearch_sync_is_skipped(): bool {
+  if (Settings::get('eonext_mobilesearch.skip')) {
+    return TRUE;
+  }
+  $env = getenv('EONEXT_MOBILESEARCH_SKIP');
+  if ($env !== FALSE && $env !== '' && filter_var($env, FILTER_VALIDATE_BOOLEAN)) {
+    return TRUE;
+  }
+  $argv = implode(' ', $_SERVER['argv'] ?? []);
+  return (bool) preg_match('/(?:^|\s)(updatedb|updb|deploy:hook|deploy)(?:\s|$)/', $argv);
+}
 
 /**
  * Implements hook_entity_insert().
@@ -19,7 +38,7 @@ function eonext_mobilesearch_entity_insert(EntityInterface $entity): void {
   $bundleConfig = \Drupal::config(MobilesearchNodesExportForm::CONFIG_ID);
   $bundleEnabledToPush = (bool) $bundleConfig->get($entity->bundle());
 
-  if ($bundleEnabledToPush && $event->shouldTrigger()) {
+  if ($bundleEnabledToPush && $event->shouldTrigger() && !eonext_mobilesearch_sync_is_skipped()) {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher */
     $event_dispatcher = \Drupal::service('event_dispatcher');
     $event_dispatcher->dispatch($event, EntityActionEvent::EVENT_ENTITY_INSERT);
@@ -35,7 +54,7 @@ function eonext_mobilesearch_entity_update(EntityInterface $entity): void {
   $bundleConfig = \Drupal::config(MobilesearchNodesExportForm::CONFIG_ID);
   $bundleEnabledToPush = (bool) $bundleConfig->get($entity->bundle());
 
-  if ($bundleEnabledToPush && $event->shouldTrigger()) {
+  if ($bundleEnabledToPush && $event->shouldTrigger() && !eonext_mobilesearch_sync_is_skipped()) {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher */
     $event_dispatcher = \Drupal::service('event_dispatcher');
     $event_dispatcher->dispatch($event, EntityActionEvent::EVENT_ENTITY_UPDATE);
@@ -51,7 +70,7 @@ function eonext_mobilesearch_entity_delete(EntityInterface $entity): void {
   $bundleConfig = \Drupal::config(MobilesearchNodesExportForm::CONFIG_ID);
   $bundleEnabledToPush = (bool) $bundleConfig->get($entity->bundle());
 
-  if ($bundleEnabledToPush && $event->shouldTrigger()) {
+  if ($bundleEnabledToPush && $event->shouldTrigger() && !eonext_mobilesearch_sync_is_skipped()) {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher */
     $event_dispatcher = \Drupal::service('event_dispatcher');
     $event_dispatcher->dispatch($event, EntityActionEvent::EVENT_ENTITY_DELETE);

@@ -1,0 +1,23 @@
+uuid: 283bbd25-466b-4d80-b878-8b7fce51b39a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_mr_publication_year
+    - paragraphs.paragraphs_type.manual_recommendation
+id: paragraph.manual_recommendation.field_mr_publication_year
+field_name: field_mr_publication_year
+entity_type: paragraph
+bundle: manual_recommendation
+label: 'Publication year'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 1000
+  max: 9999
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -1,0 +1,332 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the eonext_staff module.
+ */
+
+use Drupal\Core\Config\FileStorage;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * New configuration shipped by the staff list extension.
+ */
+const EONEXT_STAFF_NEW_CONFIG = [
+  'field.storage.eonext_library_staff.field_interest_description',
+  'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
+  'core.entity_view_mode.eonext_library_staff.profile',
+  'core.entity_view_display.eonext_library_staff.eonext_library_staff.profile',
+  'field.field.paragraph.eonext_library_staff.field_filter_branches',
+  'core.entity_form_display.paragraph.eonext_library_staff.default',
+  'core.entity_view_display.paragraph.eonext_library_staff.default',
+];
+
+/**
+ * Existing configuration updated by the staff list extension.
+ */
+const EONEXT_STAFF_UPDATED_CONFIG = [
+  'core.entity_form_display.eonext_library_staff.eonext_library_staff.default',
+  'core.entity_view_display.eonext_library_staff.eonext_library_staff.default',
+];
+
+/**
+ * Implements hook_install().
+ */
+function eonext_staff_install(): void {
+  eonext_staff_add_paragraph_type_to_content_types();
+  _eonext_staff_grant_interest_text_format_permission();
+}
+
+/**
+ * Installs extension configuration without a full module config import.
+ */
+function eonext_staff_install_extension_config(): void {
+  if (!\Drupal::configFactory()->get('field.storage.paragraph.field_filter_branches')->isNew()) {
+    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+      _eonext_staff_ensure_config($name);
+    }
+  }
+  else {
+    \Drupal::logger('eonext_staff')->warning(
+      'Skipped paragraph branch filter config because field.storage.paragraph.field_filter_branches is missing.',
+    );
+    foreach (EONEXT_STAFF_NEW_CONFIG as $name) {
+      if ($name === 'field.field.paragraph.eonext_library_staff.field_filter_branches'
+        || str_starts_with($name, 'core.entity_form_display.paragraph.eonext_library_staff.')
+        || str_starts_with($name, 'core.entity_view_display.paragraph.eonext_library_staff.')) {
+        continue;
+      }
+      _eonext_staff_ensure_config($name);
+    }
+  }
+
+  foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+    _eonext_staff_ensure_config($name, TRUE);
+  }
+
+  _eonext_staff_ensure_field_storage_table('eonext_library_staff', 'field_interest_description');
+}
+
+/**
+ * Returns file storage for this module's default configuration.
+ */
+function _eonext_staff_config_install_storage(): FileStorage {
+  $path = \Drupal::service('extension.path.resolver')
+    ->getPath('module', 'eonext_staff') . '/config/install';
+
+  return new FileStorage($path);
+}
+
+/**
+ * Ensures a single config object exists in active storage.
+ *
+ * Field storage and field config must be saved through the Field API so Drupal
+ * creates the dedicated database tables. Writing field YAML directly to config
+ * storage skips table creation.
+ */
+function _eonext_staff_ensure_config(string $name, bool $overwrite = FALSE): void {
+  $data = _eonext_staff_config_install_storage()->read($name);
+  if (!is_array($data)) {
+    return;
+  }
+
+  if (str_starts_with($name, 'field.storage.')) {
+    _eonext_staff_ensure_field_storage_config($data);
+    return;
+  }
+
+  if (str_starts_with($name, 'field.field.')) {
+    _eonext_staff_ensure_field_config($data, $overwrite);
+    return;
+  }
+
+  $config = \Drupal::configFactory()->getEditable($name);
+  if (!$overwrite && !$config->isNew()) {
+    return;
+  }
+
+  $config->setData($data)->save(TRUE);
+}
+
+/**
+ * Ensures a field storage config exists and its database table is present.
+ */
+function _eonext_staff_ensure_field_storage_config(array $data): void {
+  $entity_type = $data['entity_type'];
+  $field_name = $data['field_name'];
+
+  if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
+    FieldStorageConfig::create($data)->save();
+  }
+
+  _eonext_staff_ensure_field_storage_table($entity_type, $field_name);
+}
+
+/**
+ * Ensures a field instance config exists.
+ */
+function _eonext_staff_ensure_field_config(array $data, bool $overwrite): void {
+  $entity_type = $data['entity_type'];
+  $bundle = $data['bundle'];
+  $field_name = $data['field_name'];
+
+  if (FieldConfig::loadByName($entity_type, $bundle, $field_name)) {
+    return;
+  }
+
+  if (!FieldStorageConfig::loadByName($entity_type, $field_name)) {
+    return;
+  }
+
+  FieldConfig::create($data)->save();
+}
+
+/**
+ * Creates a missing dedicated field table for an existing field storage.
+ */
+function _eonext_staff_ensure_field_storage_table(string $entity_type, string $field_name): void {
+  $field_storage = FieldStorageConfig::loadByName($entity_type, $field_name);
+  if (!$field_storage) {
+    return;
+  }
+
+  $table = $entity_type . '__' . $field_name;
+  if (\Drupal::database()->schema()->tableExists($table)) {
+    return;
+  }
+
+  \Drupal::entityDefinitionUpdateManager()->installFieldStorageDefinition(
+    $field_storage->getName(),
+    $field_storage->getTargetEntityTypeId(),
+    $field_storage->getProvider(),
+    $field_storage
+  );
+}
+
+/**
+ * Adds the library staff paragraph to all node field_paragraphs fields.
+ */
+function eonext_staff_add_paragraph_type_to_content_types(): void {
+  $config_factory = \Drupal::configFactory();
+  $paragraph_type = 'eonext_library_staff';
+
+  foreach ($config_factory->listAll('field.field.node.') as $config_name) {
+    if (!str_ends_with($config_name, '.field_paragraphs')) {
+      continue;
+    }
+
+    $config = $config_factory->getEditable($config_name);
+    if ($config->isNew()) {
+      continue;
+    }
+
+    $settings = $config->get('settings');
+    if (($settings['handler_settings']['target_bundles'][$paragraph_type] ?? NULL) === $paragraph_type) {
+      continue;
+    }
+
+    $settings['handler_settings']['target_bundles'][$paragraph_type] = $paragraph_type;
+    $settings['handler_settings']['target_bundles_drag_drop'][$paragraph_type] = [
+      'weight' => 80,
+      'enabled' => TRUE,
+    ];
+    $config->set('settings', $settings);
+
+    $dependencies = $config->get('dependencies');
+    $dependencies['config'] ??= [];
+    $dependencies['config'][] = 'paragraphs.paragraphs_type.' . $paragraph_type;
+    $dependencies['config'] = array_values(array_unique($dependencies['config']));
+    $config->set('dependencies', $dependencies);
+    $config->save(TRUE);
+  }
+}
+
+/**
+ * Updates the staff view to use paragraph-driven branch filtering.
+ */
+/**
+ * Migrates interest description from plain text to formatted text (Basic HTML).
+ */
+function _eonext_staff_migrate_interest_description_to_text(): void {
+  $entity_type_id = 'eonext_library_staff';
+  $bundle = 'eonext_library_staff';
+  $field_name = 'field_interest_description';
+  $text_format = 'basic';
+  $table = $entity_type_id . '__' . $field_name;
+
+  $field_storage = FieldStorageConfig::loadByName($entity_type_id, $field_name);
+  if ($field_storage && $field_storage->getType() === 'text_long') {
+    foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+      _eonext_staff_ensure_config($name, TRUE);
+    }
+    _eonext_staff_ensure_config('core.entity_view_display.eonext_library_staff.eonext_library_staff.profile', TRUE);
+    return;
+  }
+
+  $saved_values = _eonext_staff_read_interest_description_values($table);
+
+  $field = FieldConfig::loadByName($entity_type_id, $bundle, $field_name);
+  $field?->delete();
+  $field_storage?->delete();
+
+  field_purge_batch(50);
+
+  foreach ([
+    'field.storage.eonext_library_staff.field_interest_description',
+    'field.field.eonext_library_staff.eonext_library_staff.field_interest_description',
+  ] as $name) {
+    _eonext_staff_ensure_config($name);
+  }
+
+  foreach (EONEXT_STAFF_UPDATED_CONFIG as $name) {
+    _eonext_staff_ensure_config($name, TRUE);
+  }
+
+  _eonext_staff_ensure_config('core.entity_view_display.eonext_library_staff.eonext_library_staff.profile', TRUE);
+
+  if (!$saved_values) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage($entity_type_id);
+  foreach ($saved_values as $entity_id => $value) {
+    $entity = $storage->load($entity_id);
+    if (!$entity) {
+      continue;
+    }
+    $entity->set($field_name, [
+      'value' => $value,
+      'format' => $text_format,
+    ]);
+    $entity->save();
+  }
+}
+
+/**
+ * Reads plain-text interest descriptions before a field type migration.
+ *
+ * @return array<int, string>
+ *   Entity ID keyed interest description values.
+ */
+function _eonext_staff_read_interest_description_values(string $table): array {
+  $database = \Drupal::database();
+  if (!$database->schema()->tableExists($table)) {
+    return [];
+  }
+
+  $schema = $database->schema()->fieldExists($table, $field_column = 'field_interest_description_value');
+  if (!$schema) {
+    return [];
+  }
+
+  $query = $database->select($table, 't')
+    ->fields('t', ['entity_id', $field_column])
+    ->condition($field_column, '', '<>');
+  $query->isNotNull($field_column);
+
+  $saved_values = [];
+  foreach ($query->execute() as $row) {
+    $saved_values[(int) $row->entity_id] = (string) $row->{$field_column};
+  }
+
+  return $saved_values;
+}
+
+/**
+ * Updates the staff view to use paragraph-driven branch filtering.
+ */
+function eonext_staff_update_staff_view_branch_filter(): void {
+  $config = \Drupal::configFactory()->getEditable('views.view.staff');
+  if ($config->isNew()) {
+    $data = _eonext_staff_config_install_storage()->read('views.view.staff');
+    if (is_array($data)) {
+      $config->setData($data)->save(TRUE);
+    }
+    return;
+  }
+
+  $argument = $config->get('display.default.display_options.arguments.field_branch_target_id') ?? [];
+  $argument['default_action'] = 'ignore';
+  $argument['default_argument_type'] = 'fixed';
+  $argument['default_argument_options'] = ['argument' => ''];
+  $argument['break_phrase'] = TRUE;
+
+  $config->set('display.default.display_options.arguments.field_branch_target_id', $argument);
+  $config->save(TRUE);
+}
+
+/**
+ * Grants roles permission to use the staff interest text format.
+ */
+function _eonext_staff_grant_interest_text_format_permission(): void {
+  $permission = 'use text format eonext_staff_interest';
+  foreach (['administrator', 'local_administrator', 'editor'] as $role_id) {
+    $role = \Drupal\user\Entity\Role::load($role_id);
+    if ($role === NULL || $role->hasPermission($permission)) {
+      continue;
+    }
+    $role->grantPermission($permission);
+    $role->save();
+  }
+}

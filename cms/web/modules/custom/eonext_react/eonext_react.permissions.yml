@@ -1,0 +1,4 @@
+administer eonext react javascript:
+  title: 'Administer injected React JavaScript'
+  description: 'Add JavaScript that runs on every non-administrative page. Warning: this grants full control over the front end for all visitors.'
+  restrict access: TRUE

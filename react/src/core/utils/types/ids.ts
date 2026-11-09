@@ -1,5 +1,3 @@
-import { DigitalArticleService } from "../../dbc-gateway/generated/graphql";
-
 export type FaustId = `${string}`;
 export type Pid = `${number}-${string}:${FaustId}`;
 export type WorkId = `work-of:${number}-${string}:${FaustId}`;
@@ -14,7 +12,8 @@ export type GuardedAppId =
   | "recommended-material"
   | "recommendation"
   | "material-grid-automatic"
-  | "material-grid-manual";
+  | "material-grid-manual"
+  | "series"
+  | "dashboard";
 
-export type IssnId = DigitalArticleService["issn"];
 export type LoanId = number;

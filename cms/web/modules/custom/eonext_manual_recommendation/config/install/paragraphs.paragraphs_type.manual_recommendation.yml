@@ -1,0 +1,19 @@
+uuid: ab6e5791-a138-4c45-b460-a1f1431ea389
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs_ee
+  enforced:
+    module:
+      - eonext_manual_recommendation
+third_party_settings:
+  paragraphs_ee:
+    paragraphs_categories:
+      material_dissemination: material_dissemination
+id: manual_recommendation
+label: 'Manual recommendation'
+icon_uuid: null
+icon_default: null
+description: 'Recommend a material by entering cover image, title, author, and publication year manually.'
+behavior_plugins: {  }

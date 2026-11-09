@@ -25,6 +25,15 @@ import globalConfigArgs, {
 import blockedArgs, {
   argTypes as blockedArgTypes
 } from "../../../core/storybook/blockedArgs";
+import playerModalArgs, {
+  argTypes as playerModalArgTypes
+} from "../../../core/storybook/playerModalArgs";
+import onlineMaterialArgs, {
+  argTypes as onlineMaterialArgTypes
+} from "../../../core/storybook/onlineMaterialArgs";
+import biblioAdapterArgs, {
+  argTypes as biblioAdapterArgTypes
+} from "../../../core/storybook/biblioAdapterArgs";
 
 const meta: Meta<typeof LoanList> = {
   title: "Apps / Loan list",
@@ -40,6 +49,9 @@ const meta: Meta<typeof LoanList> = {
     ...renewalArgTypes,
     ...materialDetailsModalArgTypes,
     ...blockedArgTypes,
+    ...playerModalArgTypes,
+    ...onlineMaterialArgTypes,
+    ...biblioAdapterArgTypes,
     // Config
     pageSizeDesktop: {
       control: { type: "number" }
@@ -68,6 +80,9 @@ const meta: Meta<typeof LoanList> = {
       control: { type: "text" }
     },
     loanListDueDateModalAriaLabelText: {
+      control: { type: "text" }
+    },
+    loanListLoanDetailsText: {
       control: { type: "text" }
     },
     loanListMaterialLateFeeText: {
@@ -156,6 +171,9 @@ export const Primary: Story = {
     ...renewalArgs,
     ...materialDetailsModalArgs,
     ...blockedArgs,
+    ...playerModalArgs,
+    ...onlineMaterialArgs,
+    ...biblioAdapterArgs,
     pageSizeDesktop: 10,
     pageSizeMobile: 5,
     // Config
@@ -170,6 +188,7 @@ export const Primary: Story = {
     loanListDigitalPhysicalLoansEmptyListText: "You have 0 loans at the moment",
     loanListDueDateModalAriaLabelText:
       "This button opens a modal that covers the entire page and contains loans with the same due date as the loan currently in focus",
+    loanListLoanDetailsText: "Loan details",
     loanListMaterialLateFeeText:
       "You will be charged a fee, when the item is returned",
     loanListMaterialDaysText: "days",
@@ -198,6 +217,15 @@ export const Primary: Story = {
     publizonPodcastText: "Podcast",
     groupModalHeaderText: "Renew several",
     resultPagerStatusText: "Showing @itemsShown out of @hitcount loans"
+  }
+};
+
+// The Biblio adapter feature flag turned on: the digital loan list combines
+// Publizon loans with loans from the Biblio adapter.
+export const LoanListWithBiblioAdapter: Story = {
+  args: {
+    ...Primary.args,
+    useBiblioAdapterConfig: "1"
   }
 };
 

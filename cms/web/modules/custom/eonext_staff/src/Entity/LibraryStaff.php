@@ -36,6 +36,7 @@ use Drupal\eonext_staff\LibraryStaffInterface;
  *     "uid" = "uid",
  *   },
  *   links = {
+ *     "canonical" = "/staff/{eonext_library_staff}",
  *   },
  *   field_ui_base_route = "entity.eonext_library_staff.settings",
  * )

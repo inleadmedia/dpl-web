@@ -48,6 +48,7 @@ core/.phpstan-baseline.php text eol=lf whitespace=blank-at-eol,-blank-at-eof,-sp
 # Define binary file attributes.
 # - Do not treat them as text.
 # - Include binary diff in patches instead of "binary files differ."
+*.avif    -text diff
 *.eot     -text diff
 *.exe     -text diff
 *.gif     -text diff
@@ -71,7 +72,11 @@ core/.phpstan-baseline.php text eol=lf whitespace=blank-at-eol,-blank-at-eof,-sp
 packages/fbs-client/**/*.* linguist-generated=true
 packages/cms-api/**/*.* linguist-generated=true
 
-# Mark Sailor generated GraphQL classes as generated.
+# Mark Sailor-generated GraphQL classes and introspected schema files as generated.
 web/modules/custom/*/src/GraphQL/**/*.* linguist-generated=true
+
 # And the schema files we keep around.
-web/modules/custom/*/schema/*.graphql
+web/modules/custom/*/schema/*.graphql linguist-generated=true
+
+# Mark third-party patches vendored into the repo as vendored.
+patches/vendor/** linguist-vendored

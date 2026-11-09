@@ -1,0 +1,77 @@
+uuid: 9c8b7a6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.eonext_library_staff.profile
+    - field.field.eonext_library_staff.eonext_library_staff.field_department
+    - field.field.eonext_library_staff.eonext_library_staff.field_email
+    - field.field.eonext_library_staff.eonext_library_staff.field_forename
+    - field.field.eonext_library_staff.eonext_library_staff.field_image
+    - field.field.eonext_library_staff.eonext_library_staff.field_interest_description
+    - field.field.eonext_library_staff.eonext_library_staff.field_phone
+    - field.field.eonext_library_staff.eonext_library_staff.field_position
+    - field.field.eonext_library_staff.eonext_library_staff.field_surname
+  module:
+    - eonext_staff
+    - media
+    - text
+id: eonext_library_staff.eonext_library_staff.profile
+targetEntityType: eonext_library_staff
+bundle: eonext_library_staff
+mode: profile
+content:
+  field_department:
+    type: entity_reference_label
+    label: hidden
+    settings:
+      link: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_email:
+    type: email_mailto
+    label: inline
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_image:
+    type: media_thumbnail
+    label: hidden
+    settings:
+      image_link: ''
+      image_style: media_library
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 6
+    region: content
+  field_interest_description:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 7
+    region: content
+  field_phone:
+    type: string
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_position:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 2
+    region: content
+hidden:
+  field_branch: true
+  field_forename: true
+  field_surname: true
+  search_api_excerpt: true

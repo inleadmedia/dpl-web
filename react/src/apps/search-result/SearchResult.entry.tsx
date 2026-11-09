@@ -1,6 +1,9 @@
-import React from "react";
+import "../../hook-to-react.js";
+
+import React, { useState, useEffect } from "react";
 import GuardedApp from "../../components/guarded-app";
 import { withConfig } from "../../core/utils/config";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import { pageSizeGlobal, getParams } from "../../core/utils/helpers/general";
 import { withText } from "../../core/utils/text";
 import { withUrls } from "../../core/utils/url";
@@ -71,6 +74,7 @@ interface SearchResultEntryConfigProps {
 
 export interface SearchResultEntryProps
   extends
+    BiblioAdapterArgs,
     GlobalUrlEntryPropsInterface,
     SearchResultEntryConfigProps,
     GlobalEntryTextProps,
@@ -80,13 +84,33 @@ export interface SearchResultEntryProps
   pageSizeDesktop?: number;
   pageSizeMobile?: number;
   searchShowingMaterialsText: string;
+  isInjectionExample?: boolean;
 }
 
 const SearchResultEntry: React.FC<SearchResultEntryProps> = ({
   q,
   pageSizeDesktop,
-  pageSizeMobile
+  pageSizeMobile,
+  isInjectionExample
 }) => {
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = useState(0);
+
+  if (isInjectionExample) {
+    useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("./SearchResultAutosuggestEditorialInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+  }
+
   // If a q string has been defined as a data attribute use that
   // otherwise use the one from the url query parameter.
   const { q: searchQuery } = getParams({ q });
@@ -104,7 +128,9 @@ const SearchResultEntry: React.FC<SearchResultEntryProps> = ({
       {(searchQuery || searchQuery === "") && (
         <GuardedApp app="search-result">
           <NuqsAdapter>
-            <SearchResult q={searchQuery} pageSize={pageSize} />
+            <div data-current-date={ currentDate || "" }>
+              <SearchResult q={searchQuery} pageSize={pageSize} />
+            </div>
           </NuqsAdapter>
         </GuardedApp>
       )}
@@ -112,6 +138,4 @@ const SearchResultEntry: React.FC<SearchResultEntryProps> = ({
   );
 };
 
-export default withConfig(
-  withUrls(withText(withPageStatistics(SearchResultEntry)))
-);
+export default withConfig(withUrls(withText(withPageStatistics(SearchResultEntry))));

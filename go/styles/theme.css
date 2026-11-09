@@ -11,21 +11,40 @@
 
   --radius-*: initial;
   --radius-full: 9999px;
-  --radius-lg: calc(var(--base-radius) + 10px);
-  --radius-md: calc(var(--base-radius) + 5px);
-  --radius-base: var(--base-radius);
-  --radius-sm: calc(var(--base-radius) - 5px);
-  --radius-input: var(--input-radius);
+  --radius-2xl: 48px;
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-base: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 4px;
   --radius-none: 0;
 
+  /*
+   * Z-INDEX — the stacking hierarchy in one place; anything positioned must
+   * use a token from this scale, never a raw z-value:
+   *
+   *   10  content accents   badge, floating icon, slide select
+   *   20  navigation        the header
+   *   30  player            the global audiobook player bar — above the
+   *                         navigation, below every overlay
+   *   50  dialog/drawer/    modals and sheets cover everything, including
+   *       sheet             a playing player bar
+   *
+   * The WeDoBooks reader needs no token: it renders in normal flow on the
+   * chrome-less reader route.
+   */
   --z-index-*: initial;
   --z-index--1: -1;
 
+  --z-index-badge: 10;
+  --z-index-slide-select: 10;
+  --z-index-floating-icon: 10;
+  --z-index-navigation: 20;
+  --z-index-player: 30;
   --z-index-dialog: 50;
   --z-index-drawer: 50;
   --z-index-sheet: 50;
-  --z-index-slide-select: 10;
-  --z-index-floating-icon: 10;
 
   --aspect-*: initial;
   --aspect-1\/1: var(--aspect-1-1);
@@ -46,8 +65,7 @@
   --aspect-16\/9: var(--aspect-16-9);
 
   --font-*: initial;
-  --font-headline: var(--font-headline);
-  --font-body: var(--font-body);
+  --font-sans: var(--font-sans);
 
   --text-*: initial;
   --text-typo-huge: var(--typo-huge-size);
@@ -118,6 +136,10 @@
   --text-typo-tag-sm--line-height: var(--typo-tag-sm-line-height);
   --text-typo-tag-sm--font-weight: var(--typo-tag-sm-weight);
   --text-typo-tag-sm--letter-spacing: var(--typo-tag-sm-letter-spacing);
+  --text-typo-label-sm: var(--typo-label-sm-size);
+  --text-typo-label-sm--line-height: var(--typo-label-sm-line-height);
+  --text-typo-label-sm--font-weight: var(--typo-label-sm-weight);
+  --text-typo-label-sm--letter-spacing: var(--typo-label-sm-letter-spacing);
   --text-typo-caption: var(--typo-caption-size);
   --text-typo-caption--line-height: var(--typo-caption-line-height);
   --text-typo-caption--font-weight: var(--typo-caption-weight);
@@ -126,6 +148,7 @@
   --color-*: initial;
   --color-black: var(--black);
   --color-white: var(--white);
+  --color-backdrop: var(--backdrop);
 
   --color-background: var(--background);
   --color-background-overlay: var(--background-overlay);
@@ -133,6 +156,7 @@
   --color-background-skeleton: var(--background-skeleton);
 
   --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
   --color-blue: var(--blue);
   --color-border: var(--border);
   --color-reader-grey: var(--reader-grey);
@@ -153,7 +177,8 @@
   --color-content-1: var(--content-pink-100);
   --color-content-2: var(--content-blue-100);
   --color-content-3: var(--content-orange-100);
-  --color-content-4: var(--content-purple-100);
+  --color-content-4: var(--success-green-100);
+  --color-content-5: var(--go-green);
 
   --color-blue-title: var(--blue-title);
   --color-blue-title-dark: var(--blue-title-dark);
@@ -223,6 +248,7 @@
   --animate-wiggle: wiggle 900ms linear 1;
   --animate-content-grow: content-grow 300ms ease-in-out 1;
   --animate-spin-reverse: spin-reverse 900ms ease-in-out infinite;
+  --animate-dot-pulse: dot-pulse 900ms ease-in-out infinite;
 
   --spacing-navigation-top-height: var(--navigation-top-height);
   --spacing-navigation-height: var(--navigation-height);
@@ -275,6 +301,19 @@
     40%,
     60% {
       transform: rotate(-8deg);
+    }
+  }
+
+  @keyframes dot-pulse {
+    0%,
+    80%,
+    100% {
+      transform: scale(0.6);
+      opacity: 0.4;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
     }
   }
 

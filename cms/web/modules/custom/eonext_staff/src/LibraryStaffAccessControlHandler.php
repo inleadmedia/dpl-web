@@ -27,7 +27,7 @@ final class LibraryStaffAccessControlHandler extends EntityAccessControlHandler 
     }
 
     return match($operation) {
-      'view' => AccessResult::allowedIfHasPermission($account, 'view eonext_library_staff'),
+      'view' => AccessResult::allowedIfHasPermission($account, 'access content'),
       'update' => AccessResult::allowedIfHasPermission($account, 'edit eonext_library_staff'),
       'delete' => AccessResult::allowedIfHasPermission($account, 'delete eonext_library_staff'),
       default => AccessResult::neutral(),

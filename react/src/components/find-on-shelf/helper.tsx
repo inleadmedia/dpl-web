@@ -24,4 +24,8 @@ export const getLocationArray = (
   return [];
 };
 
-export default {};
+export const getFindOnShelfLocationText = (
+  locationArray: (string | undefined)[]
+) => {
+  return locationArray.join(" · ");
+};

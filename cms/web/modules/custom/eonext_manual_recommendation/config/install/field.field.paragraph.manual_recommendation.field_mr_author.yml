@@ -1,0 +1,19 @@
+uuid: 1d99add2-a611-4388-afe8-f7b56afb5534
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_mr_author
+    - paragraphs.paragraphs_type.manual_recommendation
+id: paragraph.manual_recommendation.field_mr_author
+field_name: field_mr_author
+entity_type: paragraph
+bundle: manual_recommendation
+label: Author
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

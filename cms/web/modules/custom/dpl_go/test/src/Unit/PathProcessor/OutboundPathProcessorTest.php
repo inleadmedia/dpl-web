@@ -6,7 +6,7 @@ namespace Drupal\Tests\dpl_go\Unit\PathProcessor;
 
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\AdminContext;
-use Drupal\dpl_go\GoSite;
+use Drupal\dpl_go\GoSiteInterface;
 use Drupal\dpl_go\PathProcessor\OutboundPathProcessor;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -20,7 +20,7 @@ class OutboundPathProcessorTest extends UnitTestCase {
   /**
    * GoSite mock.
    *
-   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\dpl_go\GoSite>
+   * @var \Prophecy\Prophecy\ObjectProphecy<\Drupal\dpl_go\GoSiteInterface>
    */
   protected ObjectProphecy $goSite;
 
@@ -42,7 +42,7 @@ class OutboundPathProcessorTest extends UnitTestCase {
   public function setUp(): void {
     parent::setUp();
 
-    $this->goSite = $this->prophesize(GoSite::class);
+    $this->goSite = $this->prophesize(GoSiteInterface::class);
     $this->goSite->getCmsBaseUrl()->willReturn('https://cms.site');
     $this->goSite->getGoBaseUrl()->willReturn('https://go.cms.site');
 
@@ -92,7 +92,7 @@ class OutboundPathProcessorTest extends UnitTestCase {
    * @return array<string, array<string|null|bool>>
    *   Array of test cases.
    */
-  public function nonNodeCases(): array {
+  public static function nonNodeCases(): array {
     return [
       'No rewriting on CMS' => [FALSE, FALSE, NULL],
       'Rewriting on GO' => [FALSE, TRUE, 'https://cms.site'],
@@ -139,7 +139,7 @@ class OutboundPathProcessorTest extends UnitTestCase {
    * @return array<string, array<string|null|bool>>
    *   Array of test cases.
    */
-  public function nodeCases(): array {
+  public static function nodeCases(): array {
     return [
       'Go node on CMS' => ['12', TRUE, FALSE, 'https://go.cms.site'],
       'Go node on Go' => ['12', TRUE, TRUE, NULL],
@@ -213,7 +213,7 @@ class OutboundPathProcessorTest extends UnitTestCase {
    * @return array<string, array<string|bool>>
    *   Array of test cases.
    */
-  public function absoluteUrlCases(): array {
+  public static function absoluteUrlCases(): array {
     return [
       'Go node with external user having absolute URLs permission' => ['12', TRUE, 'https://go.cms.site'],
       'CMS node with external user having absolute URLs permission' => ['12', FALSE, 'https://cms.site'],

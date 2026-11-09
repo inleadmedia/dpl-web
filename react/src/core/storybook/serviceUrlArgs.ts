@@ -1,4 +1,5 @@
 import { serviceUrlKeys } from "../utils/reduxMiddleware/extractServiceBaseUrls";
+import { readEnv } from "../utils/helpers/env";
 
 export const argTypes = {
   [serviceUrlKeys.fbs]: {
@@ -26,6 +27,16 @@ export const argTypes = {
     defaultValue: process.env.WAYFINDER_BASEURL,
     control: { type: "text" }
   },
+  [serviceUrlKeys.biblio]: {
+    description: "Base url for the Biblio adapter API",
+    control: { type: "text" },
+    table: {
+      type: { summary: "text" },
+      defaultValue: {
+        summary: "https://biblio-adapter.dbc.dk"
+      }
+    }
+  },
   [serviceUrlKeys.dplCms]: {
     description: "Base url for the DPL CMS API",
     defaultValue: "https://dpl-cms.inlead.dev",
@@ -33,7 +44,7 @@ export const argTypes = {
     table: {
       type: { summary: "text" },
       defaultValue: {
-        summary: "https://dpl-cms.docker"
+        summary: "https://dpl-cms.local"
       }
     }
   },
@@ -65,7 +76,7 @@ export const argTypes = {
       defaultValue: {
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next-present/graphql"
+          "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -78,7 +89,7 @@ export const argTypes = {
       defaultValue: {
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next/graphql"
+          "https://fbi-api.dbc.dk/next/graphql"
       }
     }
   },
@@ -90,7 +101,7 @@ export const argTypes = {
       defaultValue: {
         summary:
           process.env.GRAPHQL_API_BASEURL ??
-          "https://temp.fbi-api.dbc.dk/next-present/graphql"
+          "https://fbi-api.dbc.dk/next-present/graphql"
       }
     }
   },
@@ -108,16 +119,18 @@ export const argTypes = {
 
 const envOptions = {
   [serviceUrlKeys.fbs]:
-    process.env.FBS_BASEURL ?? "https://fbs-openplatform.dbc.dk",
+    readEnv("FBS_BASEURL") ?? "https://fbs-openplatform.dbc.dk",
   [serviceUrlKeys.publizon]:
-    process.env.PUBLIZON_BASEURL ?? "https://pubhub-openplatform.dbc.dk",
-  [serviceUrlKeys.dplCms]: process.env.CMS_BASEURL ?? "https://dpl-cms.docker",
+    readEnv("PUBLIZON_BASEURL") ?? "https://pubhub-openplatform.dbc.dk",
+  [serviceUrlKeys.biblio]:
+    readEnv("BIBLIO_BASEURL") ?? "https://biblio-adapter.dbc.dk",
+  [serviceUrlKeys.dplCms]: readEnv("CMS_BASEURL") ?? "https://dpl-cms.local",
   [serviceUrlKeys.cover]:
-    process.env.COVERS_BASEURL ?? "https://cover.dandigbib.org",
+    readEnv("COVERS_BASEURL") ?? "https://cover.dandigbib.org",
   [serviceUrlKeys.materialList]: "https://prod.materiallist.dandigbib.org",
-  [serviceUrlKeys.fbi]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next-present/graphql",
-  [serviceUrlKeys.fbiLocal]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next/graphql",
-  [serviceUrlKeys.fbiGlobal]: process.env.GRAPHQL_API_BASEURL ?? "https://temp.fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbi]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next-present/graphql",
+  [serviceUrlKeys.fbiLocal]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next/graphql",
+  [serviceUrlKeys.fbiGlobal]: process.env.GRAPHQL_API_BASEURL ?? "https://fbi-api.dbc.dk/next-present/graphql",
   [serviceUrlKeys.wayfinder]: process.env.WAYFINDER_BASEURL,
   developmentOptions: process.env.USE_DEVELOPMENT_OPTIONS,
   userinfoUrl: "https://login.bib.dk/userinfo"
@@ -259,8 +272,10 @@ if (typeof window === "object" && process.env.USE_DEVELOPMENT_OPTIONS === "true"
 
   document.body.setAttribute("data-show-search-sorting", showSearchSorting);
   document.body.setAttribute("data-search-lazy-types-loading", searchLazyTypesLoading);
-  document.body.setAttribute("data-autosuggest-editorial", "false");
-  document.body.setAttribute("data-editorial-search", "false");
+  document.body.setAttribute("data-autosuggest-editorial", "true");
+  document.body.setAttribute("data-editorial-search", "true");
+
+  document.body.setAttribute("data-material-quick-loan-info", "false");
 
   document.body.setAttribute("data-show-search-branch-selection", showSearchBranchSelection);
   document.body.setAttribute("data-branches-config", JSON.stringify(branchesConfig));

@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import Menu from "./menu";
 import { withText } from "../../core/utils/text";
 import { withConfig } from "../../core/utils/config";
+import { BiblioAdapterArgs } from "../../core/storybook/biblioAdapterArgs";
 import { withUrls } from "../../core/utils/url";
 import GlobalUrlEntryPropsInterface from "../../core/utils/types/global-url-props";
 import { GroupModalProps } from "../../core/storybook/groupModalArgs";
@@ -50,10 +51,18 @@ export interface MenuProps {
   materialAndAuthorText: string;
   materialByAuthorText: string;
   statusBadgeWarningText: string;
+  isInjectionExample?: boolean;
+  uniloginUserIdConfig: string;
+  uniloginPatronLoginHeadingText: string;
+  uniloginPatronLoginDescriptionText: string;
+  uniloginPatronLoginLogoutText: string;
+  uniloginPatronLoginConfirmText: string;
+  uniloginPatronLoginCancelText: string;
 }
 
 export interface MenuEntryProps
   extends
+    BiblioAdapterArgs,
     MenuProps,
     GlobalUrlEntryPropsInterface,
     GroupModalProps,
@@ -65,7 +74,7 @@ export interface MenuEntryProps
     GlobalEntryTextProps,
     ReservationMaterialDetailsProps {}
 
-const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile }) => {
+const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile, isInjectionExample }) => {
   const pageSize = pageSizeGlobal(
     {
       desktop: pageSizeDesktop,
@@ -73,6 +82,28 @@ const MenuEntry: FC<MenuEntryProps> = ({ pageSizeDesktop, pageSizeMobile }) => {
     },
     "pageSizeLoanList"
   );
+
+  // Required to force React re-render when injection is mounted. Only for dev!
+  const [currentDate, setCurrentDate] = React.useState(0);
+
+  if (isInjectionExample) {
+    React.useEffect(() => {
+      // @ts-ignore-next-line
+      if (window.InleadReactInjector) {
+        // @ts-ignore-next-line
+        window.InleadReactInjector.clearInjections();
+      }
+
+      // @ts-ignore-next-line
+      import("./GoogleTranslationsInjection.jsx").then(() => {
+        setCurrentDate(Date.now());
+      });
+    }, []);
+
+    return <div data-current-date={ currentDate || "" }>
+      <Menu pageSize={pageSize} />
+    </div>;
+  }
 
   return <Menu pageSize={pageSize} />;
 };

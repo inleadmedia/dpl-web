@@ -1,9 +1,14 @@
-import React, { FC } from "react";
-import { removeLoansWithDuplicateDueDate } from "../utils/helpers";
+import React, { FC, useState } from "react";
+import { isDigital, removeLoansWithDuplicateDueDate } from "../utils/helpers";
 import StackableMaterial from "../materials/stackable-material/stackable-material";
+import DigitalLoanCard from "../materials/digital-loan-card/digital-loan-card";
 import { ListView } from "../../../core/utils/types/list-view";
-import { loanId, LoanType } from "../../../core/utils/types/loan-type";
+import { LoanType } from "../../../core/utils/types/loan-type";
+import { listId } from "../../../core/utils/types/list-type";
 import { useText } from "../../../core/utils/text";
+import PlayerModal from "../../../components/material/player-modal/PlayerModal";
+import { playerModalId } from "../../../components/material/player-modal/helper";
+import { useModalButtonHandler } from "../../../core/utils/modal";
 
 interface LoanListItemProps {
   loans: LoanType[];
@@ -15,6 +20,23 @@ interface LoanListItemProps {
   dataCy?: string;
 }
 
+/**
+ * A stable React key for a loan row.
+ *
+ * Keying on loanId is not enough: digital loans carry none, so every digital
+ * row would share a key and React would reuse rows across loans. listId()
+ * covers all three providers, but it throws for an item with no usable id at
+ * all - a Publizon loan whose libraryBook has no identifier - and a missing
+ * key is not worth taking the whole list down for.
+ */
+const loanKey = (loan: LoanType, index: number) => {
+  try {
+    return listId(loan);
+  } catch {
+    return `loan-${index}`;
+  }
+};
+
 const LoanListItems: FC<LoanListItemProps> = ({
   loans,
   view,
@@ -25,6 +47,20 @@ const LoanListItems: FC<LoanListItemProps> = ({
   dataCy = "loan-list-items"
 }) => {
   const t = useText();
+  const { open } = useModalButtonHandler();
+  const [activePlayerOrderId, setActivePlayerOrderId] = useState<string | null>(
+    null
+  );
+
+  // Publizon only: a digital audiobook links to the player page instead, so it
+  // never reaches this handler - see digital-loan-card.
+  const handlePlayDigital = (loan: LoanType) => {
+    if (!loan.orderId) return;
+    setActivePlayerOrderId(loan.orderId);
+    // The player modal only mounts after the state update flushes; defer
+    // `open` to the next microtask so the modal exists when the handler runs.
+    queueMicrotask(() => open(playerModalId(loan.orderId!)));
+  };
 
   return (
     // explanation for screen readers used in additional-materials-button
@@ -36,6 +72,9 @@ const LoanListItems: FC<LoanListItemProps> = ({
       >
         {t("loanListDueDateModalAriaLabelText")}
       </div>
+      {activePlayerOrderId && (
+        <PlayerModal key={activePlayerOrderId} orderId={activePlayerOrderId} />
+      )}
       {view === "stack" &&
         dueDates &&
         dueDates.map((uniqueDueDate: string, i) => {
@@ -47,41 +86,49 @@ const LoanListItems: FC<LoanListItemProps> = ({
             uniqueDueDate,
             loans
           );
-          const loan = loansUniqueDueDate[0] || {};
+          const loan = loansUniqueDueDate[0];
+          if (!loan) return <ul key={i} />;
           return (
             <ul key={i}>
-              {loan && (
-                <StackableMaterial
-                  focused={i === indexOfFocus}
-                  openDueDateModal={openDueDateModal}
-                  openLoanDetailsModal={openLoanDetailsModal}
-                  loan={loan}
-                  item={loan}
-                  loanId={loan.loanId}
-                  key={loan.faust || loan.identifier}
-                  // -1 because it is _additional_ to the one displayed...
-                  additionalMaterials={loansUniqueDueDate.length - 1}
-                />
-              )}
+              <StackableMaterial
+                focused={i === indexOfFocus}
+                openDueDateModal={openDueDateModal}
+                openLoanDetailsModal={openLoanDetailsModal}
+                loan={loan}
+                item={loan}
+                loanId={loan.loanId}
+                key={loanKey(loan, i)}
+                // -1 because it is _additional_ to the one displayed
+                additionalMaterials={loansUniqueDueDate.length - 1}
+              />
             </ul>
           );
         })}
       {view === "list" && (
         <ul>
-          {loans.map((loan, i) => {
-            return (
+          {loans.map((loan, i) =>
+            isDigital(loan) ? (
+              <DigitalLoanCard
+                openLoanDetailsModal={openLoanDetailsModal}
+                onPlayDigital={handlePlayDigital}
+                loan={loan}
+                item={loan}
+                loanId={loan.loanId}
+                key={loanKey(loan, i)}
+              />
+            ) : (
               <StackableMaterial
                 focused={i === indexOfFocus}
                 openLoanDetailsModal={openLoanDetailsModal}
                 item={loan}
                 loanId={loan.loanId}
-                key={loanId(loan)}
+                key={loanKey(loan, i)}
                 loan={loan}
                 // Zero, as it is not stacked
                 additionalMaterials={0}
               />
-            );
-          })}
+            )
+          )}
         </ul>
       )}
     </div>

@@ -65,9 +65,7 @@ export type AdvancedSearchRowData = {
 };
 
 export type AdvancedSearchRowUpdateRowAspect =
-  | "term"
-  | "searchIndex"
-  | "clause";
+  "term" | "searchIndex" | "clause";
 
 export type AdvancedSearchQuery = {
   rows: AdvancedSearchRowData[];
@@ -79,12 +77,6 @@ export const initialAdvancedSearchQuery: AdvancedSearchQuery = {
     { term: "", searchIndex: "all", clause: advancedSearchClauses[0], id: 0 },
     { term: "", searchIndex: "all", clause: advancedSearchClauses[0], id: 1 }
   ]
-};
-
-export const advancedSearchFilters = {
-  materialTypes: "term.generalmaterialtype",
-  fiction: "term.fictionnonfiction",
-  accessibility: "term.accesstype"
 };
 
 export const enum AdvancedSortMapStrings {

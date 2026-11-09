@@ -1,4 +1,5 @@
 import { FbiCoverUrlPattern } from "../../../../cypress/fixtures/fixture.types";
+import { deleteReservationModalSelector } from "../../../../cypress/page-objects/reservation-list/components/delete-reservation-modal";
 
 describe("Reservation list", () => {
   beforeEach(() => {
@@ -7,10 +8,11 @@ describe("Reservation list", () => {
 
     const wednesday20220603 = new Date("2023-02-03T12:30:00.000Z").getTime();
 
-    // Sets time to a specific date
-    // https://github.com/cypress-io/cypress/issues/7577
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    cy.clock(wednesday20220603).then((clock: any) => clock.bind(window));
+    // Sets time to a specific date. cy.clock() applies to the application
+    // under test automatically when called before cy.visit().
+    // Only Date is faked. Freezing setTimeout would stall TanStack Query's
+    // notify scheduler, leaving every component stuck in its loading state.
+    cy.clock(wednesday20220603, ["Date"]);
 
     cy.interceptRest({
       aliasName: "work",
@@ -495,7 +497,7 @@ describe("Reservation list", () => {
           "E-book"
         );
 
-        cy.get(".list-reservation__header__text").should(
+        cy.get(".list-reservation__title__text").should(
           "have.text",
           "Mordet i det blå tog"
         );
@@ -906,7 +908,7 @@ describe("Reservation list", () => {
       // Even though we return multiple reservations they are parallel and
       // should be represented as one.
       .should("have.length", 1)
-      .get(".list-reservation__header")
+      .get(".list-reservation__title")
       // The title should be the one returned by the best representation
       // fixture.
       .should("contain", "Best representation of dummy title")
@@ -989,7 +991,7 @@ describe("Reservation list", () => {
 
     cy.getBySel("list-reservation-container")
       .find(".list-reservation")
-      .get(".list-reservation__header")
+      .get(".list-reservation__title")
       // The title should be the one returned by ilBibliographicRecord property
       // on the reservation.
       .should("contain", "Supermac : the life of Harold Macmillan")
@@ -1007,6 +1009,21 @@ describe("Reservation list", () => {
       .find("img")
       .should("have.attr", "src")
       .and("match", FbiCoverUrlPattern);
+  });
+
+  it("Opens the delete modal a link points at", () => {
+    // A link to a modal has to be looked up before the modal can render, and
+    // an FBS reservation id is short - both of which the lookup has to handle.
+    cy.visit(
+      "/iframe.html?path=/story/apps-reservation-list--reservation-list-entry&modal=delete-reservation67804976"
+    );
+
+    cy.wait("@user");
+
+    cy.get(deleteReservationModalSelector)
+      .should("exist")
+      .find("[data-cy='delete-reservation-button']")
+      .should("exist");
   });
 });
 

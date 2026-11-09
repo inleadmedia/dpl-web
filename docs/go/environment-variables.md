@@ -29,10 +29,7 @@ The hostname of the DPL CMS (Drupal) instance.
 
 In production, set in `lagoon/start.sh` from `LAGOON_DOMAIN`.
 
-The full URL of the DPL CMS GraphQL API endpoint.
-
-- **Runtime** – every GraphQL request to DPL CMS goes through this endpoint (`dpl-cms.fetcher.ts`)
-- **Codegen** – the `codegen:graphql` script introspects this endpoint to generate TypeScript types (`codegen.ts`)
+- **Runtime GraphQL** – `dpl-cms.fetcher.ts` builds `${DPL_CMS_BASE_URL}/graphql` for every GraphQL request the running app makes to DPL CMS. (Codegen reads the SDL committed at `cms/dpl-cms.bnf.graphql` and does not touch this variable.)
 
 In production, set in `lagoon/start.sh` from `LAGOON_ROUTE`.
 
@@ -41,19 +38,17 @@ In production, set in `lagoon/start.sh` from `LAGOON_ROUTE`.
 - **Required:** Yes
 - **Example:** `go_graphql`
 
-Username for Basic Auth against the DPL CMS GraphQL API. Combined with the password below to produce a Base64-encoded `Authorization: Basic` header in `dpl-cms.fetcher.ts`. Also used during codegen schema introspection.
+Username for Basic Auth against the DPL CMS GraphQL API. Combined with the password below to produce a Base64-encoded `Authorization: Basic` header in `dpl-cms.fetcher.ts`. Runtime only — codegen reads the committed SDL at `cms/dpl-cms.bnf.graphql` and needs no credentials.
 
 ### `NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD`
 
 - **Required:** Yes
-- **Example:** `oA8mqZFxmFubREH77T3qeApeoUxoNS7Y`
 
 Password counterpart to the GraphQL consumer username above.
 
 ### `NEXT_PUBLIC_GRAPHQL_BASIC_TOKEN_DPL_CMS`
 
-- **Required:** No (only in `.env.example`)
-- **Example:** `Z29fZ3JhcGhxbDpvQThtcVpGeG1GdWJSRUg3N1QzcWVBcGVvVXhvTlM3WQ==`
+- **Required:** No (only set as a Lagoon variable, in `.lagoon.env`)
 
 **Legacy.** A pre-encoded Basic Auth token. Not referenced in application code — the app computes the token at runtime from the username + password above.
 
@@ -83,38 +78,28 @@ Standard Node.js environment indicator. Controls:
 
 Enables test-specific behaviour:
 
-- **Unilogin OIDC** – allows insecure (non-HTTPS) requests to the identity broker (`uniloginClient.ts`)
-- **SOAP services** – redirects Publizon loan creation and Unilogin institution lookup endpoints to the local mock server (`requests.ts` files)
-
-### `CODEGEN_GRAPHQL_SCHEMA_ENDPOINT_FBI`
-
-- **Required:** No (optional, validated as URL if set)
-- **Example:** `https://fbi-api.dbc.dk/ereolgo/graphql`
-
-The FBI (Fælles Biblioteks Infrastruktur) GraphQL endpoint. Used **only** during code generation (`codegen.ts`) to introspect the FBI schema and generate TypeScript types/hooks.
-
-### `CODEGEN_LIBRARY_TOKEN`
-
-- **Required:** No (optional)
-- **Example:** `XXX`
-
-Bearer token for authenticating with the FBI GraphQL API during codegen. Sent as `Authorization: Bearer` when introspecting the FBI schema.
+- **SOAP services** – redirects Publizon loan creation to the local mock server at `PUBHUB_BASE_URL` (`requests.ts`)
 
 ## Server-Only Variables
 
 Only available server-side. Accessed via `getServerEnv()`.
 
+### `ADGANGSPLATFORMEN_USERINFO_URL`
+
+- **Required:** No (optional, validated as URL if set)
+- **Example:** `http://localhost:9000/userinfo`
+
+Overrides the Adgangsplatformen userinfo endpoint (`auth.adgangsplatformen-userinfo-url`, default `https://login.bib.dk/userinfo/`). Go reads the Unilogin attributes from it at login, in `lib/helpers/unilogin.ts`. Only set in tests, to point at the mock server.
+
 ### `DRUPAL_REVALIDATE_SECRET`
 
 - **Required:** Yes
-- **Example:** `CeXF8E2Rd9wXZ2sswFHR`
 
 Shared secret for on-demand cache revalidation. The `GET /cache/revalidate` route compares the incoming `secret` query parameter against this value; mismatches return 401. This lets DPL CMS trigger Next.js cache invalidation securely.
 
 ### `GO_SESSION_SECRET`
 
 - **Required:** Yes (minimum 32 characters)
-- **Example:** `yZJhgvvvUYMawDRbdzfdvsVswWXCKwkU`
 
 The encryption password for `iron-session`. Used to seal/unseal the `go-session` cookie that stores all authentication state (tokens, user info, session type). Also used in Cypress E2E setup to create mocked session cookies via `sealData()`.
 
@@ -125,38 +110,16 @@ The encryption password for `iron-session`. Used to seal/unseal the `go-session`
 
 Indicates the current Next.js lifecycle phase. The helper `isBuildingGoApp()` in `next-phase.ts` checks for `phase-production-build` — during builds, the session system returns a default anonymous session instead of attempting to read cookies (which aren't available at build time).
 
-### `UNILOGIN_CLIENT_ID`
-
-- **Required:** No (optional)
-- **Example:** `https://ereolengo.dk/`
-
-OpenID Connect client ID for the Unilogin identity broker. Used by `openid-client` during OIDC discovery in `uniloginClient.ts`. Can be overridden by this env var; otherwise the value can come from DPL CMS configuration.
-
-### `UNILOGIN_CLIENT_SECRET`
-
-- **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX` (sensitive)
-
-OpenID Connect client secret for Unilogin. If set, overrides the value fetched from DPL CMS private configuration in `dplCmsConfig.ts`.
-
-### `UNILOGIN_WELLKNOWN_URL`
+### `PUBHUB_BASE_URL`
 
 - **Required:** No (optional, validated as URL if set)
-- **Example:** `https://broker.unilogin.dk/auth/realms/broker/.well-known/openid-configuration`
+- **Example:** `http://localhost:9000`
 
-The OIDC discovery endpoint for the Unilogin broker. Used by `openid-client` to discover authorization/token endpoints. In test mode, also used as the base URL for mocked SOAP service endpoints (Publizon create-loan, Unilogin institution lookup).
-
-### `UNILOGIN_MUNICIPALITY_ID`
-
-- **Required:** No (optional)
-- **Example:** `XXX`
-
-Overrides the municipality ID from DPL CMS public config. Used for Unilogin institution filtering in `getDplCmsPublicConfig()`.
+Base URL of the mock server that the Publizon create-loan SOAP call goes to in test mode. Not used outside tests.
 
 ### `UNLILOGIN_PUBHUB_CLIENT_ID`
 
 - **Required:** Yes
-- **Example:** `EE939D96-702D-1BEE-AEB2-517B8BA18B11`
 
 Client ID for Publizon/PubHub SOAP services. Passed as `clientid` in service requests (`publizon.ts`).
 
@@ -165,7 +128,6 @@ Client ID for Publizon/PubHub SOAP services. Passed as `clientid` in service req
 ### `UNLILOGIN_PUBHUB_RETAILER_ID`
 
 - **Required:** Yes
-- **Example:** `XXX`
 
 Retailer ID for Publizon SOAP API calls. Passed as `retailerid` in loan creation and other Publizon requests.
 
@@ -174,7 +136,6 @@ Retailer ID for Publizon SOAP API calls. Passed as `retailerid` in loan creation
 ### `UNLILOGIN_PUBHUB_RETAILER_KEY_CODE`
 
 - **Required:** No (optional, can come from DPL CMS private config)
-- **Example:** `XXX` (sensitive)
 
 Retailer key code for Publizon. MD5-hashed at runtime before being sent as `retailerkeycode` in SOAP requests (`publizon.ts`). If set as an env var, overrides the DPL CMS private config value.
 
@@ -192,7 +153,7 @@ Used by scripts and tooling, not by the running application.
 ### `NODE_TLS_REJECT_UNAUTHORIZED`
 
 - **Values:** `0` to disable TLS verification
-- **Purpose:** Node.js flag used in dev/test scripts (`dev`, `dev:https`, `start:dev`, `codegen:graphql`) to allow HTTPS connections to servers with self-signed certificates (e.g. local DPL CMS on Docker). **Never set in production.**
+- **Purpose:** Node.js flag used in dev/test scripts (`dev`, `dev:https`, `start:dev`) to allow HTTPS connections to servers with self-signed certificates (e.g. local DPL CMS on Docker). **Never set in production.**
 
 ### `DEBUG_MOCK_SERVER`
 
@@ -205,8 +166,8 @@ Provided by the Lagoon hosting environment and consumed in `go/scripts/prepare-d
 
 - `LAGOON_ROUTES`
 
-  The list of all Lagoon routes, searched to find the one starting with `go.` or `node.` (possibly with www prefix.).
+    The list of all Lagoon routes, searched to find the one starting with `go.` or `node.` (possibly with www prefix.).
 
 - `LAGOON_ROUTE`
 
-  The full route URL (with protocol) for the first/primary route.
+    The full route URL (with protocol) for the first/primary route.

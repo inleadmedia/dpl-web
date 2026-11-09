@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Manual recommendation paragraph rendering.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\drupal_typed\DrupalTyped;
+use Drupal\eonext_manual_recommendation\Hook\ManualRecommendationHooks;
+
+/*
+ * The following LegacyHooks can be removed when upgrading to Drupal 11.2,
+ * together with the hook class service definitions.
+ */
+
+/**
+ * Registers the manual recommendation paragraph bundle class.
+ *
+ * @param mixed[] $bundles
+ *   Bundle info for altering.
+ */
+#[LegacyHook]
+function eonext_manual_recommendation_entity_bundle_info_alter(array &$bundles): void {
+  DrupalTyped::service(ManualRecommendationHooks::class)->entityBundleInfoAlter($bundles);
+}
+
+/**
+ * Registers theme implementations.
+ */
+#[LegacyHook]
+function eonext_manual_recommendation_theme(mixed $existing, string $type, string $theme, string $path): array {
+  return DrupalTyped::service(ManualRecommendationHooks::class)->theme($existing, $type, $theme, $path);
+}
+
+/**
+ * Prepares variables for the manual recommendation paragraph template.
+ */
+#[LegacyHook]
+function eonext_manual_recommendation_preprocess_paragraph__manual_recommendation(array &$variables): void {
+  DrupalTyped::service(ManualRecommendationHooks::class)->preprocessParagraphManualRecommendation($variables);
+}

@@ -1,0 +1,22 @@
+# Standalone React bundle adding the quick loan text to the material page.
+#
+# Sources live in js/src and are compiled to js/dist by the shared toolchain in
+# eonext_react/build:
+#
+#   cd ../eonext_react/build && npm ci && npm run build -- --env module=eonext_quickloan
+#
+# The asset is committed because /libraries/dpl-react is a stock upstream build
+# without the feature, so the text has to be injected into the running React
+# instance rather than compiled into the apps.
+#
+# hook_to_react provides window.InleadReactInjector, which this bundle needs and
+# does not carry itself. Its weight (-17) places both after the dpl-react
+# runtime (-19) and bundle (-18) but before mount.js (-16), so the injection is
+# registered before the apps mount.
+material_page_quick_loan:
+  js:
+    js/dist/material-page-quick-loan-text-injection.js:
+      preprocess: false
+      weight: -17
+  dependencies:
+    - eonext_react/hook_to_react
