@@ -615,7 +615,6 @@ switch ($step) {
     // Legacy DB user ER fields (municipality, organization, …) block dpl_app / dpl_media install.
     $etm = \Drupal::entityTypeManager();
     $config_factory = \Drupal::configFactory();
-    $db_schema = Database::getConnection()->schema();
     $deleted = [];
     $orphan_fields = [];
     foreach ($config_factory->listAll('field.storage.user.') as $storage_name) {
@@ -650,12 +649,7 @@ switch ($step) {
       }
       catch (Throwable) {
       }
-      foreach (["user__{$field_name}", "user_revision__{$field_name}"] as $table) {
-        if ($db_schema->tableExists($table)) {
-          $db_schema->dropTable($table);
-          $deleted[] = $table;
-        }
-      }
+      // Keep user field SQL tables — data preserved; only config removed so bootstrap/module install works.
     }
     foreach ($config_factory->listAll('core.entity_') as $display_name) {
       if (!str_contains($display_name, '.user.user.')) {
@@ -1123,9 +1117,10 @@ run_php prune_missing_extensions
 run_php remove_address_dawa
 run_php prune_missing_extensions
 run_php ensure_router_alias_column
+run_php remove_orphan_user_entity_reference_fields
 
 echo "════════════════════════════════════════════════════════════"
-echo " varnish_purger (temporary)"
+echo " varnish_purger (temporary — satisfy DPL updb, uninstalled at end)"
 echo "════════════════════════════════════════════════════════════"
 drush_y en varnish_purger -y
 
