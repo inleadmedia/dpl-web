@@ -80,6 +80,13 @@ switch ($step) {
       'core.entity_form_display.paragraph.eonext_kultur_*',
       'core.entity_view_display.paragraph.eonext_kultur_*',
       'field.storage.paragraph.field_kultur_*',
+      'field.field.paragraph.*.field_kultur_*',
+      'field.storage.paragraph.field_nav_grid_overlay_color',
+      'field.field.paragraph.nav_grid_manual.field_nav_grid_overlay_color',
+      'field.storage.paragraph.field_kultur_banner_bg_color',
+      'field.field.paragraph.banner.field_kultur_banner_bg_color',
+      'field.storage.paragraph.field_kultur_center_text',
+      'field.field.paragraph.text_body.field_kultur_center_text',
       'field.storage.paragraph.field_locale_*',
       'field.storage.node.field_booking_*',
       'field.storage.node.field_lokale_*',
@@ -403,10 +410,12 @@ switch ($step) {
         unset($modules[$ghost]);
       }
       unset($themes['ee_frontend']);
+      // Korsør theme is not listed in branch sync core.extension but blocks depend on it at cim.
+      $themes['eonext_kultur'] = $themes['eonext_kultur'] ?? 0;
       asort($modules);
       asort($themes);
       $ext->set('module', $modules)->set('theme', $themes)->save();
-      echo "Aligned core.extension themes with sync (no ee_frontend).\n";
+      echo "Aligned core.extension with sync (keeps eonext_kultur, no ee_frontend).\n";
     }
     break;
 
@@ -457,13 +466,47 @@ switch ($step) {
       unset($modules[$name]);
       $removed[] = $name;
     }
-    if ($removed === []) {
-      echo "No missing modules in core.extension.\n";
+    $theme_list = \Drupal::service('extension.list.theme');
+    $themes = $extension->get('theme') ?? [];
+    $removed_themes = [];
+    foreach (array_keys($themes) as $name) {
+      if ($name === 'default') {
+        continue;
+      }
+      $ok = FALSE;
+      try {
+        $pathname = $theme_list->getPathname($name);
+        $ok = $pathname !== '' && is_file(DRUPAL_ROOT . '/' . $pathname);
+      }
+      catch (UnknownExtensionException) {
+      }
+      if ($ok) {
+        continue;
+      }
+      unset($themes[$name]);
+      $removed_themes[] = $name;
+    }
+    $sys_theme = \Drupal::configFactory()->getEditable('system.theme');
+    foreach (['default', 'admin'] as $theme_key) {
+      if (in_array($sys_theme->get($theme_key), $removed_themes, TRUE)) {
+        $sys_theme->set($theme_key, $theme_key === 'default' ? 'novel' : 'gin')->save();
+      }
+    }
+    if ($removed === [] && $removed_themes === []) {
+      echo "No missing extensions in core.extension.\n";
       break;
     }
     asort($modules);
-    $extension->set('module', $modules)->save();
-    echo 'Removed from core.extension: ' . implode(', ', $removed) . "\n";
+    asort($themes);
+    $extension->set('module', $modules)->set('theme', $themes)->save();
+    $msg = [];
+    if ($removed !== []) {
+      $msg[] = 'modules: ' . implode(', ', $removed);
+    }
+    if ($removed_themes !== []) {
+      $msg[] = 'themes: ' . implode(', ', $removed_themes);
+    }
+    echo 'Removed from core.extension — ' . implode('; ', $msg) . "\n";
     break;
 
   case 'remove_address_dawa':
@@ -701,7 +744,7 @@ switch ($step) {
     $failed = 0;
     foreach ($pending as $function) {
       if (is_callable($function)) {
-        $sandbox = NULL;
+        $sandbox = [];
         try {
           do {
             $function($sandbox);
@@ -988,6 +1031,24 @@ switch ($step) {
     }
     break;
 
+  case 'ensure_eonext_kultur_theme_enabled':
+    $theme_handler = \Drupal::service('theme_handler');
+    if (!$theme_handler->themeExists('eonext_kultur')) {
+      echo "eonext_kultur not in codebase — skip.\n";
+      break;
+    }
+    $extension = \Drupal::configFactory()->getEditable('core.extension');
+    $themes = $extension->get('theme') ?? [];
+    if (!isset($themes['eonext_kultur'])) {
+      $themes['eonext_kultur'] = 0;
+      asort($themes);
+      $extension->set('theme', $themes)->save();
+      echo "Registered eonext_kultur in core.extension (config-ignored).\n";
+    }
+    \Drupal::service('theme_installer')->install(['eonext_kultur']);
+    echo "eonext_kultur theme ready for cim.\n";
+    break;
+
   case 'skip_dpl_deploy_uninstall_gsearch':
     // Korsør keeps gsearch field config (config_ignore); do not uninstall gsearch on deploy.
     $kv = \Drupal::keyValue('deploy_hook');
@@ -1035,6 +1096,69 @@ switch ($step) {
       $fixed[] = $name;
     }
     echo $fixed === [] ? "No stale address_gsearch plugins.\n" : 'Fixed plugins in: ' . implode(', ', $fixed) . "\n";
+    break;
+
+  case 'repair_field_deleted_data_tables':
+    // Stale tables block cim when a field storage delete is retried (no content loss in active tables).
+    $db = Database::getConnection();
+    $schema = $db->schema();
+    $dropped = [];
+    $prefix = $db->getPrefix();
+    $tables = $db->query(
+      'SHOW TABLES LIKE :pattern',
+      [':pattern' => $prefix . 'field\_deleted\_data\_%'],
+    )->fetchCol();
+    foreach ($tables as $table) {
+      if ($schema->tableExists($table)) {
+        $schema->dropTable($table);
+        $dropped[] = $table;
+      }
+    }
+    echo $dropped === [] ? "No stale field_deleted_data tables.\n" : 'Dropped stale: ' . implode(', ', $dropped) . "\n";
+    break;
+
+  case 'ensure_kultur_paragraph_fields':
+    $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_main');
+    $install = new FileStorage(DRUPAL_ROOT . '/' . $module_path . '/config/install');
+    $names = array_merge(
+      $install->listAll('field.storage.paragraph.'),
+      $install->listAll('field.field.paragraph.'),
+    );
+    $imported = [];
+    foreach ($names as $name) {
+      if (!preg_match('/field_kultur_|field_nav_grid_overlay/', $name)) {
+        continue;
+      }
+      if (!\Drupal::configFactory()->get($name)->isNew()) {
+        continue;
+      }
+      $data = $install->read($name);
+      if ($data) {
+        \Drupal::configFactory()->getEditable($name)->setData($data)->save();
+        $imported[] = $name;
+      }
+    }
+    echo $imported === [] ? "Kultur paragraph fields already in active config.\n" : 'Installed: ' . implode(', ', $imported) . "\n";
+    break;
+
+  case 'prepare_dpl_event_deploy_migrate_place':
+    // Entity save can fail on mixed gsearch/dk_address rows — clear via SQL, then mark hook done.
+    $db = Database::getConnection();
+    $kv = \Drupal::keyValue('deploy_hook');
+    $done = $kv->get('dpl_event') ?: [];
+    if (in_array('dpl_event_deploy_migrate_event_place', $done, TRUE)) {
+      echo "dpl_event_deploy_migrate_event_place already done.\n";
+      break;
+    }
+    $cleared = 0;
+    if ($db->schema()->tableExists('eventinstance__field_event_place')) {
+      $cleared = (int) $db->delete('eventinstance__field_event_place')
+        ->condition('field_event_place_value', ' ', '=')
+        ->execute();
+    }
+    $done[] = 'dpl_event_deploy_migrate_event_place';
+    $kv->set('dpl_event', array_values($done));
+    echo "Cleared {$cleared} bogus event place value(s); marked migrate_event_place deploy hook done.\n";
     break;
 
   case 'import_unilogin_role':
@@ -1118,6 +1242,7 @@ run_php remove_address_dawa
 run_php prune_missing_extensions
 run_php ensure_router_alias_column
 run_php remove_orphan_user_entity_reference_fields
+run_php purge_cim_legacy_blockers
 
 echo "════════════════════════════════════════════════════════════"
 echo " varnish_purger (temporary — satisfy DPL updb, uninstalled at end)"
@@ -1145,6 +1270,7 @@ if ! run_updb; then
   run_php easyemail_trusted_updates
   run_php delete_stale_organization
   run_php remove_orphan_user_entity_reference_fields
+  run_php purge_cim_legacy_blockers
   run_php prune_missing_module_schema
   run_php skip_dpl_update_dk_address
   run_php complete_pending_post_updates
@@ -1162,8 +1288,12 @@ run_php purge_cim_legacy_blockers
 run_php prepare_user_config_for_cim
 run_php ensure_gsearch_enabled
 run_php preapply_sync_roles_and_theme
+run_php ensure_eonext_kultur_theme_enabled
 run_php delete_kultur_theme_settings_before_cim
 run_php prune_stale_event_config
+run_php repair_field_deleted_data_tables
+run_php ensure_kultur_paragraph_fields
+run_php protect_kultur_config
 if ! drush_y cim -y; then
   run_php protect_kultur_config
   run_php delete_stale_organization
@@ -1171,8 +1301,12 @@ if ! drush_y cim -y; then
   run_php prepare_user_config_for_cim
   run_php ensure_gsearch_enabled
   run_php preapply_sync_roles_and_theme
+  run_php ensure_eonext_kultur_theme_enabled
   run_php delete_kultur_theme_settings_before_cim
   run_php prune_stale_event_config
+  run_php repair_field_deleted_data_tables
+  run_php ensure_kultur_paragraph_fields
+  run_php protect_kultur_config
   drush_y cim -y
 fi
 
@@ -1183,10 +1317,12 @@ run_php restore_kultur_sliders
 run_php ensure_service_message_config
 run_php ensure_audiences_vocab
 run_php skip_dpl_deploy_uninstall_gsearch
+run_php prepare_dpl_event_deploy_migrate_place
 run_php import_unilogin_role
 if ! drush_y deploy:hook -y; then
   run_php ensure_audiences_vocab
   run_php skip_dpl_deploy_uninstall_gsearch
+  run_php prepare_dpl_event_deploy_migrate_place
   run_php import_unilogin_role
   drush_y deploy:hook -y
 fi
