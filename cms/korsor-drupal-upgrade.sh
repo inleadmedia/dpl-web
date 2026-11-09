@@ -150,12 +150,133 @@ switch ($step) {
       $storage->listAll('field.field.organization.'),
       $storage->listAll('field.storage.organization.'),
       $storage->listAll('organization.'),
+      $storage->listAll('field.field.user.user.field_user_organization'),
+      $storage->listAll('field.storage.user.field_user_organization'),
     ));
     sort($names);
     foreach ($names as $name) {
       \Drupal::configFactory()->getEditable($name)->delete();
     }
     echo 'Removed ' . count($names) . " organization config item(s).\n";
+    break;
+
+  case 'purge_cim_legacy_blockers':
+    // Old Korsør DB: event engine, org workflows/vocab, ee_frontend — not in branch sync.
+    $etm = \Drupal::entityTypeManager();
+    $deleted = [];
+    foreach (['organization_category', 'organization_categories'] as $vid) {
+      if (!$etm->getStorage('taxonomy_vocabulary')->load($vid)) {
+        continue;
+      }
+      $tids = $etm->getStorage('taxonomy_term')->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('vid', $vid)
+        ->execute();
+      if ($tids !== []) {
+        $etm->getStorage('taxonomy_term')->delete(
+          $etm->getStorage('taxonomy_term')->loadMultiple($tids),
+        );
+        $deleted[] = 'terms:' . $vid;
+      }
+    }
+    if ($etm->hasDefinition('content_moderation_state')) {
+      $state_storage = $etm->getStorage('content_moderation_state');
+      $state_ids = $state_storage->getQuery()->accessCheck(FALSE)->execute();
+      if ($state_ids !== []) {
+        $state_storage->delete($state_storage->loadMultiple($state_ids));
+        $deleted[] = 'content_moderation_state';
+      }
+    }
+    if ($etm->hasDefinition('workflow')) {
+      $workflow_storage = $etm->getStorage('workflow');
+      foreach (['organization_approval', 'events_approval'] as $wid) {
+        $workflow = $workflow_storage->load($wid);
+        if ($workflow) {
+          $workflow->delete();
+          $deleted[] = 'workflow:' . $wid;
+        }
+      }
+    }
+    foreach (['workflow_transition', 'workflow_type'] as $entity_type_id) {
+      if (!$etm->hasDefinition($entity_type_id)) {
+        continue;
+      }
+      $storage = $etm->getStorage($entity_type_id);
+      $ids = $storage->getQuery()->accessCheck(FALSE)->execute();
+      if ($ids !== []) {
+        $storage->delete($storage->loadMultiple($ids));
+        $deleted[] = $entity_type_id;
+      }
+    }
+    $config_storage = \Drupal::service('config.storage');
+    $config_names = array_unique(array_merge(
+      $config_storage->listAll('workflow.'),
+      $config_storage->listAll('field.field.municipality.'),
+      $config_storage->listAll('field.storage.municipality.'),
+      $config_storage->listAll('field.field.organization_event.'),
+      $config_storage->listAll('field.storage.organization_event.'),
+      $config_storage->listAll('eonext_event_engine.'),
+      $config_storage->listAll('municipality.'),
+      $config_storage->listAll('organization_event.'),
+      $config_storage->listAll('taxonomy.vocabulary.organization_categor'),
+    ));
+    foreach ($config_names as $name) {
+      if (!preg_match('/organization_categor|organization_approval|events_approval|municipality|organization_event|eonext_event_engine|^workflow\./', $name)) {
+        continue;
+      }
+      \Drupal::configFactory()->getEditable($name)->delete();
+      $deleted[] = $name;
+    }
+    $extension = \Drupal::configFactory()->getEditable('core.extension');
+    $modules = $extension->get('module') ?? [];
+    $themes = $extension->get('theme') ?? [];
+    $ext_changed = FALSE;
+    foreach (['eonext_event_engine', 'address_dawa'] as $module) {
+      if (isset($modules[$module])) {
+        unset($modules[$module]);
+        $ext_changed = TRUE;
+      }
+    }
+    foreach (['ee_frontend'] as $theme) {
+      if (isset($themes[$theme])) {
+        unset($themes[$theme]);
+        $ext_changed = TRUE;
+      }
+    }
+    if ($ext_changed) {
+      asort($modules);
+      asort($themes);
+      $extension->set('module', $modules)->set('theme', $themes)->save();
+      $deleted[] = 'core.extension';
+    }
+    $theme_cfg = \Drupal::configFactory()->getEditable('system.theme');
+    foreach (['default', 'admin'] as $theme_key) {
+      if ($theme_cfg->get($theme_key) === 'ee_frontend') {
+        $theme_cfg->set($theme_key, $theme_key === 'default' ? 'novel' : 'gin')->save();
+        $deleted[] = 'system.theme.' . $theme_key;
+      }
+    }
+    foreach ($config_storage->listAll('user.role.') as $role_name) {
+      $role = \Drupal::configFactory()->getEditable($role_name);
+      $data = $role->getRawData();
+      if (empty($data['dependencies']['config'])) {
+        continue;
+      }
+      $before = count($data['dependencies']['config']);
+      $data['dependencies']['config'] = array_values(array_filter(
+        $data['dependencies']['config'],
+        static fn (string $dep): bool => !preg_match(
+          '/^workflow\.workflow\.|^taxonomy\.vocabulary\.organization_categor/',
+          $dep,
+        ),
+      ));
+      if (count($data['dependencies']['config']) !== $before) {
+        $role->setData($data)->save();
+        $deleted[] = $role_name;
+      }
+    }
+    $count = count($deleted);
+    echo $count === 0 ? "No CIM legacy blockers.\n" : "Purged {$count} CIM blocker item(s).\n";
     break;
 
   case 'prune_stale_event_config':
@@ -352,13 +473,169 @@ switch ($step) {
       \Drupal::keyValue('system.schema')->set('easyemail', $version);
       $schema = $version;
     }
-    if ($schema < 10019) {
-      \Drupal::keyValue('system.schema')->set('easyemail', 10019);
-    }
-    elseif ($schema >= 10019 && $schema < 10021) {
-      \Drupal::keyValue('system.schema')->set('easyemail', 10021);
+    $target_schema = 10029;
+    if ($schema < $target_schema) {
+      \Drupal::keyValue('system.schema')->set('easyemail', $target_schema);
     }
     echo "easyemail: imported {$imported} config; schema=" . \Drupal::keyValue('system.schema')->get('easyemail') . "\n";
+    break;
+
+  case 'remove_orphan_user_entity_reference_fields':
+    // Legacy DB user ER fields (municipality, organization, …) block dpl_app / dpl_media install.
+    $etm = \Drupal::entityTypeManager();
+    $config_factory = \Drupal::configFactory();
+    $db_schema = Database::getConnection()->schema();
+    $deleted = [];
+    $orphan_fields = [];
+    foreach ($config_factory->listAll('field.storage.user.') as $storage_name) {
+      $data = $config_factory->get($storage_name)->getRawData();
+      if (($data['type'] ?? '') !== 'entity_reference') {
+        continue;
+      }
+      $target = $data['settings']['target_type'] ?? '';
+      if ($target === '' || $etm->hasDefinition($target)) {
+        continue;
+      }
+      $orphan_fields[] = $data['field_name'] ?? '';
+    }
+    $orphan_fields = array_values(array_filter(array_unique($orphan_fields)));
+    foreach ($orphan_fields as $field_name) {
+      $field_config_name = "field.field.user.user.{$field_name}";
+      $storage_name = "field.storage.user.{$field_name}";
+      foreach ([$field_config_name, $storage_name] as $name) {
+        $config = $config_factory->getEditable($name);
+        if (!$config->isNew()) {
+          $config->delete();
+          $deleted[] = $name;
+        }
+      }
+      try {
+        FieldConfig::loadByName('user', 'user', $field_name)?->delete();
+      }
+      catch (Throwable) {
+      }
+      try {
+        FieldStorageConfig::loadByName('user', $field_name)?->delete();
+      }
+      catch (Throwable) {
+      }
+      foreach (["user__{$field_name}", "user_revision__{$field_name}"] as $table) {
+        if ($db_schema->tableExists($table)) {
+          $db_schema->dropTable($table);
+          $deleted[] = $table;
+        }
+      }
+    }
+    foreach ($config_factory->listAll('core.entity_') as $display_name) {
+      if (!str_contains($display_name, '.user.user.')) {
+        continue;
+      }
+      $display = $config_factory->getEditable($display_name);
+      if ($display->isNew()) {
+        continue;
+      }
+      $data = $display->getRawData();
+      $changed = FALSE;
+      foreach ($orphan_fields as $field_name) {
+        foreach (['content', 'hidden'] as $section) {
+          if (isset($data[$section][$field_name])) {
+            unset($data[$section][$field_name]);
+            $changed = TRUE;
+          }
+        }
+        if (isset($data['dependencies']['config'])) {
+          $dep = "field.field.user.user.{$field_name}";
+          $before = count($data['dependencies']['config']);
+          $data['dependencies']['config'] = array_values(array_filter(
+            $data['dependencies']['config'],
+            static fn (string $item): bool => $item !== $dep,
+          ));
+          if (count($data['dependencies']['config']) !== $before) {
+            $changed = TRUE;
+          }
+        }
+      }
+      if ($changed) {
+        $display->setData($data)->save();
+        $deleted[] = $display_name;
+      }
+    }
+    echo $deleted === [] ? "No orphan user entity-reference fields.\n" : 'Removed: ' . implode(', ', $deleted) . "\n";
+    break;
+
+  case 'complete_pending_post_updates':
+    // Restored DB + new core/contrib: post-updates mutate legacy config and often
+    // abort the whole `drush updb`. Korsør fixes config via cim afterward.
+    $post_update_registry = \Drupal::service('update.post_update_registry');
+    $pending = $post_update_registry->getPendingUpdateFunctions();
+    if ($pending === []) {
+      echo "No pending post-updates.\n";
+      break;
+    }
+    $ran = 0;
+    $failed = 0;
+    foreach ($pending as $function) {
+      if (is_callable($function)) {
+        $sandbox = NULL;
+        try {
+          do {
+            $function($sandbox);
+          } while (isset($sandbox['#finished']) && (float) $sandbox['#finished'] < 1);
+          $ran++;
+        }
+        catch (Throwable $e) {
+          $failed++;
+          echo "post-update {$function}: {$e->getMessage()}\n";
+        }
+      }
+      $post_update_registry->registerInvokedUpdates([$function]);
+    }
+    echo count($pending) . " post-update(s): ran {$ran}, failed {$failed}, all marked done.\n";
+    break;
+
+  case 'skip_dpl_update_dk_address':
+    // Korsør branch sync keeps gsearch; dk_address is not shipped on this branch.
+    $list = \Drupal::service('extension.list.module');
+    $missing = FALSE;
+    foreach (['dk_address', 'dk_address_gsearch_migrate'] as $module) {
+      try {
+        $list->getPathname($module);
+      }
+      catch (UnknownExtensionException) {
+        $missing = TRUE;
+        break;
+      }
+    }
+    if (!$missing) {
+      echo "dk_address present — run dpl_update_update_10083 normally.\n";
+      break;
+    }
+    $kv = \Drupal::keyValue('system.schema');
+    $schema = (int) $kv->get('dpl_update');
+    if ($schema < 10083) {
+      $kv->set('dpl_update', 10083);
+      echo "Marked dpl_update schema 10083 (skip dk_address install).\n";
+    }
+    else {
+      echo "dpl_update schema already >= 10083.\n";
+    }
+    break;
+
+  case 'prune_missing_module_schema':
+    $kv = \Drupal::keyValue('system.schema');
+    $list = \Drupal::service('extension.list.module');
+    $removed = [];
+    foreach (array_keys($kv->getAll()) as $module) {
+      try {
+        $list->getPathname($module);
+        continue;
+      }
+      catch (UnknownExtensionException) {
+      }
+      $kv->delete($module);
+      $removed[] = $module;
+    }
+    echo $removed === [] ? "No orphan system.schema modules.\n" : 'Removed schema keys: ' . implode(', ', $removed) . "\n";
     break;
 
   case 'restore_kultur_sliders':
@@ -426,6 +703,28 @@ switch ($step) {
       }
     }
     echo $messages === [] ? "Kultur slider config OK.\n" : "Restored: " . implode(', ', $messages) . "\n";
+    break;
+
+  case 'ensure_router_alias_column':
+    // D11 core expects router.alias; old DB dumps lack it until system_update_11201.
+    $schema = Database::getConnection()->schema();
+    if ($schema->tableExists('router') && !$schema->fieldExists('router', 'alias')) {
+      $spec = [
+        'fields' => [
+          'alias' => [
+            'description' => 'The alias of the route, if applicable.',
+            'type' => 'varchar_ascii',
+            'length' => 255,
+          ],
+        ],
+      ];
+      $schema->addField('router', 'alias', $spec['fields']['alias']);
+      $schema->addIndex('router', 'alias', ['alias'], $spec);
+      echo "Added router.alias column (system_update_11201).\n";
+    }
+    else {
+      echo "router.alias column OK.\n";
+    }
     break;
 
   case 'ensure_service_message_config':
@@ -587,6 +886,11 @@ echo "════════════════════════�
 echo " easyemail + database updates (updb)"
 echo "════════════════════════════════════════════════════════════"
 run_php easyemail_trusted_updates
+run_php delete_stale_organization
+run_php remove_orphan_user_entity_reference_fields
+run_php prune_missing_module_schema
+run_php skip_dpl_update_dk_address
+run_php complete_pending_post_updates
 run_php import_config_ignore
 run_php protect_kultur_config
 
@@ -597,6 +901,11 @@ if ! run_updb; then
   run_php remove_address_dawa
   run_php prune_missing_extensions
   run_php easyemail_trusted_updates
+  run_php delete_stale_organization
+  run_php remove_orphan_user_entity_reference_fields
+  run_php prune_missing_module_schema
+  run_php skip_dpl_update_dk_address
+  run_php complete_pending_post_updates
   run_php import_config_ignore
   run_php protect_kultur_config
   run_updb || { echo "updb still failing" >&2; exit 1; }
@@ -607,10 +916,12 @@ echo " config import (cim)"
 echo "════════════════════════════════════════════════════════════"
 run_php protect_kultur_config
 run_php delete_stale_organization
+run_php purge_cim_legacy_blockers
 run_php prune_stale_event_config
 if ! drush_y cim -y; then
   run_php protect_kultur_config
   run_php delete_stale_organization
+  run_php purge_cim_legacy_blockers
   run_php prune_stale_event_config
   drush_y cim -y
 fi
@@ -640,6 +951,8 @@ if [[ "${SKIP_LOCALE:-}" != "1" ]]; then
 fi
 
 run_php ensure_service_message_config
+run_php ensure_router_alias_column
+drush_y updb -y
 drush_y cr
 
 echo "════════════════════════════════════════════════════════════"
