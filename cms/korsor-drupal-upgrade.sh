@@ -40,6 +40,7 @@ use Drupal\Core\Extension\Exception\UnknownExtensionException;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\locale\LocaleProjectRepository;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\user\Entity\Role;
 
@@ -1161,6 +1162,28 @@ switch ($step) {
     echo "Cleared {$cleared} bogus event place value(s); marked migrate_event_place deploy hook done.\n";
     break;
 
+  case 'prune_orphan_locale_projects':
+    // locale-check/update crashes if translation_status lists removed themes/modules (ee_frontend, etc.).
+    if (!\Drupal::moduleHandler()->moduleExists('locale')) {
+      echo "locale module disabled — skip.\n";
+      break;
+    }
+    $repo = \Drupal::service(LocaleProjectRepository::class);
+    $status = \Drupal::keyValue('locale.translation_status');
+    $removed = [];
+    foreach (array_keys($status->getAll()) as $project_name) {
+      $project = $repo->getMultiple([$project_name])[$project_name] ?? NULL;
+      if ($project === NULL) {
+        $status->delete($project_name);
+        $removed[] = $project_name;
+      }
+    }
+    $repo->buildProjects();
+    echo $removed === []
+      ? "Locale translation projects OK.\n"
+      : 'Removed stale locale.translation_status: ' . implode(', ', $removed) . "\n";
+    break;
+
   case 'import_unilogin_role':
     $storage = \Drupal::entityTypeManager()->getStorage('user_role');
     if ($storage->load('unilogin_patron')) {
@@ -1339,7 +1362,12 @@ run_php resync_slider_view_modes
 drush_y pm-uninstall varnish_purger -y
 
 if [[ "${SKIP_LOCALE:-}" != "1" ]]; then
-  ${TASK} drupal:locale
+  run_php prune_orphan_locale_projects
+  if ! ${TASK} drupal:locale; then
+    echo "drupal:locale failed (stale translation projects are common after upgrade) — continuing." >&2
+    run_php prune_orphan_locale_projects
+    ${TASK} drupal:locale || echo "drupal:locale still failing; set SKIP_LOCALE=1 or fix locale DB — upgrade otherwise complete." >&2
+  fi
 fi
 
 run_php ensure_service_message_config
