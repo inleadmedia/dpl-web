@@ -163,6 +163,7 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
+    eonext_kultur_event_submissions_sanitize_address_form_state($form_state);
     eonext_kultur_event_submissions_normalize_address_form_state($form_state);
     $address = $form_state->getValue('address');
     if (is_array($address) && isset($address[0]['address']) && is_array($address[0]['address'])) {

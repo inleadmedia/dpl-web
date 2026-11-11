@@ -277,6 +277,47 @@ function eonext_kultur_event_submissions_form_city(FormStateInterface $form_stat
 }
 
 /**
+ * Removes hidden address sub-properties before Address module validation.
+ *
+ * Browsers may autofill given_name etc. even when #access is FALSE; those
+ * properties must be absent, otherwise validation fails with "must be null".
+ */
+function eonext_kultur_event_submissions_sanitize_address_form_state(FormStateInterface $form_state): void {
+  $address = $form_state->getValue('address');
+  if (!is_array($address) || !isset($address[0]['address']) || !is_array($address[0]['address'])) {
+    return;
+  }
+
+  $hidden = [
+    'given_name',
+    'additional_name',
+    'family_name',
+    'address_line3',
+    'sorting_code',
+    'administrative_area',
+    'dependent_locality',
+  ];
+  foreach ($hidden as $key) {
+    unset($address[0]['address'][$key]);
+  }
+  if (trim((string) ($address[0]['address']['country_code'] ?? '')) === '') {
+    $address[0]['address']['country_code'] = 'GL';
+  }
+  $form_state->setValue('address', $address);
+
+  $user_input = $form_state->getUserInput();
+  if (isset($user_input['address'][0]['address']) && is_array($user_input['address'][0]['address'])) {
+    foreach ($hidden as $key) {
+      unset($user_input['address'][0]['address'][$key]);
+    }
+    if (trim((string) ($user_input['address'][0]['address']['country_code'] ?? '')) === '') {
+      $user_input['address'][0]['address']['country_code'] = 'GL';
+    }
+    $form_state->setUserInput($user_input);
+  }
+}
+
+/**
  * Applies Nuuk defaults to the address field value in form state.
  */
 function eonext_kultur_event_submissions_normalize_address_form_state(FormStateInterface $form_state): void {
@@ -321,6 +362,7 @@ function eonext_kultur_event_submissions_public_address_element_validate(array &
     $form_state->setValue('address', $user_input['address']);
   }
 
+  eonext_kultur_event_submissions_sanitize_address_form_state($form_state);
   eonext_kultur_event_submissions_normalize_address_form_state($form_state);
 
   if (eonext_kultur_event_submissions_form_city($form_state) !== SubmissionConstants::CITY_NUUK) {
