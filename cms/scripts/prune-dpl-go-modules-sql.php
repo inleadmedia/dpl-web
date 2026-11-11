@@ -20,6 +20,11 @@ $settings = [];
 $config = [];
 $databases = [];
 
+$autoload = $cms_dir . '/vendor/autoload.php';
+if (is_file($autoload)) {
+  require_once $autoload;
+}
+
 if (!is_file("$app_root/$site_path/settings.php")) {
   fwrite(STDERR, "settings.php not found at {$site_path}\n");
   exit(1);
