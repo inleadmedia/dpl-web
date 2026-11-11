@@ -30,14 +30,8 @@ if (is_file($repair)) {
   require $repair;
 }
 
-$schema = \Drupal::database()->schema();
-foreach (['paragraph__field_nl_text', 'paragraph_revision__field_nl_text'] as $table) {
-  if ($schema->tableExists($table)) {
-    \Drupal::state()->delete('field.storage.deleted');
-    \Drupal::state()->delete('field.field.deleted');
-    break;
-  }
-}
+\Drupal::state()->delete('field.storage.deleted');
+\Drupal::state()->delete('field.field.deleted');
 
 $owned_config = [
   'easyemail.settings',

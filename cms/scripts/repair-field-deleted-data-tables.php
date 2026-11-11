@@ -2,9 +2,9 @@
 
 /**
  * @file
- * Drop stale field_deleted_data_* tables (prod / failed uninstall leftovers).
+ * Drop stale field_deleted_data_* / field_deleted_revision_* tables.
  *
- * Blocks field module uninstall when rename target already exists.
+ * Prod DB and failed uninstalls leave tombstones that block easyemail / field purge.
  *
  * Usage: drush php:script scripts/repair-field-deleted-data-tables.php
  */
@@ -17,21 +17,28 @@ $db = Database::getConnection();
 $schema = $db->schema();
 $dropped = [];
 $prefix = $db->getPrefix();
-$tables = $db->query(
-  'SHOW TABLES LIKE :pattern',
-  [':pattern' => $prefix . 'field\_deleted\_data\_%'],
-)->fetchCol();
 
-foreach ($tables as $table) {
-  if ($schema->tableExists($table)) {
-    $schema->dropTable($table);
-    $dropped[] = $table;
+$patterns = [
+  $prefix . 'field\_deleted\_data\_%',
+  $prefix . 'field\_deleted\_revision\_%',
+];
+
+foreach ($patterns as $pattern) {
+  $tables = $db->query(
+    'SHOW TABLES LIKE :pattern',
+    [':pattern' => $pattern],
+  )->fetchCol();
+  foreach ($tables as $table) {
+    if ($schema->tableExists($table)) {
+      $schema->dropTable($table);
+      $dropped[] = $table;
+    }
   }
 }
 
 if ($dropped === []) {
-  echo "No stale field_deleted_data tables.\n";
+  echo "No stale field_deleted_data / field_deleted_revision tables.\n";
 }
 else {
-  echo 'Dropped stale field_deleted_data tables: ' . implode(', ', $dropped) . "\n";
+  echo 'Dropped stale field tombstone tables: ' . implode(', ', $dropped) . "\n";
 }
