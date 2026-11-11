@@ -17,6 +17,11 @@ use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Extension\Exception\UnknownExtensionException;
 
 $modules_off = ['dpl_go', 'dpl_patron_redirect'];
+$roles_off = [
+  'user.role.external_graphql_client',
+  'user.role.go_graphql_client',
+  'user.role.mobile_graphql_client',
+];
 
 $config_factory = \Drupal::configFactory();
 $deleted = [];
@@ -73,10 +78,28 @@ foreach ($sync->listAll() as $name) {
     continue;
   }
   $mod_deps = $data['dependencies']['module'] ?? [];
-  if (array_intersect($modules_off, $mod_deps) === []) {
+  $config_deps = $data['dependencies']['config'] ?? [];
+  $skip = array_intersect($modules_off, $mod_deps) !== []
+    || array_intersect($roles_off, $config_deps) !== [];
+  if (!$skip) {
     continue;
   }
   $ignore_add[] = $name;
+  if (!$config_factory->get($name)->isNew()) {
+    $config_factory->getEditable($name)->delete();
+    $deleted[] = $name;
+  }
+}
+
+foreach ($config_factory->listAll() as $name) {
+  $data = $config_factory->get($name)->getRawData();
+  if (!is_array($data)) {
+    continue;
+  }
+  $config_deps = $data['dependencies']['config'] ?? [];
+  if (array_intersect($roles_off, $config_deps) === []) {
+    continue;
+  }
   if (!$config_factory->get($name)->isNew()) {
     $config_factory->getEditable($name)->delete();
     $deleted[] = $name;
@@ -94,6 +117,14 @@ $ignore_patterns = [
   'user.role.go_graphql_client',
   'user.role.external_graphql_client',
   'user.role.mobile_graphql_client',
+  'system.action.user_add_role_action.external_graphql_client',
+  'system.action.user_add_role_action.go_graphql_client',
+  'system.action.user_add_role_action.mobile_graphql_client',
+  'system.action.user_remove_role_action.external_graphql_client',
+  'system.action.user_remove_role_action.go_graphql_client',
+  'system.action.user_remove_role_action.mobile_graphql_client',
+  'simple_oauth.oauth2_scope.go_graphql_client',
+  'simple_oauth.oauth2_scope.mobile_graphql_client',
   'dpl_patron_redirect.settings',
   'next.next_site.go',
 ];
