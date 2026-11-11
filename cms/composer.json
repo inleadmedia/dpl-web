@@ -46,6 +46,14 @@
         {
             "type": "vcs",
             "url": "https://github.com/inleadmedia/eonext_servicebanner"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/eonext_event_engine"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/ee_frontend"
         }
     ],
     "require": {
@@ -89,7 +97,6 @@
         "drupal/dynamic_entity_reference": "^3.1",
         "drupal/editor_advanced_link": "^2",
         "drupal/entity_clone_template": "^2.0",
-        "drupal/entity_reference_revisions": "^1.11.0",
         "drupal/enum_field": "^1.0",
         "drupal/evac": "^1.0",
         "drupal/externalauth": "^2.0.13",
@@ -99,6 +106,7 @@
         "drupal/field_inheritance": "^3",
         "drupal/flat_taxonomy": "^2.0",
         "drupal/focal_point": "^2.0",
+        "drupal/geofield": "^1.64",
         "drupal/gin": "^5.0",
         "drupal/gin_login": "^2.1",
         "drupal/gin_toolbar": "^3.0",
@@ -166,7 +174,9 @@
         "drupal/workflow": "^2",
         "drush/drush": "^13",
         "inleadmedia/easyemail": "dev-development",
+        "inleadmedia/ee_frontend": "dev-development",
         "inleadmedia/eonext_editorial_search": "dev-development",
+        "inleadmedia/eonext_event_engine": "dev-development",
         "inleadmedia/eonext_servicebanner": "dev-development",
         "mnsami/composer-custom-directory-installer": "^2.0",
         "myclabs/php-enum": "^1.8",
@@ -217,7 +227,9 @@
         "preferred-install": {
             "inleadmedia/easyemail": "source",
             "inleadmedia/eonext_editorial_search": "source",
-            "inleadmedia/eonext_servicebanner": "source"
+            "inleadmedia/eonext_event_engine": "source",
+            "inleadmedia/eonext_servicebanner": "source",
+            "inleadmedia/ee_frontend": "source"
         },
         "sort-packages": true,
         "allow-plugins": {
@@ -278,10 +290,12 @@
                 "inleadmedia/eonext_servicebanner"
             ],
             "web/modules/custom/{$name}": [
-                "type:drupal-custom-module"
+                "type:drupal-custom-module",
+                "inleadmedia/eonext_event_engine"
             ],
             "web/themes/custom/{$name}": [
-                "type:drupal-custom-theme"
+                "type:drupal-custom-theme",
+                "inleadmedia/ee_frontend"
             ]
         },
         "drupal-scaffold": {
