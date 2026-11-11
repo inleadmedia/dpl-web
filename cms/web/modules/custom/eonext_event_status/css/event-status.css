@@ -1,14 +1,19 @@
 
-.eventinstance-full .hero__visual-inner {
-  position: relative;
-}
-.eventseries-full .hero__visual-inner {
+.event-page .status-parent--media-container,
+[data-ribbon-label] .content-list-item__image-container,
+[data-ribbon-label] .card__media,
+[data-ribbon-label] .status-parent--media-container,
+[data-ribbon-label] .media-container {
   position: relative;
 }
 
-/* Position relative for list views */
-.eonext-event-status .media-container {
-  position: relative;
+[data-ribbon-label] .content-list-item__image-container .status-parent--media-container,
+[data-ribbon-label] .card__media .media-container {
+  height: 100%;
+}
+
+[data-ribbon-label] .media-container--placeholder {
+  min-height: 100%;
 }
 
 /* Keep status tag on the left when ribbon is present */
@@ -22,7 +27,7 @@
   [data-ribbon-label] .status {
     left: 5px !important;
     right: auto !important;
-    max-width: calc(100% - 160px); /* Leave space for ribbon */
+    max-width: calc(100% - 160px);
   }
 }
 
@@ -164,22 +169,16 @@
 }
 
 
-/* Full event page - desktop only */
-@media (min-width: 769px) {
-  .eventinstance-full .ribbon,
-  .eventseries-full .ribbon {
-    width: 300px !important;
-    height: 300px !important;
-  }
+.event-page .ribbon {
+  width: 300px !important;
+  height: 300px !important;
+}
 
-  .eventinstance-full .ribbon-top-right span,
-  .eventseries-full .ribbon-top-right span {
-    left: -50px;
-    top: 114px;
-  }
+.event-page .ribbon-top-right span {
+  left: -50px;
+  top: 114px;
+}
 
-  .eventinstance-full .ribbon span,
-  .eventseries-full .ribbon span {
-    width: 436px;
-  }
+.event-page .ribbon span {
+  width: 436px;
 }

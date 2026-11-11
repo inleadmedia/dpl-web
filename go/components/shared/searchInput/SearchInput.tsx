@@ -53,11 +53,15 @@ const SearchInput = ({ className, placeholder }: SearchInputProps) => {
 
   return (
     <div className="relative w-full">
+      {/* The placeholder doubles as the accessible name — placeholders alone
+          disappear on input and don't name the field. */}
       <input
         ref={inputRef}
+        role="searchbox"
+        aria-label={placeholder}
         className={cn(
-          `focus-visible rounded-base bg-background-overlay text-typo-subtitle-lg
-          placeholder:text-muted-foreground flex h-[50px] w-full px-5 transition-colors
+          `focus-visible bg-background-overlay text-typo-subtitle-lg
+          placeholder:text-muted-foreground rounded-base flex h-[50px] w-full px-5 transition-colors
           disabled:cursor-not-allowed disabled:opacity-50 lg:h-20`,
           className
         )}

@@ -18,15 +18,12 @@
     "plugins": [
       {
         "name": "next"
-      },
-      {
-        "name": "@0no-co/graphqlsp",
-        "schema": "graphql/generated/dpl-cms/graphql.schema.json"
       }
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query"]
     }
   },
   "include": [

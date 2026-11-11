@@ -146,7 +146,7 @@ datasource_settings:
       selected:
         - branch
         - campaign
-        - go_article
+        - service_message
     languages:
       default: true
       selected: {  }

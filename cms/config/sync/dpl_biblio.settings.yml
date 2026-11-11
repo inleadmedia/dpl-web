@@ -1,0 +1,4 @@
+base_url: 'https://biblio-adapter.dbc.dk'
+enabled: false
+enabled_go: false
+publizon_reservations_closed: false

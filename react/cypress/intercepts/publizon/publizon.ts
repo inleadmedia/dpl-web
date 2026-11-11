@@ -1,8 +1,17 @@
 import {
+  publizonLoanFactory,
   publizonLoanStatusFactory,
-  publizonLoanListFactory
+  publizonLoanListFactory,
+  publizonProductFactory
 } from "../../factories/publizon/publizon.factory";
-import { ContentLoanStatusEnum } from "../../../src/core/publizon/model";
+import {
+  ApiResponseCode,
+  ContentLoanStatusEnum,
+  FileExtensionType,
+  IdentifierTypeEnum,
+  Loan
+} from "../../../src/core/publizon/model";
+import { PUBLIZON_PRODUCT_TYPE } from "../../../src/core/publizon/productType";
 
 /**
  * Given: User has a loaned e-book
@@ -57,52 +66,170 @@ export const givenUserHasLoanedEbook = (options?: {
   }).as("publizonUserLoansWithLoan");
 };
 
+/** Given: borrowing an e-material from Publizon succeeds. */
+export const givenPublizonCreatesLoan = (orderId: string) => {
+  cy.intercept("POST", "**/v1/user/loans/**", {
+    statusCode: 200,
+    body: { orderId, code: ApiResponseCode.NUMBER_101, message: "OK" }
+  }).as("publizonCreateLoan");
+};
+
 /**
- * Given: User has a reserved e-book
- * Sets up intercepts to simulate an e-book that's reserved by the user
+ * Given: the Publizon twin of `givenTheBiblioLoanListLags` - the loan the
+ * user just made only appears on the next answer, and that answer is slow.
  */
-export const givenUserHasReservedEbook = (options?: {
+export const givenThePublizonLoanListLags = (loan: Partial<Loan>) => {
+  const borrowedLoan = { ...publizonLoanFactory.build().loan, ...loan };
+
+  cy.intercept("GET", "**/v1/user/loans**", {
+    statusCode: 200,
+    delay: 500,
+    body: publizonLoanListFactory.build({ loans: [borrowedLoan] })
+  }).as("publizonUserLoansLagging");
+
+  // Registered last so it answers first, and only once: the page's own
+  // look-up, from before the loan existed.
+  cy.intercept(
+    { method: "GET", url: "**/v1/user/loans**", times: 1 },
+    { statusCode: 200, body: publizonLoanListFactory.build({ loans: [] }) }
+  ).as("publizonUserLoansBeforeLoan");
+};
+
+type DigitalLoanOverrides = {
+  orderId?: string;
   identifier?: string;
-}) => {
-  const identifier = options?.identifier || "9788702441000";
+};
 
-  cy.intercept("GET", "**/v1/loanstatus/**", {
+type DigitalLoanData = {
+  orderId: string;
+  identifier: string;
+  title: string;
+  publisher: string;
+  productType: number;
+  fileExtensionType: FileExtensionType;
+  durationInSeconds: number | null;
+  format: string;
+  totalEbookLoans: number;
+  totalAudioLoans: number;
+};
+
+// Builds & wires the two Publizon intercepts (`/v1/user/loans` and
+// `/v1/products/{id}`) for a single digital loan. Kept private so each
+// `givenUserHasDigital*Loan` scenario can stay declarative.
+const interceptDigitalLoan = (data: DigitalLoanData) => {
+  const nowIso = new Date().toISOString();
+  const loanExpireIso = new Date(
+    Date.now() + 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  cy.intercept("GET", "**/v1/user/loans**", {
     statusCode: 200,
-    body: publizonLoanStatusFactory.build({
-      loanStatus: ContentLoanStatusEnum.NUMBER_2, // Reserved
-      identifier
+    body: publizonLoanListFactory.build({
+      loans: [
+        {
+          orderId: data.orderId,
+          orderNumber: "00000000-0000-0000-0000-000000000001",
+          orderDateUtc: nowIso,
+          loanExpireDateUtc: loanExpireIso,
+          isSubscriptionLoan: false,
+          libraryBook: {
+            identifier: data.identifier,
+            identifierType: IdentifierTypeEnum.NUMBER_15,
+            title: data.title,
+            publishersName: data.publisher
+          },
+          fileExtensionType: data.fileExtensionType
+        }
+      ],
+      userData: {
+        totalLoans: 1,
+        totalEbookLoans: data.totalEbookLoans,
+        totalAudioLoans: data.totalAudioLoans,
+        ebookLoansRemaining: 2,
+        audiobookLoansRemaining: 2,
+        ebookLoanAvailableUtc: nowIso,
+        audioLoanAvailableUtc: nowIso,
+        friendlyCardNumber: "FAKE01"
+      }
     })
-  }).as("publizonLoanStatusReserved");
+  }).as("publizonUserLoansDigital");
+
+  cy.intercept("GET", "**/v1/products/**", {
+    statusCode: 200,
+    body: publizonProductFactory.build({
+      product: {
+        title: data.title,
+        productType: data.productType,
+        externalProductId: { idType: 15, id: data.identifier },
+        coverUri: "https://images.pubhub.dk/01/cover.jpg",
+        thumbnailUri: "https://images.pubhub.dk/27/cover.jpg",
+        format: data.format,
+        durationInSeconds: data.durationInSeconds,
+        publisher: data.publisher,
+        contributors: [{ type: "A01", firstName: "Test", lastName: "Author" }],
+        description: "Mock description",
+        productCategories: [{ description: "Dansk", code: "2ACSD" }]
+      }
+    })
+  }).as("publizonProductForDigitalLoan");
 };
 
 /**
- * Given: E-book is available to loan
- * Sets up intercepts to simulate an e-book that can be loaned
+ * Given: User has a single digital **ebook** loan. Renders as LÆS in the
+ * loan list. (Publizon productType 1.)
  */
-export const givenEbookIsAvailable = (options?: { identifier?: string }) => {
-  const identifier = options?.identifier || "9788702441000";
-
-  cy.intercept("GET", "**/v1/loanstatus/**", {
-    statusCode: 200,
-    body: publizonLoanStatusFactory.build({
-      loanStatus: ContentLoanStatusEnum.NUMBER_4, // Available
-      identifier
-    })
-  }).as("publizonLoanStatusAvailable");
-};
+export const givenUserHasDigitalEbookLoan = (
+  overrides: DigitalLoanOverrides = {}
+) =>
+  interceptDigitalLoan({
+    orderId: overrides.orderId || "123e4567-e89b-12d3-a456-426614174000",
+    identifier: overrides.identifier || "9788740065411",
+    title: "Caribisk rom",
+    publisher: "JP/Politikens Forlag",
+    productType: PUBLIZON_PRODUCT_TYPE.EBOOK,
+    fileExtensionType: FileExtensionType.NUMBER_3, // epub
+    format: "epub",
+    durationInSeconds: null,
+    totalEbookLoans: 1,
+    totalAudioLoans: 0
+  });
 
 /**
- * Given: E-book is unavailable
- * Sets up intercepts to simulate an e-book that cannot be loaned
+ * Given: User has a single digital **audiobook** loan. Renders as LYT in
+ * the loan list. (Publizon productType 2.)
  */
-export const givenEbookIsUnavailable = (options?: { identifier?: string }) => {
-  const identifier = options?.identifier || "9788702441000";
+export const givenUserHasDigitalAudiobookLoan = (
+  overrides: DigitalLoanOverrides = {}
+) =>
+  interceptDigitalLoan({
+    orderId: overrides.orderId || "123e4567-e89b-12d3-a456-426614174000",
+    identifier: overrides.identifier || "9788740065411",
+    title: "Harry Potter og De Vises Sten",
+    publisher: "Pottermore Publishing",
+    productType: PUBLIZON_PRODUCT_TYPE.AUDIOBOOK,
+    fileExtensionType: FileExtensionType.NUMBER_1,
+    format: "zip",
+    durationInSeconds: 34865,
+    totalEbookLoans: 0,
+    totalAudioLoans: 1
+  });
 
-  cy.intercept("GET", "**/v1/loanstatus/**", {
-    statusCode: 200,
-    body: publizonLoanStatusFactory.build({
-      loanStatus: ContentLoanStatusEnum.NUMBER_3, // Unavailable
-      identifier
-    })
-  }).as("publizonLoanStatusUnavailable");
-};
+/**
+ * Given: User has a single digital **podcast** loan. Renders as LYT in
+ * the loan list. (Publizon productType 4.)
+ */
+export const givenUserHasDigitalPodcastLoan = (
+  overrides: DigitalLoanOverrides = {}
+) =>
+  interceptDigitalLoan({
+    orderId: overrides.orderId || "123e4567-e89b-12d3-a456-426614174000",
+    identifier: overrides.identifier || "9788740065411",
+    title: "Genstart",
+    publisher: "DR",
+    productType: PUBLIZON_PRODUCT_TYPE.PODCAST,
+    fileExtensionType: FileExtensionType.NUMBER_1,
+    format: "zip",
+    durationInSeconds: 34865,
+    totalEbookLoans: 0,
+    totalAudioLoans: 1
+  });

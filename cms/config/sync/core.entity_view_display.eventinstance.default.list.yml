@@ -4,6 +4,7 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.eventinstance.list
+    - field.field.eventinstance.default.field_audiences
     - field.field.eventinstance.default.field_branch
     - field.field.eventinstance.default.field_categories
     - field.field.eventinstance.default.field_description
@@ -31,9 +32,9 @@ dependencies:
   module:
     - address
     - datetime_range
+    - dk_address
     - dpl_event
     - entity_reference_revisions
-    - gsearch
     - link
     - options
     - text
@@ -88,6 +89,14 @@ content:
       format_custom_true: ''
     third_party_settings: {  }
     weight: 17
+    region: content
+  event_audiences:
+    type: entity_reference_label
+    label: visible
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 54
     region: content
   event_automatic_list_hide:
     type: boolean
@@ -252,7 +261,7 @@ content:
     weight: 3
     region: content
   field_event_address_gsearch:
-    type: address_gsearch
+    type: dk_address
     label: hidden
     settings: {  }
     third_party_settings: {  }
@@ -269,6 +278,7 @@ content:
 hidden:
   body: true
   event_state: true
+  field_audiences: true
   field_branch: true
   field_categories: true
   field_event_address: true

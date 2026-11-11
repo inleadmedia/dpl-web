@@ -1,0 +1,6 @@
+eonext_react.settings:
+  title: 'React'
+  description: 'Add JavaScript for testing standalone React injection bundles.'
+  route_name: eonext_react.settings
+  parent: dpl_library_agency.settings
+  weight: 9

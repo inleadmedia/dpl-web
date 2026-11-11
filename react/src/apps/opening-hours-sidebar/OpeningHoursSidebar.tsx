@@ -8,6 +8,7 @@ import useOpeningHoursSidebar from "./useOpeningHoursSidebar";
 
 export type OpeningHoursSidebarType = {
   size: "small" | "large";
+  isInjectionExample?: boolean;
 };
 
 const OpeningHoursSidebar: FC<OpeningHoursSidebarType> = ({ size }) => {

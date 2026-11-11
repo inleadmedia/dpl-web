@@ -1,4 +1,9 @@
-import { FetchParams, RequestOptions } from "./types";
+type FetchParams =
+  | string
+  | string[][]
+  | Record<string, string>
+  | URLSearchParams
+  | undefined;
 
 /**
  * Build URLSearchParams instance with support for arrays of values.
@@ -28,15 +33,6 @@ export const buildParams = (data: FetchParams) => {
 
   return params;
 };
-
-export const createAuthHeader = (
-  token: RequestOptions["bearerToken"]
-): { Authorization: `Bearer ${string}` } | Record<string, never> =>
-  token
-    ? {
-        Authorization: `Bearer ${token}`
-      }
-    : {};
 
 export const getServiceUrlWithParams = ({
   baseUrl,

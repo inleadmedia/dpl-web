@@ -1,6 +1,6 @@
 import lodash from "lodash";
 import { useMemo } from "react";
-import { UseQueryResult } from "react-query";
+import { UseQueryResult } from "@tanstack/react-query";
 import {
   GetMaterialGloballyQuery,
   GetMaterialQuery,
@@ -30,14 +30,32 @@ const getData = (
   return null;
 };
 
-function toGroupedAbstract(abstract: string[], languages: any[]) {
+function toGroupedAbstract(abstract: string[] | null | undefined, languages: any[] | null | undefined) {
   let group: any = {};
 
-  abstract.forEach((value: string, index: number) => {
+  (abstract ?? []).forEach((value: string, index: number) => {
     group[languages[index]?.isoCode || languages[index]?.iso639Set1 || "unknown"] = value;
   });
 
   return group;
+}
+
+function overrideManifestationShelfmark(manifestation: any, shelfmarkOverrideData: string) {
+  if (Array.isArray(shelfmarkOverrideData))
+    shelfmarkOverrideData = shelfmarkOverrideData[0];
+
+  if (!manifestation || !shelfmarkOverrideData)
+    return;
+
+  manifestation.shelfmark = manifestation.shelfmark || {};
+  manifestation.shelfmark.shelfmark = manifestation.shelfmark.shelfmark || "";
+  manifestation.shelfmark.postfix = manifestation.shelfmark.postfix || "";
+
+  if (Array.isArray(manifestation.shelfmark.shelfmark))
+    manifestation.shelfmark.shelfmark = manifestation.shelfmark.shelfmark.join(" ");
+
+  if (manifestation.shelfmark.shelfmark.startsWith(shelfmarkOverrideData) === false)
+    manifestation.shelfmark.shelfmark = shelfmarkOverrideData;
 }
 
 function parseMarcField(workData: any, extraMarc?: string, shelfmarkOverride?: any) {
@@ -55,12 +73,18 @@ function parseMarcField(workData: any, extraMarc?: string, shelfmarkOverride?: a
   if (shelfmarkOverride && shelfmarkOverride.getter)
     shelfmarkOverrideData = shelfmarkOverride.getter(workData);
 
+  if (shelfmarkOverrideData && shelfmarkOverrideData[0] && workData.dk5MainEntry) {
+    if (workData.dk5MainEntry.code != shelfmarkOverrideData[0]) {
+      workData.dk5MainEntry.display = shelfmarkOverrideData[0];
+      workData.dk5MainEntry.code = shelfmarkOverrideData[0];
+    }
+  }
+
   if (workData.manifestations) {
     (workData.manifestations.all || []).forEach((manifestation: any, index: number) => {
       manifestation._abstractByLang = toGroupedAbstract(manifestation.abstract, lodash.get(manifestation, "languages.main"));
 
-      if (shelfmarkOverrideData && manifestation.shelfmark)
-        manifestation.shelfmark.shelfmark = shelfmarkOverrideData;
+      overrideManifestationShelfmark(manifestation, shelfmarkOverrideData);
 
       if (manifestation?.marc?.content) {
         marcSources.push({
@@ -77,10 +101,12 @@ function parseMarcField(workData: any, extraMarc?: string, shelfmarkOverride?: a
 
     ["bestRepresentation", "latest"].forEach((manifestationType) => {
       let manifestation = workData.manifestations[manifestationType];
+      if (!manifestation) {
+        return;
+      }
       manifestation._abstractByLang = toGroupedAbstract(manifestation.abstract, lodash.get(manifestation, "languages.main"));
 
-      if (shelfmarkOverrideData && manifestation.shelfmark)
-        manifestation.shelfmark.shelfmark = shelfmarkOverrideData;
+      overrideManifestationShelfmark(manifestation, shelfmarkOverrideData);
 
       if (manifestation?.marc?.content) {
         marcSources.push({
@@ -238,5 +264,3 @@ export const useGetWork = (
 
   return { data: null, isLoading: true, error: null, workType: "unknown" };
 };
-
-export default {};

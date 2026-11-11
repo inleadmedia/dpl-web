@@ -5,6 +5,7 @@ dependencies:
   config:
     - field.storage.node.field_canonical_url
     - field.storage.node.field_categories
+    - field.storage.node.field_publication_date
     - field.storage.node.field_subtitle
     - field.storage.node.field_teaser_image
     - image.style.small_preview
@@ -12,6 +13,7 @@ dependencies:
     - taxonomy.vocabulary.tags
   module:
     - better_exposed_filters
+    - datetime
     - dpl_admin
     - link
     - media
@@ -486,15 +488,13 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        changed:
-          id: changed
-          table: node_field_data
-          field: changed
+        field_publication_date_1:
+          id: field_publication_date_1
+          table: node__field_publication_date
+          field: field_publication_date
           relationship: none
           group_type: group
-          admin_label: ''
-          entity_type: node
-          entity_field: changed
+          admin_label: 'Publication date (since)'
           plugin_id: field
           label: ''
           exclude: true
@@ -538,21 +538,11 @@ display:
           empty_zero: false
           hide_alter_empty: true
           click_sort_column: value
-          type: timestamp
+          type: datetime_time_ago
           settings:
-            date_format: short
-            custom_date_format: ''
-            timezone: ''
-            tooltip:
-              date_format: long
-              custom_date_format: ''
-            time_diff:
-              enabled: true
-              future_format: '@interval hence'
-              past_format: '@interval ago'
-              granularity: 1
-              refresh: 0
-              description: ''
+            future_format: '@interval hence'
+            past_format: '@interval ago'
+            granularity: 2
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -563,21 +553,19 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-        changed_1:
-          id: changed_1
-          table: node_field_data
-          field: changed
+        field_publication_date:
+          id: field_publication_date
+          table: node__field_publication_date
+          field: field_publication_date
           relationship: none
           group_type: group
           admin_label: ''
-          entity_type: node
-          entity_field: changed
           plugin_id: field
-          label: Updated
+          label: Published
           exclude: false
           alter:
             alter_text: true
-            text: "{{ changed_1 }}<br>\r\n<small>({{ changed }})</small>"
+            text: "{{ field_publication_date }}<br>\r\n<small>({{ field_publication_date_1 }})</small>"
             make_link: false
             path: ''
             absolute: false
@@ -606,7 +594,7 @@ display:
           element_class: ''
           element_label_type: ''
           element_label_class: ''
-          element_label_colon: true
+          element_label_colon: false
           element_wrapper_type: ''
           element_wrapper_class: ''
           element_default_classes: true
@@ -615,21 +603,10 @@ display:
           empty_zero: false
           hide_alter_empty: true
           click_sort_column: value
-          type: timestamp
+          type: datetime_default
           settings:
-            date_format: html_date
-            custom_date_format: ''
-            timezone: ''
-            tooltip:
-              date_format: html_date
-              custom_date_format: ''
-            time_diff:
-              enabled: false
-              future_format: '@interval hence'
-              past_format: '@interval ago'
-              granularity: 2
-              refresh: 60
-              description: ''
+            timezone_override: ''
+            format_type: html_date
           group_column: value
           group_columns: {  }
           group_rows: true
@@ -791,6 +768,8 @@ display:
           bef:
             general:
               autosubmit: false
+              auto_submit_sort_only: false
+              autosubmit_breakpoint: ''
               autosubmit_exclude_textfield: false
               autosubmit_textfield_delay: 500
               autosubmit_textfield_minimum_length: 3
@@ -804,11 +783,15 @@ display:
               combine:
                 plugin_id: default
                 advanced:
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   placeholder_text: ''
                   collapsible: false
                   collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
                   hide_label: false
+                  field_classes: ''
                 options_show_only_used: false
                 options_show_only_used_filtered: false
                 options_hide_when_empty: false
@@ -817,13 +800,17 @@ display:
                 plugin_id: default
                 advanced:
                   sort_options: false
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   rewrite:
                     filter_rewrite_values: ''
                     filter_rewrite_values_key: false
                   collapsible: false
                   collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
                   hide_label: false
+                  field_classes: ''
                 options_show_only_used: false
                 options_show_only_used_filtered: false
                 options_hide_when_empty: false
@@ -832,13 +819,17 @@ display:
                 plugin_id: default
                 advanced:
                   sort_options: false
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   rewrite:
                     filter_rewrite_values: ''
                     filter_rewrite_values_key: false
                   collapsible: false
                   collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
                   hide_label: false
+                  field_classes: ''
                 options_show_only_used: false
                 options_show_only_used_filtered: false
                 options_hide_when_empty: false
@@ -846,14 +837,18 @@ display:
               field_categories_target_id_1:
                 plugin_id: default
                 advanced:
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   placeholder_text: test
                   rewrite:
                     filter_rewrite_values: ''
                     filter_rewrite_values_key: false
                   collapsible: false
                   collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
                   hide_label: false
+                  field_classes: ''
                 options_show_only_used: false
                 options_show_only_used_filtered: false
                 options_hide_when_empty: false
@@ -861,14 +856,18 @@ display:
               field_tags_target_id:
                 plugin_id: default
                 advanced:
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   placeholder_text: ''
                   rewrite:
                     filter_rewrite_values: ''
                     filter_rewrite_values_key: false
                   collapsible: false
                   collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
                   hide_label: false
+                  field_classes: ''
                 options_show_only_used: false
                 options_show_only_used_filtered: false
                 options_hide_when_empty: false
@@ -881,20 +880,18 @@ display:
         options: {  }
       empty: {  }
       sorts:
-        changed:
-          id: changed
-          table: node_field_data
-          field: changed
+        field_publication_date_value:
+          id: field_publication_date_value
+          table: node__field_publication_date
+          field: field_publication_date_value
           relationship: none
           group_type: group
           admin_label: ''
-          entity_type: node
-          entity_field: changed
-          plugin_id: date
+          plugin_id: datetime
           order: DESC
           expose:
-            label: ''
-            field_identifier: ''
+            label: 'Publication date'
+            field_identifier: field_publication_date_value
           exposed: false
           granularity: second
       arguments:
@@ -965,16 +962,6 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              local_administrator: '0'
-              editor: '0'
-              mediator: '0'
-              patron: '0'
-              external_system: '0'
-              bnf_graphql_client: '0'
-              go_graphql_client: '0'
-              go_editor: '0'
             placeholder: ''
           is_grouped: false
           group_info:
@@ -1020,15 +1007,6 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              local_administrator: '0'
-              editor: '0'
-              mediator: '0'
-              patron: '0'
-              external_system: '0'
-              bnf_graphql_client: '0'
-              go_graphql_client: '0'
             reduce: false
           is_grouped: false
           group_info:
@@ -1068,15 +1046,6 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              local_administrator: '0'
-              editor: '0'
-              mediator: '0'
-              patron: '0'
-              external_system: '0'
-              bnf_graphql_client: '0'
-              go_graphql_client: '0'
             reduce: false
           is_grouped: false
           group_info:
@@ -1122,16 +1091,6 @@ display:
             multiple: true
             remember_roles:
               authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              local_administrator: '0'
-              editor: '0'
-              mediator: '0'
-              patron: '0'
-              external_system: '0'
-              bnf_graphql_client: '0'
-              go_graphql_client: '0'
-              go_editor: '0'
             reduce: false
           is_grouped: true
           group_info:
@@ -1185,15 +1144,6 @@ display:
             multiple: true
             remember_roles:
               authenticated: authenticated
-              anonymous: '0'
-              administrator: '0'
-              local_administrator: '0'
-              editor: '0'
-              mediator: '0'
-              patron: '0'
-              external_system: '0'
-              bnf_graphql_client: '0'
-              go_graphql_client: '0'
             reduce: false
           is_grouped: false
           group_info:
@@ -1240,11 +1190,13 @@ display:
             title: title
             field_canonical_url: field_canonical_url
             type: type
-            changed: changed
-            changed_1: changed_1
+            field_categories: field_categories
+            bnf_source_name: bnf_source_name
+            field_publication_date_1: field_publication_date_1
+            field_publication_date: field_publication_date
             uuid: uuid
             nothing: nothing
-          default: changed_1
+          default: field_publication_date
           info:
             field_teaser_image:
               sortable: false
@@ -1279,20 +1231,34 @@ display:
               separator: ''
               empty_column: true
               responsive: ''
-            changed:
-              sortable: true
-              default_sort_order: desc
+            field_categories:
+              sortable: false
+              default_sort_order: asc
               align: ''
               separator: ''
-              empty_column: true
+              empty_column: false
               responsive: ''
-            changed_1:
+            bnf_source_name:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_publication_date_1:
+              sortable: false
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_publication_date:
               sortable: true
               default_sort_order: desc
               align: ''
               separator: ''
-              empty_column: true
-              responsive: priority-medium
+              empty_column: false
+              responsive: ''
             uuid:
               align: ''
               separator: ''
@@ -1309,6 +1275,7 @@ display:
           empty_table: false
           caption: ''
           description: ''
+          class: ''
       row:
         type: fields
       query:
@@ -1334,6 +1301,7 @@ display:
       tags:
         - 'config:field.storage.node.field_canonical_url'
         - 'config:field.storage.node.field_categories'
+        - 'config:field.storage.node.field_publication_date'
         - 'config:field.storage.node.field_subtitle'
         - 'config:field.storage.node.field_teaser_image'
   page:
@@ -1356,5 +1324,6 @@ display:
       tags:
         - 'config:field.storage.node.field_canonical_url'
         - 'config:field.storage.node.field_categories'
+        - 'config:field.storage.node.field_publication_date'
         - 'config:field.storage.node.field_subtitle'
         - 'config:field.storage.node.field_teaser_image'

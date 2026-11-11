@@ -2,107 +2,683 @@
 
 /**
  * @file
- * Provides a module to add a ribbon to event instances and series.
+ * Provides custom event ribbons on series and instances.
  */
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Hook\Attribute\LegacyModuleImplementsAlter;
+use Drupal\Core\Entity\ContentEntityFormInterface;
+use Drupal\Core\Entity\Display\EntityFormDisplayInterface;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\eonext_mobilesearch\Mobilesearch\DTO\MobilesearchEntityInterface;
-
-
-/**
- * Implements hook_preprocess_eventinstance().
- */
-function eonext_event_status_preprocess_eventinstance(array &$variables) {
-
-  // Get the event instance from the variables.
-  $eventInstance = $variables['elements']['#eventinstance'];
-
-  $ribbon = \Drupal::service('eonext_event_status.ribbon')
-    ->getRibbon($eventInstance->get('eventseries_id')->entity, $eventInstance);
-
-  if (!empty($ribbon)) {
-    eonext_event_status_add_ribbon($variables, $ribbon['text'], $ribbon['color']);
-  }
-}
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Template\Attribute;
+use Drupal\Component\Utility\NestedArray;
+use Drupal\dpl_event\Entity\EventInstance;
+use Drupal\recurring_events\Entity\EventSeries;
 
 /**
- * Implements hook_preprocess_eventseries().
- */
-function eonext_event_status_preprocess_eventseries(array &$variables) {
-
-  $ribbon = \Drupal::service('eonext_event_status.ribbon')
-    ->getRibbon($variables['elements']['#eventseries']);
-
-  if (!empty($ribbon)) {
-    eonext_event_status_add_ribbon($variables, $ribbon['text'], $ribbon['color']);
-  }
-}
-
-/**
- * Implements hook_mobilesearch_push_alter().
- */
-function eonext_event_status_mobilesearch_push_alter(MobilesearchEntityInterface $payload, EntityInterface $entity): void {
-
-  if ($entity->getEntityTypeId() === 'eventinstance') {
-    $fields = $payload->getFields();
-
-    $ribbon = \Drupal::service('eonext_event_status.ribbon')
-      ->getRibbon($entity->get('eventseries_id')->entity, $entity);
-
-    if (!empty($ribbon)) {
-
-      $fields['field_ding_event_status_label'] = [
-        'name' => 'Label',
-        'value' => $ribbon['text'],
-        'attr' => [],
-      ];
-
-      $fields['field_ding_event_status_color'] = [
-        'name' => 'Color',
-        'value' => $ribbon['color'],
-        'attr' => [],
-      ];
-
-      $payload->setFields($fields);
-    }
-  }
-
-}
-
-/**
- * Add a ribbon to the event instance or series.
+ * The ribbon widgets this module adds, per entity type.
  *
- * @param array $variables
- *   The variables for the event instance or series.
- * @param string $ribbonText
- *   The text to display on the ribbon.
- * @param string $ribbonColor
- *   The color of the ribbon.
+ * Keyed by entity type, then field name, with the widget to use.
  */
-function eonext_event_status_add_ribbon(array &$variables, $ribbonText, $ribbonColor) {
+const EONEXT_EVENT_STATUS_WIDGETS = [
+  'eventseries' => [
+    'field_ribbon_text' => 'string_textfield',
+    'field_ribbon_color' => 'color_field_widget_html5',
+    'field_ribbon_instances_apply' => 'boolean_checkbox',
+  ],
+  'eventinstance' => [
+    'field_ribbon_text' => 'string_textfield',
+    'field_ribbon_color' => 'color_field_widget_html5',
+  ],
+];
 
-  if (empty($ribbonText)) {
+/**
+ * Event entity form IDs that expose ribbon widgets.
+ */
+const EONEXT_EVENT_STATUS_FORM_IDS = [
+  'eventseries_default_edit_form',
+  'eventseries_default_add_form',
+  'eventinstance_default_edit_form',
+  'eventinstance_default_add_form',
+];
+
+/**
+ * Event canonical routes whose main content should expose ribbon settings.
+ */
+const EONEXT_EVENT_STATUS_CANONICAL_ROUTES = [
+  'entity.eventinstance.canonical',
+  'entity.eventseries.canonical',
+];
+
+/**
+ * View modes that render a full public event page with the hero layout.
+ */
+const EONEXT_EVENT_STATUS_FULL_VIEW_MODES = [
+  'full',
+  'default',
+];
+
+const EONEXT_EVENT_STATUS_RIBBON_GROUP = 'group_eonext_event_ribbon';
+
+/**
+ * Implements hook_preprocess_HOOK() for eventinstance templates.
+ */
+function eonext_event_status_preprocess_eventinstance(array &$variables): void {
+  eonext_event_status_preprocess_event_ribbon($variables, $variables['eventinstance'] ?? NULL);
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for eventseries templates.
+ */
+function eonext_event_status_preprocess_eventseries(array &$variables): void {
+  eonext_event_status_preprocess_event_ribbon($variables, $variables['eventseries'] ?? NULL);
+}
+
+/**
+ * Attaches ribbon assets and markup hints to full event page templates.
+ */
+function eonext_event_status_preprocess_event_ribbon(array &$variables, ?EntityInterface $entity): void {
+  if (!$entity instanceof EntityInterface) {
     return;
   }
 
-  $variables['attributes']['class'][] = 'eonext-event-status';
-  $variables['attributes']['data-ribbon-label'] = $ribbonText;
-  // Default to black if no color is set.
-  $variables['attributes']['data-ribbon-color'] = $ribbonColor;
-  // Add the library for the event status.
-  $variables['#attached']['library'][] = 'eonext_event_status/event-status';
+  $view_mode = $variables['view_mode'] ?? 'default';
+  if (!in_array($view_mode, EONEXT_EVENT_STATUS_FULL_VIEW_MODES, TRUE)) {
+    return;
+  }
+
+  $ribbon = eonext_event_status_get_entity_ribbon($entity);
+  if ($ribbon === NULL) {
+    return;
+  }
+
+  eonext_event_status_attach_ribbon($variables, $ribbon, $view_mode);
+  eonext_event_status_add_ribbon_cache_tags($variables, $entity);
+
+  $attributes = eonext_event_status_get_template_attributes($variables);
+  if ($attributes !== NULL) {
+    $attributes->addClass('eonext-event-status');
+    $attributes->setAttribute('data-ribbon-label', $ribbon['text']);
+    $attributes->setAttribute('data-ribbon-color', $ribbon['color']);
+    $variables['attributes'] = $attributes;
+  }
 }
 
 /**
- * Implements hook_rest_resource_alter().
+ * Returns template attributes as an Attribute object when available.
  */
-function eonext_event_status_rest_resource_alter(&$definitions) {
-
-  if (isset($definitions['event'])) {
-    $definitions['event']['class'] = 'Drupal\\eonext_event_status\\Plugin\\rest\\resource\\EventResource';
+function eonext_event_status_get_template_attributes(array $variables): ?Attribute {
+  if (!isset($variables['attributes'])) {
+    return NULL;
   }
 
-  if (isset($definitions['events'])) {
-    $definitions['events']['class'] = 'Drupal\\eonext_event_status\\Plugin\\rest\\resource\\EventsResource';
+  if ($variables['attributes'] instanceof Attribute) {
+    return $variables['attributes'];
   }
+
+  if (is_array($variables['attributes'])) {
+    return new Attribute($variables['attributes']);
+  }
+
+  return NULL;
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * Ensures full event pages always receive ribbon drupalSettings, even when
+ * entity render caching would otherwise omit nested #attached metadata.
+ */
+function eonext_event_status_page_attachments_alter(array &$attachments): void {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if (!in_array($route_name, EONEXT_EVENT_STATUS_CANONICAL_ROUTES, TRUE)) {
+    return;
+  }
+
+  $parameter_name = $route_name === 'entity.eventseries.canonical' ? 'eventseries' : 'eventinstance';
+  $entity = \Drupal::routeMatch()->getParameter($parameter_name);
+  if (!$entity instanceof EntityInterface) {
+    return;
+  }
+
+  $ribbon = eonext_event_status_get_entity_ribbon($entity);
+  if ($ribbon === NULL) {
+    return;
+  }
+
+  eonext_event_status_attach_ribbon($attachments, $ribbon, 'full');
+  eonext_event_status_add_ribbon_cache_tags($attachments, $entity);
+}
+
+/**
+ * Implements hook_modules_installed().
+ */
+function eonext_event_status_modules_installed(array $modules, bool $is_syncing): void {
+  if ($is_syncing || !in_array('eonext_event_status', $modules, TRUE)) {
+    return;
+  }
+
+  \Drupal::moduleHandler()->loadInclude('eonext_event_status', 'install');
+  eonext_event_status_update_config();
+}
+
+/**
+ * Implements hook_enable().
+ */
+function eonext_event_status_enable(): void {
+  \Drupal::moduleHandler()->loadInclude('eonext_event_status', 'install');
+  _eonext_event_status_install_owned_config();
+}
+
+/**
+ * Installs ribbon field config when it is still missing.
+ */
+function eonext_event_status_ensure_fields_installed(): void {
+  static $attempted = FALSE;
+  if ($attempted) {
+    return;
+  }
+  $attempted = TRUE;
+
+  \Drupal::moduleHandler()->loadInclude('eonext_event_status', 'install');
+  if (_eonext_event_status_missing_owned_config() === []) {
+    return;
+  }
+
+  _eonext_event_status_install_owned_config();
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Run form_alter after field_group so the ribbon group can be merged into
+ * #fieldgroups before field_group's #process callback runs.
+ */
+#[LegacyModuleImplementsAlter]
+function eonext_event_status_module_implements_alter(array &$implementations, string $hook): void {
+  if ($hook !== 'form_alter' || !isset($implementations['field_group'], $implementations['eonext_event_status'])) {
+    return;
+  }
+
+  $group = $implementations['eonext_event_status'];
+  unset($implementations['eonext_event_status']);
+
+  // Drupal 10 passes integer weights; Drupal 11 passes group strings and uses
+  // array order during container build.
+  if (is_int($implementations['field_group'])) {
+    $implementations['eonext_event_status'] = $implementations['field_group'] + 1;
+    return;
+  }
+
+  $reordered = [];
+  foreach ($implementations as $module => $module_group) {
+    $reordered[$module] = $module_group;
+    if ($module === 'field_group') {
+      $reordered['eonext_event_status'] = $group;
+    }
+  }
+
+  if (!isset($reordered['eonext_event_status'])) {
+    $reordered['eonext_event_status'] = $group;
+  }
+
+  $implementations = $reordered;
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * field_group loads groups from stored config, not from entity_form_display_alter.
+ * Register the ribbon group here so details_sidebar can set #group => advanced
+ * during field_group's #process callback (after_build is too late for that).
+ */
+function eonext_event_status_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if (!in_array($form_id, EONEXT_EVENT_STATUS_FORM_IDS, TRUE)) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof ContentEntityFormInterface) {
+    return;
+  }
+
+  $entity = $form_object->getEntity();
+  $entity_type = $entity->getEntityTypeId();
+  $widgets = EONEXT_EVENT_STATUS_WIDGETS[$entity_type] ?? NULL;
+  if ($widgets === NULL) {
+    return;
+  }
+
+  eonext_event_status_ensure_fields_installed();
+  eonext_event_status_sync_ribbon_form_display($form_object, $form_state, $entity);
+
+  $field_names = array_keys($widgets);
+  $form['#entity_builders'][] = 'eonext_event_status_entity_builder';
+
+  eonext_event_status_build_missing_ribbon_fields($form, $form_state, $entity, $field_names);
+
+  if (!isset($form['field_ribbon_text'])) {
+    return;
+  }
+
+  if (!\Drupal::moduleHandler()->moduleExists('field_group')) {
+    return;
+  }
+
+  if (!eonext_event_status_form_has_ribbon_group($form, $field_names)) {
+    eonext_event_status_attach_ribbon_field_group($form, $entity_type, $entity->bundle(), $field_names);
+  }
+
+  // Register the sidebar group after field_group's #process callback.
+  $form['#process'][] = 'eonext_event_status_process_ribbon_field_group';
+}
+
+/**
+ * Ensures the in-memory form display knows about ribbon widgets.
+ *
+ * Widgets injected in form_alter must also be on the form display stored in
+ * form_state, otherwise extractFormValues() skips them on save.
+ */
+function eonext_event_status_sync_ribbon_form_display(ContentEntityFormInterface $form_object, FormStateInterface $form_state, EntityInterface $entity): void {
+  $display = $form_object->getFormDisplay($form_state);
+  if (!$display instanceof EntityFormDisplayInterface) {
+    return;
+  }
+
+  eonext_event_status_configure_ribbon_display($display, $entity->getEntityTypeId(), $entity->bundle());
+  $form_object->setFormDisplay($display, $form_state);
+}
+
+/**
+ * Copies submitted ribbon values onto the entity being saved.
+ *
+ * Core extraction can miss values when ribbon widgets were added at form_alter
+ * time; it still marks those fields as extracted and blocks the fallback copy.
+ */
+function eonext_event_status_entity_builder(string $entity_type, EntityInterface $entity, array &$form, FormStateInterface $form_state): void {
+  $widgets = EONEXT_EVENT_STATUS_WIDGETS[$entity_type] ?? NULL;
+  if ($widgets === NULL || !$entity instanceof FieldableEntityInterface) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof ContentEntityFormInterface) {
+    return;
+  }
+
+  eonext_event_status_sync_ribbon_form_display($form_object, $form_state, $entity);
+  $form_object->getFormDisplay($form_state)->extractFormValues($entity, $form, $form_state);
+  eonext_event_status_apply_ribbon_form_values($entity, $form_state, array_keys($widgets));
+}
+
+/**
+ * Applies ribbon field values from form state when widget extraction missed them.
+ *
+ * @param string[] $field_names
+ *   Ribbon field machine names.
+ */
+function eonext_event_status_apply_ribbon_form_values(FieldableEntityInterface $entity, FormStateInterface $form_state, array $field_names): void {
+  foreach ($field_names as $field_name) {
+    if (!$entity->hasField($field_name)) {
+      continue;
+    }
+
+    $value = $form_state->getValue($field_name);
+    if ($value !== NULL) {
+      $entity->set($field_name, $value);
+      continue;
+    }
+
+    $exists = NULL;
+    $nested = NestedArray::getValue($form_state->getValues(), [
+      EONEXT_EVENT_STATUS_RIBBON_GROUP,
+      $field_name,
+    ], $exists);
+    if ($exists) {
+      $entity->set($field_name, $nested);
+    }
+  }
+}
+
+/**
+ * Builds any ribbon field widgets missing from the form.
+ *
+ * @param string[] $field_names
+ *   Ribbon field machine names.
+ */
+function eonext_event_status_build_missing_ribbon_fields(array &$form, FormStateInterface $form_state, EntityInterface $entity, array $field_names): void {
+  $missing = array_filter($field_names, static fn (string $field_name): bool => !isset($form[$field_name]));
+  if ($missing === []) {
+    return;
+  }
+
+  $form_object = $form_state->getFormObject();
+  if ($form_object instanceof ContentEntityFormInterface) {
+    eonext_event_status_sync_ribbon_form_display($form_object, $form_state, $entity);
+    $display = $form_object->getFormDisplay($form_state);
+  }
+  else {
+    $display = $form_state->get('form_display');
+    if (!$display instanceof EntityFormDisplayInterface) {
+      $display = EntityFormDisplay::collectRenderDisplay($entity, 'default');
+      eonext_event_status_configure_ribbon_display($display, $entity->getEntityTypeId(), $entity->bundle());
+    }
+  }
+
+  $fragment = [];
+  $display->buildForm($entity, $fragment, $form_state);
+
+  foreach ($missing as $field_name) {
+    if (!isset($fragment[$field_name])) {
+      continue;
+    }
+    $form[$field_name] = $fragment[$field_name];
+    eonext_event_status_normalize_field_element($form[$field_name]);
+  }
+}
+
+/**
+ * Configures ribbon widgets on a form display object.
+ */
+function eonext_event_status_configure_ribbon_display(EntityFormDisplayInterface $form_display, string $entity_type, string $bundle): array {
+  $definitions = \Drupal::service('entity_field.manager')
+    ->getFieldDefinitions($entity_type, $bundle);
+
+  $weight = 40;
+  $added_fields = [];
+
+  foreach (EONEXT_EVENT_STATUS_WIDGETS[$entity_type] ?? [] as $field_name => $widget) {
+    if (!isset($definitions[$field_name])) {
+      continue;
+    }
+
+    $settings = [];
+    if ($widget === 'boolean_checkbox') {
+      $settings['display_label'] = TRUE;
+    }
+
+    $form_display->setComponent($field_name, [
+      'type' => $widget,
+      'weight' => $weight++,
+      'region' => 'content',
+      'settings' => $settings,
+      'third_party_settings' => [],
+    ]);
+    $added_fields[] = $field_name;
+  }
+
+  return $added_fields;
+}
+
+/**
+ * Ensures form widgets have defaults expected by core preprocess functions.
+ */
+function eonext_event_status_normalize_field_element(array &$element): void {
+  if (!isset($element['#attributes']) || !is_array($element['#attributes'])) {
+    $element['#attributes'] = [];
+  }
+  if (!isset($element['#description_display'])) {
+    $element['#description_display'] = 'after';
+  }
+
+  foreach (Element::children($element) as $child) {
+    if (is_array($element[$child])) {
+      eonext_event_status_normalize_field_element($element[$child]);
+    }
+  }
+}
+
+/**
+ * Registers the ribbon sidebar group and assigns fields to it.
+ *
+ * @param string[] $field_names
+ *   Ribbon field machine names.
+ */
+function eonext_event_status_attach_ribbon_field_group(array &$form, string $entity_type, string $bundle, array $field_names): void {
+  $form['#fieldgroups'] ??= [];
+  $form['#group_children'] ??= [];
+
+  $form['#fieldgroups'][EONEXT_EVENT_STATUS_RIBBON_GROUP] = (object) [
+    'group_name' => EONEXT_EVENT_STATUS_RIBBON_GROUP,
+    'entity_type' => $entity_type,
+    'bundle' => $bundle,
+    'context' => 'form',
+    'mode' => 'default',
+    'children' => $field_names,
+    'label' => 'Ribbon',
+    'region' => 'content',
+    'parent_name' => '',
+    'weight' => 18,
+    'format_type' => 'details_sidebar',
+    'format_settings' => [
+      'classes' => '',
+      'show_empty_fields' => FALSE,
+      'id' => '',
+      'open' => TRUE,
+      'description' => '',
+      'required_fields' => TRUE,
+      'weight' => 0,
+    ],
+  ];
+
+  foreach ($field_names as $field_name) {
+    if (isset($form[$field_name])) {
+      $form['#group_children'][$field_name] = EONEXT_EVENT_STATUS_RIBBON_GROUP;
+    }
+  }
+
+  $form['#entity_type'] ??= $entity_type;
+}
+
+/**
+ * #process callback: registers the ribbon sidebar group with field_group.
+ */
+function eonext_event_status_process_ribbon_field_group(array &$form, FormStateInterface $form_state, array &$complete_form) {
+  $group_name = EONEXT_EVENT_STATUS_RIBBON_GROUP;
+
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof ContentEntityFormInterface) {
+    return $form;
+  }
+
+  $entity = $form_object->getEntity();
+  $field_names = array_keys(EONEXT_EVENT_STATUS_WIDGETS[$entity->getEntityTypeId()] ?? []);
+  if ($field_names === []) {
+    return $form;
+  }
+
+  if (!eonext_event_status_form_has_ribbon_group($form, $field_names)) {
+    eonext_event_status_attach_ribbon_field_group($form, $entity->getEntityTypeId(), $entity->bundle(), $field_names);
+  }
+
+  if (empty($form['#fieldgroups'][$group_name])) {
+    return $form;
+  }
+
+  $group = $form['#fieldgroups'][$group_name];
+  $form[$group_name] ??= [];
+  field_group_field_group_form_process($form[$group_name], $group, $form);
+  unset($form[$group_name]['#access']);
+
+  foreach ($field_names as $field_name) {
+    if (!isset($form[$field_name])) {
+      continue;
+    }
+
+    $form['#group_children'][$field_name] = $group_name;
+    $form[$field_name]['#group'] = $group_name;
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_field_group_form_process_build_alter().
+ *
+ * field_group may hide runtime ribbon groups before ribbon fields receive
+ * their #group assignment in eonext_event_status_process_ribbon_field_group().
+ */
+function eonext_event_status_field_group_form_process_build_alter(array &$element, FormStateInterface $form_state, array &$complete_form): void {
+  $group_name = EONEXT_EVENT_STATUS_RIBBON_GROUP;
+  if (empty($element['#fieldgroups'][$group_name]) || !isset($element['field_ribbon_text'])) {
+    return;
+  }
+
+  if (isset($element[$group_name])) {
+    unset($element[$group_name]['#access']);
+  }
+}
+
+/**
+ * Checks whether ribbon fields are already grouped in the sidebar.
+ *
+ * @param string[] $field_names
+ *   Ribbon field machine names.
+ */
+function eonext_event_status_form_has_ribbon_group(array $form, array $field_names): bool {
+  if (empty($form['#fieldgroups'][EONEXT_EVENT_STATUS_RIBBON_GROUP])) {
+    return FALSE;
+  }
+
+  foreach ($field_names as $field_name) {
+    if (($form['#group_children'][$field_name] ?? NULL) !== EONEXT_EVENT_STATUS_RIBBON_GROUP) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+/**
+ * Implements hook_entity_form_display_alter().
+ *
+ * Keeps ribbon widgets on the in-memory display used by buildForm().
+ */
+function eonext_event_status_entity_form_display_alter(EntityFormDisplayInterface $form_display, array $context): void {
+  $widgets = EONEXT_EVENT_STATUS_WIDGETS[$context['entity_type']] ?? NULL;
+  if ($widgets === NULL || $context['form_mode'] !== 'default') {
+    return;
+  }
+
+  eonext_event_status_ensure_fields_installed();
+  eonext_event_status_configure_ribbon_display($form_display, $context['entity_type'], $context['bundle']);
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ */
+function eonext_event_status_entity_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  $ribbon = eonext_event_status_get_entity_ribbon($entity);
+  if ($ribbon === NULL) {
+    return;
+  }
+
+  $view_mode = $display->originalMode ?? $display->getMode();
+  eonext_event_status_attach_ribbon($build, $ribbon, $view_mode);
+  eonext_event_status_add_ribbon_cache_tags($build, $entity);
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Attaches ribbon assets on event canonical pages as a fallback when entity
+ * render caching omits nested #attached metadata.
+ */
+function eonext_event_status_preprocess_page(array &$variables): void {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if (!in_array($route_name, EONEXT_EVENT_STATUS_CANONICAL_ROUTES, TRUE)) {
+    return;
+  }
+
+  $parameter_name = $route_name === 'entity.eventseries.canonical' ? 'eventseries' : 'eventinstance';
+  $entity = \Drupal::routeMatch()->getParameter($parameter_name);
+  if (!$entity instanceof EntityInterface) {
+    return;
+  }
+
+  $ribbon = eonext_event_status_get_entity_ribbon($entity);
+  if ($ribbon === NULL) {
+    return;
+  }
+
+  eonext_event_status_attach_ribbon($variables, $ribbon, 'full');
+  eonext_event_status_add_ribbon_cache_tags($variables, $entity);
+}
+
+/**
+ * Resolves ribbon data for a rendered event entity.
+ *
+ * @return array{text: string, color: string}|null
+ *   Ribbon data, or NULL when no ribbon is configured.
+ */
+function eonext_event_status_get_entity_ribbon(EntityInterface $entity): ?array {
+  $ribbon_service = \Drupal::service('eonext_event_status.ribbon');
+
+  if ($entity instanceof EventInstance) {
+    $event_series = method_exists($entity, 'getEventSeries')
+      ? $entity->getEventSeries()
+      : ($entity->get('eventseries_id')->entity ?? NULL);
+    if ($event_series instanceof EventSeries) {
+      return $ribbon_service->getRibbon($event_series, $entity);
+    }
+    return NULL;
+  }
+
+  if ($entity instanceof EventSeries) {
+    return $ribbon_service->getRibbon($entity);
+  }
+
+  return NULL;
+}
+
+/**
+ * Attaches ribbon assets and frontend data to a render array.
+ */
+function eonext_event_status_attach_ribbon(array &$build, array $ribbon, string $view_mode): void {
+  $build['#attached']['library'][] = 'eonext_event_status/event-status';
+
+  if (in_array($view_mode, EONEXT_EVENT_STATUS_FULL_VIEW_MODES, TRUE)) {
+    $build['#attached']['drupalSettings']['eonextEventStatus'] = $ribbon;
+    $build['#attached']['html_head'][] = [
+      [
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#attributes' => [
+          'type' => 'application/json',
+          'id' => 'eonext-event-status-ribbon-data',
+          'class' => ['eonext-event-status__data'],
+        ],
+        '#value' => json_encode($ribbon, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+      ],
+      'eonext_event_status_ribbon_data',
+    ];
+    return;
+  }
+
+  $build['#attributes']['class'][] = 'eonext-event-status';
+  $build['#attributes']['data-ribbon-label'] = $ribbon['text'];
+  $build['#attributes']['data-ribbon-color'] = $ribbon['color'];
+}
+
+/**
+ * Adds cache tags so ribbon changes invalidate rendered event pages.
+ */
+function eonext_event_status_add_ribbon_cache_tags(array &$build, EntityInterface $entity): void {
+  $tags = $entity->getCacheTags();
+
+  if ($entity instanceof EventInstance) {
+    $event_series = method_exists($entity, 'getEventSeries')
+      ? $entity->getEventSeries()
+      : ($entity->get('eventseries_id')->entity ?? NULL);
+    if ($event_series instanceof EventSeries) {
+      $tags = Cache::mergeTags($tags, $event_series->getCacheTags());
+    }
+  }
+
+  $build['#cache']['tags'] = Cache::mergeTags($build['#cache']['tags'] ?? [], $tags);
 }

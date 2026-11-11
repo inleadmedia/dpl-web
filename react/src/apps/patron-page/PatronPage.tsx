@@ -15,17 +15,28 @@ import useSavePatron from "../../core/utils/useSavePatron";
 import { Patron } from "../../core/utils/types/entities";
 import { useGetV1UserCardnumberFriendly } from "../../core/publizon/publizon";
 import { FriendlyCardResult } from "../../core/publizon/model";
+import useBiblioAdapter from "../../core/utils/useBiblioAdapter";
+import { useDigitalSupportId } from "@danskernesdigitalebibliotek/dpl-service-layer";
 
 const PatronPage: FC = () => {
   const t = useText();
   const u = useUrls();
   const deletePatronUrl = u("deletePatronUrl");
   const { data: patronData, isLoading } = usePatronData();
+  const viaBiblioAdapter = useBiblioAdapter();
   const { data: patronCardNumber } = useGetV1UserCardnumberFriendly({
     query: {
-      enabled: !!patronData
+      enabled: !!patronData && !viaBiblioAdapter
     }
   });
+  const { data: digitalSupportId } = useDigitalSupportId({
+    enabled: !!patronData && viaBiblioAdapter
+  });
+  // Publizon's friendly card number and the service layer's support id serve
+  // the same purpose: an identifier the user can hand to support.
+  const supportIdentifier = viaBiblioAdapter
+    ? digitalSupportId
+    : (patronCardNumber as FriendlyCardResult)?.friendlyCardNumber;
   const [patron, setPatron] = useState<Patron | null>(null);
   const [pin, setPin] = useState<string | null>(null);
   const [isPinChangeValid, setIsPinChangeValid] = useState<boolean>(true);
@@ -105,13 +116,19 @@ const PatronPage: FC = () => {
 
   return (
     <form className="dpl-patron-page" onSubmit={(e) => handleSubmit(e)}>
-      <h1 className="text-header-h1 my-32">{t("patronPageHeaderText")}</h1>
+      <h1 className="text-header-h1 mt-32 mb-8">{t("patronPageHeaderText")}</h1>
+      <Link
+        href={u("dashboardUrl")}
+        className="link-tag text-body-medium-regular mb-32"
+        dataCy="patron-page-dashboard-link"
+      >
+        {t("patronPageDashboardLinkText")}
+      </Link>
       <NotificationComponent />
       {patron && (
         <BasicDetailsSection
           patron={patron}
-          // Cast patronCardNumber to FriendlyCardResult (Api dose not an array)
-          patronCardNumber={patronCardNumber as FriendlyCardResult}
+          patronCardNumber={supportIdentifier}
         />
       )}
       <div className="patron-page-info">
@@ -123,7 +140,10 @@ const PatronPage: FC = () => {
             showCheckboxes={["email", "phone"]}
           />
         )}
-        {patron?.resident && <StatusSection />}
+        {/* Publizon's quotas live on the site's own retailer account, so a
+            non-resident has none there; the adapter resolves them from the
+            patron's own municipality. */}
+        {(viaBiblioAdapter || patron?.resident) && <StatusSection />}
         {patron && (
           <ReservationDetailsSection
             changePatron={changePatron}

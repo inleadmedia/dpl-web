@@ -19,8 +19,8 @@ compose, hence the requirements are limited to having docker install and tasks.
 
 This project can be used outside docker with the following requirements:
 
-- `node 16`
-- `yarn`
+- `node 24`
+- `pnpm`
 
 Check in the terminal which versions you have installed with `node -v`.
 
@@ -37,7 +37,7 @@ task dev:install
 Use the node package manager to install project dependencies:
 
 ```shell
-yarn install
+pnpm install
 ```
 
 ## Development
@@ -65,7 +65,7 @@ task dev:[TAB]
 To start developing run:
 
 ```shell
-yarn dev
+pnpm run dev
 ```
 
 Components and CSS will be automatically recompiled when making changes in the
@@ -73,151 +73,101 @@ source code.
 
 ## Usage
 
-The project is available in two ways and should be consumed accordingly:
+The design system is a workspace package inside this monorepo. It is not
+published to any registry, so there is nothing to install or authenticate
+against — `pnpm install` from the repository root links it into the projects
+that depend on it.
 
-1. As package in the local npm registry for this repository
-2. As a `dist.zip` file attached to a release for this repository
-
-Both releases contain the built assets of the project: JavaScript files, CSS
-styles and icons.
+The built assets — JavaScript files, CSS styles and icons — land in `build/`
+after `task dev:design-system:build`. That directory is the public API;
+consumers import paths like `…/build/css/base.css`.
 
 You can find the HTML output for a given story under the HTML tab inside
 storybook.
 
-### NPM package
-
-[The GitHub NPM package registry requires authentication if you are to access
-packages there](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry#authenticating-with-a-personal-access-token).
-
-Consequently, if you want to use the design system as an NPM package or if you
-use a project that depends on the design system as an NPM package you must
-authenticate:
-
-1. [Create a GitHub token with the required scopes: `repo` and `read:packages`](https://github.com/settings/tokens/new?description=npm&scopes=repo,read:packages)
-2. Run `npm login --registry=https://npm.pkg.github.com`
-3. Enter the following information:
-
-```shell
-> Username: [Your GitHub username]
-> Password: [Your GitHub token]
-> Email: [An email address used with your GitHub account]
-```
-
-Note that you will need to reauthenticate when your personal access token
-expires.
-
 ## Deployment and releases
 
-The project is [automatically built and deployed](.github/workflows/deployment.yml)
-on pushes to every branch and every tag and the result is available as releases
-which support [both types of usage](#usage). This applies for the original
-repository on GitHub and all GitHub forks.
+The design system is built from source and consumed directly by the other
+projects in the monorepo:
 
-You can follow the status of deployments in the [Actions list for the repository
-on GitHub](https://github.com/danskernesdigitalebibliotek/dpl-web/tree/main/design-system/actions/workflows/deployment.yml).
-The action logs also contain additional details regarding the contents and
-publication of each release.  If using a fork then deployment actions can be
-seen on the corresponding list.
+- **React** depends on it as a pnpm workspace package (`workspace:*`) and
+  imports its built assets from
+  `@danskernesdigitalebibliotek/dpl-design-system/build/*`.
+- **The CMS** bakes the built assets into its source image during the
+  `CMS / Publish release` workflow
+  (`.github/workflows/cms-publish-release.yml`), which builds the design
+  system from source and copies it into the CMS theme.
 
-In general consuming projects should prefer tagged releases as they are stable
-proper releases.
-
-During development where the design system is being updated in parallel with
-the implementation of a consuming project it may be advantageous to use a
-release tagging a branch.
-
-### Tagged releases
-
-Run the following to publish a tag and create a release:
-
-```shell
-git tag -a v*.*.* && git push origin v*.*.*
-```
-
-#### Usage: npm package
-
-In the consuming project update usage to the new release:
-
-```shell
-npm install @danskernesdigitalebibliotek/dpl-design-system@*.*.*
-```
-
-#### Usage: Release file
-
-Find the release for the tag on [the releases page on GitHub](https://github.com/danskernesdigitalebibliotek/dpl-design-system/releases)
-and download the `dist.zip` file from there and use it as needed in the
-consuming project.
-
-### Branch releases
-
-The project automatically creates a release for each branch.
-
-Example: Pushing a commit to a new branch `feature/reservation-modal` will
-create the following parts:
-
-1. A git tag for the commit `release-feature/reservation-modal`. A tag is needed
-   to create a GitHub release.
-2. A GitHub release for the called *feature/reservation-modal*. The build is
-   attached here.
-3. A package in the local npm repository tagged `feature-reservation-modal`.
-   Special characters like `/` are not supported by npm tags and are converted
-   to `-`.
-
-Updating the branch will update all parts accordingly.
-
-#### Usage: npm package
-
-In the consuming project update usage to the new release:
-
-```shell
-npm install @danskernesdigitalebibliotek/dpl-design-system@feature-reservation-modal
-```
-
-If your release belongs to a fork you can use [aliasing](https://docs.npmjs.com/cli/v8/commands/npm-install)
-to point to the release of the package in the npm repository for the fork:
-
-```shell
-npm config set @my-fork:registry=https://npm.pkg.github.com
-npm install @danskernesdigitalebibliotek/dpl-design-system@npm:@my-fork/dpl-design-system@feature-reservation-modal
-```
-
-This will update your `package.json` and lock files accordingly. Note that
-branch releases use temporary versions in the format `0.0.0-[GIT-SHA]` and you
-may in practice see these referenced in both files.
-
-If you push new code to the branch you have to update the version used in the
-consuming project:
-
-```shell
-npm update @danskernesdigitalebibliotek/dpl-design-system
-```
-
-[Aliasing](https://classic.yarnpkg.com/lang/en/docs/cli/add/#toc-yarn-add-alias),
-[repository configuration](https://classic.yarnpkg.com/en/docs/cli/config) and
-[updating installed packages](https://classic.yarnpkg.com/en/docs/cli/upgrade)
-are also supported by Yarn.
-
-#### Usage: Release file
-
-Find the release for the branch on [the releases page on GitHub](https://github.com/danskernesdigitalebibliotek/dpl-design-system/releases)
-and download the `dist.zip` file from there and use it as needed in the
-consuming project.
-
-If your branch belongs to a fork then you can find the release on the releases
-page for the fork.
-
-Repeat the process if you push new code to the branch.
+To work against a specific branch of the design system, check that branch out
+in the monorepo and rebuild — see
+[the cross-project development guide](../development.md).
 
 ## Storybook
 
 Spin up storybook by running this command in the terminal:
 
 ```shell
-yarn storybook
+pnpm run storybook
 ```
 
 When storybook is ready it automatically opens up in a browser with the
 interface ready to use.
+
+## Argos
+
+Argos runs visual tests alongside Chromatic while we evaluate it. Pushes to
+`main`, `develop` and `release/*`, and pull requests changing the design
+system, screenshot every story at 400px and 1200px. The screenshots are
+uploaded to the `dpl-web` project in Argos under the build name
+`design-system`.
+
+Argos compares them with the build of the base branch and reports the result
+as the `argos/design-system` status. Follow its link to review changes;
+reviewing requires membership of the Argos team. Approve the changes your pull
+request explains, and **Ignore** the ones it cannot explain: Argos then hides
+that change on later builds, and the ignored changes show how much noise Argos
+produces. Share causes worth knowing in Zulip. The Storybook build is
+published as a preview, linked from Argos' comment on the pull request.
+
+Pull requests from forks get no Argos build, as they cannot access the token.
+To get one, push the branch to this repository.
+
+Stories may only load files the Storybook serves itself, such as images in
+`public/images/`. Anything else makes their screenshots depend on another
+server, so the capture blocks it and fails the story with the URLs it
+requested. Exceptions go, each with its reason, in
+`.storybook/external-requests.js`.
+
+Tag a story `skip-ui-tests` to leave it out of the screenshots. Use it only for
+stories that cannot be screenshotted reliably at all: an untagged story with
+content that breaks the capture, like the YouTube embed, should rather have
+that content blocked or masked so the rest of the story is still covered.
+
+### Comparing local work with Argos
+
+Upload screenshots of commits you have not pushed yet:
+
+```shell
+task dev:argos
+```
+
+They are compared with `develop`. Set `BASE` to compare with another branch,
+e.g. `BASE=main task dev:argos`. The task needs dependencies installed and
+`ARGOS_TOKEN` in the root `.env` (`task dev:dotenv:generate`). Like the other
+tasks here, it runs in Docker: a `node` container builds the static Storybook,
+captures it and uploads the screenshots, and the browser runs in the
+`playwright` service, in the Playwright image, so screenshots render like they
+do in CI. pnpm in the container installs the dependencies' Linux binaries, so
+run `pnpm install` again before using them outside Docker.
+
+To screenshot only some stories, pass their story files, e.g.
+`task dev:argos -- src/stories/Blocks/header`. `task argos:capture` takes the
+same arguments and only writes the screenshots to `screenshots/`, without
+uploading them, to check that stories can be captured.
+
+Local uploads never become baselines. The task refuses to run on `develop`,
+`main` and `release/*`, with uncommitted changes, as Argos files the build
+under `HEAD`, and once `HEAD` is pushed, as CI then compares it.
 
 ## Chromatic
 
@@ -230,7 +180,7 @@ under the `danskernesdigitalebibliotek` (organisation) `dpl-design-system`
 You can deploy a version locally to Chromatic by running:
 
 ```shell
-yarn chromatic
+pnpm run chromatic
 ```
 
 Make sure to set the `CHROMATIC_PROJECT_TOKEN` environment variable is available

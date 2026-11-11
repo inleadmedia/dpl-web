@@ -1,0 +1,19 @@
+uuid: 532e829e-eb57-44b2-8def-0ea8fa913aa6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_mr_title
+    - paragraphs.paragraphs_type.manual_recommendation
+id: paragraph.manual_recommendation.field_mr_title
+field_name: field_mr_title
+entity_type: paragraph
+bundle: manual_recommendation
+label: Title
+description: 'The title of the recommended material.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

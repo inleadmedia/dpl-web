@@ -1,26 +1,49 @@
 import type { Preview } from "@storybook/nextjs"
-import localFont from "next/font/local"
-import React from "react"
+import { MotionGlobalConfig } from "framer-motion"
+import MockDate from "mockdate"
+import { DM_Sans } from "next/font/google"
+import { useEffect } from "react"
 
 import "@/styles/globals.css"
 
 import { useDarkMode, useLightMode } from "../lib/helpers/helper.theme"
+import { isArgosCapture } from "./test-runners/visual/user-agent.mjs"
+
+// Freeze "now" so date-derived UI (due dates, countdowns, pickup deadlines)
+// renders identically on every Chromatic build instead of drifting day by
+// day. Story fixtures compute dates relative to this frozen date.
+MockDate.set("2026-06-15T12:00:00")
+
+// framer-motion animates rotation, scale and position in JavaScript, which
+// Argos's screenshots catch mid-animation. Jump every animation to its end.
+if (isArgosCapture()) {
+  MotionGlobalConfig.skipAnimations = true
+
+  // Argos hides scrollbars just before the screenshot, which widens the page
+  // after keen-slider measured its slides. Hide them from the start instead,
+  // with the same rule as Argos.
+  const style = document.createElement("style")
+  style.textContent = "::-webkit-scrollbar { display: none !important; }"
+  document.head.appendChild(style)
+}
 
 // When adding or changing fonts, remember to update the imports in the Layout file
-const GTFlexa = localFont({
-  src: [
-    {
-      path: "../fonts/GT-Flexa-Expanded-Regular.woff2",
-      weight: "400",
-    },
-    {
-      path: "../fonts/GT-Flexa-Expanded-Medium.woff2",
-      weight: "500",
-    },
-  ],
-  variable: "--font-headline",
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 })
+
+// Shared, so Chromatic and Argos capture the same widths during the pilot.
+const visualTestModes = {
+  mobile: {
+    viewport: "sm",
+  },
+  desktop: {
+    viewport: "xl",
+  },
+}
 
 const preview: Preview = {
   parameters: {
@@ -59,14 +82,20 @@ const preview: Preview = {
     },
     chromatic: {
       // Test each story in different viewport modes
+      modes: visualTestModes,
+    },
+    // Argos ignores the chromatic parameters once these exist.
+    argos: {
+      // Without the accessibility check after each mode's render. Argos does
+      // not wait for it, and Storybook reloads the page when the next story
+      // starts while it runs, as it does for 500 ms with a cross-origin iframe.
       modes: {
-        mobile: {
-          viewport: "sm",
-        },
-        desktop: {
-          viewport: "xl",
-        },
+        mobile: { ...visualTestModes.mobile, a11y: { manual: true } },
+        desktop: { ...visualTestModes.desktop, a11y: { manual: true } },
       },
+      // Default crops to the component at 2x zoom, collapsing fullscreen
+      // layouts. Capture the full page like Chromatic does.
+      fitToContent: false,
     },
     a11y: {
       config: {
@@ -84,8 +113,18 @@ const preview: Preview = {
       // Add dark mode to the context of the story. This can be called later in the story decorator.
       const params = { useDarkMode, ...parameters }
 
+      // Apply the font variable to <html> so portalled content (modals, drawers,
+      // sheets) renders with the correct font.
+      useEffect(() => {
+        const root = document.documentElement
+        root.classList.add(dmSans.variable, "antialiased")
+        return () => {
+          root.classList.remove(dmSans.variable, "antialiased")
+        }
+      }, [])
+
       return (
-        <div className={`${GTFlexa.variable} antialiased`}>
+        <div className={`${dmSans.variable} antialiased`}>
           <Story {...params} />
         </div>
       )
