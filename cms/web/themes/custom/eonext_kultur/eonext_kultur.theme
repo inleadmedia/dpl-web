@@ -69,6 +69,21 @@ function eonext_kultur_form_system_theme_settings_alter(array &$form, FormStateI
     );
   }
 
+  if (isset($form['favicon']['settings']['favicon_upload'])) {
+    $form['favicon']['settings']['favicon_upload']['#description'] = t(
+      'Shortcut icon for browser tabs and bookmarks. When “Use the favicon supplied by the theme” is enabled, the bundled Kulturnat icon from this theme is used; upload a custom file to override.',
+      [],
+      ['context' => 'EO NEXT Kultur settings']
+    );
+  }
+  if (isset($form['favicon']['default_favicon'])) {
+    $form['favicon']['default_favicon']['#description'] = t(
+      'Uses the default favicon file from the EO NEXT Kultur theme (configurable under Appearance → Settings).',
+      [],
+      ['context' => 'EO NEXT Kultur settings']
+    );
+  }
+
   $form['logo']['settings']['footer_logo_path'] = [
     '#type' => 'hidden',
     '#default_value' => theme_get_setting('footer_logo_path') ?: '',

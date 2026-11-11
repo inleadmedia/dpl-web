@@ -552,17 +552,11 @@ function eonext_kultur_events_views_query_alter(ViewExecutable $view, $query): v
     return;
   }
 
-  // Limit to Kulturnat public languages. Instances are usually indexed once as
-  // kl or da (series default / admin UI language). Matching both avoids an
-  // empty /kl/arrangementer when content is da-only, while still excluding en.
   $langcode = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
-  $calendar_languages = EventsConstants::CALENDAR_SEARCH_LANGUAGES;
-  if (in_array($langcode, $calendar_languages, TRUE)) {
-    $search_api_query->addCondition('search_api_language', $calendar_languages, 'IN');
+  if (!in_array($langcode, EventsConstants::CALENDAR_SEARCH_LANGUAGES, TRUE)) {
+    $langcode = EventsConstants::CALENDAR_SEARCH_LANGUAGES[0];
   }
-  else {
-    $search_api_query->addCondition('search_api_language', $langcode);
-  }
+  $search_api_query->addCondition('search_api_language', $langcode);
 }
 
 /**

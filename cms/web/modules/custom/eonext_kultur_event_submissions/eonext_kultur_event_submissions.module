@@ -244,6 +244,7 @@ function eonext_kultur_event_submissions_field_widget_single_element_form_alter(
     AddressField::GIVEN_NAME => FieldOverride::HIDDEN,
     AddressField::ADDITIONAL_NAME => FieldOverride::HIDDEN,
     AddressField::FAMILY_NAME => FieldOverride::HIDDEN,
+    AddressField::ADDRESS_LINE2 => FieldOverride::OPTIONAL,
     AddressField::ADDRESS_LINE3 => FieldOverride::HIDDEN,
     AddressField::SORTING_CODE => FieldOverride::HIDDEN,
     AddressField::ADMINISTRATIVE_AREA => FieldOverride::HIDDEN,
@@ -382,6 +383,16 @@ function eonext_kultur_event_submissions_public_address_states_after_build(array
 
   foreach (['postal_code', 'locality', 'address_line2'] as $field_name) {
     if (!isset($element[$field_name])) {
+      continue;
+    }
+    if ($field_name === 'address_line2') {
+      $element[$field_name]['#states'] = [
+        'visible' => $other_city_selector,
+      ];
+      $element[$field_name]['#required'] = FALSE;
+      if ($is_nuuk) {
+        $element[$field_name]['#access'] = FALSE;
+      }
       continue;
     }
     $element[$field_name]['#states'] = [

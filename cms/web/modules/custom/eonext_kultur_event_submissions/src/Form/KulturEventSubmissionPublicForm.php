@@ -88,11 +88,6 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
       return $form;
     }
 
-    $form['status_messages'] = [
-      '#type' => 'status_messages',
-      '#weight' => -100,
-    ];
-
     /** @var \Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission $submission */
     $submission = $this->entity;
     if ($submission->isNew()) {
@@ -373,7 +368,12 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
       $form['title_da']['#suffix'] = $existing_suffix . '</div>';
     }
 
-    $this->wrapFieldSection($form, 'event_categories', $this->t('Categories', [], ['context' => 'eonext_kultur_event_submissions']));
+    $this->wrapFieldSection(
+      $form,
+      'event_categories',
+      $this->t('Categories', [], ['context' => 'eonext_kultur_event_submissions']),
+      TRUE,
+    );
     $this->wrapFieldSection($form, 'address', $this->t('Location', [], ['context' => 'eonext_kultur_event_submissions']));
 
     if (isset($form['event_start'])) {
@@ -407,7 +407,12 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
       $form['contact_phone']['#suffix'] = $existing_suffix . '</div>';
     }
 
-    $this->wrapFieldSection($form, 'image', $this->t('Image', [], ['context' => 'eonext_kultur_event_submissions']));
+    $this->wrapFieldSection(
+      $form,
+      'image',
+      $this->t('Image', [], ['context' => 'eonext_kultur_event_submissions']),
+      TRUE,
+    );
 
     if (isset($form['description_gl'])) {
       $description_heading = '<h2 class="ek-submission-form__section-title text-header-h4">'
@@ -428,12 +433,14 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
   /**
    * Wraps a single field in a section container with a heading.
    */
-  private function wrapFieldSection(array &$form, string $field_name, string|\Stringable $title): void {
+  private function wrapFieldSection(array &$form, string $field_name, string|\Stringable $title, bool $required = FALSE): void {
     if (!isset($form[$field_name])) {
       return;
     }
 
-    $heading = '<h2 class="ek-submission-form__section-title text-header-h4">' . $title . '</h2>';
+    $required_class = $required ? ' form-required ek-submission-form__section-title--required' : '';
+    $required_markup = $required ? ' <span class="form-required" title="' . $this->t('This field is required.', [], ['context' => 'eonext_kultur_event_submissions']) . '">*</span>' : '';
+    $heading = '<h2 class="ek-submission-form__section-title text-header-h4' . $required_class . '">' . $title . $required_markup . '</h2>';
     $existing_prefix = $form[$field_name]['#prefix'] ?? '';
     $form[$field_name]['#prefix'] = $existing_prefix
       . '<div class="ek-submission-form__section">'

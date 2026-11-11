@@ -19,13 +19,7 @@
       {{ element.confirmation }}
     {% endif %}
 
-    {% if element.status_messages %}
-      <div class="ek-submission-form__messages">
-        {{ element.status_messages }}
-      </div>
-    {% endif %}
-
-    {% set excluded_keys = ['form_build_id', 'form_token', 'form_id', 'confirmation', 'status_messages', 'actions'] %}
+    {% set excluded_keys = ['form_build_id', 'form_token', 'form_id', 'confirmation', 'actions'] %}
     {% for key, child in element|without(excluded_keys) %}
       {% if key|first != '#' %}
         {{ child }}

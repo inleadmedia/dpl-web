@@ -960,3 +960,141 @@ function eonext_kultur_main_update_9028(): string {
 
   return implode(' ', $messages) ?: 'Category translation is already configured.';
 }
+
+/**
+ * QA follow-ups (EONEXT-437): login, mail, footer translation, theme favicon access.
+ */
+function eonext_kultur_main_update_9029(): string {
+  $messages = [];
+
+  if (\Drupal::moduleHandler()->moduleExists('openid_connect')) {
+    $openid = \Drupal::configFactory()->getEditable('openid_connect.settings');
+    if ($openid->get('user_login_display') !== 'hidden') {
+      $openid->set('user_login_display', 'hidden')->save();
+      $messages[] = 'Hid OpenID Connect / library login on the user login form.';
+    }
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('mailsystem')) {
+    $mail_config = \Drupal::configFactory()->getEditable('mailsystem.settings');
+    $transport = \Drupal::moduleHandler()->moduleExists('symfony_mailer') ? 'symfony_mailer' : 'php_mail';
+    $defaults = $mail_config->get('defaults') ?? [];
+    if (($defaults['sender'] ?? '') !== $transport || ($defaults['formatter'] ?? '') !== $transport) {
+      $mail_config->set('defaults', [
+        'formatter' => $transport,
+        'sender' => $transport,
+      ]);
+    }
+    $module_mail = $mail_config->get('modules.eonext_kultur_event_submissions') ?? [];
+    if (($module_mail['sender'] ?? '') !== $transport || ($module_mail['formatter'] ?? '') !== $transport) {
+      $mail_config->set('modules.eonext_kultur_event_submissions', [
+        'formatter' => $transport,
+        'sender' => $transport,
+      ]);
+      $mail_config->save();
+      $messages[] = "Configured mailsystem to use {$transport} for submission emails.";
+    }
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    $manager = \Drupal::service('content_translation.manager');
+    $bundle = FooterSocialLoader::PARAGRAPH_BUNDLE;
+    if (!$manager->isEnabled('paragraph', $bundle)) {
+      $manager->setEnabled('paragraph', $bundle, TRUE);
+      $messages[] = 'Enabled translation for Kultur footer social paragraph.';
+    }
+
+    $language_settings = ContentLanguageSettings::load("paragraph.{$bundle}");
+    if (!$language_settings instanceof ContentLanguageSettings) {
+      $language_settings = ContentLanguageSettings::create([
+        'target_entity_type_id' => 'paragraph',
+        'target_bundle' => $bundle,
+      ]);
+    }
+    $language_settings->setDefaultLangcode('da');
+    $language_settings->setLanguageAlterable(TRUE);
+    $language_settings->save();
+
+    foreach ([
+      'field_kultur_footer_title',
+      'field_kultur_footer_text',
+      'field_kultur_footer_cta',
+      'field_kultur_footer_hashtag',
+    ] as $field_name) {
+      $field = FieldConfig::loadByName('paragraph', $bundle, $field_name);
+      if ($field instanceof FieldConfig && !$field->isTranslatable()) {
+        $field->setTranslatable(TRUE);
+        $field->save();
+        $messages[] = "Made {$field_name} translatable on footer social paragraph.";
+      }
+    }
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_events')) {
+    eonext_kultur_events_ensure_text_body_paragraph_reference_allowed();
+    $messages[] = 'Ensured text_body paragraphs can be referenced on event fields (content lock save fix).';
+  }
+
+  $role = \Drupal::entityTypeManager()->getStorage('user_role')->load('local_administrator');
+  if ($role !== NULL && \Drupal::moduleHandler()->moduleExists('theme_permission')) {
+    $permission = 'administer theme global settings';
+    if (!$role->hasPermission($permission)) {
+      $role->grantPermission($permission);
+      $role->save();
+      $messages[] = 'Granted theme global settings to local administrators (favicon/branding).';
+    }
+  }
+
+  return implode(' ', $messages) ?: 'QA site configuration was already applied.';
+}
+
+/**
+ * Switches submission mail away from Azure when symfony_mailer is available.
+ */
+function eonext_kultur_main_update_9030(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('mailsystem') || !\Drupal::moduleHandler()->moduleExists('symfony_mailer')) {
+    return 'symfony_mailer is not available; skipped mail transport update.';
+  }
+
+  $mail_config = \Drupal::configFactory()->getEditable('mailsystem.settings');
+  $mail_config->set('defaults', [
+    'formatter' => 'symfony_mailer',
+    'sender' => 'symfony_mailer',
+  ]);
+  $mail_config->set('modules.eonext_kultur_event_submissions', [
+    'formatter' => 'symfony_mailer',
+    'sender' => 'symfony_mailer',
+  ]);
+  $mail_config->save();
+
+  return 'Configured mailsystem to use symfony_mailer (Mailpit on DDEV).';
+}
+
+/**
+ * Points the active theme favicon at the bundled Kulturnat icon (theme settings).
+ */
+function eonext_kultur_main_update_9031(): string {
+  $theme = 'eonext_kultur';
+  if (!\Drupal::service('theme_handler')->themeExists($theme)) {
+    return 'eonext_kultur theme is not installed; skipped favicon configuration.';
+  }
+
+  $config = \Drupal::configFactory()->getEditable("{$theme}.settings");
+  if (!$config->get('features.favicon')) {
+    $config->set('features.favicon', TRUE);
+  }
+
+  $custom_path = $config->get('favicon.path');
+  $use_default = (bool) $config->get('favicon.use_default');
+  if (!$use_default && is_string($custom_path) && $custom_path !== '') {
+    return 'Kulturnat favicon is already set in theme settings.';
+  }
+
+  $path = \Drupal::service('extension.list.theme')->getPath($theme);
+  $config->set('favicon.use_default', FALSE);
+  $config->set('favicon.path', $path . '/images/logo.png');
+  $config->set('favicon.mimetype', 'image/png');
+  $config->save();
+
+  return 'Set Kulturnat favicon via theme settings (bundled images/logo.png).';
+}
