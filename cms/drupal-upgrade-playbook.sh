@@ -8,6 +8,11 @@
 # DDEV:
 #   ddev exec bash -lc 'cd /var/www/html/cms && PUPPETEER_SKIP_DOWNLOAD=true SKIP_REACT_BUILD=true ./drupal-upgrade-playbook.sh'
 #
+# Staging (multisite / non-default docroot):
+#   export DRUSH_URI=https://kulturnat-eonext.stg.inlead.dev
+#   ./drupal-upgrade-playbook.sh
+# Do not set DRUSH to "drush --uri=..." — use DRUSH_BIN + DRUSH_URI only.
+#
 set -euo pipefail
 
 CMS_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -18,12 +23,16 @@ export SKIP_REACT_BUILD="${SKIP_REACT_BUILD:-true}"
 export PUPPETEER_SKIP_DOWNLOAD="${PUPPETEER_SKIP_DOWNLOAD:-true}"
 export PLAYBOOK_PIN_DPL_UPDATE="${PLAYBOOK_PIN_DPL_UPDATE:-1}"
 
-DRUSH="${DRUSH:-./vendor/bin/drush}"
+DRUSH_BIN="${DRUSH_BIN:-./vendor/bin/drush}"
 TASK="task -t Taskfile.yaml"
 
 drush_y() {
   echo ">> drush $*"
-  "${DRUSH}" "$@"
+  if [[ -n "${DRUSH_URI:-}" ]]; then
+    "${DRUSH_BIN}" --uri="${DRUSH_URI}" "$@"
+  else
+    "${DRUSH_BIN}" "$@"
+  fi
 }
 
 echo "════════════════════════════════════════════════════════════"
