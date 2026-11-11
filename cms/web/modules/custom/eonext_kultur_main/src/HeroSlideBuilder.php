@@ -27,6 +27,7 @@ final class HeroSlideBuilder {
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly ReoccurringDateFormatter $recurringDateFormatter,
+    private readonly EventTitleResolver $eventTitleResolver,
     TranslationInterface $translation,
   ) {
     $this->stringTranslation = $translation;
@@ -56,7 +57,7 @@ final class HeroSlideBuilder {
     $end = $details['end'] ?? NULL;
 
     return [
-      'title' => $eventSeries->label(),
+      'title' => $this->eventTitleResolver->resolve($eventSeries),
       'category' => $this->getCategoryLabel($eventSeries),
       'tagline' => $this->getTagline($eventSeries, 'field_description'),
       'date_display' => ($start instanceof DrupalDateTime)
@@ -93,7 +94,7 @@ final class HeroSlideBuilder {
     }
 
     return [
-      'title' => $eventInstance->label(),
+      'title' => $this->eventTitleResolver->resolve($eventInstance),
       'category' => $this->getCategoryLabel($eventInstance),
       'tagline' => $this->getTagline($eventInstance, 'event_description', 'field_description'),
       'date_display' => ($start instanceof DrupalDateTime)
