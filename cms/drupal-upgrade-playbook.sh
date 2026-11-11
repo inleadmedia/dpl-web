@@ -19,6 +19,10 @@
 #   SKIP_PLAYBOOK_PRE=1       skip config_ignore / eonext_staff pre-step
 #   SKIP_EASYEMAIL_REINSTALL=1 skip destructive easyemail reinstall (pre-updb)
 #
+# If Drush dies on dpl_patron_redirect / dpl_go.go_site (prod DB, no full bootstrap):
+#   php scripts/enable-dpl-go-core-extension.php
+# Then re-run the playbook. After cim, protect-korsor-no-dpl-go keeps GO modules off.
+#
 set -euo pipefail
 
 CMS_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -35,11 +39,6 @@ drush_y() {
   echo ">> drush $*"
   "${DRUSH}" "$@"
 }
-
-echo "════════════════════════════════════════════════════════════"
-echo " Korsør: no GO (dpl_patron_redirect needs dpl_go — SQL if bootstrap broken)"
-echo "════════════════════════════════════════════════════════════"
-php scripts/prune-dpl-go-modules-sql.php || true
 
 echo "════════════════════════════════════════════════════════════"
 echo " Playbook pre-deploy (config_ignore, eonext_staff, dpl_update)"
@@ -63,13 +62,11 @@ echo " Enable deps for updb (geofield / Event Engine fields)"
 echo "════════════════════════════════════════════════════════════"
 export ENABLE_MODULES="${ENABLE_MODULES:-geofield}"
 drush_y php:script scripts/enable-core-extension-modules.php
-drush_y sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
 
 echo "════════════════════════════════════════════════════════════"
 echo " drupal:update + updb + cim (config_ignore reset between updb and cim)"
 echo "════════════════════════════════════════════════════════════"
 ${TASK} drupal:update
-drush_y sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
 drush_y en varnish_purger -y
 echo "════════════════════════════════════════════════════════════"
 echo " easyemail reinstall (owned overlay + paragraph field schema)"
