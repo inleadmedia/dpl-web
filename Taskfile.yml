@@ -12,9 +12,11 @@ vars:
   DESIGN_SYSTEM_BUILD: ./design-system/build
   # We're using the -alpine variant as the regular version does not
   # forward the spunky named npm_config variable, which we need in
-  # order to fetch the Biblio SDK.
+  # order to fetch the Biblio SDK. The browser-download variables are
+  # forwarded the same way: init:pnpm sets them on production so Cypress,
+  # Playwright and Puppeteer do not fetch binaries during that install.
   CLI_PREFIX:
-    sh: if [[ -f .run-in-docker ]]; then echo "docker run --user $(id -u):$(id -g) -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack -e PNPM_HOME=/tmp/pnpm -e CI -e 'npm_config_//npm.pkg.wedobooks.io/:_authToken' --rm -v \"{{.TASKFILE_DIR}}:/app\" -w /app node:24.22.1-alpine"; fi
+    sh: if [[ -f .run-in-docker ]]; then echo "docker run --user $(id -u):$(id -g) -e HOME=/tmp -e COREPACK_HOME=/tmp/corepack -e PNPM_HOME=/tmp/pnpm -e CI -e CYPRESS_INSTALL_BINARY -e PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD -e PUPPETEER_SKIP_DOWNLOAD -e 'npm_config_//npm.pkg.wedobooks.io/:_authToken' --rm -v \"{{.TASKFILE_DIR}}:/app\" -w /app node:24.22.1-alpine"; fi
 
 tasks:
   init:
@@ -270,6 +272,17 @@ tasks:
           if ! grep -q "^//npm.pkg.wedobooks.io/:_authToken" "$HOME/.npmrc" 2>/dev/null; then
             echo "warning: no credential for WeDoBooks' npm registry - WEDOBOOKS_NPM_TOKEN is missing from .env (run 'task dev:dotenv:generate') and the user-level npm config has none either. See packages/wedobooks/README.md." >&2
           fi
+        fi
+        # Production still installs devDependencies: sass, webpack and
+        # TypeScript are what the asset build runs. pnpm would drop them
+        # if NODE_ENV=production, so clear that for this install. Browser
+        # binaries are not part of the build — drupal:cms-link prunes the
+        # devDependencies once the assets are copied.
+        if [ "${LAGOON_ENVIRONMENT_TYPE:-production}" = production ]; then
+          unset NODE_ENV
+          export CYPRESS_INSTALL_BINARY=0
+          export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+          export PUPPETEER_SKIP_DOWNLOAD=true
         fi
         env "$@" task dev:cli -- corepack pnpm install
 

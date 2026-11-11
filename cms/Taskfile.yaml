@@ -88,6 +88,15 @@ tasks:
           mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
           cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
           cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
+          # Go is left intact: go:deploy builds it next and prunes afterwards.
+          # These packages have already been compiled into the files copied above
+          # (the WeDoBooks SDK is bundled into its dist).
+          if [ "${LAGOON_ENVIRONMENT_TYPE:-production}" = production ]; then
+            echo "Production: removing devDependencies after the asset build"
+            for dir in cms design-system react packages/service-layer packages/wedobooks; do
+              (cd "${REPO_ROOT}/${dir}" && corepack pnpm prune --prod)
+            done
+          fi
           cd "${CMS_ROOT}" && ./vendor/bin/drush cr -y
         '
         if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
@@ -254,6 +263,7 @@ tasks:
       # every drush.services.yml command. sql:query bootstraps only to
       # DATABASE, so it still works when the cached container is stale.
       - ${DRUSH_EXEC} sql:query "TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;"
+      - ${DRUSH_EXEC} php:script scripts/detach-varnish-purgers-for-enable.php
       - ${DRUSH_EXEC} en varnish_purger -y
       - ${DRUSH_EXEC} updb -y
       - ${DRUSH_EXEC} cim -y
@@ -339,8 +349,29 @@ tasks:
           unset DPL_CMS_BASE_URL DPL_GO_BASE_URL \
             NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_NAME \
             NEXT_PUBLIC_GO_GRAPHQL_CONSUMER_USER_PASSWORD 2>/dev/null || true
+          # Install devDependencies for the build (TypeScript, Tailwind), then
+          # drop them so Cypress and the rest do not stay on the server. pnpm
+          # treats NODE_ENV=production as --prod, which would skip the build
+          # tooling, so clear it until prune. Mirrors go/lagoon/stage2.dockerfile.
+          if [ "${LAGOON_ENVIRONMENT_TYPE:-production}" = production ]; then
+            unset NODE_ENV
+            export CYPRESS_INSTALL_BINARY=0
+            export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+            export PUPPETEER_SKIP_DOWNLOAD=true
+          fi
           corepack pnpm install --frozen-lockfile
           corepack pnpm run build
+          if [ "${LAGOON_ENVIRONMENT_TYPE:-production}" = production ]; then
+            corepack pnpm prune --prod
+            for dir in ../packages/service-layer ../packages/wedobooks; do
+              if [ -d "${dir}/node_modules" ]; then
+                (cd "${dir}" && corepack pnpm prune --prod)
+              fi
+            done
+            test -x node_modules/.bin/next
+            node -e "require('"'"'sharp'"'"')"
+            test ! -e node_modules/cypress
+          fi
         '
         if [ -n "${WEDOBOOKS_NPM_TOKEN:-}" ]; then
           env "npm_config_//npm.pkg.wedobooks.io/:_authToken=${WEDOBOOKS_NPM_TOKEN}" bash -lc "${GO_BUILD}"
