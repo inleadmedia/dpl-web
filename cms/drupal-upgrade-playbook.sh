@@ -40,6 +40,9 @@ drush_y() {
   "${DRUSH}" "$@"
 }
 
+# Prod DB: patron_redirect without dpl_go breaks full bootstrap (Drush sql:* only).
+php scripts/enable-dpl-go-core-extension.php
+
 echo "════════════════════════════════════════════════════════════"
 echo " Playbook pre-deploy (config_ignore, eonext_staff, dpl_update)"
 echo "════════════════════════════════════════════════════════════"
@@ -67,6 +70,8 @@ echo "════════════════════════�
 echo " drupal:update + updb + cim (config_ignore reset between updb and cim)"
 echo "════════════════════════════════════════════════════════════"
 ${TASK} drupal:update
+# composer scaffold deletes sites/*/files/php — rebuild needs dpl_go in core.extension again.
+php scripts/enable-dpl-go-core-extension.php
 drush_y en varnish_purger -y
 echo "════════════════════════════════════════════════════════════"
 echo " easyemail reinstall (owned overlay + paragraph field schema)"

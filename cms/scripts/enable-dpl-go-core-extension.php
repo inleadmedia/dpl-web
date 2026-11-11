@@ -94,4 +94,21 @@ enable_dpl_go_drush_sql(
   'TRUNCATE cache_container; TRUNCATE cache_bootstrap; TRUNCATE cache_discovery;',
 );
 
+// When bootstrap works, flush Redis/file container caches too (sql truncate is DB bins only).
+$descriptor = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+$cr = proc_open(
+  escapeshellarg($drush) . ' cr -y',
+  $descriptor,
+  $pipes,
+  $cms_dir,
+  NULL,
+);
+if (is_resource($cr)) {
+  stream_get_contents($pipes[1]);
+  stream_get_contents($pipes[2]);
+  fclose($pipes[1]);
+  fclose($pipes[2]);
+  proc_close($cr);
+}
+
 echo "Enabled dpl_go in core.extension (via drush sql:query).\n";
