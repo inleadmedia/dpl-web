@@ -18,6 +18,27 @@ if (getenv('SKIP_EASYEMAIL_REINSTALL') === '1') {
   return;
 }
 
+// BnfStateEnum in stale state breaks field purge if bnf is off (prod imports).
+$list = \Drupal::service('extension.list.module');
+if (!\Drupal::moduleHandler()->moduleExists('bnf') && $list->getPath('bnf')) {
+  \Drupal::service('module_installer')->install(['bnf'], FALSE);
+  echo "Enabled bnf before easyemail reinstall (state unserialize).\n";
+}
+
+$repair = dirname(__FILE__) . '/repair-field-deleted-data-tables.php';
+if (is_file($repair)) {
+  require $repair;
+}
+
+$schema = \Drupal::database()->schema();
+foreach (['paragraph__field_nl_text', 'paragraph_revision__field_nl_text'] as $table) {
+  if ($schema->tableExists($table)) {
+    \Drupal::state()->delete('field.storage.deleted');
+    \Drupal::state()->delete('field.field.deleted');
+    break;
+  }
+}
+
 $owned_config = [
   'easyemail.settings',
   'easyemail.sender',

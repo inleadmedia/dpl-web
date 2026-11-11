@@ -76,6 +76,7 @@ drush_y en varnish_purger -y
 echo "════════════════════════════════════════════════════════════"
 echo " easyemail reinstall (owned overlay + paragraph field schema)"
 echo "════════════════════════════════════════════════════════════"
+drush_y php:script scripts/repair-field-deleted-data-tables.php
 drush_y php:script scripts/reinstall-easyemail-for-upgrade.php
 drush_y updb -y
 # updb can leave patron_redirect on without dpl_go — sql escape, not full bootstrap.
