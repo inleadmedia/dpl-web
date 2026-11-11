@@ -10,7 +10,8 @@ vars:
 
 env:
   SKIP_LANGUAGE_IMPORT: false
-  SKIP_GO_DEPLOY: false
+  # Kulturnat EONEXT: CMS-only on Inlead Jenkins — React builds, Go does not deploy here.
+  SKIP_GO_DEPLOY: true
   SKIP_REACT_BUILD: false
   DRUSH_EXEC: "./vendor/bin/drush"
 
@@ -60,27 +61,45 @@ tasks:
         export REACT_LIB="${CMS_ROOT}/web/libraries/dpl-react"
         LINK_SCRIPT='
           set -eu
-          use_monorepo_node() {
+          export PUPPETEER_SKIP_DOWNLOAD=true
+          export CYPRESS_INSTALL_BINARY=0
+          export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+          ensure_js_toolchain() {
+            cd "${REPO_ROOT}"
+            NODE_OK=0
             if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
               # shellcheck disable=SC1090
               . "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
-              cd "${REPO_ROOT}" && nvm install && nvm use
+              nvm install && nvm use
+              NODE_MAJOR="$(node -p "process.versions.node.split(\".\")[0]")"
+              if [ "${NODE_MAJOR}" -ge 24 ] 2>/dev/null; then
+                NODE_OK=1
+              fi
             elif command -v node >/dev/null 2>&1; then
-              cd "${REPO_ROOT}"
-            else
-              echo "ERROR: need nvm or node on PATH (host: install nvm; DDEV: use web container). Or SKIP_REACT_BUILD=true." >&2
-              exit 1
+              NODE_MAJOR="$(node -p "process.versions.node.split(\".\")[0]")"
+              if [ "${NODE_MAJOR}" -ge 24 ] 2>/dev/null; then
+                NODE_OK=1
+              fi
             fi
-            # System Node (e.g. Jenkins site user): enable writes to /usr/bin and fails with EACCES.
-            # nvm Node: enable is user-writable. Either way, corepack pnpm works if corepack is on PATH.
+            # Jenkins / CI: use repo Node 24 container when host Node is missing or too old (Korsør pattern).
+            if [ "${NODE_OK}" -eq 0 ]; then
+              if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+                touch "${REPO_ROOT}/.run-in-docker"
+                echo "Asset build: using Node 24 Docker (.run-in-docker); host Node is not 24+."
+              else
+                echo "ERROR: need Node 24 (.nvmrc via nvm) or Docker for drupal:cms-link." >&2
+                exit 1
+              fi
+            fi
             if ! corepack enable 2>/dev/null; then
               command -v corepack >/dev/null 2>&1 || {
-                echo "ERROR: corepack enable failed and corepack is not on PATH — install nvm and Node from .nvmrc for this user." >&2
+                echo "ERROR: corepack enable failed — use nvm + .nvmrc Node or Docker." >&2
                 exit 1
               }
             fi
+            task init:pnpm --force
           }
-          use_monorepo_node
+          ensure_js_toolchain
           task dev:design-system:build
           task dev:wedobooks:build
           cd "${REPO_ROOT}/react" && corepack pnpm run clean && corepack pnpm run build:js:prod && corepack pnpm run build:css:prod
