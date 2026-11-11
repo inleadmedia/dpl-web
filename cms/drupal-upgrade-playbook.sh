@@ -83,6 +83,7 @@ php scripts/enable-dpl-go-core-extension.php
 drush_y php:script scripts/reset-config-ignore-from-sync.php
 drush_y php:script scripts/playbook-pre-cim.php
 drush_y php:script scripts/protect-korsor-no-dpl-go.php
+drush_y php:script scripts/protect-korsor-cim-dependencies.php
 drush_y php:script scripts/protect-korsor-kultur-config.php
 drush_y php:script scripts/protect-korsor-event-engine-config.php
 drush_y php:script scripts/repair-korsor-workflow-config.php
