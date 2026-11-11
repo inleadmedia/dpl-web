@@ -2,6 +2,7 @@ name: 'EO Next Kultur Events'
 type: module
 description: 'Grid events listing with extended filters for /arrangementer.'
 package: Custom
+weight: 50
 core_version_requirement: ^10 || ^11
 dependencies:
   - dpl_link:dpl_link

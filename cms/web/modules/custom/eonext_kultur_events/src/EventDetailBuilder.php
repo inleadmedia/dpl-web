@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_events;
 
+use Drupal\eonext_kultur_main\EventTitleResolver;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -30,6 +31,7 @@ final class EventDetailBuilder {
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly ReoccurringDateFormatter $recurringDateFormatter,
+    private readonly EventTitleResolver $eventTitleResolver,
     TranslationInterface $translation,
   ) {
     $this->stringTranslation = $translation;
@@ -69,7 +71,7 @@ final class EventDetailBuilder {
 
     $detail = $this->buildDetail(
       $eventInstance,
-      $eventInstance->label(),
+      $this->eventTitleResolver->resolve($eventInstance),
       $start,
       $end,
       $allDay,
@@ -110,7 +112,7 @@ final class EventDetailBuilder {
 
     return $this->buildDetail(
       $eventSeries,
-      $eventSeries->label(),
+      $this->eventTitleResolver->resolve($eventSeries),
       $start,
       $end,
       $allDay,

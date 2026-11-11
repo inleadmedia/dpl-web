@@ -77,6 +77,7 @@ drush_y php:script scripts/protect-korsor-kultur-config.php
 drush_y php:script scripts/protect-korsor-event-engine-config.php
 drush_y php:script scripts/repair-korsor-workflow-config.php
 drush_y cim -y
+drush_y php:script scripts/ensure-service-message-config.php
 drush_y php:script scripts/ensure-unilogin-patron-role.php
 drush_y php:script scripts/skip-korsor-gsearch-deploy-hook.php
 drush_y deploy:hook -y
