@@ -73,6 +73,8 @@ echo " easyemail reinstall (owned overlay + paragraph field schema)"
 echo "════════════════════════════════════════════════════════════"
 drush_y php:script scripts/reinstall-easyemail-for-upgrade.php
 drush_y updb -y
+# updb can leave patron_redirect on without dpl_go — sql escape, not full bootstrap.
+php scripts/enable-dpl-go-core-extension.php
 drush_y php:script scripts/reset-config-ignore-from-sync.php
 drush_y php:script scripts/playbook-pre-cim.php
 drush_y php:script scripts/protect-korsor-no-dpl-go.php

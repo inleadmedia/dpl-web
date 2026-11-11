@@ -7,8 +7,8 @@
  * Drush sql:query/bootstrap stops at CONFIGURATION, so this works when full
  * bootstrap fails on dpl_patron_redirect without dpl_go.
  *
- * Manual escape only — not run by drupal-upgrade-playbook.sh.
- * After upgrade + cim, protect-korsor-no-dpl-go.php turns GO modules off again.
+ * Run manually when Drush dies on dpl_go.go_site; playbook also runs this after updb.
+ * After cim, protect-korsor-no-dpl-go.php turns GO modules off again.
  *
  * Usage (from cms/):
  *   php scripts/enable-dpl-go-core-extension.php
@@ -35,8 +35,9 @@ function enable_dpl_go_drush_sql(string $drush, string $cms_dir, string $sql, bo
   $parts[] = escapeshellarg($sql);
   $cmd = implode(' ', $parts);
   $descriptor = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-  $env = $_ENV + ['PWD' => $cms_dir];
-  $proc = proc_open($cmd, $descriptor, $pipes, $cms_dir, $env);
+  // Inherit the shell environment (HOME, PATH, …). Passing only $_ENV often
+  // omits HOME and Drush/Symfony fails on Lagoon SSH.
+  $proc = proc_open($cmd, $descriptor, $pipes, $cms_dir, NULL);
   if (!is_resource($proc)) {
     fwrite(STDERR, "Failed to run drush sql:query\n");
     exit(1);
