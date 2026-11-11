@@ -37,6 +37,11 @@ drush_y() {
 }
 
 echo "════════════════════════════════════════════════════════════"
+echo " Korsør: no GO (dpl_patron_redirect needs dpl_go — SQL if bootstrap broken)"
+echo "════════════════════════════════════════════════════════════"
+php scripts/prune-dpl-go-modules-sql.php || true
+
+echo "════════════════════════════════════════════════════════════"
 echo " Playbook pre-deploy (config_ignore, eonext_staff, dpl_update)"
 echo "════════════════════════════════════════════════════════════"
 if [ "${SKIP_PLAYBOOK_PRE:-0}" != 1 ]; then
@@ -73,10 +78,12 @@ drush_y php:script scripts/reinstall-easyemail-for-upgrade.php
 drush_y updb -y
 drush_y php:script scripts/reset-config-ignore-from-sync.php
 drush_y php:script scripts/playbook-pre-cim.php
+drush_y php:script scripts/protect-korsor-no-dpl-go.php
 drush_y php:script scripts/protect-korsor-kultur-config.php
 drush_y php:script scripts/protect-korsor-event-engine-config.php
 drush_y php:script scripts/repair-korsor-workflow-config.php
 drush_y cim -y
+drush_y php:script scripts/protect-korsor-no-dpl-go.php
 drush_y php:script scripts/ensure-service-message-config.php
 drush_y php:script scripts/ensure-unilogin-patron-role.php
 drush_y php:script scripts/skip-korsor-gsearch-deploy-hook.php

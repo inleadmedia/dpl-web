@@ -48,7 +48,6 @@ module:
   dpl_fees: 0
   dpl_filter_paragraphs: 0
   dpl_footer: 0
-  dpl_go: 0
   dpl_graphql: 0
   dpl_instant_loan: 0
   dpl_lagoon: 0
@@ -64,7 +63,6 @@ module:
   dpl_paragraphs: 0
   dpl_patron_menu: 0
   dpl_patron_page: 0
-  dpl_patron_redirect: 0
   dpl_patron_reg: 0
   dpl_po: 0
   dpl_protected_nodes: 0
