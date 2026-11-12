@@ -207,6 +207,15 @@ function eonext_kultur_events_configure_events_view(): void {
 
   $display['default']['display_options']['filters'] = $filters;
 
+  $exposed_form = $display['default']['display_options']['exposed_form']['options'] ?? [];
+  $exposed_form['submit_button'] = 'Anvend';
+  $display['default']['display_options']['exposed_form']['options'] = $exposed_form;
+
+  $bef_general = $display['default']['display_options']['exposed_form']['options']['bef']['general'] ?? [];
+  $bef_general['autosubmit'] = FALSE;
+  $bef_general['autosubmit_hide'] = FALSE;
+  $display['default']['display_options']['exposed_form']['options']['bef']['general'] = $bef_general;
+
   $bef = $display['default']['display_options']['exposed_form']['options']['bef']['filter'] ?? [];
   $bef['date'] = [
     'plugin_id' => 'bef_datepicker',
@@ -410,6 +419,13 @@ function eonext_kultur_events_update_9009(): string {
  */
 function eonext_kultur_events_update_9010(): void {
   eonext_kultur_events_configure_facet_weights();
+}
+
+/**
+ * Sets Danish "Anvend" label on the calendar exposed submit button.
+ */
+function eonext_kultur_events_update_9012(): void {
+  eonext_kultur_events_configure_events_view();
 }
 
 /**

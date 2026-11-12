@@ -188,7 +188,10 @@ function eonext_kultur_preprocess_page(array &$variables): void {
   $variables['#cache']['tags'][] = 'dpl_footer';
 
   $theme_path = \Drupal::theme()->getActiveTheme()->getPath();
-  $logo_title = theme_get_setting('logo_title') ?? 'Korsør Kulturhus';
+  $logo_title = theme_get_setting('logo_title') ?? '';
+  if ($logo_title === '' || $logo_title === 'Logo title (bold)') {
+    $logo_title = 'Korsør Kulturhus';
+  }
   $logo_src = base_path() . $theme_path . '/assets/images/logo.png';
   $footer_logo_src = base_path() . $theme_path . '/assets/images/logo-white.png';
 

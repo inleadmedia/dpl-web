@@ -41,6 +41,11 @@ class FormHooks {
   public function fixSubmitButton(array &$form, FormStateInterface $form_state, string $form_id): void {
     // The exposed form for the event list is rather difficult to detect.
     if ($form_id == 'views_exposed_form' && $form['#id'] == 'views-exposed-form-events-all') {
+      if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_events')
+        && function_exists('eonext_kultur_events_is_events_listing_page')
+        && eonext_kultur_events_is_events_listing_page()) {
+        return;
+      }
       $form['actions']['submit']['#type'] = 'image_button';
       $form['actions']['submit']['#src'] = '/themes/custom/novel/assets/dpl-design-system/icons/basic/icon-search.svg';
       // This is horrible, but the Form API apparently already populated the

@@ -306,10 +306,61 @@ function eonext_kultur_events_listing_page_path(): ?string {
 }
 
 /**
+ * Whether the form is the kultur events listing exposed form.
+ */
+function eonext_kultur_events_is_events_exposed_form(array $form): bool {
+  $id = $form['#id'] ?? '';
+  return str_starts_with($id, 'views-exposed-form-events-');
+}
+
+/**
+ * Submit label for the calendar filter (not the generic Views "Apply" string).
+ */
+function eonext_kultur_events_exposed_submit_label(): string {
+  return (string) t('Anvend', [], ['context' => 'eonext_kultur_events']);
+}
+
+/**
+ * Sets the visible submit label on the events exposed form.
+ */
+function eonext_kultur_events_set_exposed_submit_label(array &$form): void {
+  if (!isset($form['actions']['submit'])) {
+    return;
+  }
+
+  $label = eonext_kultur_events_exposed_submit_label();
+  if ($label === '') {
+    $label = 'Anvend';
+  }
+
+  $form['actions']['submit']['#value'] = $label;
+  if (($form['actions']['submit']['#type'] ?? '') === 'image_button') {
+    $form['actions']['submit']['#type'] = 'submit';
+    unset($form['actions']['submit']['#src']);
+    $form['actions']['submit']['#pre_render'] = [
+      [\Drupal\Core\Render\Element\Submit::class, 'preRenderButton'],
+    ];
+  }
+  $classes = $form['actions']['submit']['#attributes']['class'] ?? [];
+  $classes = array_values(array_diff($classes, ['js-hide', 'image-button']));
+  if (!in_array('eonext-kultur-events__submit', $classes, TRUE)) {
+    $classes[] = 'eonext-kultur-events__submit';
+  }
+  $form['actions']['submit']['#attributes']['class'] = $classes;
+  $form['actions']['submit']['#access'] = TRUE;
+  if (isset($form['actions']['#attributes']['class'])) {
+    $form['actions']['#attributes']['class'] = array_values(array_diff(
+      $form['actions']['#attributes']['class'],
+      ['js-hide'],
+    ));
+  }
+}
+
+/**
  * Implements hook_form_views_exposed_form_alter().
  */
 function eonext_kultur_events_form_views_exposed_form_alter(array &$form, FormStateInterface $form_state, $form_id): void {
-  if (($form['#id'] ?? '') !== 'views-exposed-form-events-all') {
+  if (!eonext_kultur_events_is_events_exposed_form($form)) {
     return;
   }
 
@@ -319,9 +370,7 @@ function eonext_kultur_events_form_views_exposed_form_alter(array &$form, FormSt
     $form['search_api_fulltext']['#attributes']['placeholder'] = '';
   }
 
-  if (isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#attributes']['class'][] = 'eonext-kultur-events__submit';
-  }
+  eonext_kultur_events_set_exposed_submit_label($form);
 
   // Keep filters on the content page that embeds the view. The page display
   // otherwise posts back to /events.
@@ -335,9 +384,11 @@ function eonext_kultur_events_form_views_exposed_form_alter(array &$form, FormSt
  * After-build callback for the events exposed form.
  */
 function eonext_kultur_events_events_exposed_form_after_build(array $form, FormStateInterface $form_state): array {
-  if (($form['#id'] ?? '') !== 'views-exposed-form-events-all') {
+  if (!eonext_kultur_events_is_events_exposed_form($form)) {
     return $form;
   }
+
+  eonext_kultur_events_set_exposed_submit_label($form);
 
   if (isset($form['search_api_fulltext'])) {
     $form['search_api_fulltext']['#attributes']['class'][] = 'search-full-text__input';
