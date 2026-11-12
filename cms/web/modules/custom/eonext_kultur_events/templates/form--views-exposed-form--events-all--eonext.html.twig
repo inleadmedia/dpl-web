@@ -15,8 +15,18 @@
     {% if element.date_wrapper %}
       {{ element.date_wrapper }}
     {% endif %}
-    {% if element.actions %}
-      {{ element.actions }}
+    {% if element.actions.submit %}
+      <div class="form-actions js-form-wrapper form-wrapper">
+        {% set submit_label = 'Apply'|t({}, {'context': 'eonext_kultur_events'}) %}
+        <button
+          type="submit"
+          id="{{ element.actions.submit['#id'] }}"
+          name="{{ element.actions.submit['#name'] }}"
+          value="{{ submit_label }}"
+          class="button js-form-submit form-submit eonext-kultur-events__submit"
+          aria-label="{{ submit_label }}"
+        >{{ submit_label }}</button>
+      </div>
     {% endif %}
   </div>
 </form>

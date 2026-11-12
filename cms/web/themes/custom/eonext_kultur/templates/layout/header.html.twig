@@ -34,7 +34,11 @@
     <div class="ek-header__toolbar">
       {{ search_header }}
       <div class="ek-header-translation">
-        {{ patron_menu }}
+        {% if patron_menu %}
+          {{ patron_menu }}
+        {% else %}
+          {{ drupal_block('language_block:language_interface', {label_display: '0'}) }}
+        {% endif %}
       </div>
     </div>
   </div>

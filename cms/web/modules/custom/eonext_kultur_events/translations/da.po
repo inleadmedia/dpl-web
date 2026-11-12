@@ -34,6 +34,22 @@ msgid "Søg"
 msgstr "Søg"
 
 msgctxt "eonext_kultur_events"
+msgid "Apply"
+msgstr "Anvend"
+
+msgctxt "facets.facet.event_categories:name"
+msgid "Category"
+msgstr "Kategori"
+
+msgctxt "eonext_kultur_events"
+msgid "Program"
+msgstr "Program"
+
+msgctxt "eonext_kultur_events"
+msgid "Tilbage til program"
+msgstr "Tilbage til program"
+
+msgctxt "eonext_kultur_events"
 msgid "Gratis"
 msgstr "Gratis"
 

@@ -1,6 +1,6 @@
 uuid: d2755a0c-f386-4a06-b333-d77ffc25969d
 langcode: en
-status: true
+status: false
 dependencies:
   config:
     - search_api.index.events

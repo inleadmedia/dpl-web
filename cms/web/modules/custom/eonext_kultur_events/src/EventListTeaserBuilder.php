@@ -94,8 +94,11 @@ final class EventListTeaserBuilder {
     }
 
     $free_label = (string) $this->t('Free');
-    if ($formatted === $free_label || $formatted === (string) $this->priceFormatter->formatPriceRange([0])) {
-      return (string) $this->t('Gratis', [], ['context' => 'eonext_kultur_events']);
+    $gratis_label = (string) $this->t('Gratis', [], ['context' => 'eonext_kultur_events']);
+    if ($formatted === $free_label
+      || $formatted === $gratis_label
+      || $formatted === (string) $this->priceFormatter->formatPriceRange([0])) {
+      return '';
     }
 
     return $formatted;

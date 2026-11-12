@@ -116,13 +116,23 @@ class TranslationService implements TranslationServiceInterface {
 
     // Save the footer settings.
     $config = $this->configFactory->getEditable(static::FOOTER_SETTINGS);
+    if ($config->isNew()) {
+      $config
+        ->set('translate_footer', 0)
+        ->set('footer_items', [])
+        ->set('secondary_links', [])
+        ->set('facebook', '')
+        ->set('instagram', '')
+        ->set('youtube', '')
+        ->set('spotify', '');
+    }
     $config
-      ->set('footer_items', $footerState['footer_items'])
-      ->set('secondary_links', $footerState['secondary_links'])
-      ->set('facebook', $footerState['facebook'])
-      ->set('instagram', $footerState['instagram'])
-      ->set('youtube', $footerState['youtube'])
-      ->set('spotify', $footerState['spotify'])
+      ->set('footer_items', $footerState['footer_items'] ?? [])
+      ->set('secondary_links', $footerState['secondary_links'] ?? [])
+      ->set('facebook', $footerState['facebook'] ?? '')
+      ->set('instagram', $footerState['instagram'] ?? '')
+      ->set('youtube', $footerState['youtube'] ?? '')
+      ->set('spotify', $footerState['spotify'] ?? '')
       ->save();
   }
 

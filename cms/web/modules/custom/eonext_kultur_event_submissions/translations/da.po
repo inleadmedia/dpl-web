@@ -50,8 +50,8 @@ msgid "Contact phone is required."
 msgstr "Kontakttelefon skal udfyldes."
 
 msgctxt "eonext_kultur_event_submissions"
-msgid "Settlement"
-msgstr "Bygde"
+msgid "Residence"
+msgstr "Bosted"
 
 msgctxt "eonext_kultur_event_submissions"
 msgid "We received your Kulturnat event submission"
@@ -78,8 +78,8 @@ msgstr ""
 "programmet."
 
 msgctxt "eonext_kultur_event_submissions"
-msgid "Street address"
-msgstr "Gadeadresse"
+msgid "Address"
+msgstr "Adresse"
 
 msgctxt "eonext_kultur_event_submissions"
 msgid "Postal code"

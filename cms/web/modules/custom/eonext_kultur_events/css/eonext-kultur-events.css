@@ -239,6 +239,7 @@
 }
 
 .eonext-kultur-events__toolbar .form-actions input[type="submit"],
+.eonext-kultur-events__toolbar .form-actions button[type="submit"],
 .eonext-kultur-events__toolbar .eonext-kultur-events__submit {
   height: 40px;
   min-height: 40px;

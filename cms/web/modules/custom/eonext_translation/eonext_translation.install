@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * Install and update hooks for eonext_translation.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Ensures eonext_translation.footer exists and matches the config schema.
+ */
+function _eonext_translation_ensure_footer_config(): string {
+  $factory = \Drupal::configFactory();
+  $editable = $factory->getEditable('eonext_translation.footer');
+
+  if (!\Drupal::moduleHandler()->moduleExists('eonext_translation')) {
+    return 'eonext_translation not enabled.';
+  }
+
+  /** @var \Drupal\eonext_translation\TranslationServiceInterface $service */
+  $service = \Drupal::service('eonext_translation.service');
+  $state = $service->getFooterState();
+  if ($state !== []) {
+    $service->saveFooterToConfig();
+    $editable = $factory->getEditable('eonext_translation.footer');
+  }
+
+  $defaults = [
+    'translate_footer' => 0,
+    'footer_items' => [],
+    'secondary_links' => [],
+    'facebook' => '',
+    'instagram' => '',
+    'youtube' => '',
+    'spotify' => '',
+  ];
+
+  $created = $editable->isNew();
+  foreach ($defaults as $key => $default) {
+    if ($editable->get($key) === NULL) {
+      $editable->set($key, $default);
+    }
+  }
+  $editable->save();
+
+  if ($created && $state !== []) {
+    return 'Created eonext_translation.footer from dpl_footer state.';
+  }
+  if ($created) {
+    return 'Created eonext_translation.footer with defaults.';
+  }
+
+  return 'eonext_translation.footer already present.';
+}
+
+/**
+ * Implements hook_install().
+ */
+function eonext_translation_install(): void {
+  _eonext_translation_ensure_footer_config();
+}
+
+/**
+ * Create footer config when missing (config translation / translate UI).
+ */
+function eonext_translation_update_9001(): string {
+  return _eonext_translation_ensure_footer_config();
+}

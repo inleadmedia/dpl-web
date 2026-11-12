@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Pre-updb: pin dpl_update schema (Korsør / Slagbib playbook).
+ * Pre-updb: config_ignore from sync + pin dpl_update schema (Korsør playbook).
  *
  * Kulturnat already uses Danish/Kalaallisut events, so dpl_update_update_10074
  * (flip en → da) is unsafe. Hooks 10076–10077 are handled by
@@ -13,6 +13,17 @@
  */
 
 declare(strict_types=1);
+
+use Drupal\Core\Config\FileStorage;
+
+$sync = new FileStorage(DRUPAL_ROOT . '/../config/sync');
+$data = $sync->read('config_ignore.settings');
+if ($data) {
+  \Drupal::configFactory()->getEditable('config_ignore.settings')
+    ->setData($data)
+    ->save(TRUE);
+  echo "Imported config_ignore.settings from config/sync.\n";
+}
 
 if (getenv('PLAYBOOK_PIN_DPL_UPDATE') === '0') {
   echo "PLAYBOOK_PIN_DPL_UPDATE=0 — not pinning dpl_update schema.\n";

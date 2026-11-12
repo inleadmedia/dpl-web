@@ -10,6 +10,7 @@ services:
     arguments:
       - '@plugin.manager.mail'
       - '@language_manager'
+      - '@logger.channel.eonext_kultur_event_submissions'
 
   logger.channel.eonext_kultur_event_submissions:
     parent: logger.channel_base

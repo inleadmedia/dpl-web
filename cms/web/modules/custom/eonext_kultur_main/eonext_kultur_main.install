@@ -14,6 +14,7 @@ use Drupal\eonext_kultur_main\BannerSettings;
 use Drupal\eonext_kultur_main\FooterSocialLoader;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\language\Entity\ContentLanguageSettings;
 use Drupal\node\NodeInterface;
 use Drupal\paragraphs\Entity\Paragraph;
@@ -946,17 +947,7 @@ function eonext_kultur_main_update_9028(): string {
   $language_settings->save();
   $messages[] = 'Categories can now be translated (da/kl).';
 
-  foreach (['editor', 'local_administrator'] as $role_id) {
-    $role = \Drupal::entityTypeManager()->getStorage('user_role')->load($role_id);
-    if ($role === NULL) {
-      continue;
-    }
-    if (!$role->hasPermission('translate any entity')) {
-      $role->grantPermission('translate any entity');
-      $role->save();
-      $messages[] = "Granted translate any entity to {$role_id}.";
-    }
-  }
+  $messages = array_merge($messages, _eonext_kultur_main_grant_kulturnat_translation_permissions());
 
   return implode(' ', $messages) ?: 'Category translation is already configured.';
 }
@@ -975,26 +966,7 @@ function eonext_kultur_main_update_9029(): string {
     }
   }
 
-  if (\Drupal::moduleHandler()->moduleExists('mailsystem')) {
-    $mail_config = \Drupal::configFactory()->getEditable('mailsystem.settings');
-    $transport = \Drupal::moduleHandler()->moduleExists('symfony_mailer') ? 'symfony_mailer' : 'php_mail';
-    $defaults = $mail_config->get('defaults') ?? [];
-    if (($defaults['sender'] ?? '') !== $transport || ($defaults['formatter'] ?? '') !== $transport) {
-      $mail_config->set('defaults', [
-        'formatter' => $transport,
-        'sender' => $transport,
-      ]);
-    }
-    $module_mail = $mail_config->get('modules.eonext_kultur_event_submissions') ?? [];
-    if (($module_mail['sender'] ?? '') !== $transport || ($module_mail['formatter'] ?? '') !== $transport) {
-      $mail_config->set('modules.eonext_kultur_event_submissions', [
-        'formatter' => $transport,
-        'sender' => $transport,
-      ]);
-      $mail_config->save();
-      $messages[] = "Configured mailsystem to use {$transport} for submission emails.";
-    }
-  }
+  $messages = array_merge($messages, _eonext_kultur_main_configure_kulturnat_mail_transport());
 
   if (\Drupal::moduleHandler()->moduleExists('content_translation')) {
     $manager = \Drupal::service('content_translation.manager');
@@ -1097,4 +1069,399 @@ function eonext_kultur_main_update_9031(): string {
   $config->save();
 
   return 'Set Kulturnat favicon via theme settings (bundled images/logo.png).';
+}
+
+/**
+ * Grants translation permissions to Kulturnat editorial roles.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_grant_kulturnat_translation_permissions(): array {
+  $messages = [];
+  $permissions = [
+    'translate any entity',
+    'create content translations',
+    'update content translations',
+    'delete content translations',
+  ];
+
+  foreach (['administrator', 'editor', 'local_administrator'] as $role_id) {
+    $role = \Drupal::entityTypeManager()->getStorage('user_role')->load($role_id);
+    if ($role === NULL) {
+      continue;
+    }
+
+    $changed = FALSE;
+    foreach ($permissions as $permission) {
+      if (!$role->hasPermission($permission)) {
+        $role->grantPermission($permission);
+        $changed = TRUE;
+      }
+    }
+
+    if ($changed) {
+      $role->save();
+      $messages[] = "Granted translation permissions to {$role_id}.";
+    }
+  }
+
+  return $messages;
+}
+
+/**
+ * Configures mailsystem for Kulturnat submission mail (idempotent).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_configure_kulturnat_mail_transport(): array {
+  if (!\Drupal::moduleHandler()->moduleExists('mailsystem')) {
+    return [];
+  }
+
+  $mail_config = \Drupal::configFactory()->getEditable('mailsystem.settings');
+  $transport = \Drupal::moduleHandler()->moduleExists('symfony_mailer') ? 'symfony_mailer' : 'php_mail';
+  $changed = FALSE;
+
+  $defaults = $mail_config->get('defaults') ?? [];
+  if (($defaults['sender'] ?? '') !== $transport || ($defaults['formatter'] ?? '') !== $transport) {
+    $mail_config->set('defaults', [
+      'formatter' => $transport,
+      'sender' => $transport,
+    ]);
+    $changed = TRUE;
+  }
+
+  $module_mail = $mail_config->get('modules.eonext_kultur_event_submissions') ?? [];
+  if (($module_mail['sender'] ?? '') !== $transport || ($module_mail['formatter'] ?? '') !== $transport) {
+    $mail_config->set('modules.eonext_kultur_event_submissions', [
+      'formatter' => $transport,
+      'sender' => $transport,
+    ]);
+    $changed = TRUE;
+  }
+
+  if ($changed) {
+    $mail_config->save();
+    return ["Configured mailsystem to use {$transport} for submission emails."];
+  }
+
+  return [];
+}
+
+/**
+ * Ensures Kulturnat editorial languages exist (Kalaallisut for translations).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_apply_kulturnat_config_ignore(): array {
+  $dir = dirname(DRUPAL_ROOT) . '/scripts';
+  $merge = $dir . '/kulturnat-config-ignore-merge.php';
+  $patterns_file = $dir . '/kulturnat-config-ignore-patterns.php';
+  if (!is_file($merge) || !is_file($patterns_file)) {
+    return ['Kulturnat config ignore scripts not found; skipped.'];
+  }
+
+  require_once $merge;
+  /** @var array{patterns: string[], remove_from_auto: string[]} $data */
+  $data = require $patterns_file;
+  kulturnat_config_ignore_merge_patterns($data['patterns'], $data['remove_from_auto']);
+
+  return ['Merged Kulturnat config_ignore patterns (' . count($data['patterns']) . ').'];
+}
+
+/**
+ * Enables content translation (runtime only — not exported in DPL sync).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_ensure_content_translation_module(): array {
+  if (\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return [];
+  }
+
+  try {
+    \Drupal::service('module_installer')->install(['content_translation']);
+    return ['Enabled content_translation module.'];
+  }
+  catch (\Throwable $exception) {
+    return ['Could not enable content_translation: ' . $exception->getMessage()];
+  }
+}
+
+/**
+ * Ensures Kulturnat editorial languages exist (Kalaallisut for translations).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_ensure_kulturnat_languages(): array {
+  $messages = [];
+
+  if (ConfigurableLanguage::load('kl') === NULL) {
+    ConfigurableLanguage::createFromLangcode('kl')->save();
+    $messages[] = 'Created Kalaallisut (kl) language.';
+  }
+
+  $negotiation = \Drupal::configFactory()->getEditable('language.negotiation');
+  $prefixes = $negotiation->get('url.prefixes') ?? [];
+  $domains = $negotiation->get('url.domains') ?? [];
+  $changed = FALSE;
+  if (!array_key_exists('kl', $prefixes)) {
+    $prefixes['kl'] = 'kl';
+    $changed = TRUE;
+  }
+  if (!array_key_exists('kl', $domains)) {
+    $domains['kl'] = '';
+    $changed = TRUE;
+  }
+  if ($changed) {
+    $negotiation
+      ->set('url.prefixes', $prefixes)
+      ->set('url.domains', $domains)
+      ->save();
+    $messages[] = 'Configured /kl URL prefix in language.negotiation.';
+  }
+
+  return $messages;
+}
+
+/**
+ * Applies Kulturnat translation + kl policy (update hooks / post-cim reapply).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_apply_kulturnat_translation_runtime(): array {
+  return array_merge(
+    _eonext_kultur_main_apply_kulturnat_config_ignore(),
+    _eonext_kultur_main_ensure_content_translation_module(),
+    _eonext_kultur_main_ensure_kulturnat_languages(),
+    _eonext_kultur_main_enable_kulturnat_content_translation_bundles(),
+    _eonext_kultur_main_grant_kulturnat_translation_permissions(),
+  );
+}
+
+/**
+ * Enables Kulturnat content translation on editorial bundles (da/kl UI).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_enable_kulturnat_content_translation_bundles(): array {
+  $messages = [];
+
+  if (!\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return ['Content translation module is not enabled.'];
+  }
+
+  $manager = \Drupal::service('content_translation.manager');
+  $bundles = [
+    ['node', 'page'],
+    ['node', 'article'],
+    ['node', 'lokale'],
+    ['taxonomy_term', 'categories'],
+    ['taxonomy_term', 'tags'],
+    ['eventinstance', 'default'],
+    ['eventseries', 'default'],
+    ['paragraph', 'text_body'],
+    ['paragraph', FooterSocialLoader::PARAGRAPH_BUNDLE],
+  ];
+
+  foreach ($bundles as [$entity_type, $bundle]) {
+    $handler = \Drupal::moduleHandler();
+    if (in_array($entity_type, ['eventinstance', 'eventseries'], TRUE) && !$handler->moduleExists('recurring_events')) {
+      continue;
+    }
+    if ($entity_type === 'paragraph' && !$handler->moduleExists('paragraphs')) {
+      continue;
+    }
+    $bundle_info = \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity_type);
+    if (!isset($bundle_info[$bundle])) {
+      continue;
+    }
+
+    if (!$manager->isEnabled($entity_type, $bundle)) {
+      try {
+        $manager->setEnabled($entity_type, $bundle, TRUE);
+        $messages[] = "Enabled content translation for {$entity_type}.{$bundle}.";
+      }
+      catch (\Throwable) {
+        continue;
+      }
+    }
+
+    $config_name = "{$entity_type}.{$bundle}";
+    $language_settings = ContentLanguageSettings::load($config_name);
+    if (!$language_settings instanceof ContentLanguageSettings) {
+      $language_settings = ContentLanguageSettings::create([
+        'target_entity_type_id' => $entity_type,
+        'target_bundle' => $bundle,
+      ]);
+    }
+    if ($language_settings->getDefaultLangcode() !== 'da') {
+      $language_settings->setDefaultLangcode('da');
+    }
+    if (!$language_settings->isLanguageAlterable()) {
+      $language_settings->setLanguageAlterable(TRUE);
+      $messages[] = "Made {$config_name} language alterable.";
+    }
+    $language_settings->save();
+  }
+
+  return $messages;
+}
+
+/**
+ * Re-applies Kulturnat site policy (login, mail, translation, favicon, modules).
+ *
+ * Safe to run after deploy, config import, or a DPL platform upgrade that
+ * overwrote roles, mailsystem, or OpenID settings.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_reapply_eonext_437_site_policy(): array {
+  $messages = _eonext_kultur_main_apply_kulturnat_translation_runtime();
+
+  if (\Drupal::moduleHandler()->moduleExists('openid_connect')) {
+    $openid = \Drupal::configFactory()->getEditable('openid_connect.settings');
+    if ($openid->get('user_login_display') !== 'hidden') {
+      $openid->set('user_login_display', 'hidden')->save();
+      $messages[] = 'Hid OpenID Connect / library login on the user login form.';
+    }
+  }
+
+  $messages = array_merge($messages, _eonext_kultur_main_configure_kulturnat_mail_transport());
+
+  if (\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    $bundle = FooterSocialLoader::PARAGRAPH_BUNDLE;
+    foreach ([
+      'field_kultur_footer_title',
+      'field_kultur_footer_text',
+      'field_kultur_footer_cta',
+      'field_kultur_footer_hashtag',
+    ] as $field_name) {
+      $field = FieldConfig::loadByName('paragraph', $bundle, $field_name);
+      if ($field instanceof FieldConfig && !$field->isTranslatable()) {
+        $field->setTranslatable(TRUE);
+        $field->save();
+        $messages[] = "Made {$field_name} translatable on footer social paragraph.";
+      }
+    }
+  }
+
+  foreach (['administrator', 'local_administrator'] as $role_id) {
+    $role = \Drupal::entityTypeManager()->getStorage('user_role')->load($role_id);
+    if ($role === NULL || !\Drupal::moduleHandler()->moduleExists('theme_permission')) {
+      continue;
+    }
+    $permission = 'administer theme global settings';
+    if (!$role->hasPermission($permission)) {
+      $role->grantPermission($permission);
+      $role->save();
+      $messages[] = "Granted theme global settings to {$role_id}.";
+    }
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_events') && function_exists('eonext_kultur_events_ensure_text_body_paragraph_reference_allowed')) {
+    eonext_kultur_events_ensure_text_body_paragraph_reference_allowed();
+    $messages[] = 'Ensured text_body paragraphs can be referenced on event fields.';
+  }
+
+  $theme = 'eonext_kultur';
+  if (\Drupal::service('theme_handler')->themeExists($theme)) {
+    $config = \Drupal::configFactory()->getEditable("{$theme}.settings");
+    $needs_favicon = (bool) $config->get('favicon.use_default')
+      || !is_string($config->get('favicon.path'))
+      || $config->get('favicon.path') === '';
+    if ($needs_favicon) {
+      $path = \Drupal::service('extension.list.theme')->getPath($theme);
+      $config->set('features.favicon', TRUE);
+      $config->set('favicon.use_default', FALSE);
+      $config->set('favicon.path', $path . '/images/logo.png');
+      $config->set('favicon.mimetype', 'image/png');
+      $config->save();
+      $messages[] = 'Set Kulturnat favicon in theme settings.';
+    }
+  }
+
+  $messages = array_merge($messages, _eonext_kultur_main_uninstall_optional_library_modules());
+
+  return $messages;
+}
+
+/**
+ * Uninstalls DPL library modules not used on Kulturnat when safe to do so.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_uninstall_optional_library_modules(): array {
+  $messages = [];
+  // bnf_client must go before bnf (BnfImporter lives in bnf).
+  $modules = ['bnf_client', 'bnf', 'dpl_biblio', 'dpl_go'];
+  $installer = \Drupal::service('module_installer');
+  $handler = \Drupal::moduleHandler();
+
+  foreach ($modules as $module) {
+    if (!$handler->moduleExists($module)) {
+      continue;
+    }
+    try {
+      $installer->uninstall([$module], FALSE);
+      $messages[] = "Uninstalled {$module}.";
+    }
+    catch (\Throwable $exception) {
+      $messages[] = "Could not uninstall {$module}: {$exception->getMessage()}";
+    }
+  }
+
+  return $messages;
+}
+
+/**
+ * Ensures Kalaallisut language exists (fixes content admin when kl translations exist).
+ */
+function eonext_kultur_main_update_9034(): string {
+  return implode(' ', _eonext_kultur_main_ensure_kulturnat_languages())
+    ?: 'Kalaallisut (kl) language was already enabled.';
+}
+
+/**
+ * Ensures administrator/editor roles can translate content after config import.
+ */
+function eonext_kultur_main_update_9033(): string {
+  $messages = _eonext_kultur_main_enable_kulturnat_content_translation_bundles();
+  $messages = array_merge($messages, _eonext_kultur_main_grant_kulturnat_translation_permissions());
+
+  return implode(' ', $messages) ?: 'Kulturnat content translation access was already configured.';
+}
+
+/**
+ * Runtime translation + kl + config_ignore (not in config/sync — survives DPL cim).
+ */
+function eonext_kultur_main_update_9035(): string {
+  $messages = _eonext_kultur_main_apply_kulturnat_translation_runtime();
+
+  return implode(' ', $messages) ?: 'Kulturnat translation runtime policy was already applied.';
+}
+
+function eonext_kultur_main_update_9032(): string {
+  $messages = _eonext_kultur_main_reapply_eonext_437_site_policy();
+
+  if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_event_submissions')
+    && function_exists('eonext_kultur_event_submissions_reapply_eonext_437_fixes')) {
+    $messages[] = eonext_kultur_event_submissions_reapply_eonext_437_fixes();
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_events')
+    && function_exists('eonext_kultur_events_reapply_eonext_437_fixes')) {
+    $messages[] = eonext_kultur_events_reapply_eonext_437_fixes();
+  }
+
+  return implode(' ', $messages) ?: 'Kulturnat QA site policy was already applied.';
 }

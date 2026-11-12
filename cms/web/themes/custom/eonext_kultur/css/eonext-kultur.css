@@ -20,8 +20,42 @@
   --ek-chrome-padding-x: clamp(24px, 6vw, 96px);
   --ek-header-item-gap: clamp(48px, 5vw, 96px);
   --ek-header-search-clock-gap: 32px;
+  /* Measured header chrome; messages stick flush below this when scrolling. */
+  --ek-header-height: 150px;
+  --ek-sticky-header-offset: calc(var(--ek-header-height) + 24px);
   --font-body: var(--ek-font-body);
   --font-title: var(--ek-font-heading);
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --ek-header-height: 94px;
+    --ek-sticky-header-offset: calc(var(--ek-header-height) + 24px);
+  }
+}
+
+html {
+  scroll-padding-top: var(--ek-sticky-header-offset);
+}
+
+/* Status / error messages under the header (system_messages_block). */
+.ek-page-messages:has([data-drupal-messages] [role="contentinfo"]) {
+  margin-top: 16px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  background-color: var(--ek-white);
+}
+
+.ek-page-messages [data-drupal-messages] {
+  box-sizing: border-box;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 var(--ek-chrome-padding-x) 8px;
+  scroll-margin-top: var(--ek-sticky-header-offset);
+}
+
+.ek-page-messages [data-drupal-messages] li + li {
+  margin-top: 8px;
 }
 
 /* Global typography — Rubik Regular for body, Rubik Light for headings. */
@@ -72,6 +106,8 @@ h6,
     display: block;
     position: sticky;
     top: 0 !important;
+    z-index: 5;
+    background-color: var(--ek-white);
     /* Anchor for the language switcher overlay on the top row. */
     isolation: isolate;
     padding: 0;
@@ -271,7 +307,10 @@ h6,
     border-left: none;
     border-right: none;
     border-bottom: 1px solid #dbdbdb;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background-color: var(--ek-white);
   }
 
   .header.ek-header .header__logo-desktop {
@@ -657,7 +696,7 @@ article .rich-text ol > li::before {
 }
 
 /* Full-width page title band (basic pages + shared with event submission form). */
-.overflow-hidden:has(.ek-page-title-band) {
+.overflow-x-clip:has(.ek-page-title-band) {
   overflow-x: clip;
 }
 

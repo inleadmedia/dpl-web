@@ -67,7 +67,7 @@ final class EventDetailBuilder {
 
     return $this->buildDetail(
       $eventInstance,
-      $eventInstance->label(),
+      $this->resolveTitle($eventInstance),
       $start,
       $end,
       $allDay,
@@ -110,7 +110,7 @@ final class EventDetailBuilder {
 
     return $this->buildDetail(
       $eventSeries,
-      $eventSeries->label(),
+      $this->resolveTitle($eventSeries),
       $start,
       $end,
       $allDay,
@@ -121,6 +121,34 @@ final class EventDetailBuilder {
       ['field_branch'],
       ['field_ticket_categories'],
     );
+  }
+
+  /**
+   * Resolves a display title when the entity label is empty (common on instances).
+   */
+  private function resolveTitle(EntityInterface $entity): string {
+    $label = $entity->label();
+    if (is_string($label) && $label !== '') {
+      return $label;
+    }
+
+    if ($entity->hasField('field_event_title') && !$entity->get('field_event_title')->isEmpty()) {
+      $title = $entity->get('field_event_title')->value;
+      if (is_string($title) && $title !== '') {
+        return $title;
+      }
+    }
+
+    if ($entity instanceof EventInstance
+      && $entity->hasField('eventseries_id')
+      && !$entity->get('eventseries_id')->isEmpty()) {
+      $series = $entity->get('eventseries_id')->entity;
+      if ($series instanceof EventSeries) {
+        return $this->resolveTitle($series);
+      }
+    }
+
+    return (string) $this->t('Event', [], ['context' => 'eonext_kultur_events']);
   }
 
   /**
@@ -164,7 +192,7 @@ final class EventDetailBuilder {
       'image' => $image,
       'banner_image' => $image,
       'back_url' => Url::fromUserInput('/arrangementer')->toString(),
-      'calendar_label' => (string) $this->t('Kalender', [], ['context' => 'eonext_kultur_events']),
+      'calendar_label' => (string) $this->t('Program', [], ['context' => 'eonext_kultur_events']),
     ];
   }
 
@@ -365,19 +393,19 @@ final class EventDetailBuilder {
    * @param float[]|int[] $rawPrices
    */
   private function formatKulturPriceLabel(string $formatted, array $rawPrices): string {
-    if ($formatted === (string) $this->t('Free')) {
-      return (string) $this->t('Gratis', [], ['context' => 'eonext_kultur_events']);
-    }
-
-    if (empty($rawPrices)) {
-      return $formatted;
+    $free_labels = [
+      (string) $this->t('Free'),
+      (string) $this->t('Gratis', [], ['context' => 'eonext_kultur_events']),
+    ];
+    if (in_array($formatted, $free_labels, TRUE)) {
+      return '';
     }
 
     sort($rawPrices);
     $positivePrices = array_values(array_filter($rawPrices, static fn($price) => $price > 0));
 
     if (empty($positivePrices)) {
-      return (string) $this->t('Gratis', [], ['context' => 'eonext_kultur_events']);
+      return '';
     }
 
     $lowest = min($positivePrices);

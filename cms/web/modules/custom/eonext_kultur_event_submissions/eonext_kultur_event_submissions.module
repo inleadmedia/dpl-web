@@ -412,6 +412,15 @@ function eonext_kultur_event_submissions_entity_presave(EntityInterface $entity)
 function eonext_kultur_event_submissions_mail($key, &$message, $params): void {
   $message['subject'] = $params['subject'] ?? '';
   $message['body'][] = $params['body'] ?? '';
+
+  $site_mail = (string) (\Drupal::config('system.site')->get('mail') ?? '');
+  $site_name = (string) (\Drupal::config('system.site')->get('name') ?? '');
+  if ($site_mail !== '') {
+    $message['headers']['Reply-To'] = $site_mail;
+    $message['headers']['From'] = $site_name !== ''
+      ? sprintf('%s <%s>', $site_name, $site_mail)
+      : $site_mail;
+  }
 }
 
 /**
@@ -464,8 +473,8 @@ function eonext_kultur_event_submissions_public_address_labels_after_build(array
   $translation_options = ['context' => 'eonext_kultur_event_submissions'];
   $labels = [
     'organization' => t('Organization / company', [], $translation_options),
-    'address_line1' => t('Street address', [], $translation_options),
-    'address_line2' => t('Settlement', [], $translation_options),
+    'address_line1' => t('Address', [], $translation_options),
+    'address_line2' => t('Residence', [], $translation_options),
     'postal_code' => t('Postal code', [], $translation_options),
     'locality' => t('City', [], $translation_options),
   ];

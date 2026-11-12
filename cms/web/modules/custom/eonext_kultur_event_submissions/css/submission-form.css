@@ -71,6 +71,13 @@
   margin: 0;
 }
 
+.ek-submission-form .form-item--error-message,
+.ek-submission-form [role="alert"] {
+  overflow: visible;
+  white-space: normal;
+  max-width: 100%;
+}
+
 .ek-submission-form__datetime-row {
   display: block;
 }

@@ -100,7 +100,7 @@ final class KulturEventSubmission extends ContentEntityBase implements KulturEve
 
     $fields['event_categories'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(new TranslatableMarkup('Categories', [], ['context' => 'eonext_kultur_event_submissions']))
-      ->setRequired(TRUE)
+      ->setRequired(FALSE)
       ->setSetting('target_type', 'taxonomy_term')
       ->setSetting('handler', 'default:taxonomy_term')
       ->setSetting('handler_settings', [

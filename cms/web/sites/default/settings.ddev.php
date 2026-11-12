@@ -56,9 +56,3 @@ $config['mailer_transport.mailer_transport.sendmail']['configuration']['port'] =
 // Enable verbose logging for errors.
 // https://www.drupal.org/forum/support/post-installation/2018-07-18/enable-drupal-8-backend-errorlogdebugging-mode
 $config['system.logging']['error_level'] = 'verbose';
-
-// Kulturnat: use Mailpit for submission mail on DDEV (EONEXT-437 QA).
-$config['mailsystem.settings']['defaults'] = [
-  'sender' => 'symfony_mailer',
-  'formatter' => 'symfony_mailer',
-];

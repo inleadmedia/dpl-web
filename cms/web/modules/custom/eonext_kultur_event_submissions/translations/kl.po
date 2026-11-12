@@ -51,7 +51,7 @@ msgid "Contact phone is required."
 msgstr "Attaveqaataa telefonimik piumasaqarpoq."
 
 msgctxt "eonext_kultur_event_submissions"
-msgid "Settlement"
+msgid "Residence"
 msgstr "Najugaq"
 
 msgctxt "eonext_kultur_event_submissions"
@@ -79,7 +79,7 @@ msgstr ""
 "saqqummersinneqarpoq."
 
 msgctxt "eonext_kultur_event_submissions"
-msgid "Street address"
+msgid "Address"
 msgstr "Aqqusineq"
 
 msgctxt "eonext_kultur_event_submissions"

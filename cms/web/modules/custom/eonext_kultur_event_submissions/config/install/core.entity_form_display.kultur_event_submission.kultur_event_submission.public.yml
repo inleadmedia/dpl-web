@@ -34,12 +34,6 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  event_categories:
-    type: options_buttons
-    weight: 3
-    region: content
-    settings: {  }
-    third_party_settings: {  }
   address:
     type: address_default
     weight: 4
@@ -110,5 +104,6 @@ content:
 hidden:
   changed: true
   created: true
+  event_categories: true
   eventseries: true
   status: true

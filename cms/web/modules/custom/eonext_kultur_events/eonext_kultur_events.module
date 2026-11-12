@@ -272,9 +272,6 @@ function eonext_kultur_events_form_views_exposed_form_alter(array &$form, FormSt
     $form['search_api_fulltext']['#attributes']['placeholder'] = '';
   }
 
-  if (isset($form['actions']['submit'])) {
-    $form['actions']['submit']['#attributes']['class'][] = 'eonext-kultur-events__submit';
-  }
 }
 
 /**
@@ -296,7 +293,41 @@ function eonext_kultur_events_events_exposed_form_after_build(array $form, FormS
 
   eonext_kultur_events_alter_exposed_date_fields($form);
 
+  if (isset($form['actions']['submit'])) {
+    $form['actions']['submit']['#process'][] = 'eonext_kultur_events_process_events_submit';
+    $form['actions']['submit']['#attributes']['class'][] = 'eonext-kultur-events__submit';
+  }
+
   return $form;
+}
+
+/**
+ * Process callback: override DPL image search button with a labelled submit.
+ *
+ * @param mixed[] $element
+ *   Submit element.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   Form state.
+ * @param mixed[] $complete_form
+ *   Complete form.
+ *
+ * @return mixed[]
+ *   The element (hidden; toolbar Twig renders the visible button).
+ */
+function eonext_kultur_events_process_events_submit(array $element, FormStateInterface $form_state, array &$complete_form): array {
+  $element['#type'] = 'submit';
+  unset($element['#src'], $element['#pre_render']);
+  $label = (string) t('Apply', [], ['context' => 'eonext_kultur_events']);
+  $element['#value'] = $label;
+  $element['#attributes']['aria-label'] = $label;
+  $element['#attributes']['title'] = $label;
+  $element['#attributes']['class'] = array_values(array_unique([
+    ...($element['#attributes']['class'] ?? []),
+    'visually-hidden',
+  ]));
+  $element['#access'] = TRUE;
+
+  return $element;
 }
 
 /**

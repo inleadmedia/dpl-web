@@ -4,7 +4,8 @@
  * Novel page layout with EO NEXT Kultur footer.
  */
 #}
-<div class="overflow-hidden">
+{# Same as novel: overflow-x-clip avoids clipping sticky header behaviour. #}
+<div class="overflow-x-clip">
   {{ include('@eonext_kultur/layout/header.html.twig', {
     header: page.header,
     search_header: search.header,
@@ -15,7 +16,9 @@
     opening_hours_sidebar_small: opening_hours_sidebar_small,
   }, false) }}
 
-  {{ drupal_block('system_messages_block') }}
+  <div class="ek-page-messages">
+    {{ drupal_block('system_messages_block') }}
+  </div>
 
   <main id="main-content" role="main">
     {{ page.content }}

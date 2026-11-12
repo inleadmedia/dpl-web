@@ -15,7 +15,7 @@ class GoRedirectCleanerSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(protected GoSiteInterface $goSite) {}
+  public function __construct(protected ?GoSiteInterface $goSite) {}
 
   /**
    * {@inheritdoc}
@@ -36,6 +36,10 @@ class GoRedirectCleanerSubscriber implements EventSubscriberInterface {
    *   The response event.
    */
   public function cleanRedirectResponse(ResponseEvent $event) {
+    if ($this->goSite === NULL) {
+      return;
+    }
+
     $response = $event->getResponse();
 
     // Only process redirect responses.

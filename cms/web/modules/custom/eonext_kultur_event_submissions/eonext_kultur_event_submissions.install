@@ -5,6 +5,8 @@
  * Install, update and uninstall functions for eonext_kultur_event_submissions.
  */
 
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
 use Drupal\eonext_kultur_event_submissions\Plugin\LanguageNegotiation\LanguageNegotiationPublicForm;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
 use Drupal\language\Entity\ConfigurableLanguage;
@@ -628,4 +630,60 @@ function eonext_kultur_event_submissions_update_9017(): string {
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 
   return 'Updated Kulturnat submission address and contact phone field settings.';
+}
+
+/**
+ * Hides categories on the public form and makes the field optional (EONEXT-437).
+ */
+function eonext_kultur_event_submissions_update_9018(): string {
+  return eonext_kultur_event_submissions_reapply_eonext_437_fixes();
+}
+
+/**
+ * Re-applies Kulturnat submission fixes after deploy or config import.
+ */
+function eonext_kultur_event_submissions_reapply_eonext_437_fixes(): string {
+  _eonext_kultur_event_submissions_grant_permissions();
+  _eonext_kultur_event_submissions_hide_public_form_categories();
+  _eonext_kultur_event_submissions_sync_event_categories_required();
+
+  return 'Kulturnat public submission form and anonymous submit permission re-applied.';
+}
+
+/**
+ * Removes categories from the public submission form display.
+ */
+function _eonext_kultur_event_submissions_hide_public_form_categories(): void {
+  $display = EntityFormDisplay::load('kultur_event_submission.kultur_event_submission.public');
+  if (!$display instanceof EntityFormDisplay) {
+    return;
+  }
+
+  if ($display->getComponent('event_categories') !== NULL) {
+    $display->removeComponent('event_categories');
+    $display->save();
+  }
+}
+
+/**
+ * Syncs optional categories storage with the entity definition.
+ */
+function _eonext_kultur_event_submissions_sync_event_categories_required(): void {
+  $entity_type_id = 'kultur_event_submission';
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+  $storage = $update_manager->getFieldStorageDefinition('event_categories', $entity_type_id);
+  if ($storage === NULL) {
+    return;
+  }
+
+  $entity_type = \Drupal::entityTypeManager()->getDefinition($entity_type_id);
+  $definitions = KulturEventSubmission::baseFieldDefinitions($entity_type);
+  if (!isset($definitions['event_categories'])) {
+    return;
+  }
+
+  if ($storage->isRequired() !== $definitions['event_categories']->isRequired()) {
+    $storage->setRequired($definitions['event_categories']->isRequired());
+    $update_manager->updateFieldStorageDefinition($storage);
+  }
 }

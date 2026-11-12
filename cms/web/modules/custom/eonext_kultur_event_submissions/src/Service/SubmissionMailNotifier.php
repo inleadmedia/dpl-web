@@ -8,6 +8,7 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
+use Psr\Log\LoggerInterface;
 
 /**
  * Sends transactional mail for Kulturnat event submissions.
@@ -19,6 +20,7 @@ final class SubmissionMailNotifier {
   public function __construct(
     private readonly MailManagerInterface $mailManager,
     private readonly LanguageManagerInterface $languageManager,
+    private readonly LoggerInterface $logger,
   ) {}
 
   /**
@@ -76,17 +78,27 @@ final class SubmissionMailNotifier {
     }
 
     $langcode = $this->languageManager->getDefaultLanguage()->getId();
-    $this->mailManager->mail(
-      'eonext_kultur_event_submissions',
-      $key,
-      $to,
-      $langcode,
-      [
-        'subject' => $subject,
-        'body' => $body,
-        'submission' => $submission,
-      ],
-    );
+    try {
+      $this->mailManager->mail(
+        'eonext_kultur_event_submissions',
+        $key,
+        $to,
+        $langcode,
+        [
+          'subject' => $subject,
+          'body' => $body,
+          'submission' => $submission,
+        ],
+      );
+    }
+    catch (\Throwable $exception) {
+      // Submission is already saved; a broken Azure mailer must not white-screen submitters.
+      $this->logger->error('Kulturnat submission mail failed (@key to @to): @message', [
+        '@key' => $key,
+        '@to' => $to,
+        '@message' => $exception->getMessage(),
+      ]);
+    }
   }
 
 }

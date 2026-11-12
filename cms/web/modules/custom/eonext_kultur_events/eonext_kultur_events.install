@@ -26,6 +26,9 @@ function eonext_kultur_events_install(): void {
   eonext_kultur_events_install_event_city_facet();
   eonext_kultur_events_configure_events_view();
   eonext_kultur_events_configure_facet_weights();
+  eonext_kultur_events_disable_dpl_library_facets();
+  eonext_kultur_events_remove_kulturnat_listing_facets();
+  eonext_kultur_events_configure_kulturnat_program_view();
   eonext_kultur_events_ensure_publication_date_field();
   eonext_kultur_events_reindex();
 }
@@ -179,14 +182,28 @@ function eonext_kultur_events_ensure_city_processor(): void {
  * Installs the event city facet from module config if missing.
  */
 function eonext_kultur_events_install_event_city_facet(): void {
+  eonext_kultur_events_install_facet_from_module_config('event_city');
+}
+
+/**
+ * Installs the event categories facet from module config if missing.
+ */
+function eonext_kultur_events_install_event_categories_facet(): void {
+  eonext_kultur_events_install_facet_from_module_config('event_categories');
+}
+
+/**
+ * Creates a facets_facet config entity from this module's config/install.
+ */
+function eonext_kultur_events_install_facet_from_module_config(string $facet_id): void {
   $facet_storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
-  if ($facet_storage->load('event_city') !== NULL) {
+  if ($facet_storage->load($facet_id) !== NULL) {
     return;
   }
 
   $module_path = \Drupal::service('extension.list.module')->getPath('eonext_kultur_events');
   $source_storage = new FileStorage($module_path . '/config/install');
-  $data = $source_storage->read('facets.facet.event_city');
+  $data = $source_storage->read('facets.facet.' . $facet_id);
   if ($data === FALSE) {
     return;
   }
@@ -289,6 +306,10 @@ function eonext_kultur_events_configure_events_view(): void {
   $display['default']['display_options']['exposed_form']['options']['bef']['filter'] = $bef;
 
   $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
+  $cache_tags = array_values(array_diff($cache_tags, [
+    'config:facets.facet.audience',
+    'config:facets.facet.branch',
+  ]));
   foreach (['config:facets.facet.event_tags', 'config:facets.facet.event_screen_names', 'config:facets.facet.event_categories', 'config:facets.facet.event_city', 'config:facets.facet.event_is_free'] as $tag) {
     if (!in_array($tag, $cache_tags, TRUE)) {
       $cache_tags[] = $tag;
@@ -297,6 +318,24 @@ function eonext_kultur_events_configure_events_view(): void {
   $display['all']['cache_metadata']['tags'] = $cache_tags;
 
   $config->set('display', $display)->save();
+}
+
+/**
+ * Removes DPL library facets unused on Kulturnat (audience/branch break events view).
+ *
+ * Setting status to FALSE is not enough: Facets still loads every facet config
+ * in DefaultFacetManager::alterQuery() and resolves query types per field, which
+ * throws when the Search API field (e.g. event_audiences) is missing.
+ */
+function eonext_kultur_events_disable_dpl_library_facets(): void {
+  $facet_storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  foreach (['audience', 'branch'] as $facet_id) {
+    $facet = $facet_storage->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+    $facet->delete();
+  }
 }
 
 /**
@@ -720,4 +759,120 @@ function eonext_kultur_events_update_9012(): string {
   eonext_kultur_events_ensure_text_body_paragraph_reference_allowed();
 
   return 'text_body and go_text_body are no longer excluded from event paragraph references.';
+}
+
+/**
+ * Disables Audience/Branch facets that crash Kulturnat events Search API display.
+ */
+function eonext_kultur_events_update_9013(): string {
+  eonext_kultur_events_disable_dpl_library_facets();
+  eonext_kultur_events_configure_events_view();
+
+  return 'Removed DPL audience/branch facets on the Kulturnat events listing.';
+}
+
+/**
+ * Deletes audience/branch facet configs left enabled after status-only disable.
+ */
+function eonext_kultur_events_update_9014(): string {
+  eonext_kultur_events_disable_dpl_library_facets();
+
+  return 'Deleted audience/branch facet entities (Facets ignores status on query alter).';
+}
+
+/**
+ * Kulturnat programme listing: drop unused facets/filters (EONEXT-437).
+ */
+function eonext_kultur_events_update_9015(): string {
+  return eonext_kultur_events_reapply_eonext_437_fixes();
+}
+
+/**
+ * Restore city/category programme facets after 9015 accidentally removed categories.
+ */
+function eonext_kultur_events_update_9016(): string {
+  return eonext_kultur_events_reapply_eonext_437_fixes();
+}
+
+/**
+ * Re-applies Kulturnat events listing fixes after deploy or config import.
+ */
+function eonext_kultur_events_reapply_eonext_437_fixes(): string {
+  eonext_kultur_events_disable_dpl_library_facets();
+  eonext_kultur_events_remove_kulturnat_listing_facets();
+  eonext_kultur_events_ensure_city_processor();
+  eonext_kultur_events_install_event_city_facet();
+  eonext_kultur_events_install_event_categories_facet();
+  eonext_kultur_events_configure_kulturnat_program_view();
+
+  return 'Kulturnat programme listing facets and view settings re-applied.';
+}
+
+/**
+ * Deletes facets Kulturnat does not use on the programme page.
+ */
+function eonext_kultur_events_remove_kulturnat_listing_facets(): void {
+  $facet_storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  foreach (['event_is_free', 'event_date', 'event_screen_names', 'event_tags'] as $facet_id) {
+    $facet = $facet_storage->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+    $facet->delete();
+  }
+}
+
+/**
+ * Sets programme title and removes the exposed date filter from the events view.
+ */
+function eonext_kultur_events_configure_kulturnat_program_view(): void {
+  $config = \Drupal::configFactory()->getEditable('views.view.events');
+  if ($config->isNew()) {
+    return;
+  }
+
+  $display = $config->get('display');
+  if (!is_array($display)) {
+    return;
+  }
+
+  if (isset($display['default']['display_options']['filters']['date'])) {
+    unset($display['default']['display_options']['filters']['date']);
+  }
+
+  $bef = $display['default']['display_options']['exposed_form']['options']['bef']['filter'] ?? [];
+  if (isset($bef['date'])) {
+    unset($bef['date']);
+    $display['default']['display_options']['exposed_form']['options']['bef']['filter'] = $bef;
+  }
+
+  if (isset($display['default']['display_options'])) {
+    $display['default']['display_options']['title'] = 'Program';
+  }
+  if (isset($display['all']['display_options'])) {
+    $display['all']['display_options']['title'] = 'Program';
+  }
+
+  $cache_tags = $display['all']['cache_metadata']['tags'] ?? [];
+  foreach ([
+    'config:facets.facet.audience',
+    'config:facets.facet.branch',
+    'config:facets.facet.event_is_free',
+    'config:facets.facet.event_date',
+    'config:facets.facet.event_screen_names',
+    'config:facets.facet.event_tags',
+  ] as $remove_tag) {
+    $cache_tags = array_values(array_diff($cache_tags, [$remove_tag]));
+  }
+  foreach ([
+    'config:facets.facet.event_categories',
+    'config:facets.facet.event_city',
+  ] as $keep_tag) {
+    if (!in_array($keep_tag, $cache_tags, TRUE)) {
+      $cache_tags[] = $keep_tag;
+    }
+  }
+  $display['all']['cache_metadata']['tags'] = $cache_tags;
+
+  $config->set('display', $display)->save();
 }

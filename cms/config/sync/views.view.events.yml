@@ -435,8 +435,6 @@ display:
         - url.query_args
         - user.permissions
       tags:
-        - 'config:facets.facet.audience'
-        - 'config:facets.facet.branch'
         - 'config:facets.facet.event_categories'
         - 'config:facets.facet.event_city'
         - 'config:facets.facet.event_date'

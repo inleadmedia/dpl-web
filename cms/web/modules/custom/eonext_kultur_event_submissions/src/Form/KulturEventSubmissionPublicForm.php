@@ -369,12 +369,10 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
       $form['title_da']['#suffix'] = $existing_suffix . '</div>';
     }
 
-    $this->wrapFieldSection(
-      $form,
-      'event_categories',
-      $this->t('Categories', [], ['context' => 'eonext_kultur_event_submissions']),
-      TRUE,
-    );
+    if (isset($form['event_categories'])) {
+      $form['event_categories']['#access'] = FALSE;
+    }
+
     $this->wrapFieldSection($form, 'address', $this->t('Location', [], ['context' => 'eonext_kultur_event_submissions']));
 
     if (isset($form['event_start'])) {
