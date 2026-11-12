@@ -19,7 +19,6 @@ use Drupal\Core\Config\FileStorage;
 $modules = [
   'gsearch',
   'field_inheritance',
-  'eonext_translation',
   'eonext_kultur_main',
   'eonext_kultur_locale',
   'eonext_kultur_events',
@@ -92,18 +91,6 @@ foreach ([
 }
 if ($imported !== []) {
   echo 'Imported missing kultur config: ' . implode(', ', $imported) . "\n";
-}
-
-$translation_path = $list->getPath('eonext_translation');
-if ($translation_path && is_dir($translation_path . '/config/install')) {
-  $translation_install = new FileStorage($translation_path . '/config/install');
-  if (\Drupal::configFactory()->get('eonext_translation.settings')->isNew()) {
-    $data = $translation_install->read('eonext_translation.settings');
-    if ($data) {
-      \Drupal::configFactory()->getEditable('eonext_translation.settings')->setData($data)->save(TRUE);
-      echo "Imported eonext_translation.settings.\n";
-    }
-  }
 }
 
 $sync_dir = dirname(DRUPAL_ROOT) . '/config/sync';
