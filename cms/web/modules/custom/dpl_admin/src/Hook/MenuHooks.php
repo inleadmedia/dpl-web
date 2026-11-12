@@ -34,9 +34,19 @@ class MenuHooks {
    */
   #[Hook('local_tasks_alter')]
   public function localTasksAlter(array &$local_tasks): void {
+    // Hide contrib event-series list; editors use view.event_series_admin (tab
+    // from dpl_admin.links.task). Recurring Events uses *.admin_collection now.
     unset($local_tasks['entity.eventseries.collection']);
+    unset($local_tasks['entity.eventseries.admin_collection']);
     unset($local_tasks['entity.eventinstance.collection']);
     unset($local_tasks['entity.media.collection']);
+
+    if (isset($local_tasks['entity.eventinstance.admin_collection'])) {
+      $local_tasks['entity.eventinstance.admin_collection']['#weight'] = 2;
+    }
+    if (isset($local_tasks['dpl_admin.events'])) {
+      $local_tasks['dpl_admin.events']['#weight'] = 3;
+    }
 
     // Remove the duplicate "Clone" tab on eventseries.
     unset($local_tasks['entity_clone.clone:eventseries.clone_tab']);

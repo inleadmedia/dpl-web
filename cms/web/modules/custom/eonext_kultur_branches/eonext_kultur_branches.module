@@ -223,6 +223,14 @@ function eonext_kultur_branches_preprocess_branch_detail(array &$variables): voi
   }
   $variables['#cache']['tags'][] = 'eventinstance_list';
   $variables['#cache']['contexts'][] = 'user.permissions';
+
+  $organization_details = \Drupal::service('eonext_kultur_branches.linked_organization')
+    ->getDisplayValuesForBranch((int) $node->id());
+  $variables['branch_organization_website'] = $organization_details['website'];
+  $variables['branch_organization_category'] = $organization_details['category'];
+  foreach ($organization_details['cache_tags'] as $tag) {
+    $variables['#cache']['tags'][] = $tag;
+  }
 }
 
 /**

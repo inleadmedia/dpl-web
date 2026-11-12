@@ -240,9 +240,28 @@ function eonext_kultur_events_configure_events_view(): void {
 }
 
 /**
+ * Ensures kultur facet config entities have the expected filter titles.
+ */
+function eonext_kultur_events_ensure_facet_labels(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  foreach (EventsConstants::FACET_LABELS as $facet_id => $label) {
+    $facet = $storage->load($facet_id);
+    if ($facet === NULL) {
+      continue;
+    }
+    if ((string) $facet->label() !== $label) {
+      $facet->set('name', $label);
+      $facet->save();
+    }
+  }
+}
+
+/**
  * Updates existing facet weights for the kultur events layout.
  */
 function eonext_kultur_events_configure_facet_weights(): void {
+  eonext_kultur_events_ensure_facet_labels();
+
   $weights = [
     'event_is_free' => 1,
     'event_screen_names' => 2,
@@ -257,7 +276,6 @@ function eonext_kultur_events_configure_facet_weights(): void {
     }
     $facet->setWeight($weight);
     if ($facet_id === 'event_categories') {
-      $facet->set('name', 'Category');
       $facet->setWidget('checkbox', [
         'show_numbers' => TRUE,
         'soft_limit' => 0,
@@ -385,6 +403,13 @@ function eonext_kultur_events_update_9009(): string {
   eonext_kultur_events_ensure_events_listing_paragraph();
   eonext_kultur_events_enable_events_listing_paragraph();
   return eonext_kultur_events_create_listing_page();
+}
+
+/**
+ * Restores kultur facet filter titles and checkbox widget after config import.
+ */
+function eonext_kultur_events_update_9010(): void {
+  eonext_kultur_events_configure_facet_weights();
 }
 
 /**

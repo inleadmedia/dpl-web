@@ -18,7 +18,7 @@
 {% set is_free_facet = facet.id == 'event_is_free' %}
 
 <li class="eonext-kultur-events__facet-group eonext-search-facet-group{{ is_free_facet ? ' eonext-kultur-events__facet-group--free-toggle' : '' }}">
-  <span class="eonext-kultur-events__facet-label eonext-search-facet-group__label">{{ facet.label }}</span>
+  <span class="eonext-kultur-events__facet-label eonext-search-facet-group__label">{{ facet_display_label|default(facet.label) }}</span>
 
   {% if items or empty %}
     {%- if items -%}

@@ -12,6 +12,14 @@
       label: 'Phone'|trans,
       values: [content.field_phone.0 ? content.field_phone : null],
     },
+    {
+      label: 'Website'|t({}, {'context': 'eonext_kultur_branches'}),
+      values: [branch_organization_website ?? null],
+    },
+    {
+      label: 'Category'|t({}, {'context': 'eonext_kultur_branches'}),
+      values: [branch_organization_category ?? null],
+    },
   ] %}
 
   {{ include('@novel/components/hero.html.twig', {
