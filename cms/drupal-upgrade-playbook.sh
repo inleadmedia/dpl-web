@@ -90,6 +90,9 @@ drush_y php:script scripts/protect-korsor-event-engine-config.php
 drush_y php:script scripts/repair-korsor-workflow-config.php
 drush_y cim -y
 drush_y php:script scripts/protect-korsor-no-dpl-go.php
+drush_y php:script scripts/ensure-korsor-kultur-runtime.php
+drush_y updb -y
+drush_y cr
 drush_y php:script scripts/ensure-service-message-config.php
 drush_y php:script scripts/ensure-unilogin-patron-role.php
 drush_y php:script scripts/skip-korsor-gsearch-deploy-hook.php
