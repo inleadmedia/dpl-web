@@ -70,7 +70,15 @@ $patterns = [
   'field.field.*.field_address_gsearch',
   'field.field.*.field_event_address_gsearch',
   'gsearch.settings',
-  'field_inheritance.field_inheritance.eventinstance_default_event_address',
+  // Instance fields inherited from series (taglines, tags, categories, etc.).
+  'field_inheritance.field_inheritance.eventinstance_default_*',
+  'field_inheritance.config',
+  // Kultur calendar facets (not in DPL sync except event_categories).
+  'facets.facet.event_tags',
+  'facets.facet.event_screen_names',
+  'facets.facet.event_is_free',
+  'eonext_translation.settings',
+  'eonext_translation.footer',
   'views.view.entity_reference_content',
   'core.entity_form_display.node.branch.default',
   'core.entity_view_display.node.branch.*',

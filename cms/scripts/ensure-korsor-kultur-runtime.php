@@ -6,6 +6,7 @@
  *
  * Fixes empty event detail (tags, org, body, ticket, price) and calendar
  * filters when eonext_kultur_* / theme / facets / Search API are incomplete.
+ * Re-imports kultur facets and eventinstance field_inheritance if cim removed them.
  *
  * Usage: drush php:script scripts/ensure-korsor-kultur-runtime.php
  * Then: drush updb -y && drush cr
@@ -17,6 +18,8 @@ use Drupal\Core\Config\FileStorage;
 
 $modules = [
   'gsearch',
+  'field_inheritance',
+  'eonext_translation',
   'eonext_kultur_main',
   'eonext_kultur_locale',
   'eonext_kultur_events',
@@ -75,6 +78,8 @@ foreach ([
   'facets.facet.event_tags',
   'facets.facet.event_screen_names',
   'facets.facet.event_is_free',
+  'facets.facet.event_categories',
+  'eonext_kultur_events.settings',
 ] as $name) {
   if (!\Drupal::configFactory()->get($name)->isNew()) {
     continue;
@@ -86,7 +91,38 @@ foreach ([
   }
 }
 if ($imported !== []) {
-  echo 'Imported missing facet config: ' . implode(', ', $imported) . "\n";
+  echo 'Imported missing kultur config: ' . implode(', ', $imported) . "\n";
+}
+
+$translation_path = $list->getPath('eonext_translation');
+if ($translation_path && is_dir($translation_path . '/config/install')) {
+  $translation_install = new FileStorage($translation_path . '/config/install');
+  if (\Drupal::configFactory()->get('eonext_translation.settings')->isNew()) {
+    $data = $translation_install->read('eonext_translation.settings');
+    if ($data) {
+      \Drupal::configFactory()->getEditable('eonext_translation.settings')->setData($data)->save(TRUE);
+      echo "Imported eonext_translation.settings.\n";
+    }
+  }
+}
+
+$sync_dir = dirname(DRUPAL_ROOT) . '/config/sync';
+if (is_dir($sync_dir)) {
+  $sync = new FileStorage($sync_dir);
+  $inheritance_imported = [];
+  foreach ($sync->listAll('field_inheritance.field_inheritance.eventinstance_default_') as $name) {
+    if (!\Drupal::configFactory()->get($name)->isNew()) {
+      continue;
+    }
+    $data = $sync->read($name);
+    if ($data) {
+      \Drupal::configFactory()->getEditable($name)->setData($data)->save(TRUE);
+      $inheritance_imported[] = $name;
+    }
+  }
+  if ($inheritance_imported !== []) {
+    echo 'Imported missing field_inheritance config: ' . count($inheritance_imported) . " item(s).\n";
+  }
 }
 
 if (function_exists('eonext_kultur_events_ensure_index_fields')) {
@@ -100,6 +136,9 @@ if (function_exists('eonext_kultur_events_configure_events_view')) {
 }
 if (function_exists('eonext_kultur_events_configure_facet_weights')) {
   eonext_kultur_events_configure_facet_weights();
+}
+if (function_exists('eonext_kultur_events_disable_active_facet_reorder')) {
+  eonext_kultur_events_disable_active_facet_reorder();
 }
 if (function_exists('eonext_kultur_events_reindex')) {
   eonext_kultur_events_reindex();
