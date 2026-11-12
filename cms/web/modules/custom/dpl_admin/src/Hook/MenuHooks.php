@@ -34,7 +34,10 @@ class MenuHooks {
    */
   #[Hook('local_tasks_alter')]
   public function localTasksAlter(array &$local_tasks): void {
+    // Hide contrib event-series list; editors use view.event_series_admin (tab
+    // from dpl_admin.links.task). Recurring Events uses *.admin_collection now.
     unset($local_tasks['entity.eventseries.collection']);
+    unset($local_tasks['entity.eventseries.admin_collection']);
     unset($local_tasks['entity.eventinstance.collection']);
     unset($local_tasks['entity.media.collection']);
 
