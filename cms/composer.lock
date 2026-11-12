@@ -11037,12 +11037,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/eonext_event_engine.git",
-                "reference": "23deef190cb9012d050f4256fbb03e1426df30ca"
+                "reference": "3904488f6e2d0576db7ff5fb248ad936ceff469e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/23deef190cb9012d050f4256fbb03e1426df30ca",
-                "reference": "23deef190cb9012d050f4256fbb03e1426df30ca",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/3904488f6e2d0576db7ff5fb248ad936ceff469e",
+                "reference": "3904488f6e2d0576db7ff5fb248ad936ceff469e",
                 "shasum": ""
             },
             "require": {
@@ -11066,7 +11066,7 @@
                 "source": "https://github.com/inleadmedia/eonext_event_engine",
                 "issues": "https://github.com/inleadmedia/eonext_event_engine/issues"
             },
-            "time": "2026-11-12T10:47:09+00:00"
+            "time": "2026-11-12T10:58:23+00:00"
         },
         {
             "name": "inleadmedia/eonext_servicebanner",
