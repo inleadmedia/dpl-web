@@ -239,3 +239,22 @@ function eonext_kultur_event_submissions_public_form_after_build(array $form, Fo
 
   return $form;
 }
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+function eonext_kultur_event_submissions_local_tasks_alter(array &$local_tasks): void {
+  unset($local_tasks['entity.kultur_event_submission.collection']);
+}
+
+/**
+ * Deletes menu links to the public register-event form from the main menu.
+ */
+function _eonext_kultur_event_submissions_remove_main_menu_link(): void {
+  $storage = \Drupal::entityTypeManager()->getStorage('menu_link_content');
+  foreach ($storage->loadByProperties(['menu_name' => 'main']) as $link) {
+    if ($link->getUrlObject()->getRouteName() === 'eonext_kultur_event_submissions.public_form') {
+      $link->delete();
+    }
+  }
+}

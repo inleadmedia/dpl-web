@@ -162,6 +162,13 @@ function eonext_kultur_event_submissions_update_9010(): void {
 }
 
 /**
+ * Removes the public "Register event" main-menu link (Korsør does not use it).
+ */
+function eonext_kultur_event_submissions_update_9011(): void {
+  _eonext_kultur_event_submissions_remove_main_menu_link();
+}
+
+/**
  * Syncs address field storage settings with the module definition.
  */
 function _eonext_kultur_event_submissions_update_address_field_settings(): void {

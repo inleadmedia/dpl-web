@@ -41,6 +41,13 @@ class MenuHooks {
     unset($local_tasks['entity.eventinstance.collection']);
     unset($local_tasks['entity.media.collection']);
 
+    if (isset($local_tasks['entity.eventinstance.admin_collection'])) {
+      $local_tasks['entity.eventinstance.admin_collection']['#weight'] = 2;
+    }
+    if (isset($local_tasks['dpl_admin.events'])) {
+      $local_tasks['dpl_admin.events']['#weight'] = 3;
+    }
+
     // Remove the duplicate "Clone" tab on eventseries.
     unset($local_tasks['entity_clone.clone:eventseries.clone_tab']);
   }

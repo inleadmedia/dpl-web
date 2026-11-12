@@ -1,9 +1,3 @@
-entity.kultur_event_submission.collection:
-  title: 'Event submissions'
-  route_name: entity.kultur_event_submission.collection
-  base_route: system.admin_content
-  weight: 15
-
 entity.kultur_event_submission.settings:
   title: 'Settings'
   route_name: entity.kultur_event_submission.settings

@@ -73,10 +73,11 @@ $patterns = [
   // Instance fields inherited from series (taglines, tags, categories, etc.).
   'field_inheritance.field_inheritance.eventinstance_default_*',
   'field_inheritance.config',
-  // Kultur calendar facets (not in DPL sync except event_categories).
+  // Kultur calendar facets (DPL sync only has a dropdown event_categories).
   'facets.facet.event_tags',
   'facets.facet.event_screen_names',
   'facets.facet.event_is_free',
+  'facets.facet.event_categories',
   'eonext_translation.settings',
   'eonext_translation.footer',
   'views.view.entity_reference_content',

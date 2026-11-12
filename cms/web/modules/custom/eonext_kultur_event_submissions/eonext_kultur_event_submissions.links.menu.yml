@@ -4,9 +4,3 @@ entity.kultur_event_submission.settings:
   route_name: entity.kultur_event_submission.settings
   parent: system.admin_structure
   weight: 20
-
-eonext_kultur_event_submissions.public_form:
-  title: 'Register event'
-  route_name: eonext_kultur_event_submissions.public_form
-  menu_name: main
-  weight: 50

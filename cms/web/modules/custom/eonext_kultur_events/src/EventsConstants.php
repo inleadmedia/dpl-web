@@ -29,4 +29,16 @@ final class EventsConstants {
 
   public const CARD_VIEW_MODE = 'card';
 
+  /**
+   * Kultur calendar facet machine names and admin labels (filter row titles).
+   *
+   * @var array<string, string>
+   */
+  public const FACET_LABELS = [
+    'event_is_free' => 'Free events',
+    'event_screen_names' => 'Target group',
+    'event_categories' => 'Category',
+    'event_tags' => 'Tags',
+  ];
+
 }

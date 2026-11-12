@@ -27,7 +27,7 @@ use Drupal\views\ViewExecutable;
 function eonext_kultur_events_theme($existing, $type, $theme, $path): array {
   $templates_path = $path . '/templates';
 
-  return [
+  $hooks = [
     'views_view__events__eonext' => [
       'base hook' => 'views_view',
       'path' => $templates_path,
@@ -100,6 +100,18 @@ function eonext_kultur_events_theme($existing, $type, $theme, $path): array {
       'template' => 'eonext-kultur-event-detail',
     ],
   ];
+
+  foreach (array_keys(EventsConstants::FACET_LABELS) as $facet_id) {
+    foreach (['checkbox', 'dropdown'] as $widget_type) {
+      $hooks['facets_item_list__' . $widget_type . '__' . $facet_id] = [
+        'base hook' => 'facets_item_list',
+        'path' => $templates_path,
+        'template' => 'facets-item-list--events--eonext',
+      ];
+    }
+  }
+
+  return $hooks;
 }
 
 /**
@@ -128,6 +140,13 @@ function eonext_kultur_events_theme_registry_alter(array &$theme_registry): void
     'eventinstance__full' => 'eventinstance--full',
     'eventseries__full' => 'eventseries--full',
   ];
+
+  foreach (array_keys(EventsConstants::FACET_LABELS) as $facet_id) {
+    foreach (['checkbox', 'dropdown'] as $widget_type) {
+      $hook = 'facets_item_list__' . $widget_type . '__' . $facet_id;
+      $overrides[$hook] = 'facets-item-list--events--eonext';
+    }
+  }
 
   foreach ($overrides as $hook => $template) {
     if (!isset($theme_registry[$hook])) {
@@ -525,6 +544,12 @@ function eonext_kultur_events_preprocess_facets_item_list(array &$variables): vo
   }
 
   $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
+
+  $label = (string) $facet->label();
+  if ($label === '' || $label === (string) $facet->id()) {
+    $label = EventsConstants::FACET_LABELS[$facet->id()] ?? $label;
+  }
+  $variables['facet_display_label'] = $label;
 }
 
 /**

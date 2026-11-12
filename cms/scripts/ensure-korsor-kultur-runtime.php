@@ -23,7 +23,6 @@ $modules = [
   'eonext_kultur_locale',
   'eonext_kultur_events',
   'eonext_kultur_branches',
-  'eonext_kultur_event_submissions',
 ];
 
 $list = \Drupal::service('extension.list.module');
@@ -121,6 +120,9 @@ if (function_exists('eonext_kultur_events_ensure_free_processor')) {
 if (function_exists('eonext_kultur_events_configure_events_view')) {
   eonext_kultur_events_configure_events_view();
 }
+if (function_exists('eonext_kultur_events_ensure_facet_labels')) {
+  eonext_kultur_events_ensure_facet_labels();
+}
 if (function_exists('eonext_kultur_events_configure_facet_weights')) {
   eonext_kultur_events_configure_facet_weights();
 }
@@ -130,6 +132,10 @@ if (function_exists('eonext_kultur_events_disable_active_facet_reorder')) {
 if (function_exists('eonext_kultur_events_reindex')) {
   eonext_kultur_events_reindex();
   echo "Reindexed Search API index \"events\".\n";
+}
+
+if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_event_submissions')) {
+  _eonext_kultur_event_submissions_remove_main_menu_link();
 }
 
 echo "Korsør kultur runtime ensured. Run drush updb -y if any eonext_kultur_* updates are pending.\n";
