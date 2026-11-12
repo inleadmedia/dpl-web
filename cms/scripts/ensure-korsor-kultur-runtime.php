@@ -135,6 +135,7 @@ if (function_exists('eonext_kultur_events_reindex')) {
 }
 
 if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_event_submissions')) {
+  \Drupal::moduleHandler()->loadInclude('eonext_kultur_event_submissions', 'install');
   _eonext_kultur_event_submissions_remove_main_menu_link();
 }
 
