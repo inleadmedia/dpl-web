@@ -9,10 +9,11 @@ vars:
   GO_DEPLOY_NODE_BIN: '{{.GO_DEPLOY_NODE_BIN | default "node"}}'
 
 env:
-  SKIP_LANGUAGE_IMPORT: false
+  # Defaults; overridden by cms/.task.env (dotenv) or the shell (e.g. Jenkins agent env).
+  SKIP_LANGUAGE_IMPORT: '{{.SKIP_LANGUAGE_IMPORT | default "false"}}'
   # Kulturnat EONEXT: CMS-only on Inlead Jenkins — React builds, Go does not deploy here.
-  SKIP_GO_DEPLOY: true
-  SKIP_REACT_BUILD: false
+  SKIP_GO_DEPLOY: '{{.SKIP_GO_DEPLOY | default "true"}}'
+  SKIP_REACT_BUILD: '{{.SKIP_REACT_BUILD | default "false"}}'
   DRUSH_EXEC: "./vendor/bin/drush"
 
 tasks:
