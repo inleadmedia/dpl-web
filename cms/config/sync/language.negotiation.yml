@@ -6,9 +6,10 @@ url:
   source: path_prefix
   prefixes:
     en: en
-    da: da
-    '': null
+    da: ''
+    kl: kl
   domains:
     en: ''
     da: ''
+    kl: ''
 selected_langcode: da

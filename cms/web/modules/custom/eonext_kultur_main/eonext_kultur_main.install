@@ -1215,24 +1215,97 @@ function _eonext_kultur_main_ensure_kulturnat_languages(): array {
     $messages[] = 'Created Kalaallisut (kl) language.';
   }
 
+  return $messages;
+}
+
+/**
+ * Kulturnat URL prefixes: unprefixed default (da) and /kl for Kalaallisut.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_configure_kulturnat_url_prefixes(): array {
+  $messages = [];
+
   $negotiation = \Drupal::configFactory()->getEditable('language.negotiation');
   $prefixes = $negotiation->get('url.prefixes') ?? [];
   $domains = $negotiation->get('url.domains') ?? [];
+  $default_langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
+
   $changed = FALSE;
-  if (!array_key_exists('kl', $prefixes)) {
+
+  // DPL sync sometimes ships '' => null alongside da/en — breaks prefix detection.
+  if (array_key_exists('', $prefixes)) {
+    unset($prefixes['']);
+    $changed = TRUE;
+    $messages[] = 'Removed invalid empty langcode key from language.negotiation prefixes.';
+  }
+
+  foreach (\Drupal::languageManager()->getLanguages() as $langcode => $language) {
+    if (!array_key_exists($langcode, $domains)) {
+      $domains[$langcode] = '';
+      $changed = TRUE;
+    }
+  }
+
+  $target_default_prefix = '';
+  if (($prefixes[$default_langcode] ?? NULL) !== $target_default_prefix) {
+    $prefixes[$default_langcode] = $target_default_prefix;
+    $changed = TRUE;
+    $messages[] = "Default language ($default_langcode) uses unprefixed URLs.";
+  }
+
+  if (\Drupal::languageManager()->getLanguage('kl') !== NULL && ($prefixes['kl'] ?? NULL) !== 'kl') {
     $prefixes['kl'] = 'kl';
     $changed = TRUE;
+    $messages[] = 'Configured /kl URL prefix.';
   }
-  if (!array_key_exists('kl', $domains)) {
-    $domains['kl'] = '';
-    $changed = TRUE;
-  }
+
   if ($changed) {
     $negotiation
       ->set('url.prefixes', $prefixes)
       ->set('url.domains', $domains)
       ->save();
-    $messages[] = 'Configured /kl URL prefix in language.negotiation.';
+  }
+
+  return $messages;
+}
+
+/**
+ * Enables URL path negotiation so switcher links differ (/ vs /kl).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_configure_kulturnat_language_url_negotiation(): array {
+  $messages = [];
+
+  $config = \Drupal::configFactory()->getEditable('language.types');
+  $enabled = $config->get('negotiation.language_interface.enabled') ?? [];
+  $weights = $config->get('negotiation.language_interface.method_weights') ?? [];
+
+  $changed = FALSE;
+  if (!isset($enabled['language-url'])) {
+    $enabled['language-url'] = -8;
+    $changed = TRUE;
+    $messages[] = 'Enabled language-url negotiation for interface language.';
+  }
+  elseif ((int) $enabled['language-url'] !== -8) {
+    $enabled['language-url'] = -8;
+    $changed = TRUE;
+  }
+
+  if (($weights['language-url'] ?? NULL) !== -8) {
+    $weights['language-url'] = -8;
+    $changed = TRUE;
+  }
+
+  if ($changed) {
+    asort($enabled, SORT_NUMERIC);
+    $config
+      ->set('negotiation.language_interface.enabled', $enabled)
+      ->set('negotiation.language_interface.method_weights', $weights)
+      ->save();
   }
 
   return $messages;
@@ -1249,7 +1322,11 @@ function _eonext_kultur_main_configure_eonext_translation_switcher(): array {
     return [];
   }
 
-  $messages = _eonext_kultur_main_ensure_kulturnat_languages();
+  $messages = array_merge(
+    _eonext_kultur_main_ensure_kulturnat_languages(),
+    _eonext_kultur_main_configure_kulturnat_url_prefixes(),
+    _eonext_kultur_main_configure_kulturnat_language_url_negotiation(),
+  );
   $editable = \Drupal::configFactory()->getEditable('eonext_translation.settings');
   $changed = FALSE;
 
@@ -1520,6 +1597,19 @@ function eonext_kultur_main_update_9036(): string {
 
   return implode(' ', $messages)
     ?: 'Kulturnat languages and submission mail transport were already configured.';
+}
+
+/**
+ * URL prefixes and language-url negotiation for header language switcher.
+ */
+function eonext_kultur_main_update_9037(): string {
+  $messages = array_merge(
+    _eonext_kultur_main_configure_kulturnat_url_prefixes(),
+    _eonext_kultur_main_configure_kulturnat_language_url_negotiation(),
+  );
+
+  return implode(' ', $messages)
+    ?: 'Kulturnat URL language negotiation was already configured.';
 }
 
 function eonext_kultur_main_update_9032(): string {

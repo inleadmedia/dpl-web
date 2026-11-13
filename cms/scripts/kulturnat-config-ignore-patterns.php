@@ -109,6 +109,7 @@ return [
     'language.content_settings.eventinstance.default',
     'language.entity.kl',
     'language.negotiation',
+    'language.types',
     'language.content_settings.node.page',
     'language.content_settings.node.article',
     'language.content_settings.taxonomy_term.categories',
