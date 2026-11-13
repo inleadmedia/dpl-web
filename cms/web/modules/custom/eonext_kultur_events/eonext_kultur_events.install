@@ -795,6 +795,13 @@ function eonext_kultur_events_update_9016(): string {
 }
 
 /**
+ * Removes category facet from Kulturnat programme listing (city facet only).
+ */
+function eonext_kultur_events_update_9017(): string {
+  return eonext_kultur_events_reapply_eonext_437_fixes();
+}
+
+/**
  * Re-applies Kulturnat events listing fixes after deploy or config import.
  */
 function eonext_kultur_events_reapply_eonext_437_fixes(): string {
@@ -802,7 +809,6 @@ function eonext_kultur_events_reapply_eonext_437_fixes(): string {
   eonext_kultur_events_remove_kulturnat_listing_facets();
   eonext_kultur_events_ensure_city_processor();
   eonext_kultur_events_install_event_city_facet();
-  eonext_kultur_events_install_event_categories_facet();
   eonext_kultur_events_configure_kulturnat_program_view();
 
   return 'Kulturnat programme listing facets and view settings re-applied.';
@@ -813,7 +819,7 @@ function eonext_kultur_events_reapply_eonext_437_fixes(): string {
  */
 function eonext_kultur_events_remove_kulturnat_listing_facets(): void {
   $facet_storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
-  foreach (['event_is_free', 'event_date', 'event_screen_names', 'event_tags'] as $facet_id) {
+  foreach (['event_is_free', 'event_date', 'event_screen_names', 'event_tags', 'event_categories'] as $facet_id) {
     $facet = $facet_storage->load($facet_id);
     if ($facet === NULL) {
       continue;
@@ -861,11 +867,11 @@ function eonext_kultur_events_configure_kulturnat_program_view(): void {
     'config:facets.facet.event_date',
     'config:facets.facet.event_screen_names',
     'config:facets.facet.event_tags',
+    'config:facets.facet.event_categories',
   ] as $remove_tag) {
     $cache_tags = array_values(array_diff($cache_tags, [$remove_tag]));
   }
   foreach ([
-    'config:facets.facet.event_categories',
     'config:facets.facet.event_city',
   ] as $keep_tag) {
     if (!in_array($keep_tag, $cache_tags, TRUE)) {

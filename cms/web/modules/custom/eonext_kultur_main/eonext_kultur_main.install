@@ -808,15 +808,6 @@ function _eonext_kultur_main_enable_text_body_translation(): string {
     $messages[] = 'Made text body field translatable.';
   }
 
-  foreach (['page', 'article'] as $bundle) {
-    $paragraph_field = FieldConfig::loadByName('node', $bundle, 'field_paragraphs');
-    if ($paragraph_field instanceof FieldConfig && $paragraph_field->isTranslatable()) {
-      $paragraph_field->setTranslatable(FALSE);
-      $paragraph_field->save();
-      $messages[] = "Kept node {$bundle} paragraph references shared across translations.";
-    }
-  }
-
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 
   $repaired = _eonext_kultur_main_repair_text_body_paragraph_languages();
@@ -1081,6 +1072,7 @@ function _eonext_kultur_main_grant_kulturnat_translation_permissions(): array {
   $messages = [];
   $permissions = [
     'translate any entity',
+    'translate configuration',
     'create content translations',
     'update content translations',
     'delete content translations',
@@ -1370,9 +1362,160 @@ function _eonext_kultur_main_apply_kulturnat_translation_runtime(): array {
     _eonext_kultur_main_ensure_content_translation_module(),
     _eonext_kultur_main_ensure_kulturnat_languages(),
     _eonext_kultur_main_configure_eonext_translation_switcher(),
+    _eonext_kultur_main_ensure_footer_translation_config(),
     _eonext_kultur_main_enable_kulturnat_content_translation_bundles(),
+    _eonext_kultur_main_enable_kulturnat_editorial_translation_fields(),
     _eonext_kultur_main_grant_kulturnat_translation_permissions(),
   );
+}
+
+/**
+ * Makes editorial node/event fields translatable (per-language values).
+ *
+ * DPL config/sync ships teaser/subtitle/paragraph fields as not translatable, so
+ * translation forms edit the same storage for every language. Re-applied at
+ * runtime because Kulturnat ignores several field configs on config import.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_enable_kulturnat_editorial_translation_fields(): array {
+  $messages = [];
+
+  if (!\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    return ['Content translation module is not enabled.'];
+  }
+
+  $node_fields = [
+    'field_subtitle',
+    'field_teaser_text',
+    'field_teaser_image',
+    'field_hero_title',
+    'field_paragraphs',
+  ];
+  foreach (['page', 'article'] as $bundle) {
+    foreach ($node_fields as $field_name) {
+      if (_eonext_kultur_main_set_field_translatable('node', $bundle, $field_name)) {
+        $messages[] = "Made node.{$bundle}.{$field_name} translatable.";
+      }
+    }
+    $messages = array_merge($messages, _eonext_kultur_main_enable_paragraph_bundles_for_field('node', $bundle, 'field_paragraphs'));
+  }
+
+  $event_fields = [
+    'field_teaser_text',
+    'field_teaser_image',
+    'field_event_paragraphs',
+  ];
+  foreach (['eventseries', 'eventinstance'] as $entity_type) {
+    if (!\Drupal::moduleHandler()->moduleExists('recurring_events')) {
+      break;
+    }
+    foreach ($event_fields as $field_name) {
+      if (_eonext_kultur_main_set_field_translatable($entity_type, 'default', $field_name)) {
+        $messages[] = "Made {$entity_type}.default.{$field_name} translatable.";
+      }
+    }
+    $messages = array_merge(
+      $messages,
+      _eonext_kultur_main_enable_paragraph_bundles_for_field($entity_type, 'default', 'field_event_paragraphs'),
+    );
+  }
+
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  return $messages;
+}
+
+/**
+ * Sets a field configurable as translatable when it exists and is off.
+ */
+function _eonext_kultur_main_set_field_translatable(string $entity_type, string $bundle, string $field_name): bool {
+  $field = FieldConfig::loadByName($entity_type, $bundle, $field_name);
+  if (!$field instanceof FieldConfig || $field->isTranslatable()) {
+    return FALSE;
+  }
+  $field->setTranslatable(TRUE);
+  $field->save();
+  return TRUE;
+}
+
+/**
+ * Enables content translation on paragraph bundles allowed in a paragraphs field.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_enable_paragraph_bundles_for_field(string $entity_type, string $bundle, string $field_name): array {
+  $messages = [];
+  $field = FieldConfig::loadByName($entity_type, $bundle, $field_name);
+  if (!$field instanceof FieldConfig) {
+    return $messages;
+  }
+
+  $target_bundles = $field->getSetting('handler_settings')['target_bundles'] ?? [];
+  if (!is_array($target_bundles)) {
+    return $messages;
+  }
+
+  $manager = \Drupal::service('content_translation.manager');
+  foreach (array_keys($target_bundles) as $paragraph_bundle) {
+    if (!$manager->isEnabled('paragraph', $paragraph_bundle)) {
+      try {
+        $manager->setEnabled('paragraph', $paragraph_bundle, TRUE);
+        $messages[] = "Enabled content translation for paragraph.{$paragraph_bundle}.";
+      }
+      catch (\Throwable) {
+        continue;
+      }
+    }
+
+    $config_name = "paragraph.{$paragraph_bundle}";
+    $language_settings = ContentLanguageSettings::load($config_name);
+    if (!$language_settings instanceof ContentLanguageSettings) {
+      $language_settings = ContentLanguageSettings::create([
+        'target_entity_type_id' => 'paragraph',
+        'target_bundle' => $paragraph_bundle,
+      ]);
+      $language_settings->setDefaultLangcode('da');
+      $language_settings->setLanguageAlterable(TRUE);
+      $language_settings->save();
+      $messages[] = "Created language settings for {$config_name}.";
+    }
+    elseif (!$language_settings->isLanguageAlterable()) {
+      $language_settings->setLanguageAlterable(TRUE);
+      $language_settings->save();
+      $messages[] = "Made {$config_name} language alterable.";
+    }
+  }
+
+  return $messages;
+}
+
+/**
+ * Ensures translatable footer config exists (dpl_footer → eonext_translation.footer).
+ *
+ * Without this object, /admin/structure/footer/translate fails config validation.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_ensure_footer_translation_config(): array {
+  if (!\Drupal::moduleHandler()->moduleExists('eonext_translation')) {
+    return [];
+  }
+
+  \Drupal::moduleHandler()->loadInclude('eonext_translation', 'install');
+  if (!function_exists('_eonext_translation_ensure_footer_config')) {
+    return [];
+  }
+
+  $message = _eonext_translation_ensure_footer_config();
+  if ($message === 'eonext_translation.footer already present.') {
+    return [];
+  }
+
+  return [$message];
 }
 
 /**
@@ -1610,6 +1753,36 @@ function eonext_kultur_main_update_9037(): string {
 
   return implode(' ', $messages)
     ?: 'Kulturnat URL language negotiation was already configured.';
+}
+
+/**
+ * Ensures eonext_translation.footer exists for footer config translation UI.
+ */
+function eonext_kultur_main_update_9038(): string {
+  $messages = _eonext_kultur_main_ensure_footer_translation_config();
+
+  return implode(' ', $messages)
+    ?: 'Footer translation config was already present.';
+}
+
+/**
+ * Grants translate configuration for footer config translation UI.
+ */
+function eonext_kultur_main_update_9039(): string {
+  $messages = _eonext_kultur_main_grant_kulturnat_translation_permissions();
+
+  return implode(' ', $messages)
+    ?: 'Footer/config translation permissions were already granted.';
+}
+
+/**
+ * Per-language subtitle, teaser, and paragraphs on pages, articles, and events.
+ */
+function eonext_kultur_main_update_9040(): string {
+  $messages = _eonext_kultur_main_enable_kulturnat_editorial_translation_fields();
+
+  return implode(' ', $messages)
+    ?: 'Editorial translation fields were already configured.';
 }
 
 function eonext_kultur_main_update_9032(): string {

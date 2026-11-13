@@ -100,14 +100,15 @@ function _eonext_kultur_main_attach_editorial_search_overlay(array &$element): v
       'relatedContentText' => (string) t('Related content', [], ['context' => 'DPL related content']),
     ],
   ];
+  // Valid in <head> (a <span> here forces the parser to close </head> early and
+  // can push theme favicon <link> into <body>, where browsers ignore it).
   $element['#attached']['html_head'][] = [
     [
       '#type' => 'html_tag',
-      '#tag' => 'span',
+      '#tag' => 'meta',
       '#attributes' => [
-        'data-eonext-editorial-overlay' => 'true',
-        'hidden' => 'hidden',
-        'aria-hidden' => 'true',
+        'name' => 'eonext-editorial-overlay',
+        'content' => 'true',
       ],
     ],
     'eonext_kultur_main_editorial_overlay_flag',

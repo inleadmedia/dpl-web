@@ -20,4 +20,4 @@ eonext_translation.translate_footer:
     _title: "Translate Footer"
     _form: 'Drupal\eonext_translation\Form\FooterTranslateForm'
   requirements:
-    _permission: "administer site configuration"
+    _permission: "administer dpl_footer settings"

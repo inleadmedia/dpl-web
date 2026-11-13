@@ -83,6 +83,15 @@ final class FooterTranslateForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $config = $this->config(static::SETTINGS);
+    $footerItems = $config->get('footer_items');
+    if (empty($footerItems)) {
+      $state = $this->translationService->getFooterState();
+      if (!empty($state['footer_items'])) {
+        $this->translationService->saveFooterToConfig();
+        $config = $this->config(static::SETTINGS);
+        $footerItems = $config->get('footer_items');
+      }
+    }
 
     $form['translate_footer'] = [
       '#type' => 'checkbox',
@@ -99,13 +108,13 @@ final class FooterTranslateForm extends ConfigFormBase {
           ':input[name="translate_footer"]' => ['checked' => TRUE],
         ],
       ],
-      '#access' => $config->get('footer_items') ? TRUE : FALSE,
+      '#access' => !empty($footerItems),
     ];
 
     $form['edit']['edit_translations'] = [
       '#type' => 'link',
       '#title' => $this->t('Edit translations'),
-      '#url' => Url::fromUserInput('/admin/structure/footer/translate'),
+      '#url' => Url::fromRoute('config_translation.item.overview.dpl_footer.footer_form'),
     ];
 
     $form['submit'] = [

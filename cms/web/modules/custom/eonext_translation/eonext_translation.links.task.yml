@@ -1,10 +1,16 @@
-eonext_translation.translation_settings: # The first plugin ID
+eonext_translation.translation_settings:
   route_name: eonext_translation.translation_settings
-  title: "Settings"
+  title: Settings
   base_route: eonext_translation.translation_settings
 
-example.translate_footer:
+eonext_translation.translate_footer:
   route_name: eonext_translation.translate_footer
-  title: "Translate Footer"
+  title: Translate Footer
   base_route: eonext_translation.translation_settings
   weight: 100
+
+eonext_translation.footer_translate:
+  route_name: config_translation.item.overview.dpl_footer.footer_form
+  title: Translate
+  base_route: dpl_footer.footer_form
+  weight: 10

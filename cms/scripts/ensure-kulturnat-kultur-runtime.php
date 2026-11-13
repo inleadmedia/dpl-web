@@ -77,7 +77,6 @@ $install = new FileStorage($module_path . '/config/install');
 $imported = [];
 foreach ([
   'facets.facet.event_city',
-  'facets.facet.event_categories',
   'eonext_kultur_events.settings',
 ] as $name) {
   if (!\Drupal::configFactory()->get($name)->isNew()) {
@@ -121,9 +120,6 @@ if (function_exists('eonext_kultur_events_ensure_city_processor')) {
 if (function_exists('eonext_kultur_events_install_event_city_facet')) {
   eonext_kultur_events_install_event_city_facet();
 }
-if (function_exists('eonext_kultur_events_install_event_categories_facet')) {
-  eonext_kultur_events_install_event_categories_facet();
-}
 if (function_exists('eonext_kultur_events_reapply_eonext_437_fixes')) {
   echo eonext_kultur_events_reapply_eonext_437_fixes() . "\n";
 }
@@ -136,6 +132,13 @@ elseif (function_exists('eonext_kultur_events_disable_dpl_library_facets')) {
 if (function_exists('eonext_kultur_events_reindex')) {
   eonext_kultur_events_reindex();
   echo "Reindexed Search API index \"events\".\n";
+}
+
+if (\Drupal::moduleHandler()->moduleExists('eonext_translation')) {
+  \Drupal::moduleHandler()->loadInclude('eonext_translation', 'install');
+  if (function_exists('_eonext_translation_ensure_footer_config')) {
+    echo _eonext_translation_ensure_footer_config() . "\n";
+  }
 }
 
 if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_event_submissions')
