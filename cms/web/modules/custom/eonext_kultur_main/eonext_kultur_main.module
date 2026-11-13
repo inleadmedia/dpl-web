@@ -158,6 +158,36 @@ function eonext_kultur_main_theme(): array {
 }
 
 /**
+ * Implements hook_field_widget_single_element_form_alter().
+ */
+function eonext_kultur_main_field_widget_single_element_form_alter(array &$element, FormStateInterface $form_state, array $context): void {
+  /** @var \Drupal\Core\Field\FieldItemListInterface $items */
+  $items = $context['items'];
+  if ($items->getFieldDefinition()->getName() !== 'field_body') {
+    return;
+  }
+  $paragraph = $items->getEntity();
+  if (!$paragraph instanceof ParagraphInterface || $paragraph->bundle() !== 'text_body') {
+    return;
+  }
+  $langcode = _eonext_kultur_main_node_form_langcode($form_state);
+  if ($langcode === NULL || !$paragraph->hasTranslation($langcode)) {
+    return;
+  }
+  $translated = $paragraph->getTranslation($langcode);
+  if ($translated->language()->getId() === $paragraph->language()->getId()) {
+    return;
+  }
+  $value = $translated->get('field_body')->getValue();
+  if (isset($element['value']['#default_value'])) {
+    $element['value']['#default_value'] = $value[0]['value'] ?? '';
+  }
+  if (isset($element['format']['#default_value'])) {
+    $element['format']['#default_value'] = $value[0]['format'] ?? 'basic';
+  }
+}
+
+/**
  * Implements hook_field_widget_single_element_paragraphs_form_alter().
  */
 function eonext_kultur_main_field_widget_single_element_paragraphs_form_alter(array &$element, FormStateInterface $form_state, array $context): void {
@@ -522,6 +552,9 @@ function _eonext_kultur_main_paragraphs_form_use_host_language(array &$element, 
 
   /** @var \Drupal\Core\Field\FieldItemListInterface $items */
   $items = $context['items'];
+  if ($items->getFieldDefinition()->getTargetEntityTypeId() !== 'node') {
+    return;
+  }
   $field_name = $items->getFieldDefinition()->getName();
   $widget_state = WidgetBase::getWidgetState($element['#field_parents'], $field_name, $form_state);
   if (empty($widget_state['paragraphs'][$element['#delta']]['entity'])) {
@@ -538,11 +571,19 @@ function _eonext_kultur_main_paragraphs_form_use_host_language(array &$element, 
     return;
   }
 
-  $widget_state['paragraphs'][$element['#delta']]['entity'] = $translated;
-  WidgetBase::setWidgetState($element['#field_parents'], $field_name, $form_state, $widget_state);
   $element['#paragraph'] = $translated;
   if (isset($element['subform'])) {
     $element['subform']['#entity'] = $translated;
+  }
+
+  // Mutating widget_state during Paragraphs Ajax breaks rebuild (missing trigger element).
+  $triggering = $form_state->getTriggeringElement();
+  $parents = is_array($triggering) ? ($triggering['#array_parents'] ?? []) : [];
+  $is_paragraphs_ajax = $triggering !== NULL
+    && (in_array('field_paragraphs', $parents, TRUE) || in_array('field_event_paragraphs', $parents, TRUE));
+  if (!$is_paragraphs_ajax) {
+    $widget_state['paragraphs'][$element['#delta']]['entity'] = $translated;
+    WidgetBase::setWidgetState($element['#field_parents'], $field_name, $form_state, $widget_state);
   }
 }
 
