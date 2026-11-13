@@ -794,11 +794,19 @@ function _eonext_kultur_main_enable_text_body_translation(): string {
       'target_bundle' => 'text_body',
     ]);
   }
+  $changed = FALSE;
   if ($language_settings->getDefaultLangcode() !== 'da') {
     $language_settings->setDefaultLangcode('da');
-    $language_settings->setLanguageAlterable(FALSE);
-    $language_settings->save();
+    $changed = TRUE;
     $messages[] = 'Set text body paragraph default language to Danish.';
+  }
+  if (!$language_settings->isLanguageAlterable()) {
+    $language_settings->setLanguageAlterable(TRUE);
+    $changed = TRUE;
+    $messages[] = 'Made text body paragraph language alterable for content translation.';
+  }
+  if ($changed) {
+    $language_settings->save();
   }
 
   $field = FieldConfig::loadByName('paragraph', 'text_body', 'field_body');
@@ -1815,6 +1823,13 @@ function eonext_kultur_main_update_9041(): string {
 
   return implode(' ', $messages)
     ?: 'Shared paragraphs with translatable text body were already configured.';
+}
+
+/**
+ * Re-run text body translation settings (language alterable) after UI fixes.
+ */
+function eonext_kultur_main_update_9042(): string {
+  return _eonext_kultur_main_enable_text_body_translation();
 }
 
 function eonext_kultur_main_update_9032(): string {
