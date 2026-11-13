@@ -100,6 +100,8 @@ return [
     'dk_address.settings',
     'dpl_biblio.settings',
     'field.field.node.page.field_paragraphs',
+    'field.field.node.article.field_paragraphs',
+    'field.field.paragraph.text_body.field_body',
     'user.role.administrator',
     'user.role.editor',
     'user.role.local_administrator',

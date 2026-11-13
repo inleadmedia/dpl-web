@@ -1370,11 +1370,11 @@ function _eonext_kultur_main_apply_kulturnat_translation_runtime(): array {
 }
 
 /**
- * Makes editorial node/event fields translatable (per-language values).
+ * Kulturnat editorial translation: per-language node fields + shared paragraphs.
  *
- * DPL config/sync ships teaser/subtitle/paragraph fields as not translatable, so
- * translation forms edit the same storage for every language. Re-applied at
- * runtime because Kulturnat ignores several field configs on config import.
+ * Paragraph lists (field_paragraphs / field_event_paragraphs) stay shared across
+ * node translations; editors translate text on each paragraph entity (e.g.
+ * text_body.field_body). Matches event publisher behaviour and editor expectation.
  *
  * @return string[]
  *   Status messages.
@@ -1391,7 +1391,6 @@ function _eonext_kultur_main_enable_kulturnat_editorial_translation_fields(): ar
     'field_teaser_text',
     'field_teaser_image',
     'field_hero_title',
-    'field_paragraphs',
   ];
   foreach (['page', 'article'] as $bundle) {
     foreach ($node_fields as $field_name) {
@@ -1399,13 +1398,15 @@ function _eonext_kultur_main_enable_kulturnat_editorial_translation_fields(): ar
         $messages[] = "Made node.{$bundle}.{$field_name} translatable.";
       }
     }
+    if (_eonext_kultur_main_set_field_non_translatable('node', $bundle, 'field_paragraphs')) {
+      $messages[] = "Made node.{$bundle}.field_paragraphs shared (non-translatable).";
+    }
     $messages = array_merge($messages, _eonext_kultur_main_enable_paragraph_bundles_for_field('node', $bundle, 'field_paragraphs'));
   }
 
   $event_fields = [
     'field_teaser_text',
     'field_teaser_image',
-    'field_event_paragraphs',
   ];
   foreach (['eventseries', 'eventinstance'] as $entity_type) {
     if (!\Drupal::moduleHandler()->moduleExists('recurring_events')) {
@@ -1416,10 +1417,18 @@ function _eonext_kultur_main_enable_kulturnat_editorial_translation_fields(): ar
         $messages[] = "Made {$entity_type}.default.{$field_name} translatable.";
       }
     }
+    if (_eonext_kultur_main_set_field_non_translatable($entity_type, 'default', 'field_event_paragraphs')) {
+      $messages[] = "Made {$entity_type}.default.field_event_paragraphs shared (non-translatable).";
+    }
     $messages = array_merge(
       $messages,
       _eonext_kultur_main_enable_paragraph_bundles_for_field($entity_type, 'default', 'field_event_paragraphs'),
     );
+  }
+
+  $text_body_message = _eonext_kultur_main_enable_text_body_translation();
+  if ($text_body_message !== 'Text body translation is already configured.') {
+    $messages[] = $text_body_message;
   }
 
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
@@ -1436,6 +1445,19 @@ function _eonext_kultur_main_set_field_translatable(string $entity_type, string 
     return FALSE;
   }
   $field->setTranslatable(TRUE);
+  $field->save();
+  return TRUE;
+}
+
+/**
+ * Sets a field as non-translatable when it exists and is currently translatable.
+ */
+function _eonext_kultur_main_set_field_non_translatable(string $entity_type, string $bundle, string $field_name): bool {
+  $field = FieldConfig::loadByName($entity_type, $bundle, $field_name);
+  if (!$field instanceof FieldConfig || !$field->isTranslatable()) {
+    return FALSE;
+  }
+  $field->setTranslatable(FALSE);
   $field->save();
   return TRUE;
 }
@@ -1783,6 +1805,16 @@ function eonext_kultur_main_update_9040(): string {
 
   return implode(' ', $messages)
     ?: 'Editorial translation fields were already configured.';
+}
+
+/**
+ * Shared paragraph lists + translatable text_body (translate blocks in place).
+ */
+function eonext_kultur_main_update_9041(): string {
+  $messages = _eonext_kultur_main_enable_kulturnat_editorial_translation_fields();
+
+  return implode(' ', $messages)
+    ?: 'Shared paragraphs with translatable text body were already configured.';
 }
 
 function eonext_kultur_main_update_9032(): string {
