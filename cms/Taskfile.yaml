@@ -13,7 +13,8 @@ env:
   SKIP_LANGUAGE_IMPORT: '{{.SKIP_LANGUAGE_IMPORT | default "false"}}'
   # Kulturnat EONEXT: CMS-only on Inlead Jenkins — React builds, Go does not deploy here.
   SKIP_GO_DEPLOY: '{{.SKIP_GO_DEPLOY | default "true"}}'
-  SKIP_REACT_BUILD: '{{.SKIP_REACT_BUILD | default "false"}}'
+  # Kulturnat Inlead deploys are usually CMS-only; override with SKIP_REACT_BUILD=false in .task.env when needed.
+  SKIP_REACT_BUILD: '{{.SKIP_REACT_BUILD | default "true"}}'
   DRUSH_EXEC: "./vendor/bin/drush"
 
 tasks:
@@ -178,12 +179,27 @@ tasks:
       - composer drupal:scaffold
       - find web/sites/*/files/php -name "*.php" -delete 2>/dev/null || true
       - |
-        if [ "${SKIP_REACT_BUILD}" = true ]; then
+        # cms/.task.env is gitignored (server/Jenkins); Task dotenv alone does not always
+        # override Taskfile env: — load it here so prod can skip long React builds.
+        set -a
+        if [ -f .task.env ]; then
+          # shellcheck disable=SC1091
+          . ./.task.env
+        fi
+        set +a
+        case "${SKIP_REACT_BUILD}" in true|1|yes|TRUE|True) skip_react=1 ;; *) skip_react=0 ;; esac
+        if [ "${skip_react}" -eq 1 ]; then
           echo "Skipping React/design-system link (SKIP_REACT_BUILD)"
         else
           task -t Taskfile.yaml drupal:cms-link
         fi
       - |
+        set -a
+        if [ -f .task.env ]; then
+          # shellcheck disable=SC1091
+          . ./.task.env
+        fi
+        set +a
         if [ "${SKIP_GO_DEPLOY}" = true ]; then
           echo "Skipping Go deploy due to SKIP_GO_DEPLOY environment variable"
         elif [ ! -f ../go/package.json ]; then
