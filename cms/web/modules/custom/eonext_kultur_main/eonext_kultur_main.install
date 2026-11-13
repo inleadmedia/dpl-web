@@ -1312,6 +1312,53 @@ function _eonext_kultur_main_configure_kulturnat_language_url_negotiation(): arr
 }
 
 /**
+ * URL prefix applies to content language (required for shared paragraphs + CT).
+ *
+ * Matches eonext_translation config/partial/TRANSLATE/language.types.yml so
+ * /kl/node/N/edit uses kl in ParagraphsWidget without custom form code.
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_configure_kulturnat_language_content_negotiation(): array {
+  $messages = [];
+  $config = \Drupal::configFactory()->getEditable('language.types');
+  $enabled = $config->get('negotiation.language_content.enabled') ?? [];
+  $weights = $config->get('negotiation.language_content.method_weights') ?? [];
+
+  $changed = FALSE;
+  if (!isset($enabled['language-url'])) {
+    $enabled['language-url'] = -8;
+    $changed = TRUE;
+    $messages[] = 'Enabled language-url negotiation for content language.';
+  }
+  elseif ((int) $enabled['language-url'] !== -8) {
+    $enabled['language-url'] = -8;
+    $changed = TRUE;
+  }
+
+  if (($weights['language-url'] ?? NULL) !== -8) {
+    $weights['language-url'] = -8;
+    $changed = TRUE;
+  }
+
+  if (!isset($enabled['language-interface'])) {
+    $enabled['language-interface'] = 9;
+    $changed = TRUE;
+  }
+
+  if ($changed) {
+    asort($enabled, SORT_NUMERIC);
+    $config
+      ->set('negotiation.language_content.enabled', $enabled)
+      ->set('negotiation.language_content.method_weights', $weights)
+      ->save();
+  }
+
+  return $messages;
+}
+
+/**
  * Header language switcher: Drupal da/kl (not Google Translate).
  *
  * @return string[]
@@ -1326,6 +1373,7 @@ function _eonext_kultur_main_configure_eonext_translation_switcher(): array {
     _eonext_kultur_main_ensure_kulturnat_languages(),
     _eonext_kultur_main_configure_kulturnat_url_prefixes(),
     _eonext_kultur_main_configure_kulturnat_language_url_negotiation(),
+    _eonext_kultur_main_configure_kulturnat_language_content_negotiation(),
   );
   $editable = \Drupal::configFactory()->getEditable('eonext_translation.settings');
   $changed = FALSE;
@@ -1830,6 +1878,14 @@ function eonext_kultur_main_update_9041(): string {
  */
 function eonext_kultur_main_update_9042(): string {
   return _eonext_kultur_main_enable_text_body_translation();
+}
+
+/**
+ * Content language from URL prefix (Paragraphs translation forms).
+ */
+function eonext_kultur_main_update_9043(): string {
+  $messages = _eonext_kultur_main_configure_kulturnat_language_content_negotiation();
+  return implode(' ', $messages) ?: 'Content language URL negotiation was already configured.';
 }
 
 function eonext_kultur_main_update_9032(): string {
