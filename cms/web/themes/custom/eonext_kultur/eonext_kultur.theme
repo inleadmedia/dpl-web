@@ -103,7 +103,16 @@ function eonext_kultur_form_system_theme_settings_alter(array &$form, FormStateI
     ],
   ];
 
+  $form['#submit'] ??= [];
+  if (!is_array($form['#submit'])) {
+    $form['#submit'] = [];
+  }
   array_unshift($form['#submit'], 'eonext_kultur_form_system_theme_settings_logo_submit');
+
+  $form['#validate'] ??= [];
+  if (!is_array($form['#validate'])) {
+    $form['#validate'] = [];
+  }
   $form['#validate'][] = 'eonext_kultur_form_system_theme_settings_logo_validate';
 }
 

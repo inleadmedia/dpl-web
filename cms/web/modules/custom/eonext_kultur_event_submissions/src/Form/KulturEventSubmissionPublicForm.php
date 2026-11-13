@@ -262,14 +262,13 @@ final class KulturEventSubmissionPublicForm extends ContentEntityForm {
 
     $this->mailNotifier->sendReceived($submission);
 
-    $this->messenger()->addStatus($this->t(
-      'Thank you. Your event has been submitted for review.',
-      [],
-      ['context' => 'eonext_kultur_event_submissions']
-    ));
-
     $destination = $this->getAdminDestinationUrl();
     if ($destination !== NULL) {
+      $this->messenger()->addStatus($this->t(
+        'Thank you. Your event has been submitted for review.',
+        [],
+        ['context' => 'eonext_kultur_event_submissions']
+      ));
       $form_state->setRedirectUrl($destination);
       return $result;
     }

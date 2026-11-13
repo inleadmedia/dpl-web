@@ -102,11 +102,25 @@ tasks:
           ensure_js_toolchain
           task dev:design-system:build
           task dev:wedobooks:build
+          # Jenkins shared agents often OOM during webpack without a higher heap cap.
+          export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
           cd "${REPO_ROOT}/react" && corepack pnpm run clean && corepack pnpm run build:js:prod && corepack pnpm run build:css:prod
+          for required in "${REPO_ROOT}/react/dist/mount.js" "${REPO_ROOT}/react/dist/menu.js"; do
+            if [ ! -s "$required" ]; then
+              echo "ERROR: React production build incomplete (missing $required). Refusing to wipe ${REACT_LIB}." >&2
+              exit 1
+            fi
+          done
           rm -rf "${DS_ASSETS}" "${REACT_LIB}"
           mkdir -p "${DS_ASSETS}" "${REACT_LIB}"
           cp -r "${DS_BUILD}/css" "${DS_BUILD}/js" "${DS_BUILD}/icons" "${DS_BUILD}/fonts" "${DS_ASSETS}/"
           cp -r "${REPO_ROOT}/react/dist/." "${REACT_LIB}/"
+          for required in "${REACT_LIB}/mount.js" "${REACT_LIB}/menu.js"; do
+            if [ ! -s "$required" ]; then
+              echo "ERROR: dpl-react copy failed (missing $required)." >&2
+              exit 1
+            fi
+          done
           # Go is left intact: go:deploy builds it next and prunes afterwards.
           # These packages have already been compiled into the files copied above
           # (the WeDoBooks SDK is bundled into its dist).
