@@ -70,6 +70,7 @@ return [
     'eonext_kultur.settings',
     'eonext_editorial_search.*',
     'eonext_translation.footer',
+    'eonext_translation.settings',
     'facets.facet.editorial_*',
     'facets.facet_source.search_api__views_page__editorial_search__page',
     'rest.resource.eonext_editorial_search.*',

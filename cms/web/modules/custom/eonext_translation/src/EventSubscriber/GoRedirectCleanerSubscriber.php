@@ -3,6 +3,7 @@
 namespace Drupal\eonext_translation\EventSubscriber;
 
 use Drupal\dpl_go\GoSiteInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
@@ -13,7 +14,17 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 class GoRedirectCleanerSubscriber implements EventSubscriberInterface {
 
   /**
-   * {@inheritdoc}
+   * Creates a subscriber; GO is optional (Kulturnat disables dpl_go).
+   */
+  public static function create(ContainerInterface $container): self {
+    $goSite = $container->has('dpl_go.go_site')
+      ? $container->get('dpl_go.go_site')
+      : NULL;
+    return new self($goSite);
+  }
+
+  /**
+   * Constructs the subscriber.
    */
   public function __construct(protected ?GoSiteInterface $goSite) {}
 

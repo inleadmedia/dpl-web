@@ -644,6 +644,8 @@ function eonext_kultur_event_submissions_update_9018(): string {
  */
 function eonext_kultur_event_submissions_reapply_eonext_437_fixes(): string {
   _eonext_kultur_event_submissions_grant_permissions();
+  _eonext_kultur_event_submissions_ensure_languages();
+  _eonext_kultur_event_submissions_enable_public_form_language_negotiation();
   _eonext_kultur_event_submissions_hide_public_form_categories();
   _eonext_kultur_event_submissions_sync_event_categories_required();
 

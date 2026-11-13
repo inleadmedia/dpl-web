@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\eonext_kultur_event_submissions\Service;
 
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -77,7 +78,7 @@ final class SubmissionMailNotifier {
       return;
     }
 
-    $langcode = $this->languageManager->getDefaultLanguage()->getId();
+    $langcode = $this->languageManager->getCurrentLanguage(LanguageInterface::TYPE_INTERFACE)->getId();
     try {
       $this->mailManager->mail(
         'eonext_kultur_event_submissions',

@@ -1121,7 +1121,16 @@ function _eonext_kultur_main_configure_kulturnat_mail_transport(): array {
   }
 
   $mail_config = \Drupal::configFactory()->getEditable('mailsystem.settings');
-  $transport = \Drupal::moduleHandler()->moduleExists('symfony_mailer') ? 'symfony_mailer' : 'php_mail';
+  $handler = \Drupal::moduleHandler();
+  if ($handler->moduleExists('sparkpost')) {
+    $transport = 'sparkpost_mail';
+  }
+  elseif ($handler->moduleExists('symfony_mailer')) {
+    $transport = 'symfony_mailer';
+  }
+  else {
+    $transport = 'php_mail';
+  }
   $changed = FALSE;
 
   $defaults = $mail_config->get('defaults') ?? [];
@@ -1230,6 +1239,49 @@ function _eonext_kultur_main_ensure_kulturnat_languages(): array {
 }
 
 /**
+ * Header language switcher: Drupal da/kl (not Google Translate).
+ *
+ * @return string[]
+ *   Status messages.
+ */
+function _eonext_kultur_main_configure_eonext_translation_switcher(): array {
+  if (!\Drupal::moduleHandler()->moduleExists('eonext_translation')) {
+    return [];
+  }
+
+  $messages = _eonext_kultur_main_ensure_kulturnat_languages();
+  $editable = \Drupal::configFactory()->getEditable('eonext_translation.settings');
+  $changed = FALSE;
+
+  if (($editable->get('translation_type') ?? '') !== 'drupal_translate') {
+    $editable->set('translation_type', 'drupal_translate');
+    $changed = TRUE;
+    $messages[] = 'Header: use Drupal language switcher (not Google Translate).';
+  }
+
+  $wanted = [];
+  foreach (['da', 'kl'] as $langcode) {
+    if (\Drupal::languageManager()->getLanguage($langcode) !== NULL) {
+      $wanted[] = $langcode;
+    }
+  }
+  $current = array_values($editable->get('drupal_translation_available_languages') ?: []);
+  sort($current);
+  sort($wanted);
+  if ($wanted !== [] && $current !== $wanted) {
+    $editable->set('drupal_translation_available_languages', $wanted);
+    $changed = TRUE;
+    $messages[] = 'Header languages: ' . implode(', ', $wanted) . '.';
+  }
+
+  if ($changed) {
+    $editable->save();
+  }
+
+  return $messages;
+}
+
+/**
  * Applies Kulturnat translation + kl policy (update hooks / post-cim reapply).
  *
  * @return string[]
@@ -1240,6 +1292,7 @@ function _eonext_kultur_main_apply_kulturnat_translation_runtime(): array {
     _eonext_kultur_main_apply_kulturnat_config_ignore(),
     _eonext_kultur_main_ensure_content_translation_module(),
     _eonext_kultur_main_ensure_kulturnat_languages(),
+    _eonext_kultur_main_configure_eonext_translation_switcher(),
     _eonext_kultur_main_enable_kulturnat_content_translation_bundles(),
     _eonext_kultur_main_grant_kulturnat_translation_permissions(),
   );
@@ -1448,6 +1501,25 @@ function eonext_kultur_main_update_9035(): string {
   $messages = _eonext_kultur_main_apply_kulturnat_translation_runtime();
 
   return implode(' ', $messages) ?: 'Kulturnat translation runtime policy was already applied.';
+}
+
+/**
+ * Re-applies da/kl + submission mail transport (SparkPost) after deploy.
+ */
+function eonext_kultur_main_update_9036(): string {
+  $messages = _eonext_kultur_main_ensure_kulturnat_languages();
+  $messages = array_merge($messages, _eonext_kultur_main_configure_eonext_translation_switcher());
+  $messages = array_merge($messages, _eonext_kultur_main_configure_kulturnat_mail_transport());
+
+  if (\Drupal::moduleHandler()->moduleExists('eonext_kultur_event_submissions')) {
+    \Drupal::moduleHandler()->loadInclude('eonext_kultur_event_submissions', 'install');
+    if (function_exists('eonext_kultur_event_submissions_reapply_eonext_437_fixes')) {
+      $messages[] = eonext_kultur_event_submissions_reapply_eonext_437_fixes();
+    }
+  }
+
+  return implode(' ', $messages)
+    ?: 'Kulturnat languages and submission mail transport were already configured.';
 }
 
 function eonext_kultur_main_update_9032(): string {
