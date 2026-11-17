@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c81551dbbcf164f6994d18440af29949",
+    "content-hash": "363e2bc90e96394748b9796d0a7ae3f4",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10677,7 +10677,7 @@
             "dist": {
                 "type": "path",
                 "url": "../design-system/build",
-                "reference": "a61b259a25779345e11cf47b7a389b64d90e6003"
+                "reference": "149a018485dba9e064f95ee7a641b2ffbe3e3b03"
             },
             "type": "drupal-library",
             "transport-options": {
@@ -10691,16 +10691,48 @@
             "dist": {
                 "type": "path",
                 "url": "../react/dist",
-                "reference": "56505f515f2300d469b41792ea9f268f2e488de7"
+                "reference": "60faa9ce731bf88267ee0e299be196313d389e01"
             },
             "require": {
-                "composer/installers": "^1.2 || ^2"
+                "composer/installers": "^1.2.0"
             },
             "type": "drupal-library",
             "transport-options": {
                 "symlink": true,
                 "relative": true
             }
+        },
+        {
+            "name": "inleadmedia/easyemail",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "git@github.com:inleadmedia/easyemail.git",
+                "reference": "0ec85db12d0a2c58d1829f408b2ce1732bc9fcbe"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/0ec85db12d0a2c58d1829f408b2ce1732bc9fcbe",
+                "reference": "0ec85db12d0a2c58d1829f408b2ce1732bc9fcbe",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^10 || ^11",
+                "drupal/entity_reference_revisions": "^1.10",
+                "drupal/paragraphs": "^1.12"
+            },
+            "default-branch": true,
+            "type": "drupal-custom-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Newsletter management system with Peytz Mailer integration.",
+            "homepage": "https://github.com/inleadmedia/easyemail",
+            "support": {
+                "source": "https://github.com/inleadmedia/easyemail",
+                "issues": "https://github.com/inleadmedia/easyemail/issues"
+            },
+            "time": "2026-11-17T15:15:57+00:00"
         },
         {
             "name": "inleadmedia/ee_frontend",
@@ -24168,6 +24200,7 @@
         "drupal/ultimate_cron": 10,
         "inleadmedia/dpl-design-system": 20,
         "inleadmedia/dpl-react": 20,
+        "inleadmedia/easyemail": 20,
         "inleadmedia/ee_frontend": 20,
         "inleadmedia/eonext_event_engine": 20
     },
@@ -24178,5 +24211,5 @@
         "ext-dom": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

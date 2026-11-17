@@ -97,6 +97,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/inleadmedia/ee_frontend"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/inleadmedia/easyemail"
         }
     ],
     "require": {
@@ -219,6 +223,7 @@
         "drush/drush": "^13",
         "inleadmedia/dpl-design-system": "0.0.2-dev",
         "inleadmedia/dpl-react": "0.0.2-dev",
+        "inleadmedia/easyemail": "dev-development",
         "inleadmedia/ee_frontend": "dev-development",
         "inleadmedia/eonext_event_engine": "dev-development",
         "mnsami/composer-custom-directory-installer": "^2.0",
@@ -261,6 +266,7 @@
     "config": {
         "github-protocols": ["https", "ssh"],
         "preferred-install": {
+            "inleadmedia/easyemail": "source",
             "inleadmedia/eonext_event_engine": "source",
             "inleadmedia/ee_frontend": "source"
         },
