@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "363e2bc90e96394748b9796d0a7ae3f4",
+    "content-hash": "3511ce1036cde8ed628d642bf9313e77",
     "packages": [
         {
             "name": "amazeeio/drupal_integrations",
@@ -10708,12 +10708,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "422863777b97b7454f3d3146776a567aba946f5c"
+                "reference": "919fb54107c4340db1873d827c918461b180364f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/422863777b97b7454f3d3146776a567aba946f5c",
-                "reference": "422863777b97b7454f3d3146776a567aba946f5c",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/919fb54107c4340db1873d827c918461b180364f",
+                "reference": "919fb54107c4340db1873d827c918461b180364f",
                 "shasum": ""
             },
             "require": {
@@ -10732,7 +10732,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-11-17T15:48:38+00:00"
+            "time": "2026-11-17T16:17:31+00:00"
         },
         {
             "name": "inleadmedia/ee_frontend",

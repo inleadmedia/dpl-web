@@ -305,6 +305,9 @@
             "web/themes/custom/novel/assets/{$name}": [
                 "inleadmedia/dpl-design-system"
             ],
+            "web/modules/inlead/{$name}": [
+                "inleadmedia/easyemail"
+            ],
             "web/core": [
                 "type:drupal-core"
             ],
