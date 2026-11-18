@@ -34,6 +34,10 @@ msgid "Søg"
 msgstr "Søg"
 
 msgctxt "eonext_kultur_events"
+msgid "City"
+msgstr "By"
+
+msgctxt "eonext_kultur_events"
 msgid "Apply"
 msgstr "Anvend"
 

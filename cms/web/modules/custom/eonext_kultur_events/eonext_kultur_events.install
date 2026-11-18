@@ -802,6 +802,49 @@ function eonext_kultur_events_update_9017(): string {
 }
 
 /**
+ * Translates the programme city filter label into Kalaallisut (EONEXT-437).
+ */
+function eonext_kultur_events_update_9018(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('locale')) {
+    return 'Locale module is not enabled; city filter label was not stored.';
+  }
+
+  $database = \Drupal::database();
+  $lid = $database->select('locales_source', 's')
+    ->fields('s', ['lid'])
+    ->condition('source', 'City')
+    ->condition('context', 'eonext_kultur_events')
+    ->execute()
+    ->fetchField();
+  if (!$lid) {
+    $lid = $database->insert('locales_source')
+      ->fields([
+        'source' => 'City',
+        'context' => 'eonext_kultur_events',
+        'version' => \Drupal::VERSION,
+      ])
+      ->execute();
+  }
+
+  foreach (['da' => 'By', 'kl' => 'Illoqarfik'] as $langcode => $translation) {
+    $database->merge('locales_target')
+      ->keys([
+        'lid' => $lid,
+        'language' => $langcode,
+      ])
+      ->fields([
+        'translation' => $translation,
+        'customized' => 1,
+      ])
+      ->execute();
+  }
+
+  \Drupal::cache('locale')->deleteAll();
+
+  return 'Stored City filter translations (da: By, kl: Illoqarfik).';
+}
+
+/**
  * Re-applies Kulturnat events listing fixes after deploy or config import.
  */
 function eonext_kultur_events_reapply_eonext_437_fixes(): string {

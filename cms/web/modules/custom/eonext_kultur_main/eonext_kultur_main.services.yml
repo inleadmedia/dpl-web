@@ -14,3 +14,9 @@ services:
       - '@language_manager'
   eonext_kultur_main.nav_teaser_builder:
     class: Drupal\eonext_kultur_main\NavTeaserBuilder
+  eonext_kultur_main.default_language_redirect:
+    class: Drupal\eonext_kultur_main\EventSubscriber\DefaultLanguageRedirectSubscriber
+    arguments:
+      - '@config.factory'
+    tags:
+      - { name: event_subscriber }

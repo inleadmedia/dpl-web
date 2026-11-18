@@ -34,6 +34,10 @@ msgid "Søg"
 msgstr "Ujarleruk"
 
 msgctxt "eonext_kultur_events"
+msgid "City"
+msgstr "Illoqarfik"
+
+msgctxt "eonext_kultur_events"
 msgid "Gratis"
 msgstr "Akikitsuusaq"
 

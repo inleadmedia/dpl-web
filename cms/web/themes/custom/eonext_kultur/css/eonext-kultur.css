@@ -1376,6 +1376,18 @@ main:has(.ek-page-title-band) {
   fill: var(--ek-navy, #1E0195);
 }
 
+/* Long Greenlandic banner titles wrap inside the white card (EONEXT-437). */
+.banner--has-image .banner__content--has-image {
+  max-width: min(22rem, 78%);
+}
+
+.banner--has-image .banner__title {
+  font-size: clamp(1.15rem, 2.2vw, 1.75rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
 /* ---- Language translation selector in ek-header ---- */
 
 /* Hide the patron login/profile button — not needed on the kultur site */

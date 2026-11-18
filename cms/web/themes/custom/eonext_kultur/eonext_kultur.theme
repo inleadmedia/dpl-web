@@ -414,7 +414,18 @@ function eonext_kultur_preprocess_page(array &$variables): void {
   unset($variables['breadcrumb']);
 
   // dpl_footer only provides this for the novel theme directly.
-  $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
+  // The theme runs after eonext_translation_preprocess_page(), so read the
+  // translated footer config here when translation is enabled. Otherwise the
+  // untranslated state value is what the frontend keeps showing.
+  $footer_config = \Drupal::config('eonext_translation.footer');
+  if ($footer_config->get('translate_footer')) {
+    $variables['footer_settings'] = \Drupal::service('eonext_translation.service')->getFooterSettings();
+    $variables['#cache']['contexts'][] = 'languages:language_interface';
+    $variables['#cache']['tags'][] = 'config:eonext_translation.footer';
+  }
+  else {
+    $variables['footer_settings'] = \Drupal::state()->get('dpl_footer_values') ?? [];
+  }
   if (!empty($variables['footer_settings']['footer_items'])) {
     foreach ($variables['footer_settings']['footer_items'] as &$item) {
       if (!empty($item['content']['value'])) {

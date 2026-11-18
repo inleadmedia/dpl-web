@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+use Drupal\Component\Serialization\Yaml;
 use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
@@ -1886,6 +1887,250 @@ function eonext_kultur_main_update_9042(): string {
 function eonext_kultur_main_update_9043(): string {
   $messages = _eonext_kultur_main_configure_kulturnat_language_content_negotiation();
   return implode(' ', $messages) ?: 'Content language URL negotiation was already configured.';
+}
+
+/**
+ * QA follow-up for EONEXT-437: language, content list, search, honeypot.
+ */
+function eonext_kultur_main_update_9044(): string {
+  $messages = [];
+  $messages = array_merge($messages, _eonext_kultur_main_configure_kulturnat_language_url_negotiation());
+  $messages = array_merge($messages, _eonext_kultur_main_configure_kulturnat_language_content_negotiation());
+  $messages[] = _eonext_kultur_main_set_greenlandic_default_language();
+  $messages[] = _eonext_kultur_main_add_content_language_column();
+  $messages[] = _eonext_kultur_main_protect_event_submission_form();
+  $messages[] = _eonext_kultur_main_repair_editorial_search_index();
+  $messages[] = _eonext_kultur_main_ensure_entity_reference_content_view();
+
+  return implode(' ', array_filter($messages));
+}
+
+/**
+ * Unprefixed public URLs fall through to Kalaallisut, and Danish uses /da.
+ */
+function _eonext_kultur_main_set_greenlandic_default_language(): string {
+  $config = \Drupal::configFactory()->getEditable('language.negotiation');
+  $prefixes = $config->get('url.prefixes') ?? [];
+  if (!is_array($prefixes)) {
+    $prefixes = [];
+  }
+  unset($prefixes['']);
+  $prefixes['en'] = 'en';
+  $prefixes['da'] = 'da';
+  $prefixes['kl'] = 'kl';
+
+  $changed = $config->get('selected_langcode') !== 'kl'
+    || $config->get('url.prefixes') != $prefixes;
+
+  if ($changed) {
+    $config
+      ->set('url.prefixes', $prefixes)
+      ->set('selected_langcode', 'kl')
+      ->save();
+    return 'Default language is now Kalaallisut; Danish URLs use the /da prefix.';
+  }
+
+  return 'Language negotiation already defaults to Kalaallisut.';
+}
+
+/**
+ * Adds the Language column on /admin/content.
+ */
+function _eonext_kultur_main_add_content_language_column(): string {
+  $config = \Drupal::configFactory()->getEditable('views.view.content');
+  if ($config->isNew()) {
+    return 'Content view is not installed.';
+  }
+
+  $display = $config->get('display') ?? [];
+  $fields = $display['default']['display_options']['fields'] ?? [];
+  if (isset($fields['langcode'])) {
+    return 'Content view already has a language column.';
+  }
+
+  $language_field = [
+    'id' => 'langcode',
+    'table' => 'node_field_data',
+    'field' => 'langcode',
+    'relationship' => 'none',
+    'group_type' => 'group',
+    'admin_label' => '',
+    'entity_type' => 'node',
+    'entity_field' => 'langcode',
+    'plugin_id' => 'field',
+    'label' => 'Language',
+    'exclude' => FALSE,
+    'alter' => ['alter_text' => FALSE],
+    'element_class' => '',
+    'element_default_classes' => TRUE,
+    'empty' => '',
+    'hide_empty' => FALSE,
+    'empty_zero' => FALSE,
+    'hide_alter_empty' => TRUE,
+    'click_sort_column' => 'value',
+    'type' => 'language',
+    'settings' => [
+      'link_to_entity' => FALSE,
+      'native_language' => FALSE,
+    ],
+    'group_column' => 'value',
+    'group_columns' => [],
+    'group_rows' => TRUE,
+    'delta_limit' => 0,
+    'delta_offset' => 0,
+    'delta_reversed' => FALSE,
+    'delta_first_last' => FALSE,
+    'multi_type' => 'separator',
+    'separator' => ', ',
+    'field_api_classes' => FALSE,
+  ];
+
+  $reordered = [];
+  foreach ($fields as $key => $field) {
+    if ($key === 'status') {
+      $reordered['langcode'] = $language_field;
+    }
+    $reordered[$key] = $field;
+  }
+  if (!isset($reordered['langcode'])) {
+    $reordered['langcode'] = $language_field;
+  }
+
+  $display['default']['display_options']['fields'] = $reordered;
+  $display['default']['display_options']['style']['options']['columns']['langcode'] = 'langcode';
+  $display['default']['display_options']['style']['options']['info']['langcode'] = [
+    'sortable' => TRUE,
+    'default_sort_order' => 'asc',
+    'align' => '',
+    'separator' => '',
+    'empty_column' => FALSE,
+    'responsive' => '',
+  ];
+  $config->set('display', $display)->save();
+
+  return 'Added a Language column to the content administration view.';
+}
+
+/**
+ * Honeypot on the public event registration form.
+ */
+function _eonext_kultur_main_protect_event_submission_form(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('honeypot')) {
+    return 'Honeypot is not enabled.';
+  }
+
+  $config = \Drupal::configFactory()->getEditable('honeypot.settings');
+  $settings = $config->get('form_settings') ?? [];
+  if (!empty($settings['kultur_event_submission_public_form'])) {
+    return 'Event registration form is already protected by honeypot.';
+  }
+
+  $settings['kultur_event_submission_public_form'] = TRUE;
+  $config->set('form_settings', $settings)->save();
+
+  return 'Enabled honeypot on the public event registration form.';
+}
+
+/**
+ * Drops Search API processors whose plugin class no longer exists.
+ *
+ * editorial_event_is_free was renamed to editorial_event_free. Loading the
+ * index with the old id throws and /search/web returns an error page.
+ */
+function _eonext_kultur_main_repair_editorial_search_index(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('search_api')) {
+    return 'Search API is not enabled.';
+  }
+
+  $config = \Drupal::configFactory()->getEditable('search_api.index.content_events');
+  if ($config->isNew()) {
+    return 'content_events index is not installed.';
+  }
+
+  $manager = \Drupal::service('plugin.manager.search_api.processor');
+  $settings = $config->get('processor_settings') ?? [];
+  $removed = [];
+  foreach (array_keys($settings) as $processor_id) {
+    if (!$manager->hasDefinition($processor_id)) {
+      unset($settings[$processor_id]);
+      $removed[] = $processor_id;
+    }
+  }
+
+  $added = [];
+  if (\Drupal::moduleHandler()->moduleExists('eonext_editorial_search')) {
+    foreach (['editorial_content', 'editorial_event_date', 'editorial_event_free'] as $processor_id) {
+      if (!isset($settings[$processor_id]) && $manager->hasDefinition($processor_id)) {
+        $settings[$processor_id] = [];
+        $added[] = $processor_id;
+      }
+    }
+  }
+
+  if ($removed !== [] || $added !== []) {
+    $config->set('processor_settings', $settings)->save(TRUE);
+    \Drupal::entityTypeManager()->getStorage('search_api_index')->resetCache(['content_events']);
+  }
+
+  $repair = '';
+  if (\Drupal::moduleHandler()->moduleExists('eonext_editorial_search')) {
+    \Drupal::moduleHandler()->loadInclude('eonext_editorial_search', 'install');
+    if (function_exists('_eonext_editorial_search_repair_content_events_index')) {
+      try {
+        $repair = _eonext_editorial_search_repair_content_events_index();
+      }
+      catch (\Throwable $exception) {
+        $repair = 'Editorial index repair skipped: ' . $exception->getMessage();
+      }
+    }
+  }
+
+  $message = $removed === []
+    ? 'Editorial search processors were already valid.'
+    : 'Removed missing search processors: ' . implode(', ', $removed) . '.';
+  if ($added !== []) {
+    $message .= ' Added search processors: ' . implode(', ', $added) . '.';
+  }
+
+  return trim($message . ' ' . $repair);
+}
+
+/**
+ * Imports the branch entity-reference view when config ignore left it out.
+ *
+ * Event series edit warns "The reference view entity_reference_content cannot
+ * be found" when that display is missing.
+ */
+function _eonext_kultur_main_ensure_entity_reference_content_view(): string {
+  $storage = \Drupal::entityTypeManager()->getStorage('view');
+  $view = $storage->load('entity_reference_content');
+  $displays = $view ? $view->get('display') : [];
+  if (is_array($displays) && isset($displays['branch_addresses'])) {
+    return 'Entity reference content view is already available.';
+  }
+
+  $path = dirname(\Drupal::root()) . '/config/sync/views.view.entity_reference_content.yml';
+  if (!is_readable($path)) {
+    return 'Could not import entity_reference_content; sync file is missing.';
+  }
+
+  $data = Yaml::decode(file_get_contents($path));
+  if (!is_array($data)) {
+    return 'Could not read entity_reference_content config.';
+  }
+
+  if ($view) {
+    $view->delete();
+  }
+  unset($data['uuid'], $data['_core']);
+  try {
+    $storage->create($data)->save();
+  }
+  catch (\Throwable $exception) {
+    return 'Could not import entity_reference_content: ' . $exception->getMessage();
+  }
+
+  return 'Imported the entity_reference_content view used by event branch fields.';
 }
 
 function eonext_kultur_main_update_9032(): string {

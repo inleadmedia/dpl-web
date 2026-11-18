@@ -18,6 +18,25 @@ use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
 
 /**
+ * Implements hook_recurring_events_event_instance_alter().
+ *
+ * New instances follow the series language. Otherwise a Greenlandic series
+ * approved from the Danish UI is stored as Danish and dropped from /kl.
+ */
+function eonext_kultur_event_submissions_recurring_events_event_instance_alter(array &$data): void {
+  if (!empty($data['langcode']) || empty($data['eventseries_id'])) {
+    return;
+  }
+
+  $series = \Drupal::entityTypeManager()->getStorage('eventseries')->load($data['eventseries_id']);
+  if (!$series instanceof \Drupal\recurring_events\Entity\EventSeries) {
+    return;
+  }
+
+  $data['langcode'] = $series->getUntranslated()->language()->getId();
+}
+
+/**
  * Implements hook_theme().
  */
 function eonext_kultur_event_submissions_theme($existing, $type, $theme, $path): array {

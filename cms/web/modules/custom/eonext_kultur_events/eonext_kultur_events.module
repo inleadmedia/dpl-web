@@ -555,6 +555,12 @@ function eonext_kultur_events_preprocess_facets_item_list(array &$variables): vo
   }
 
   $variables['baseIconPath'] = eonext_kultur_events_get_base_icon_path();
+
+  // Facet config names stay in the language they were saved in. Translate the
+  // city label in code so /kl does not keep the Danish "By".
+  if ((string) $facet->id() === 'event_city') {
+    $variables['facet_label'] = t('City', [], ['context' => 'eonext_kultur_events']);
+  }
 }
 
 /**

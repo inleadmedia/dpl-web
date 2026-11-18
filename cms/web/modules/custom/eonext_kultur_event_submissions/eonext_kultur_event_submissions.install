@@ -7,6 +7,7 @@
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\eonext_kultur_event_submissions\Entity\KulturEventSubmission;
+use Drupal\recurring_events\Entity\EventSeries;
 use Drupal\eonext_kultur_event_submissions\Plugin\LanguageNegotiation\LanguageNegotiationPublicForm;
 use Drupal\eonext_kultur_event_submissions\SubmissionConstants;
 use Drupal\language\Entity\ConfigurableLanguage;
@@ -637,6 +638,31 @@ function eonext_kultur_event_submissions_update_9017(): string {
  */
 function eonext_kultur_event_submissions_update_9018(): string {
   return eonext_kultur_event_submissions_reapply_eonext_437_fixes();
+}
+
+/**
+ * Backfills Greenlandic and Danish instance translations (EONEXT-437).
+ *
+ * Approved events were indexed only in the language of the editor UI, so the
+ * Greenlandic programme hid them.
+ */
+function eonext_kultur_event_submissions_update_9019(): string {
+  $storage = \Drupal::entityTypeManager()->getStorage('eventseries');
+  $ids = $storage->getQuery()->accessCheck(FALSE)->execute();
+  $publisher = \Drupal::service('eonext_kultur_event_submissions.event_series_publisher');
+  $count = 0;
+
+  foreach (array_chunk($ids, 25) as $chunk) {
+    foreach ($storage->loadMultiple($chunk) as $series) {
+      if (!$series instanceof EventSeries) {
+        continue;
+      }
+      $publisher->ensureInstanceTranslations($series);
+      $count++;
+    }
+  }
+
+  return sprintf('Ensured event instance translations for %d series.', $count);
 }
 
 /**

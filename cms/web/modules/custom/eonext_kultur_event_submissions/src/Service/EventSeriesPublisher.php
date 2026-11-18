@@ -93,6 +93,7 @@ final class EventSeriesPublisher {
     }
 
     $this->propagateSeriesLocationToInstances($series);
+    $this->ensureInstanceTranslations($series);
 
     return $series;
   }
@@ -128,6 +129,8 @@ final class EventSeriesPublisher {
         $series->addTranslation($danishLangcode, $daValues)->save();
       }
     }
+
+    $this->ensureInstanceTranslations($series);
 
     return $series;
   }
@@ -439,6 +442,45 @@ final class EventSeriesPublisher {
       $settings['handler_settings'] = $handler_settings;
       $field->set('settings', $settings);
       $field->save();
+    }
+  }
+
+  /**
+   * Adds a translation of each instance for every series language.
+   *
+   * Recurring events creates instances in the active content language. The
+   * programme listing filters Search API by that langcode, so a Danish-only
+   * instance never appears on /kl. Titles follow the series translation.
+   */
+  public function ensureInstanceTranslations(EventSeries $series): void {
+    if (!$series->isTranslatable()) {
+      return;
+    }
+
+    $langcodes = array_keys($series->getTranslationLanguages());
+    foreach ($series->get('event_instances')->referencedEntities() as $instance) {
+      if (!$instance->isTranslatable()) {
+        continue;
+      }
+
+      $changed = FALSE;
+      foreach ($langcodes as $langcode) {
+        if ($instance->hasTranslation($langcode)) {
+          continue;
+        }
+
+        $title = (string) $series->getTranslation($langcode)->label();
+        $values = [];
+        if ($instance->hasField('title') && $title !== '') {
+          $values['title'] = $title;
+        }
+        $instance->addTranslation($langcode, $values);
+        $changed = TRUE;
+      }
+
+      if ($changed) {
+        $instance->save();
+      }
     }
   }
 
