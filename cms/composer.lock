@@ -10740,12 +10740,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/ee_frontend.git",
-                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4"
+                "reference": "5f86f23e86fb5205493bdad5110dce7ac54751be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/ee_frontend/zipball/9a52d7bf8393eb155b197e708e85731c518ad6a4",
-                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4",
+                "url": "https://api.github.com/repos/inleadmedia/ee_frontend/zipball/5f86f23e86fb5205493bdad5110dce7ac54751be",
+                "reference": "5f86f23e86fb5205493bdad5110dce7ac54751be",
                 "shasum": ""
             },
             "require": {
@@ -10765,7 +10765,7 @@
                 "source": "https://github.com/inleadmedia/ee_frontend",
                 "issues": "https://github.com/inleadmedia/ee_frontend/issues"
             },
-            "time": "2026-09-30T11:35:53+00:00"
+            "time": "2026-11-18T11:17:48+00:00"
         },
         {
             "name": "inleadmedia/eonext_event_engine",
