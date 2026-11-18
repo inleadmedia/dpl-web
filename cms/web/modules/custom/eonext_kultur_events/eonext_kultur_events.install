@@ -839,7 +839,11 @@ function eonext_kultur_events_update_9018(): string {
       ->execute();
   }
 
-  \Drupal::cache('locale')->deleteAll();
+  // The locale cache bin is not always registered during updates. Asking for
+  // it throws ServiceNotFoundException and aborts the rest of updatedb.
+  if (\Drupal::hasService('cache.locale')) {
+    \Drupal::cache('locale')->deleteAll();
+  }
 
   return 'Stored City filter translations (da: By, kl: Illoqarfik).';
 }
