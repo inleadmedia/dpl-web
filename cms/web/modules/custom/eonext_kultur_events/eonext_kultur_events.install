@@ -816,6 +816,17 @@ function eonext_kultur_events_update_9019(): string {
 }
 
 /**
+ * Deletes facets whose field is missing from the Search API index.
+ *
+ * Facets calls getQueryTypesForFacet() for every facet on the active search
+ * source. A leftover facet such as "Target group" throws
+ * InvalidQueryTypeException and returns 500 for /search/web.
+ */
+function eonext_kultur_events_update_9020(): string {
+  return eonext_kultur_events_delete_facets_with_missing_fields();
+}
+
+/**
  * Writes interface translations without using the locale cache bin.
  *
  * cache.locale is not always registered during updates, and requesting it
@@ -899,6 +910,7 @@ function _eonext_kultur_events_store_interface_translations(): string {
 function eonext_kultur_events_reapply_eonext_437_fixes(): string {
   eonext_kultur_events_disable_dpl_library_facets();
   eonext_kultur_events_remove_kulturnat_listing_facets();
+  eonext_kultur_events_delete_facets_with_missing_fields();
   eonext_kultur_events_ensure_city_processor();
   eonext_kultur_events_install_event_city_facet();
   eonext_kultur_events_configure_kulturnat_program_view();
@@ -918,6 +930,48 @@ function eonext_kultur_events_remove_kulturnat_listing_facets(): void {
     }
     $facet->delete();
   }
+}
+
+/**
+ * Deletes facets that Facets cannot query because the index field is gone.
+ */
+function eonext_kultur_events_delete_facets_with_missing_fields(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('facets')) {
+    return 'Facets is not enabled.';
+  }
+
+  $deleted = [];
+  $storage = \Drupal::entityTypeManager()->getStorage('facets_facet');
+  foreach ($storage->loadMultiple() as $facet) {
+    $field_id = (string) $facet->getFieldIdentifier();
+    try {
+      $source = $facet->getFacetSource();
+      if ($source === NULL || !method_exists($source, 'getIndex')) {
+        continue;
+      }
+      $index = $source->getIndex();
+      if ($index === NULL) {
+        continue;
+      }
+      $fields = $index->getFields();
+    }
+    catch (\Throwable $exception) {
+      continue;
+    }
+
+    if ($field_id !== '' && isset($fields[$field_id])) {
+      continue;
+    }
+
+    $deleted[] = $facet->id() . ' ("' . $facet->getName() . '", field ' . $field_id . ')';
+    $facet->delete();
+  }
+
+  if ($deleted === []) {
+    return 'No facets with a missing index field.';
+  }
+
+  return 'Deleted facets with a missing index field: ' . implode(', ', $deleted) . '.';
 }
 
 /**
