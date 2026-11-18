@@ -2,7 +2,7 @@ eonext_kultur_event_submissions.public_form:
   path: '/kultur/register-event'
   defaults:
     _entity_form: 'kultur_event_submission.public'
-    _title: 'Register event'
+    _title: 'Add your event'
   requirements:
     _permission: 'submit kultur event'
     _entity_create_access: 'kultur_event_submission'

@@ -6,7 +6,7 @@ entity.kultur_event_submission.settings:
   weight: 20
 
 eonext_kultur_event_submissions.public_form:
-  title: 'Register event'
+  title: 'Add your event'
   route_name: eonext_kultur_event_submissions.public_form
   menu_name: main
   weight: 50

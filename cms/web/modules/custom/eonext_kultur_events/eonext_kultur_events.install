@@ -802,50 +802,95 @@ function eonext_kultur_events_update_9017(): string {
 }
 
 /**
- * Translates the programme city filter label into Kalaallisut (EONEXT-437).
+ * Translates the programme city filter and Read more into Kalaallisut.
  */
 function eonext_kultur_events_update_9018(): string {
+  return _eonext_kultur_events_store_interface_translations();
+}
+
+/**
+ * Stores City and Read more again when 9018 already ran without Read more.
+ */
+function eonext_kultur_events_update_9019(): string {
+  return _eonext_kultur_events_store_interface_translations();
+}
+
+/**
+ * Writes interface translations without using the locale cache bin.
+ *
+ * cache.locale is not always registered during updates, and requesting it
+ * aborts updatedb.
+ */
+function _eonext_kultur_events_store_interface_translations(): string {
   if (!\Drupal::moduleHandler()->moduleExists('locale')) {
-    return 'Locale module is not enabled; city filter label was not stored.';
+    return 'Locale module is not enabled; interface labels were not stored.';
   }
+
+  $entries = [
+    [
+      'source' => 'City',
+      'context' => '',
+      'translations' => ['da' => 'By', 'kl' => 'Illoqarfik'],
+    ],
+    [
+      'source' => 'City',
+      'context' => 'eonext_kultur_events',
+      'translations' => ['da' => 'By', 'kl' => 'Illoqarfik'],
+    ],
+    [
+      'source' => 'Read more',
+      'context' => '',
+      'translations' => ['da' => 'Læs mere', 'kl' => 'Atuarnerugit'],
+    ],
+    [
+      'source' => 'Læs mere',
+      'context' => '',
+      'translations' => ['kl' => 'Atuarnerugit'],
+    ],
+    [
+      'source' => 'LÆS MERE',
+      'context' => '',
+      'translations' => ['kl' => 'Atuarnerugit'],
+    ],
+  ];
 
   $database = \Drupal::database();
-  $lid = $database->select('locales_source', 's')
-    ->fields('s', ['lid'])
-    ->condition('source', 'City')
-    ->condition('context', 'eonext_kultur_events')
-    ->execute()
-    ->fetchField();
-  if (!$lid) {
-    $lid = $database->insert('locales_source')
-      ->fields([
-        'source' => 'City',
-        'context' => 'eonext_kultur_events',
-        'version' => \Drupal::VERSION,
-      ])
-      ->execute();
+  $languages = array_keys(\Drupal::languageManager()->getLanguages());
+  foreach ($entries as $entry) {
+    $lid = $database->select('locales_source', 's')
+      ->fields('s', ['lid'])
+      ->condition('source', $entry['source'])
+      ->condition('context', $entry['context'])
+      ->execute()
+      ->fetchField();
+    if (!$lid) {
+      $lid = $database->insert('locales_source')
+        ->fields([
+          'source' => $entry['source'],
+          'context' => $entry['context'],
+          'version' => 'none',
+        ])
+        ->execute();
+    }
+
+    foreach ($entry['translations'] as $langcode => $translation) {
+      if (!in_array($langcode, $languages, TRUE)) {
+        continue;
+      }
+      $database->merge('locales_target')
+        ->keys([
+          'lid' => $lid,
+          'language' => $langcode,
+        ])
+        ->fields([
+          'translation' => $translation,
+          'customized' => 1,
+        ])
+        ->execute();
+    }
   }
 
-  foreach (['da' => 'By', 'kl' => 'Illoqarfik'] as $langcode => $translation) {
-    $database->merge('locales_target')
-      ->keys([
-        'lid' => $lid,
-        'language' => $langcode,
-      ])
-      ->fields([
-        'translation' => $translation,
-        'customized' => 1,
-      ])
-      ->execute();
-  }
-
-  // The locale cache bin is not always registered during updates. Asking for
-  // it throws ServiceNotFoundException and aborts the rest of updatedb.
-  if (\Drupal::hasService('cache.locale')) {
-    \Drupal::cache('locale')->deleteAll();
-  }
-
-  return 'Stored City filter translations (da: By, kl: Illoqarfik).';
+  return 'Stored City (By / Illoqarfik) and Read more (Læs mere / Atuarnerugit).';
 }
 
 /**

@@ -666,6 +666,85 @@ function eonext_kultur_event_submissions_update_9019(): string {
 }
 
 /**
+ * Renames "Register event" to "Add your event" in the menu and page header.
+ */
+function eonext_kultur_event_submissions_update_9020(): string {
+  $title = 'Add your event';
+  $renamed = 0;
+
+  if (\Drupal::moduleHandler()->moduleExists('menu_link_content')) {
+    $storage = \Drupal::entityTypeManager()->getStorage('menu_link_content');
+    $ids = $storage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('title', ['Register event', 'Registrer arrangement', 'Registered event'], 'IN')
+      ->execute();
+    foreach ($storage->loadMultiple($ids) as $link) {
+      $link->set('title', $title);
+      $link->save();
+      $renamed++;
+    }
+  }
+
+  $overrides = \Drupal::configFactory()->getEditable('core.menu.static_menu_link_overrides');
+  $definitions = $overrides->get('definitions') ?? [];
+  $plugin_id = 'eonext_kultur_event_submissions.public_form';
+  if (is_array($definitions) && isset($definitions[$plugin_id]) && ($definitions[$plugin_id]['title'] ?? '') !== $title) {
+    $definitions[$plugin_id]['title'] = $title;
+    $overrides->set('definitions', $definitions)->save();
+    $renamed++;
+  }
+
+  $locale = _eonext_kultur_event_submissions_store_add_your_event_translation();
+
+  return trim("Menu and page title is now \"{$title}\". Updated {$renamed} menu override(s). {$locale}");
+}
+
+/**
+ * Stores the menu and page-header translation without the locale cache bin.
+ */
+function _eonext_kultur_event_submissions_store_add_your_event_translation(): string {
+  if (!\Drupal::moduleHandler()->moduleExists('locale')) {
+    return 'Locale module is not enabled.';
+  }
+
+  $database = \Drupal::database();
+  $languages = array_keys(\Drupal::languageManager()->getLanguages());
+  $lid = $database->select('locales_source', 's')
+    ->fields('s', ['lid'])
+    ->condition('source', 'Add your event')
+    ->condition('context', '')
+    ->execute()
+    ->fetchField();
+  if (!$lid) {
+    $lid = $database->insert('locales_source')
+      ->fields([
+        'source' => 'Add your event',
+        'context' => '',
+        'version' => 'none',
+      ])
+      ->execute();
+  }
+
+  foreach (['da' => 'Tilføj dit arrangement', 'kl' => 'Pilersaarut ilanngutigiuk'] as $langcode => $translation) {
+    if (!in_array($langcode, $languages, TRUE)) {
+      continue;
+    }
+    $database->merge('locales_target')
+      ->keys([
+        'lid' => $lid,
+        'language' => $langcode,
+      ])
+      ->fields([
+        'translation' => $translation,
+        'customized' => 1,
+      ])
+      ->execute();
+  }
+
+  return 'Stored Add your event (da: Tilføj dit arrangement, kl: Pilersaarut ilanngutigiuk).';
+}
+
+/**
  * Re-applies Kulturnat submission fixes after deploy or config import.
  */
 function eonext_kultur_event_submissions_reapply_eonext_437_fixes(): string {

@@ -1906,6 +1906,63 @@ function eonext_kultur_main_update_9044(): string {
 }
 
 /**
+ * Lets editors translate the hero and the automatic event-list title per language.
+ */
+function eonext_kultur_main_update_9045(): string {
+  $messages = [];
+  $fields = [
+    ['paragraph', 'banner', 'field_underlined_title'],
+    ['paragraph', 'banner', 'field_banner_description'],
+    ['paragraph', 'hero', 'field_hero_title'],
+    ['node', 'page', 'field_hero_title'],
+    ['paragraph', 'filtered_event_list', 'field_title'],
+    ['paragraph', 'manual_event_list', 'field_title'],
+  ];
+  foreach ($fields as [$entity_type, $bundle, $field_name]) {
+    try {
+      if (_eonext_kultur_main_set_field_translatable($entity_type, $bundle, $field_name)) {
+        $messages[] = "Made {$entity_type}.{$bundle}.{$field_name} translatable.";
+      }
+    }
+    catch (\Throwable $exception) {
+      $messages[] = "Could not make {$entity_type}.{$bundle}.{$field_name} translatable: " . $exception->getMessage();
+    }
+  }
+
+  if (\Drupal::moduleHandler()->moduleExists('content_translation')) {
+    $manager = \Drupal::service('content_translation.manager');
+    $bundle_info = \Drupal::service('entity_type.bundle.info');
+    foreach (['banner', 'hero', 'filtered_event_list', 'manual_event_list'] as $bundle) {
+      if (!isset($bundle_info->getBundleInfo('paragraph')[$bundle])) {
+        continue;
+      }
+      try {
+        if (!$manager->isEnabled('paragraph', $bundle)) {
+          $manager->setEnabled('paragraph', $bundle, TRUE);
+          $messages[] = "Enabled content translation for paragraph.{$bundle}.";
+        }
+        $settings = ContentLanguageSettings::load("paragraph.{$bundle}");
+        if (!$settings instanceof ContentLanguageSettings) {
+          $settings = ContentLanguageSettings::create([
+            'target_entity_type_id' => 'paragraph',
+            'target_bundle' => $bundle,
+          ]);
+        }
+        $settings->setLanguageAlterable(TRUE);
+        $settings->save();
+      }
+      catch (\Throwable $exception) {
+        $messages[] = "Could not enable translation for paragraph.{$bundle}: " . $exception->getMessage();
+      }
+    }
+  }
+
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+
+  return implode(' ', $messages) ?: 'Hero and event-list titles were already translatable.';
+}
+
+/**
  * Unprefixed public URLs fall through to Kalaallisut, and Danish uses /da.
  */
 function _eonext_kultur_main_set_greenlandic_default_language(): string {

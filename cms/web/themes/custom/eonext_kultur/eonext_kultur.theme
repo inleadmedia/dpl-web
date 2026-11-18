@@ -520,6 +520,9 @@ function _eonext_kultur_apply_nav_spot_settings(array &$variables): void {
   if (!empty($element['#nav_spot_button_label'])) {
     $variables['button_label'] = $element['#nav_spot_button_label'];
   }
+  elseif (empty($variables['button_label'])) {
+    $variables['button_label'] = (string) t('Read more');
+  }
   if (!empty($element['#nav_spot_image_alignment'])) {
     $variables['image_alignment'] = $element['#nav_spot_image_alignment'];
   }

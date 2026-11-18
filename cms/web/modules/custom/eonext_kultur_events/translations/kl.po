@@ -33,6 +33,12 @@ msgctxt "eonext_kultur_events"
 msgid "Søg"
 msgstr "Ujarleruk"
 
+msgid "City"
+msgstr "Illoqarfik"
+
+msgid "Read more"
+msgstr "Atuarnerugit"
+
 msgctxt "eonext_kultur_events"
 msgid "City"
 msgstr "Illoqarfik"

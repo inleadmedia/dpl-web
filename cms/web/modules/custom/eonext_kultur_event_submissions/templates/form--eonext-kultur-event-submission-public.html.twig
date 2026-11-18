@@ -6,7 +6,7 @@
 #}
 <form{{ attributes.addClass('ek-submission-form', 'dpl-form').setAttribute('method', 'post').setAttribute('enctype', 'multipart/form-data') }}>
   {{ include('@eonext_kultur/components/ek-page-title-band.html.twig', {
-    title: 'Register event'|t({}, {'context': 'eonext_kultur_event_submissions'}),
+    title: 'Add your event'|t,
     intro: 'Fill in the details below to submit your event for Kulturnat. All fields marked with * are required.'|t({}, {'context': 'eonext_kultur_event_submissions'}),
   }, with_context = false) }}
 

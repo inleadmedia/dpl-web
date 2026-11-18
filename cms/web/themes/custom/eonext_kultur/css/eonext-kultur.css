@@ -1378,14 +1378,15 @@ main:has(.ek-page-title-band) {
 
 /* Long Greenlandic banner titles wrap inside the white card (EONEXT-437). */
 .banner--has-image .banner__content--has-image {
-  max-width: min(22rem, 78%);
+  max-width: min(40rem, 88%);
 }
 
 .banner--has-image .banner__title {
-  font-size: clamp(1.15rem, 2.2vw, 1.75rem);
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-  hyphens: auto;
+  font-size: clamp(1.35rem, 2.6vw, 2.15rem);
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  hyphens: manual;
+  text-wrap: balance;
 }
 
 /* ---- Language translation selector in ek-header ---- */
