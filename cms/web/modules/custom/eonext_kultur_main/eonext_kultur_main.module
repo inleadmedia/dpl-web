@@ -17,6 +17,8 @@ use Drupal\node\NodeInterface;
 use Drupal\paragraphs\ParagraphInterface;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
+use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\views\ViewExecutable;
 
 /**
  * Implements hook_preprocess_HOOK() for page.
@@ -384,6 +386,30 @@ function _eonext_kultur_main_apply_nav_grid_overlay_color(array &$variables, Par
     }
     $item['content']['#nav_teaser_overlay_background_color'] = $overlay_color;
   }
+}
+
+/**
+ * Limits editorial search to the active content language.
+ *
+ * content_events indexes one item per translation. Without this condition,
+ * /kl/search and /da/search both return every language version.
+ */
+function eonext_kultur_main_views_query_alter(ViewExecutable $view, $query): void {
+  if ($view->id() !== DplSearchSettings::EDITORIAL_VIEW_ID) {
+    return;
+  }
+  if (!$query instanceof SearchApiQuery) {
+    return;
+  }
+
+  $search_api_query = $query->getSearchApiQuery();
+  if ($search_api_query === NULL) {
+    return;
+  }
+
+  $langcode = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT)->getId();
+  $search_api_query->setLanguages([$langcode]);
+  $search_api_query->addCondition('search_api_language', $langcode);
 }
 
 /**
