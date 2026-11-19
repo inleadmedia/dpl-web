@@ -10708,12 +10708,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "ccc44a7cd21b14e4c678b99ab08337f4388e53ab"
+                "reference": "383e3d3a0c68a0f1075f638903272277a19b364d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/ccc44a7cd21b14e4c678b99ab08337f4388e53ab",
-                "reference": "ccc44a7cd21b14e4c678b99ab08337f4388e53ab",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/383e3d3a0c68a0f1075f638903272277a19b364d",
+                "reference": "383e3d3a0c68a0f1075f638903272277a19b364d",
                 "shasum": ""
             },
             "require": {
@@ -10732,7 +10732,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-11-18T10:59:13+00:00"
+            "time": "2026-11-19T10:20:39+00:00"
         },
         {
             "name": "inleadmedia/ee_frontend",
