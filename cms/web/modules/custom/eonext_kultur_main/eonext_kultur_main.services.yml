@@ -20,3 +20,7 @@ services:
       - '@config.factory'
     tags:
       - { name: event_subscriber }
+  eonext_kultur_main.skip_go_revalidate:
+    class: Drupal\eonext_kultur_main\EventSubscriber\SkipGoRevalidateSubscriber
+    tags:
+      - { name: event_subscriber }
