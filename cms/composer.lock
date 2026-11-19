@@ -10773,20 +10773,21 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/eonext_event_engine.git",
-                "reference": "71562e040f6b53ad011319ddd4f72616e9906254"
+                "reference": "36635036dbb07d75b9c48df9bf1cf1788a06e7bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/71562e040f6b53ad011319ddd4f72616e9906254",
-                "reference": "71562e040f6b53ad011319ddd4f72616e9906254",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_event_engine/zipball/36635036dbb07d75b9c48df9bf1cf1788a06e7bd",
+                "reference": "36635036dbb07d75b9c48df9bf1cf1788a06e7bd",
                 "shasum": ""
             },
             "require": {
-                "drupal/core": "^10",
+                "drupal/core": "^10 || ^11",
                 "drupal/entity_reference_revisions": "^1.11",
                 "drupal/enum_field": "^1.0",
                 "drupal/gsearch": "^1",
-                "drupal/paragraphs": "^1.16"
+                "drupal/paragraphs": "^1.16",
+                "php": ">=8.3"
             },
             "suggest": {
                 "dpl_event": "Custom Drupal module dependency; must be present in the host project (see eonext_event_engine.info.yml)."
@@ -10801,7 +10802,7 @@
                 "source": "https://github.com/inleadmedia/eonext_event_engine",
                 "issues": "https://github.com/inleadmedia/eonext_event_engine/issues"
             },
-            "time": "2026-11-06T17:40:18+00:00"
+            "time": "2026-11-19T08:52:14+00:00"
         },
         {
             "name": "itamair/geophp",
