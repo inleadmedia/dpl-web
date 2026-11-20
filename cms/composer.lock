@@ -10932,12 +10932,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/easyemail.git",
-                "reference": "bcbe7b0e043a1ebd5b98470d6757148a37db20a0"
+                "reference": "23c86a3ec63972611906e926398466117bb9fcfd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/bcbe7b0e043a1ebd5b98470d6757148a37db20a0",
-                "reference": "bcbe7b0e043a1ebd5b98470d6757148a37db20a0",
+                "url": "https://api.github.com/repos/inleadmedia/easyemail/zipball/23c86a3ec63972611906e926398466117bb9fcfd",
+                "reference": "23c86a3ec63972611906e926398466117bb9fcfd",
                 "shasum": ""
             },
             "require": {
@@ -10956,7 +10956,7 @@
                 "source": "https://github.com/inleadmedia/easyemail",
                 "issues": "https://github.com/inleadmedia/easyemail/issues"
             },
-            "time": "2026-11-11T11:27:10+00:00"
+            "time": "2026-11-20T10:39:17+00:00"
         },
         {
             "name": "inleadmedia/ee_frontend",
@@ -10964,12 +10964,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/ee_frontend.git",
-                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4"
+                "reference": "5f86f23e86fb5205493bdad5110dce7ac54751be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/ee_frontend/zipball/9a52d7bf8393eb155b197e708e85731c518ad6a4",
-                "reference": "9a52d7bf8393eb155b197e708e85731c518ad6a4",
+                "url": "https://api.github.com/repos/inleadmedia/ee_frontend/zipball/5f86f23e86fb5205493bdad5110dce7ac54751be",
+                "reference": "5f86f23e86fb5205493bdad5110dce7ac54751be",
                 "shasum": ""
             },
             "require": {
@@ -10989,7 +10989,7 @@
                 "source": "https://github.com/inleadmedia/ee_frontend",
                 "issues": "https://github.com/inleadmedia/ee_frontend/issues"
             },
-            "time": "2026-09-30T11:35:53+00:00"
+            "time": "2026-11-18T11:17:48+00:00"
         },
         {
             "name": "inleadmedia/eonext_editorial_search",
@@ -10997,12 +10997,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:inleadmedia/eonext_editorial_search.git",
-                "reference": "f4d63a28508412abdb1831861dca36792795afd2"
+                "reference": "7e6a2a265cd99cdf857714b428763447a43cd182"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/f4d63a28508412abdb1831861dca36792795afd2",
-                "reference": "f4d63a28508412abdb1831861dca36792795afd2",
+                "url": "https://api.github.com/repos/inleadmedia/eonext_editorial_search/zipball/7e6a2a265cd99cdf857714b428763447a43cd182",
+                "reference": "7e6a2a265cd99cdf857714b428763447a43cd182",
                 "shasum": ""
             },
             "require": {
@@ -11029,7 +11029,7 @@
                 "source": "https://github.com/inleadmedia/eonext_editorial_search",
                 "issues": "https://github.com/inleadmedia/eonext_editorial_search/issues"
             },
-            "time": "2026-10-30T09:54:56+00:00"
+            "time": "2026-11-05T13:46:29+00:00"
         },
         {
             "name": "inleadmedia/eonext_event_engine",

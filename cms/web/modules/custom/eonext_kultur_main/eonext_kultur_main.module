@@ -142,19 +142,27 @@ function _eonext_kultur_main_attach_editorial_search_overlay(array &$element): v
       'relatedContentText' => (string) t('Related content', [], ['context' => 'DPL related content']),
     ],
   ];
-  $element['#attached']['html_head'][] = [
-    [
-      '#type' => 'html_tag',
-      '#tag' => 'span',
-      '#attributes' => [
-        'data-eonext-editorial-overlay' => 'true',
-        'hidden' => 'hidden',
-        'aria-hidden' => 'true',
-      ],
-    ],
-    'eonext_kultur_main_editorial_overlay_flag',
-  ];
+  // Marker must live in <body> (invalid in <head> — breaks favicon/title in Chrome).
+  \Drupal::request()->attributes->set('eonext_kultur_main_editorial_overlay', TRUE);
   $element['#cache']['tags'][] = 'config:eonext_editorial_search.settings';
+}
+
+/**
+ * Implements hook_page_top().
+ */
+function eonext_kultur_main_page_top(array &$page_top): void {
+  if (!\Drupal::request()->attributes->get('eonext_kultur_main_editorial_overlay')) {
+    return;
+  }
+  $page_top['eonext_kultur_main_editorial_overlay_flag'] = [
+    '#type' => 'html_tag',
+    '#tag' => 'span',
+    '#attributes' => [
+      'data-eonext-editorial-overlay' => 'true',
+      'hidden' => 'hidden',
+      'aria-hidden' => 'true',
+    ],
+  ];
 }
 
 /**
