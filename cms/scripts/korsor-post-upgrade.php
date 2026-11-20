@@ -33,6 +33,13 @@ foreach ($saved as $name => $permissions) {
 }
 $state->delete('korsor_upgrade.role_permissions');
 
+// dpl_update_update_10082 enables it, but Korsør sync has no service_message
+// bundle/fields, so its loader throws on every page (field_svcmsg_placement).
+if (\Drupal::moduleHandler()->moduleExists('dpl_service_message')) {
+  \Drupal::service('module_installer')->uninstall(['dpl_service_message']);
+  echo "Uninstalled dpl_service_message (no service_message config in Korsør sync).\n";
+}
+
 if (\Drupal::moduleHandler()->moduleExists('dk_address_gsearch_migrate')) {
   \Drupal::service('module_installer')->uninstall(['dk_address_gsearch_migrate']);
   echo "Uninstalled dk_address_gsearch_migrate (gsearch kept).\n";
