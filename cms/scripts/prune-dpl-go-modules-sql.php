@@ -110,7 +110,7 @@ $data['module'] = $modules;
 $upd = $pdo->prepare("UPDATE {$table} SET data = :data WHERE name = :name AND collection = ''");
 $upd->execute([':data' => serialize($data), ':name' => 'core.extension']);
 
-foreach (['cache_container', 'cache_bootstrap', 'cache_discovery'] as $cache_table) {
+foreach (['cache_container', 'cache_bootstrap', 'cache_discovery', 'cache_config'] as $cache_table) {
   $pdo->exec('TRUNCATE ' . $prefix . $cache_table);
 }
 
