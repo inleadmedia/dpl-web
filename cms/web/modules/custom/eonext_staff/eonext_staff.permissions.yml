@@ -1,2 +1,11 @@
+administer eonext_library_staff:
+  title: 'Administer library staff'
+  description: 'Configure library staff settings and access the staff administration pages.'
+  restrict access: true
+
 edit eonext_library_staff:
   title: 'Edit library staff'
+
+delete eonext_library_staff:
+  title: 'Delete library staff'
+  restrict access: true

@@ -1,0 +1,4 @@
+services:
+  Drupal\eonext_staff\Access\LibraryStaffEditRouteAccessCheck:
+    tags:
+      - { name: access_check, applies_to: _eonext_staff_edit_access }

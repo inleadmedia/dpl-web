@@ -8,6 +8,7 @@
 use Drupal\Core\Config\FileStorage;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\user\Entity\Role;
 
 /**
  * New configuration shipped by the staff list extension.
@@ -36,6 +37,7 @@ const EONEXT_STAFF_UPDATED_CONFIG = [
 function eonext_staff_install(): void {
   eonext_staff_add_paragraph_type_to_content_types();
   _eonext_staff_grant_interest_text_format_permission();
+  _eonext_staff_grant_library_staff_role_permissions();
 }
 
 /**
@@ -322,11 +324,40 @@ function eonext_staff_update_staff_view_branch_filter(): void {
 function _eonext_staff_grant_interest_text_format_permission(): void {
   $permission = 'use text format eonext_staff_interest';
   foreach (['administrator', 'local_administrator', 'editor'] as $role_id) {
-    $role = \Drupal\user\Entity\Role::load($role_id);
+    $role = Role::load($role_id);
     if ($role === NULL || $role->hasPermission($permission)) {
       continue;
     }
     $role->grantPermission($permission);
+    $role->save();
+  }
+}
+
+/**
+ * Grants library staff entity permissions to site admin roles.
+ */
+function _eonext_staff_grant_library_staff_role_permissions(): void {
+  $map = [
+    'administrator' => [
+      'administer eonext_library_staff',
+      'edit eonext_library_staff',
+    ],
+    'local_administrator' => [
+      'edit eonext_library_staff',
+    ],
+  ];
+
+  foreach ($map as $role_id => $permissions) {
+    $role = Role::load($role_id);
+    if ($role === NULL) {
+      continue;
+    }
+    foreach ($permissions as $permission) {
+      if ($role->hasPermission($permission)) {
+        continue;
+      }
+      $role->grantPermission($permission);
+    }
     $role->save();
   }
 }

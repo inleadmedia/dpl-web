@@ -46,3 +46,12 @@ function eonext_staff_post_update_interest_description_rich_text(): string {
 
   return 'Interest description rich text field is configured.';
 }
+
+/**
+ * Grant library staff permissions to default admin roles.
+ */
+function eonext_staff_post_update_grant_library_staff_role_permissions(): string {
+  _eonext_staff_grant_library_staff_role_permissions();
+
+  return 'Granted library staff permissions to administrator and local_administrator roles.';
+}
