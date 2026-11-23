@@ -2,7 +2,10 @@
 
 namespace Drupal\dpl_event\EventSubscriber;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\recurring_events\Entity\EventInstance;
 use Drupal\recurring_events\Entity\EventSeries;
@@ -29,6 +32,7 @@ class EventSeriesRedirect implements EventSubscriberInterface {
   public function __construct(
     private EntityTypeManagerInterface $entityTypeManager,
     private ReoccurringDateFormatter $reoccurringDateFormatter,
+    private LanguageManagerInterface $languageManager,
   ) {}
 
   /**
@@ -80,7 +84,7 @@ class EventSeriesRedirect implements EventSubscriberInterface {
     $event_instance = $this->entityTypeManager->getStorage('eventinstance')->load($event_instance_id);
 
     if ($event_instance instanceof EventInstance) {
-      $response = new RedirectResponse($event_instance->toUrl()->toString());
+      $response = new RedirectResponse($this->toCurrentLanguageUrl($event_instance));
       $event->setResponse($response);
     }
   }
@@ -114,8 +118,19 @@ class EventSeriesRedirect implements EventSubscriberInterface {
       return;
     }
 
-    $response = new RedirectResponse($event_series->toUrl()->toString());
+    $response = new RedirectResponse($this->toCurrentLanguageUrl($event_series));
     $event->setResponse($response);
+  }
+
+  /**
+   * Canonical URL in the current page language, not the entity source language.
+   *
+   * Event instances are often created in Danish. Entity::toUrl() would then
+   * send /kl series visitors to /da.
+   */
+  private function toCurrentLanguageUrl(EntityInterface $entity): string {
+    $language = $this->languageManager->getCurrentLanguage(LanguageInterface::TYPE_URL);
+    return $entity->toUrl('canonical', ['language' => $language])->toString();
   }
 
   /**

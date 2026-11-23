@@ -14,7 +14,6 @@ use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Url;
 use Drupal\dpl_event\ReoccurringDateFormatter;
 use Drupal\media\MediaInterface;
 use Drupal\node\NodeInterface;
@@ -57,6 +56,17 @@ final class HeroSlideBuilder {
   }
 
   /**
+   * Canonical URL in the current page language, not the entity source language.
+   *
+   * Event series often exist only in kl. Entity::toUrl() would then prefix the
+   * href with /kl even on /da, and Drupal later redirects to the Danish alias.
+   */
+  private function toCurrentLanguageUrl(EntityInterface $entity): string {
+    $language = $this->languageManager->getCurrentLanguage(LanguageInterface::TYPE_URL);
+    return $entity->toUrl('canonical', ['language' => $language])->toString();
+  }
+
+  /**
    * Uses the current content language when a translation exists.
    */
   private function getTranslatedEntity(EntityInterface $entity): EntityInterface {
@@ -79,6 +89,14 @@ final class HeroSlideBuilder {
     $details = $this->recurringDateFormatter->getUpcomingEventDetails($eventSeries);
     $start = $details['start'] ?? NULL;
     $end = $details['end'] ?? NULL;
+    $url_entity = $eventSeries;
+    $upcoming_ids = is_array($details) ? ($details['upcoming_ids'] ?? []) : [];
+    if (count($upcoming_ids) === 1) {
+      $instance = $this->entityTypeManager->getStorage('eventinstance')->load(reset($upcoming_ids));
+      if ($instance instanceof EventInstance) {
+        $url_entity = $instance;
+      }
+    }
 
     return [
       'title' => $eventSeries->label(),
@@ -88,7 +106,7 @@ final class HeroSlideBuilder {
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $this->recurringDateFormatter->isAllDay($eventSeries))
         : NULL,
-      'url' => $eventSeries->toUrl()->toString(),
+      'url' => $this->toCurrentLanguageUrl($url_entity),
       'image' => $this->buildBannerImage($eventSeries, ['field_event_image', 'field_teaser_image']),
     ];
   }
@@ -117,9 +135,7 @@ final class HeroSlideBuilder {
       'date_display' => ($start instanceof DrupalDateTime)
         ? $this->formatHeroDate($start, $end instanceof DrupalDateTime ? $end : NULL, $allDay)
         : NULL,
-      'url' => Url::fromRoute('entity.eventinstance.canonical', [
-        'eventinstance' => $eventInstance->id(),
-      ])->toString(),
+      'url' => $this->toCurrentLanguageUrl($eventInstance),
       'image' => $this->buildBannerImage($eventInstance, ['event_image', 'field_event_image', 'event_teaser_image', 'field_teaser_image']),
     ];
   }
@@ -133,7 +149,7 @@ final class HeroSlideBuilder {
       'category' => $this->getCategoryLabel($node),
       'tagline' => $this->getTagline($node, 'field_teaser_text', 'body'),
       'date_display' => NULL,
-      'url' => $node->toUrl()->toString(),
+      'url' => $this->toCurrentLanguageUrl($node),
       'image' => $this->buildBannerImage($node, ['field_teaser_image']),
     ];
   }
