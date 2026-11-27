@@ -26,23 +26,23 @@ const useReservableFromAnotherLibrary = (
   });
 
   const blacklistedBranches = config("blacklistedAvailabilityBranchesConfig", { transformer: "stringToArray" });
-  const availableForReservation = !holdingsData || holdingsData.length === 0 || (holdingsData || []).filter(group => {
-    if (group.reservable !== true)
-      return false;
+  let availableForLocalReservation = false;
+  if (Array.isArray(holdingsData)) {
+    availableForLocalReservation = holdingsData.filter(group => {
+      if (group.reservable !== true)
+        return false;
 
-    if ((group.holdings || []).length === 0)
-      return true;
-
-    return group.holdings.filter(holding => {
-      return blacklistedBranches.includes(holding.branch.branchId) === false && holding.materials.filter((material) => {
-        return blacklistedGroup.includes(material?.materialGroup?.name) === false;
+      return group.holdings.filter(holding => {
+        return blacklistedBranches.includes(holding.branch.branchId) === false && holding.materials.filter((material) => {
+          return blacklistedGroup.includes(material?.materialGroup?.name) === false;
+        }).length !== 0;
       }).length !== 0;
     }).length !== 0;
-  }).length !== 0;
+  }
 
   // If there is no holdings data or if there are holdings that are reservable, we return an empty array.
   // Because we use the array length to determine if we should show the button or not.
-  if (holdingsData?.some(({ reservable }) => reservable === true) || availableForReservation !== true) {
+  if (availableForLocalReservation) {
     return {
       reservablePidsFromAnotherLibrary: [],
       materialIsReservableFromAnotherLibrary: false
